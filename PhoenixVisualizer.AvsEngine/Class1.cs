@@ -81,7 +81,7 @@ public sealed class AvsEngine : IAvsEngine
 	}
 }
 
-file sealed class Preset
+internal sealed class Preset
 {
 	public int Points { get; set; } = 256;
 	public RenderMode Mode { get; set; } = RenderMode.Line;
@@ -90,5 +90,5 @@ file sealed class Preset
 	public static Preset CreateDefault() => new();
 }
 
-file enum RenderMode { Line, Bars }
-file enum SourceMode { Fft, Sin }
+internal enum RenderMode { Line, Bars }
+internal enum SourceMode { Fft, Sin }
