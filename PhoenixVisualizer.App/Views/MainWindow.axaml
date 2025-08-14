@@ -15,6 +15,16 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Orientation="Horizontal" Margin="8">
+            <Button Content="Open" Margin="0,0,8,0"/>
+            <Button Content="Play" Margin="0,0,8,0"/>
+            <Button Content="Pause" Margin="0,0,8,0"/>
+            <Button Content="Stop"/>
+        </StackPanel>
+        <Border Grid.Row="1" Margin="8" Background="#111">
+            <TextBlock Text="Render Panel (Phase 1 stub)" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
 
 </Window>
