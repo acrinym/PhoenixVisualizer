@@ -3,12 +3,14 @@ using Avalonia.Interactivity;
 using PhoenixVisualizer.Rendering;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using System.Collections.Generic;
 
 namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
     private Rendering.RenderSurface? RenderSurfaceControl => this.FindControl<Control>("RenderHost") as Rendering.RenderSurface;
+    private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
 
     public MainWindow()
     {
@@ -18,18 +20,16 @@ public partial class MainWindow : Window
     private async void OnOpenClick(object? sender, RoutedEventArgs e)
     {
         if (RenderSurfaceControl is null) return;
-        var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Open Audio File",
-            AllowMultiple = false,
-            FileTypeFilter = new[]
+        var files = await this.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions
             {
-                new FilePickerFileType("Audio")
+                Title = "Open Audio File",
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
                 {
-                    Patterns = new[] { "*.mp3", "*.wav", "*.flac", "*.ogg" }
+                    new FilePickerFileType("Audio") { Patterns = AudioPatterns }
                 }
-            }
-        });
+            });
         var file = files.Count > 0 ? files[0] : null;
         if (file is null) return;
         await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
