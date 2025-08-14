@@ -4,6 +4,68 @@
     "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj": {}
   },
   "projects": {
+    "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj",
+        "projectName": "PhoenixVisualizer.ApeHost",
+        "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.412/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
     "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -26,11 +88,23 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj"
+              },
               "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj": {
                 "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj"
               },
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj"
+              },
               "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj": {
                 "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj"
+              },
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj"
+              },
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
               },
               "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj": {
                 "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj"
@@ -170,6 +244,68 @@
         }
       }
     },
+    "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj",
+        "projectName": "PhoenixVisualizer.AvsEngine",
+        "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+                "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.412/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
     "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -214,6 +350,122 @@
               "version": "[13.0.3, )"
             }
           },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.412/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj",
+        "projectName": "PhoenixVisualizer.Plots",
+        "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.412/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj",
+        "projectName": "PhoenixVisualizer.PluginHost",
+        "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
           "imports": [
             "net461",
             "net462",

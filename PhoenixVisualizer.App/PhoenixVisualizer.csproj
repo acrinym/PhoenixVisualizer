@@ -17,6 +17,10 @@
     <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.PluginHost\PhoenixVisualizer.PluginHost.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.ApeHost\PhoenixVisualizer.ApeHost.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.AvsEngine\PhoenixVisualizer.AvsEngine.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
   </ItemGroup>
 
   <ItemGroup>

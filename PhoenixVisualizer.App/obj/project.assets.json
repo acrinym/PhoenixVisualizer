@@ -2090,6 +2090,19 @@
           "lib/net8.0/Tmds.DBus.Protocol.dll": {}
         }
       },
+      "PhoenixVisualizer.ApeHost/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "PhoenixVisualizer.PluginHost": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/PhoenixVisualizer.ApeHost.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PhoenixVisualizer.ApeHost.dll": {}
+        }
+      },
       "PhoenixVisualizer.Audio/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -2105,6 +2118,19 @@
           "bin/placeholder/PhoenixVisualizer.Audio.dll": {}
         }
       },
+      "PhoenixVisualizer.AvsEngine/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "PhoenixVisualizer.PluginHost": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/PhoenixVisualizer.AvsEngine.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PhoenixVisualizer.AvsEngine.dll": {}
+        }
+      },
       "PhoenixVisualizer.Core/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -2116,6 +2142,26 @@
         },
         "runtime": {
           "bin/placeholder/PhoenixVisualizer.Core.dll": {}
+        }
+      },
+      "PhoenixVisualizer.Plots/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/PhoenixVisualizer.Plots.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PhoenixVisualizer.Plots.dll": {}
+        }
+      },
+      "PhoenixVisualizer.PluginHost/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/PhoenixVisualizer.PluginHost.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PhoenixVisualizer.PluginHost.dll": {}
         }
       },
       "PhoenixVisualizer.Visuals/1.0.0": {
@@ -6547,15 +6593,35 @@
         "tmds.dbus.protocol.nuspec"
       ]
     },
+    "PhoenixVisualizer.ApeHost/1.0.0": {
+      "type": "project",
+      "path": "../PhoenixVisualizer.ApeHost/PhoenixVisualizer.ApeHost.csproj",
+      "msbuildProject": "../PhoenixVisualizer.ApeHost/PhoenixVisualizer.ApeHost.csproj"
+    },
     "PhoenixVisualizer.Audio/1.0.0": {
       "type": "project",
       "path": "../PhoenixVisualizer.Audio/PhoenixVisualizer.Audio.csproj",
       "msbuildProject": "../PhoenixVisualizer.Audio/PhoenixVisualizer.Audio.csproj"
     },
+    "PhoenixVisualizer.AvsEngine/1.0.0": {
+      "type": "project",
+      "path": "../PhoenixVisualizer.AvsEngine/PhoenixVisualizer.AvsEngine.csproj",
+      "msbuildProject": "../PhoenixVisualizer.AvsEngine/PhoenixVisualizer.AvsEngine.csproj"
+    },
     "PhoenixVisualizer.Core/1.0.0": {
       "type": "project",
       "path": "../PhoenixVisualizer.Core/PhoenixVisualizer.Core.csproj",
       "msbuildProject": "../PhoenixVisualizer.Core/PhoenixVisualizer.Core.csproj"
+    },
+    "PhoenixVisualizer.Plots/1.0.0": {
+      "type": "project",
+      "path": "../PhoenixVisualizer.Plots/PhoenixVisualizer.Plots.csproj",
+      "msbuildProject": "../PhoenixVisualizer.Plots/PhoenixVisualizer.Plots.csproj"
+    },
+    "PhoenixVisualizer.PluginHost/1.0.0": {
+      "type": "project",
+      "path": "../PhoenixVisualizer.PluginHost/PhoenixVisualizer.PluginHost.csproj",
+      "msbuildProject": "../PhoenixVisualizer.PluginHost/PhoenixVisualizer.PluginHost.csproj"
     },
     "PhoenixVisualizer.Visuals/1.0.0": {
       "type": "project",
@@ -6571,8 +6637,12 @@
       "Avalonia.Fonts.Inter >= 11.3.3",
       "Avalonia.Themes.Fluent >= 11.3.3",
       "CommunityToolkit.Mvvm >= 8.2.1",
+      "PhoenixVisualizer.ApeHost >= 1.0.0",
       "PhoenixVisualizer.Audio >= 1.0.0",
+      "PhoenixVisualizer.AvsEngine >= 1.0.0",
       "PhoenixVisualizer.Core >= 1.0.0",
+      "PhoenixVisualizer.Plots >= 1.0.0",
+      "PhoenixVisualizer.PluginHost >= 1.0.0",
       "PhoenixVisualizer.Visuals >= 1.0.0"
     ]
   },
@@ -6601,11 +6671,23 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
+            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj": {
+              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj"
+            },
             "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj": {
               "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj"
             },
+            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj": {
+              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj"
+            },
             "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj": {
               "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj"
+            },
+            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj": {
+              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj"
+            },
+            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
             },
             "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj": {
               "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj"

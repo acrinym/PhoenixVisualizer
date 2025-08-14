@@ -37,8 +37,12 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.18\ref\net8.0\netsta
 C:\Users\User\.nuget\packages\newtonsoft.json\13.0.3\lib\net6.0\Newtonsoft.Json.dll
 C:\Users\User\.nuget\packages\opentk\3.1.0\lib\net20\OpenTK.dll
 C:\Users\User\.nuget\packages\opentk.glcontrol\3.1.0\lib\net20\OpenTK.GLControl.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.ApeHost\obj\Debug\net8.0\ref\PhoenixVisualizer.ApeHost.dll
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Audio\obj\Debug\net8.0\ref\PhoenixVisualizer.Audio.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\obj\Debug\net8.0\ref\PhoenixVisualizer.AvsEngine.dll
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\ref\PhoenixVisualizer.Core.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plots\obj\Debug\net8.0\ref\PhoenixVisualizer.Plots.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.PluginHost\obj\Debug\net8.0\ref\PhoenixVisualizer.PluginHost.dll
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\obj\Debug\net8.0\ref\PhoenixVisualizer.Visuals.dll
 C:\Users\User\.nuget\packages\skiasharp\2.88.9\lib\net6.0\SkiaSharp.dll
 C:\Users\User\.nuget\packages\skiasharp.views.desktop.common\2.88.8\lib\netcoreapp3.1\SkiaSharp.Views.Desktop.Common.dll
