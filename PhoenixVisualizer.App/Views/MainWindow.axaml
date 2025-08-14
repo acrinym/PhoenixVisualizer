@@ -18,10 +18,10 @@
 
     <Grid RowDefinitions="Auto,*">
         <StackPanel Orientation="Horizontal" Margin="8">
-            <Button Content="Open" Margin="0,0,8,0"/>
-            <Button Content="Play" Margin="0,0,8,0"/>
-            <Button Content="Pause" Margin="0,0,8,0"/>
-            <Button Content="Stop"/>
+            <Button x:Name="BtnOpen" Content="Open" Click="OnOpenClick" Margin="0,0,8,0"/>
+            <Button x:Name="BtnPlay" Content="Play" Click="OnPlayClick" Margin="0,0,8,0"/>
+            <Button x:Name="BtnPause" Content="Pause" Click="OnPauseClick" Margin="0,0,8,0"/>
+            <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick"/>
         </StackPanel>
         <Border Grid.Row="1" Margin="8" Background="#111">
             <r:RenderSurface x:Name="Render"/>
