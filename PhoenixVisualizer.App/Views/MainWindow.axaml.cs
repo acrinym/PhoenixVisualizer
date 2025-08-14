@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using Avalonia.Media;
+using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Views;
 
@@ -57,5 +58,16 @@ public partial class MainWindow : Window
     private void OnStopClick(object? sender, RoutedEventArgs e)
     {
         RenderSurfaceControl?.Stop();
+    }
+
+    private void OnLoadPreset(object? sender, RoutedEventArgs e)
+    {
+        var tb = this.FindControl<TextBox>("TxtPreset");
+        if (tb is null) return;
+        // For now, directly create an AVS plugin and load preset, later we’ll route via a host registry
+        var plugin = new AvsVisualizerPlugin();
+        plugin.Initialize(800, 600);
+        plugin.LoadPreset(tb.Text ?? string.Empty);
+        // Note: wiring into the live RenderSurface pipeline will come with the plugin host step
     }
 }

@@ -17,11 +17,13 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="Auto,Auto,*">
-        <StackPanel Orientation="Horizontal" Margin="8">
+        <StackPanel Orientation="Horizontal" Margin="8" Spacing="8">
             <Button x:Name="BtnOpen" Content="Open" Click="OnOpenClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnPlay" Content="Play" Click="OnPlayClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnPause" Content="Pause" Click="OnPauseClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick"/>
+            <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
+            <Button Content="Load Preset" Click="OnLoadPreset"/>
         </StackPanel>
         <TextBlock Grid.Row="1" x:Name="LblFps" Margin="8"/>        
         <Border Grid.Row="2" Margin="8" Background="#111">

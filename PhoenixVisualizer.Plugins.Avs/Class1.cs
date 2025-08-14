@@ -30,4 +30,6 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin
 	}
 
 	public void Dispose() { }
+
+    public void LoadPreset(string presetText) => _engine.LoadPreset(presetText);
 }
