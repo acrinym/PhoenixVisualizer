@@ -8,11 +8,18 @@ public sealed class AudioService
 	private bool _initialized;
 	private readonly float[] _fftBuffer = new float[2048];
 
-	public bool Initialize()
+    public bool Initialize()
 	{
-		if (_initialized) return true;
-		_initialized = Bass.Init();
-		return _initialized;
+        if (_initialized) return true;
+        try
+        {
+            _initialized = Bass.Init();
+        }
+        catch (DllNotFoundException)
+        {
+            _initialized = false;
+        }
+        return _initialized;
 	}
 
 	public bool Open(string filePath)

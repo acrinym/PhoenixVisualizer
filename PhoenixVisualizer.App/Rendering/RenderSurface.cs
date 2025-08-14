@@ -12,7 +12,7 @@ namespace PhoenixVisualizer.Rendering;
 
 public sealed class RenderSurface : Control
 {
-	private readonly AudioService _audio;
+    private readonly AudioService _audio;
     private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin();
 	private Timer? _timer;
 	private DateTime _start = DateTime.UtcNow;
@@ -22,11 +22,10 @@ public sealed class RenderSurface : Control
 	private int _framesInWindow;
 	public event Action<double>? FpsChanged;
 
-	public RenderSurface()
-	{
-		_audio = new AudioService();
-		_audio.Initialize();
-	}
+    public RenderSurface()
+    {
+        _audio = new AudioService();
+    }
 
     public void SetPlugin(IVisualizerPlugin plugin)
     {
@@ -39,8 +38,9 @@ public sealed class RenderSurface : Control
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		base.OnAttachedToVisualTree(e);
+        base.OnAttachedToVisualTree(e);
         _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
+        _audio.Initialize();
 		_timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual), null, 0, 16);
 	}
 
@@ -48,7 +48,7 @@ public sealed class RenderSurface : Control
 	{
 		_timer?.Dispose();
 		_timer = null;
-		_plugin.Dispose();
+        _plugin?.Dispose();
 		base.OnDetachedFromVisualTree(e);
 	}
 
