@@ -73,6 +73,16 @@ dotnet build
 dotnet run --project PhoenixVisualizer.App
 ```
 
+## Prerequisites
+
+**BASS Library**: The app requires the native BASS library for audio playback. If you get a `System.DllNotFoundException` for `bass.dll`:
+
+1. Download from [un4seen.com](https://www.un4seen.com/files/bass24.zip)
+2. Extract `bass.dll` to `PhoenixVisualizer.App/bin/Debug/net8.0/` (or your output directory)
+3. Restart the app
+
+**Note**: The `bin/` and `obj/` directories are gitignored, so you'll need to manually place `bass.dll` in your output directory.
+
 ## Near-term Roadmap
 
 - UI (Host): Replace welcome screen with transport controls + info + spectrum panel
