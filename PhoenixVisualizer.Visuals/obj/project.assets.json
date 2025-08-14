@@ -675,11 +675,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj",
+      "projectUniqueName": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj",
       "projectName": "PhoenixVisualizer.Visuals",
-      "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj",
+      "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj",
       "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\obj\\",
+      "outputPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"

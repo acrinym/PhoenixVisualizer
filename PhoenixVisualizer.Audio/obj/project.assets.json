@@ -4695,11 +4695,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj",
+      "projectUniqueName": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj",
       "projectName": "PhoenixVisualizer.Audio",
-      "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj",
+      "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj",
       "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\obj\\",
+      "outputPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"

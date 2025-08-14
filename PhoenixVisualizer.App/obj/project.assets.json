@@ -2164,6 +2164,20 @@
           "bin/placeholder/PhoenixVisualizer.PluginHost.dll": {}
         }
       },
+      "PhoenixVisualizer.Plugins.Avs/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "PhoenixVisualizer.AvsEngine": "1.0.0",
+          "PhoenixVisualizer.PluginHost": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/PhoenixVisualizer.Plugins.Avs.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PhoenixVisualizer.Plugins.Avs.dll": {}
+        }
+      },
       "PhoenixVisualizer.Visuals/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -6623,6 +6637,11 @@
       "path": "../PhoenixVisualizer.PluginHost/PhoenixVisualizer.PluginHost.csproj",
       "msbuildProject": "../PhoenixVisualizer.PluginHost/PhoenixVisualizer.PluginHost.csproj"
     },
+    "PhoenixVisualizer.Plugins.Avs/1.0.0": {
+      "type": "project",
+      "path": "../PhoenixVisualizer.Plugins.Avs/PhoenixVisualizer.Plugins.Avs.csproj",
+      "msbuildProject": "../PhoenixVisualizer.Plugins.Avs/PhoenixVisualizer.Plugins.Avs.csproj"
+    },
     "PhoenixVisualizer.Visuals/1.0.0": {
       "type": "project",
       "path": "../PhoenixVisualizer.Visuals/PhoenixVisualizer.Visuals.csproj",
@@ -6643,6 +6662,7 @@
       "PhoenixVisualizer.Core >= 1.0.0",
       "PhoenixVisualizer.Plots >= 1.0.0",
       "PhoenixVisualizer.PluginHost >= 1.0.0",
+      "PhoenixVisualizer.Plugins.Avs >= 1.0.0",
       "PhoenixVisualizer.Visuals >= 1.0.0"
     ]
   },
@@ -6652,11 +6672,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj",
+      "projectUniqueName": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj",
       "projectName": "PhoenixVisualizer",
-      "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj",
+      "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\PhoenixVisualizer.csproj",
       "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\obj\\",
+      "outputPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.App\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -6671,26 +6691,29 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.ApeHost\\PhoenixVisualizer.ApeHost.csproj"
             },
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Audio\\PhoenixVisualizer.Audio.csproj"
             },
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.AvsEngine\\PhoenixVisualizer.AvsEngine.csproj"
             },
             "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj": {
               "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj"
             },
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plots\\PhoenixVisualizer.Plots.csproj"
             },
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.PluginHost\\PhoenixVisualizer.PluginHost.csproj"
             },
-            "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj": {
-              "projectPath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj"
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plugins.Avs\\PhoenixVisualizer.Plugins.Avs.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Plugins.Avs\\PhoenixVisualizer.Plugins.Avs.csproj"
+            },
+            "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj": {
+              "projectPath": "d:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Visuals\\PhoenixVisualizer.Visuals.csproj"
             }
           }
         }
