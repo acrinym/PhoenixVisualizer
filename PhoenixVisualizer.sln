@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer", "PhoenixVisualizer.App\PhoenixVisualizer.csproj", "{B26C6768-569E-4278-BD36-FB926B1C862B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Core", "PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj", "{017A1E00-4209-499C-A2AC-174CE5E4D39F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Audio", "PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj", "{36E31B92-4CEC-4963-9684-E7C15D0B0282}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Visuals", "PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj", "{FCB2349E-8D95-4055-AA42-F6804DAEB723}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

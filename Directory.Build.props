@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <WinampSdkDir>$(MSBuildThisFileDirectory)libs_etc\WAMPSDK</WinampSdkDir>
+  </PropertyGroup>
+</Project>
+
+

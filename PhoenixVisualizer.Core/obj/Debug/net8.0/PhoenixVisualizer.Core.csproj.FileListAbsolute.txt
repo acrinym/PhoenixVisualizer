@@ -1,0 +1,13 @@
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.deps.json
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.pdb
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.csproj.AssemblyReference.cache
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.AssemblyInfoInputs.cache
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.AssemblyInfo.cs
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.csproj.CoreCompileInputs.cache
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.sourcelink.json
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\refint\PhoenixVisualizer.Core.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\PhoenixVisualizer.Core.pdb
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\obj\Debug\net8.0\ref\PhoenixVisualizer.Core.dll

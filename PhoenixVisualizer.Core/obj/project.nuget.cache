@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "VxWvTCJaPKY=",
+  "success": true,
+  "projectFilePath": "D:\\GitHub\\AMrepo\\PhoenixVisualizer\\PhoenixVisualizer.Core\\PhoenixVisualizer.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\User\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
