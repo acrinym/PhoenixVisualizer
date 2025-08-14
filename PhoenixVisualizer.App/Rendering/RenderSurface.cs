@@ -16,6 +16,11 @@ public sealed class RenderSurface : Control
 	private readonly AvsVisualizerPlugin _plugin = new();
 	private Timer? _timer;
 	private DateTime _start = DateTime.UtcNow;
+	private readonly float[] _smoothFft = new float[2048];
+	private bool _fftInit;
+	private DateTime _fpsWindowStart = DateTime.UtcNow;
+	private int _framesInWindow;
+	public event Action<double>? FpsChanged;
 
 	public RenderSurface()
 	{
@@ -47,6 +52,21 @@ public sealed class RenderSurface : Control
 	{
 		var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 		var fft = _audio.ReadFft();
+		// Smooth FFT
+		if (!_fftInit)
+		{
+			Array.Copy(fft, _smoothFft, Math.Min(fft.Length, _smoothFft.Length));
+			_fftInit = true;
+		}
+		else
+		{
+			int n = Math.Min(fft.Length, _smoothFft.Length);
+			const float alpha = 0.2f;
+			for (int i = 0; i < n; i++)
+			{
+				_smoothFft[i] = _smoothFft[i] + alpha * (fft[i] - _smoothFft[i]);
+			}
+		}
 		var now = DateTime.UtcNow;
 		double t = (now - _start).TotalSeconds;
 		var features = new AudioFeatures(
@@ -57,12 +77,23 @@ public sealed class RenderSurface : Control
 			0,
 			0,
 			0,
-			fft,
+			_smoothFft,
 			0,0,0,
 			null,
 			null
 		);
 		_plugin.RenderFrame(features, adapter);
+
+		// FPS update
+		_framesInWindow++;
+		var span = now - _fpsWindowStart;
+		if (span.TotalSeconds >= 1)
+		{
+			double fps = _framesInWindow / span.TotalSeconds;
+			_framesInWindow = 0;
+			_fpsWindowStart = now;
+			FpsChanged?.Invoke(fps);
+		}
 	}
 }
 

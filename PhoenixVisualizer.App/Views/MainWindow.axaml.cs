@@ -4,6 +4,7 @@ using PhoenixVisualizer.Rendering;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
+using Avalonia.Media;
 
 namespace PhoenixVisualizer.Views;
 
@@ -15,6 +16,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        if (RenderSurfaceControl is not null)
+        {
+            RenderSurfaceControl.FpsChanged += fps =>
+            {
+                var lbl = this.FindControl<TextBlock>("LblFps");
+                if (lbl is not null) lbl.Text = $"FPS: {fps:F1}";
+            };
+        }
     }
 
     private async void OnOpenClick(object? sender, RoutedEventArgs e)
