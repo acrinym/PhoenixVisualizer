@@ -1,6 +1,6 @@
 # Phoenix Visualizer
 
-Cross-platform Avalonia app and visualizer studio. The centerpiece is a living, animated phoenix whose color and motion respond to music in real-time. Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands. Includes a physics/real-world frequency-to-visible-color fallback when genre is missing.
+Cross-platform Avalonia visualizer studio with an AVS-compatible runtime at its core. The first flagship visual is a Phoenix plugin, but the app is designed to host many visualizers (AVS-style presets, APE-style effects, and managed plugins). Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands. Includes a real-world frequency-to-visible-color fallback when genre is missing.
 
 ## Features (MVP)
 
@@ -9,7 +9,7 @@ Cross-platform Avalonia app and visualizer studio. The centerpiece is a living, 
 - Genre detection: Primary ID3 tag, fallback via spectrum color mapping
 - Phoenix visualizer: One vibe per track; animation and effects respond to audio
 - Spectrum visualizer: Real-time bars/curve, color-coded to frequency→visible light
-- Screensaver mode: Fullscreen on idle; exits on input
+- Screensaver mode: Future (leaving out of MVP)
 
 ## Color and Vibe Logic
 
@@ -40,10 +40,17 @@ This mapping also colors the spectrum visualizer so users can “see the music.�
 
 ## Project Structure
 
-- `PhoenixVisualizer.App` — Avalonia UI, main window, controls, screensaver
+- `PhoenixVisualizer.App` — Avalonia UI host app
 - `PhoenixVisualizer.Core` — config, models, genre/vibe mapping, utilities
 - `PhoenixVisualizer.Audio` — playback + analysis (ManagedBass/BPM/FFT)
-- `PhoenixVisualizer.Visuals` — phoenix rendering/animation (SkiaSharp)
+- `PhoenixVisualizer.Visuals` — legacy direct-render visuals (if needed)
+- `PhoenixVisualizer.PluginHost` — shared plugin interfaces and `AudioFeatures`
+- `PhoenixVisualizer.ApeHost` — managed APE-style host interfaces/stubs
+- `PhoenixVisualizer.AvsEngine` — AVS runtime (Superscope-first), Skia renderer
+- `PhoenixVisualizer.Plugins.Avs` — vis_AVS plugin that wraps the AVS engine
+- `PhoenixVisualizer.Plugins.Ape.Phoenix` — Phoenix visual as an APE-style plugin
+- `PhoenixVisualizer.Plots` — Matplotlib-inspired plotting primitives (for scopes, wheels, spectrograms)
+- `PhoenixVisualizer.Editor` — Avalonia-based visualization editor UI
 - `libs_etc/WAMPSDK` — Winamp SDK materials (future AVS compatibility)
 - `Directory.Build.props` — sets `WinampSdkDir` relative to this folder
 
@@ -68,10 +75,13 @@ dotnet run --project PhoenixVisualizer.App
 
 ## Near-term Roadmap
 
-- UI: Replace welcome screen with controls (Open/Play/Pause/Stop/Seek/Volume), info (Title/Artist/Album/BPM/Genre/Vibe), spectrum panel
-- Audio: Wire playback; expose FFT/BPM stream; simple peak/energy
-- Visuals: First phoenix pass (vector), state machine (idle/active/cocoon/burst)
-- Screensaver: Idle timer to fullscreen canvas, input to exit
+- UI (Host): Replace welcome screen with transport controls + info + spectrum panel
+- Audio: Wire playback; expose FFT/BPM/energy to engine
+- AVS Engine: Superscope subset (per-frame/point vars, math, conds) + Skia renderer
+- vis_AVS plugin: host AVS presets via the engine
+- Plugins API: finalize `IVisualizerPlugin` and `AudioFeatures`
+- Editor: initial layout (preset browser, canvas, properties), load/run AVS preset
+- Phoenix plugin: scaffold (reads features; minimal draw stub)
 
 ## Notes
 
