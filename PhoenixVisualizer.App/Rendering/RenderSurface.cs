@@ -41,7 +41,7 @@ public sealed class RenderSurface : Control
         base.OnAttachedToVisualTree(e);
         _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
         _audio.Initialize();
-		_timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual), null, 0, 16);
+        _timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual, Avalonia.Threading.DispatcherPriority.Render), null, 0, 16);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -96,12 +96,12 @@ public sealed class RenderSurface : Control
 		// FPS update
 		_framesInWindow++;
 		var span = now - _fpsWindowStart;
-		if (span.TotalSeconds >= 1)
+        if (span.TotalSeconds >= 1)
 		{
 			double fps = _framesInWindow / span.TotalSeconds;
 			_framesInWindow = 0;
 			_fpsWindowStart = now;
-			FpsChanged?.Invoke(fps);
+            Dispatcher.UIThread.Post(() => FpsChanged?.Invoke(fps), Avalonia.Threading.DispatcherPriority.Background);
 		}
 	}
 }

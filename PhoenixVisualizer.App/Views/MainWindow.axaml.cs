@@ -22,7 +22,11 @@ public partial class MainWindow : Window
             RenderSurfaceControl.FpsChanged += fps =>
             {
                 var lbl = this.FindControl<TextBlock>("LblFps");
-                if (lbl is not null) lbl.Text = $"FPS: {fps:F1}";
+                if (lbl is not null)
+                {
+                    // ensure UI-thread update
+                    Dispatcher.UIThread.Post(() => lbl.Text = $"FPS: {fps:F1}", Avalonia.Threading.DispatcherPriority.Background);
+                }
             };
         }
     }
