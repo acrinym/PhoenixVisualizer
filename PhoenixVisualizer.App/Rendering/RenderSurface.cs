@@ -49,6 +49,7 @@ public sealed class RenderSurface : Control
 		_timer?.Dispose();
 		_timer = null;
         _plugin?.Dispose();
+		_audio.Dispose();
 		base.OnDetachedFromVisualTree(e);
 	}
 
