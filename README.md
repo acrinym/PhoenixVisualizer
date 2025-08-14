@@ -87,5 +87,6 @@ dotnet run --project PhoenixVisualizer.App
 
 - Windows dev confirmed with .NET SDK 8.x
 - All project assets and SDK materials live under `PhoenixVisualizer/`
+- Docs index: `PhoenixVisualizer/docs/INDEX.md`
 
 
