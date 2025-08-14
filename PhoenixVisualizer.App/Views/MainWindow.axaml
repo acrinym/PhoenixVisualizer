@@ -24,7 +24,7 @@
             <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick"/>
         </StackPanel>
         <Border Grid.Row="1" Margin="8" Background="#111">
-            <r:RenderSurface x:Name="Render"/>
+            <r:RenderSurface x:Name="RenderHost"/>
         </Border>
     </Grid>
 

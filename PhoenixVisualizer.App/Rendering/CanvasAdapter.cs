@@ -1,3 +1,5 @@
+using System;
+using Avalonia;
 using Avalonia.Media;
 using PhoenixVisualizer.PluginHost;
 
@@ -6,16 +8,20 @@ namespace PhoenixVisualizer.Rendering;
 public sealed class CanvasAdapter : ISkiaCanvas
 {
 	private readonly DrawingContext _context;
+	private readonly double _width;
+	private readonly double _height;
 
-	public CanvasAdapter(DrawingContext context)
+	public CanvasAdapter(DrawingContext context, double width, double height)
 	{
 		_context = context;
+		_width = width;
+		_height = height;
 	}
 
 	public void Clear(uint argb)
 	{
 		var color = Color.FromUInt32(argb);
-		_context.FillRectangle(new SolidColorBrush(color), new Avalonia.Rect(0, 0, _context.Bounds.Width, _context.Bounds.Height));
+		_context.FillRectangle(new SolidColorBrush(color), new Rect(0, 0, _width, _height));
 	}
 
 	public void DrawLines(ReadOnlySpan<(float x, float y)> points, float thickness, uint argb)
@@ -38,7 +44,7 @@ public sealed class CanvasAdapter : ISkiaCanvas
 	public void FillCircle(float cx, float cy, float radius, uint argb)
 	{
 		var brush = new SolidColorBrush(Color.FromUInt32(argb));
-		_context.FillEllipse(brush, new Avalonia.Point(cx, cy), radius, radius);
+		_context.DrawEllipse(brush, null, new Avalonia.Point(cx, cy), radius, radius);
 	}
 }
 

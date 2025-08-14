@@ -1,10 +1,12 @@
 using System;
 using System.Threading;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.Rendering;
 
@@ -25,7 +27,7 @@ public sealed class RenderSurface : Control
 	{
 		base.OnAttachedToVisualTree(e);
 		_plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
-		_timer = new Timer(_ => InvalidateVisual(), null, 0, 16);
+		_timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual), null, 0, 16);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -43,7 +45,7 @@ public sealed class RenderSurface : Control
 
 	public override void Render(DrawingContext context)
 	{
-		var adapter = new CanvasAdapter(context);
+		var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 		var fft = _audio.ReadFft();
 		var now = DateTime.UtcNow;
 		double t = (now - _start).TotalSeconds;

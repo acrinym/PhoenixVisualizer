@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PhoenixVisualizer.AvsEngine\PhoenixVisualizer.AvsEngine.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.PluginHost\PhoenixVisualizer.PluginHost.csproj" />
+  </ItemGroup>
+
 </Project>

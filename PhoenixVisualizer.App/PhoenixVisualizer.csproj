@@ -21,6 +21,7 @@
     <ProjectReference Include="..\PhoenixVisualizer.ApeHost\PhoenixVisualizer.ApeHost.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.AvsEngine\PhoenixVisualizer.AvsEngine.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
   </ItemGroup>
 
   <ItemGroup>

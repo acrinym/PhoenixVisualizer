@@ -8,7 +8,7 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
-    private RenderSurface? Render => this.FindControl<RenderSurface>("Render");
+    private Rendering.RenderSurface? RenderSurfaceControl => this.FindControl<Control>("RenderHost") as Rendering.RenderSurface;
 
     public MainWindow()
     {
@@ -17,7 +17,7 @@ public partial class MainWindow : Window
 
     private async void OnOpenClick(object? sender, RoutedEventArgs e)
     {
-        if (Render is null) return;
+        if (RenderSurfaceControl is null) return;
         var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Open Audio File",
@@ -32,21 +32,21 @@ public partial class MainWindow : Window
         });
         var file = files.Count > 0 ? files[0] : null;
         if (file is null) return;
-        await Task.Run(() => Render.Open(file.Path.LocalPath));
+        await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
     }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
-        Render?.Play();
+        RenderSurfaceControl?.Play();
     }
 
     private void OnPauseClick(object? sender, RoutedEventArgs e)
     {
-        Render?.Pause();
+        RenderSurfaceControl?.Pause();
     }
 
     private void OnStopClick(object? sender, RoutedEventArgs e)
     {
-        Render?.Stop();
+        RenderSurfaceControl?.Stop();
     }
 }
