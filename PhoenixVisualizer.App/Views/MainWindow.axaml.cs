@@ -6,6 +6,7 @@ using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using Avalonia.Media;
 using PhoenixVisualizer.Plugins.Avs;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.Views;
 
