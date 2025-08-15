@@ -15,6 +15,68 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" MinWidth="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300" MinWidth="250"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Panel: Preset Browser -->
+        <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Preset Browser" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBox Name="PresetInput" Text="points=256;mode=line;source=fft" Margin="0,0,0,10"/>
+                <Button Content="Load Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                <Button Content="Save Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                <Separator Margin="0,10"/>
+                <TextBlock Text="Recent Presets" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                <ListBox Name="RecentPresets" Height="200">
+                    <ListBoxItem Content="points=256;mode=line;source=fft"/>
+                    <ListBoxItem Content="points=128;mode=bars;source=fft"/>
+                    <ListBoxItem Content="points=512;mode=line;source=sin"/>
+                </ListBox>
+            </StackPanel>
+        </Border>
+        
+        <!-- Center: Visualization Canvas -->
+        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <Grid>
+                <TextBlock Text="Visualization Canvas" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"/>
+                <!-- TODO: Add actual visualization canvas here -->
+            </Grid>
+        </Border>
+        
+        <!-- Right Panel: Properties -->
+        <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Points" FontWeight="Bold" Margin="0,10,0,5"/>
+                <Slider Name="PointsSlider" Minimum="16" Maximum="1024" Value="256" TickFrequency="64" IsSnapToTickEnabled="True"/>
+                <TextBlock Text="{Binding ElementName=PointsSlider, Path=Value, StringFormat='{}{0:F0}'}" HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="Mode" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ComboBox Name="ModeCombo" SelectedIndex="0">
+                    <ComboBoxItem Content="Line"/>
+                    <ComboBoxItem Content="Bars"/>
+                </ComboBox>
+                
+                <TextBlock Text="Source" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ComboBox Name="SourceCombo" SelectedIndex="0">
+                    <ComboBoxItem Content="FFT"/>
+                    <ComboBoxItem Content="Sine"/>
+                </ComboBox>
+                
+                <Separator Margin="0,20"/>
+                <TextBlock Text="Audio Controls" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="▶" Width="40" Height="30" Margin="2"/>
+                    <Button Content="⏸" Width="40" Height="30" Margin="2"/>
+                    <Button Content="⏹" Width="40" Height="30" Margin="2"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
 
 </Window>

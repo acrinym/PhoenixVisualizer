@@ -29,7 +29,10 @@ public interface IVisualizerPlugin
 
 public interface IApeEffect : IVisualizerPlugin { }
 
-public interface IAvsHostPlugin : IVisualizerPlugin { }
+public interface IAvsHostPlugin : IVisualizerPlugin 
+{ 
+    void LoadPreset(string presetText);
+}
 
 public interface ISkiaCanvas
 {

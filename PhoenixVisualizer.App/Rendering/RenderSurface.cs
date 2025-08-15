@@ -27,14 +27,16 @@ public sealed class RenderSurface : Control
         _audio = new AudioService();
     }
 
-    public void SetPlugin(IVisualizerPlugin plugin)
-    {
-        _plugin = plugin;
-        if (Bounds.Width > 0 && Bounds.Height > 0)
-        {
-            _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
-        }
-    }
+    	public void SetPlugin(IVisualizerPlugin plugin)
+	{
+		_plugin = plugin;
+		if (Bounds.Width > 0 && Bounds.Height > 0)
+		{
+			_plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
+		}
+	}
+	
+	public IVisualizerPlugin? GetCurrentPlugin() => _plugin;
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
@@ -62,6 +64,11 @@ public sealed class RenderSurface : Control
 	{
 		var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 		var fft = _audio.ReadFft();
+		
+		// Debug: log FFT data
+		var first5 = fft.Length >= 5 ? $"{fft[0]},{fft[1]},{fft[2]},{fft[3]},{fft[4]}" : "insufficient data";
+		System.Diagnostics.Debug.WriteLine($"RenderSurface.Render: FFT length={fft.Length}, first 5 values=[{first5}]");
+		
 		// Smooth FFT
 		if (!_fftInit)
 		{
@@ -77,22 +84,45 @@ public sealed class RenderSurface : Control
 				_smoothFft[i] = _smoothFft[i] + alpha * (fft[i] - _smoothFft[i]);
 			}
 		}
+		
 		var now = DateTime.UtcNow;
 		double t = (now - _start).TotalSeconds;
 		var features = new AudioFeatures(
-			t,
-			0,
-			false,
-			0,
-			0,
-			0,
-			0,
-			_smoothFft,
-			0,0,0,
-			null,
-			null
+			TimeSeconds: t,
+			Bpm: 0,
+			Beat: false,
+			Volume: 0,
+			Rms: 0,
+			Peak: 0,
+			Energy: 0,
+			Fft: _smoothFft,
+			Bass: 0,
+			Mid: 0,
+			Treble: 0,
+			Genre: null,
+			SuggestedColorArgb: null
 		);
-        _plugin?.RenderFrame(features, adapter);
+		
+		System.Diagnostics.Debug.WriteLine($"RenderSurface.Render: Plugin={_plugin?.GetType().Name}, Features={features.Fft.Length} FFT values");
+		
+        if (_plugin != null)
+        {
+            try
+            {
+                _plugin.RenderFrame(features, adapter);
+                System.Diagnostics.Debug.WriteLine("RenderSurface.Render: RenderFrame completed successfully");
+            }
+            catch (Exception ex)
+            {
+                // Debug: log any rendering errors
+                System.Diagnostics.Debug.WriteLine($"RenderFrame error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("RenderSurface.Render: No plugin loaded!");
+        }
 
 		// FPS update
 		_framesInWindow++;

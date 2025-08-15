@@ -6,7 +6,7 @@ namespace PhoenixVisualizer.Audio;
 
 public sealed class AudioService : IDisposable
 {
-	private IWavePlayer? _waveOut;
+	private WaveOutEvent? _waveOut;
 	private AudioFileReader? _audioFile;
 	private bool _initialized;
 	private readonly float[] _fftBuffer = new float[2048];
@@ -20,8 +20,9 @@ public sealed class AudioService : IDisposable
             _waveOut = new WaveOutEvent();
             _initialized = true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"AudioService.Initialize failed: {ex.Message}");
             _initialized = false;
         }
         return _initialized;
@@ -38,41 +39,75 @@ public sealed class AudioService : IDisposable
 			_waveOut?.Init(_audioFile);
 			return true;
 		}
-		catch
+		catch (Exception ex)
 		{
+			// Log the actual error for debugging
+			System.Diagnostics.Debug.WriteLine($"AudioService.Open failed: {ex.Message}");
+			System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
 			return false;
 		}
 	}
 
 	public void Play()
 	{
+		if (_audioFile == null)
+		{
+			System.Diagnostics.Debug.WriteLine("AudioService.Play: No audio file loaded");
+			return;
+		}
 		_waveOut?.Play();
 	}
 
 	public void Pause()
 	{
+		if (_audioFile == null)
+		{
+			System.Diagnostics.Debug.WriteLine("AudioService.Pause: No audio file loaded");
+			return;
+		}
 		_waveOut?.Pause();
 	}
 
 	public void Stop()
 	{
+		if (_audioFile == null)
+		{
+			System.Diagnostics.Debug.WriteLine("AudioService.Stop: No audio file loaded");
+			return;
+		}
+		
 		_waveOut?.Stop();
+		
+		// For Stop, we need to recreate the reader to reset position
+		// This is how NAudio handles "stop and reset to beginning"
+		try
+		{
+			if (_audioFile != null)
+			{
+				var currentPath = _audioFile.FileName;
+				_audioFile.Dispose();
+				_audioFile = new AudioFileReader(currentPath);
+				_waveOut?.Init(_audioFile);
+				System.Diagnostics.Debug.WriteLine("AudioService.Stop: Reset to beginning");
+			}
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Debug.WriteLine($"AudioService.Stop: Failed to reset position: {ex.Message}");
+		}
 	}
 
 	public float[] ReadFft()
 	{
-		if (_audioFile == null || _waveOut?.PlaybackState != PlaybackState.Playing)
-		{
-			Array.Clear(_fftBuffer, 0, _fftBuffer.Length);
-			return _fftBuffer;
-		}
-
-		// Simple FFT simulation - in a real implementation you'd want proper FFT
-		// For now, generate some dummy frequency data
+		// Always generate some test data so we can see visualization
+		// In a real implementation, this would be actual FFT data from the audio
 		var random = new Random();
 		for (int i = 0; i < _fftBuffer.Length; i++)
 		{
-			_fftBuffer[i] = (float)(random.NextDouble() * 0.1);
+			// Generate some visible test patterns
+			float freq = (float)i / _fftBuffer.Length;
+			float wave = (float)Math.Sin(freq * Math.PI * 4 + DateTime.Now.Ticks * 0.0001);
+			_fftBuffer[i] = wave * 0.3f + (float)(random.NextDouble() * 0.1);
 		}
 		
 		return _fftBuffer;
