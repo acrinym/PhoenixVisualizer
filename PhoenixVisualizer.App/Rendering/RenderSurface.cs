@@ -3,26 +3,37 @@ using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Threading;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
-using Avalonia.Threading;
+using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Rendering;
 
 public sealed class RenderSurface : Control
 {
     private readonly AudioService _audio;
-    private IVisualizerPlugin? _plugin;
+    private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin(); // keep a sensible default
     private Timer? _timer;
+
+    // FFT smoothing
     private readonly float[] _smoothFft = new float[2048];
     private bool _fftInit;
+
+    // FPS
     private DateTime _fpsWindowStart = DateTime.UtcNow;
     private int _framesInWindow;
+
+    // Simple beat/BPM estimation
     private float _prevEnergy;
     private DateTime _lastBeat = DateTime.MinValue;
     private double _bpm;
+
+    // Resize tracking
     private int _lastWidth;
     private int _lastHeight;
+
+    // Events
     public event Action<double>? FpsChanged;
     public event Action<double>? BpmChanged;
     public event Action<double, double>? PositionChanged;
@@ -67,18 +78,24 @@ public sealed class RenderSurface : Control
     public override void Render(DrawingContext context)
     {
         var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
+
+        // Handle dynamic resize for plugins that support it
         int w = (int)Bounds.Width;
         int h = (int)Bounds.Height;
         if (w != _lastWidth || h != _lastHeight)
         {
-            _lastWidth = w; _lastHeight = h;
+            _lastWidth = w;
+            _lastHeight = h;
             _plugin?.Resize(w, h);
         }
+
+        // Audio data
         var fft = _audio.ReadFft();
         var wave = _audio.ReadWaveform();
         double pos = _audio.GetPositionSeconds();
         double total = _audio.GetLengthSeconds();
-        // Smooth FFT
+
+        // Smooth FFT (EMA)
         if (!_fftInit)
         {
             Array.Copy(fft, _smoothFft, Math.Min(fft.Length, _smoothFft.Length));
@@ -94,7 +111,7 @@ public sealed class RenderSurface : Control
             }
         }
 
-        // Basic feature extraction
+        // Feature extraction
         int len = _smoothFft.Length;
         float energy = 0f;
         float volumeSum = 0f;
@@ -102,6 +119,7 @@ public sealed class RenderSurface : Control
         float bass = 0f, mid = 0f, treble = 0f;
         int bassEnd = len / 3;
         int midEnd = 2 * len / 3;
+
         for (int i = 0; i < len; i++)
         {
             float v = MathF.Abs(_smoothFft[i]);
@@ -112,11 +130,13 @@ public sealed class RenderSurface : Control
             else if (i < midEnd) mid += v;
             else treble += v;
         }
+
         float volume = volumeSum / len;
         float rms = MathF.Sqrt(energy / len);
+
+        // crude beat detection via energy jump
         bool beat = false;
         var now = DateTime.UtcNow;
-        double t = pos;
         if (energy > _prevEnergy * 1.5f && energy > 1e-6f)
         {
             beat = true;
@@ -129,27 +149,32 @@ public sealed class RenderSurface : Control
         }
         _prevEnergy = _prevEnergy * 0.9f + energy * 0.1f;
 
+        // Use playback position as t (preferred for visual sync)
+        double t = pos;
+
         var features = new AudioFeatures(
-            t,
-            _bpm,
-            beat,
-            volume,
-            rms,
-            peak,
-            energy,
-            _smoothFft,
-            wave,
-            bass,
-            mid,
-            treble,
+            t,            // time seconds (playhead)
+            _bpm,         // bpm
+            beat,         // beat flag
+            volume,       // avg magnitude
+            rms,          // rms
+            peak,         // peak
+            energy,       // energy
+            _smoothFft,   // fft
+            wave,         // waveform
+            bass,         // bass band sum
+            mid,          // mid band sum
+            treble,       // treble band sum
             null,
             null
         );
+
         _plugin?.RenderFrame(features, adapter);
 
+        // push position to UI listeners
         Dispatcher.UIThread.Post(() => PositionChanged?.Invoke(pos, total), DispatcherPriority.Background);
 
-        // FPS update
+        // FPS tracking
         _framesInWindow++;
         var span = now - _fpsWindowStart;
         if (span.TotalSeconds >= 1)
@@ -161,5 +186,3 @@ public sealed class RenderSurface : Control
         }
     }
 }
-
-

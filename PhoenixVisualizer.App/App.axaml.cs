@@ -1,14 +1,15 @@
+// PhoenixVisualizer/PhoenixVisualizer.App/App.axaml.cs
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
+using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.ViewModels;
 using PhoenixVisualizer.Views;
-using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Visuals;
-using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer;
 
@@ -16,6 +17,7 @@ public partial class App : Application
 {
     public override void Initialize()
     {
+        // Runtime XAML load (works even if the XAML generator isn't running)
         AvaloniaXamlLoader.Load(this);
     }
 
@@ -23,17 +25,19 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Register bundled visualizer plugins 🎉
-            PluginRegistry.Register("bars", "Simple Bars", () => new BarsVisualizer());
-            PluginRegistry.Register("spectrum", "Spectrum Bars", () => new SpectrumVisualizer());
-            PluginRegistry.Register("waveform", "Waveform", () => new WaveformVisualizer());
-            PluginRegistry.Register("pulse", "Pulse Circle", () => new PulseVisualizer());
-            PluginRegistry.Register("energy", "Energy Ring", () => new EnergyVisualizer());
-            PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
+            // --- Register bundled visualizer plugins BEFORE creating MainWindow ---
+            // If any of these classes aren't present in this branch, comment that line out.
+            PluginRegistry.Register("bars",     "Simple Bars",  () => new BarsVisualizer());
+            PluginRegistry.Register("spectrum", "Spectrum Bars",() => new SpectrumVisualizer());
+            PluginRegistry.Register("waveform", "Waveform",     () => new WaveformVisualizer());
+            PluginRegistry.Register("pulse",    "Pulse Circle", () => new PulseVisualizer());
+            PluginRegistry.Register("energy",   "Energy Ring",  () => new EnergyVisualizer());
+            PluginRegistry.Register("vis_avs",  "AVS Runtime",  () => new AvsVisualizerPlugin());
 
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+            // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
+
+            // Boot main window
             desktop.MainWindow = new MainWindow
             {
                 DataContext = new MainWindowViewModel(),
@@ -45,14 +49,11 @@ public partial class App : Application
 
     private void DisableAvaloniaDataAnnotationValidation()
     {
-        // Get an array of plugins to remove
-        var dataValidationPluginsToRemove =
-            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
+        var toRemove = BindingPlugins.DataValidators
+            .OfType<DataAnnotationsValidationPlugin>()
+            .ToArray();
 
-        // remove each entry found
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
+        foreach (var plugin in toRemove)
             BindingPlugins.DataValidators.Remove(plugin);
-        }
     }
 }
