@@ -1,11 +1,7 @@
+<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/SettingsWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:PhoenixVisualizer.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
         x:Class="PhoenixVisualizer.Views.SettingsWindow"
-        x:DataType="vm:SettingsWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="Phoenix Visualizer Settings"
         Width="500" Height="400"
@@ -18,35 +14,44 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
+
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Settings" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
-        
+        <TextBlock Grid.Row="0"
+                   Text="Settings"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
         <!-- Settings Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="20">
-                
-                <!-- Visualization Plugin Section -->
+
+                <!-- Visualization Plugin -->
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
                     <StackPanel>
-                        <TextBlock Text="Visualization Plugin" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                        <TextBlock Text="Choose the default visualization plugin:" Margin="0,0,0,10" Foreground="Gray"/>
-                        
+                        <TextBlock Text="Visualization Plugin"
+                                   FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <TextBlock Text="Choose the default visualization plugin:"
+                                   Margin="0,0,0,10" />
                         <StackPanel Margin="0,0,0,10">
-                            <RadioButton x:Name="AvsRadio" Content="AVS Engine (Winamp-style)" Tag="avs" IsChecked="True" Margin="0,5"/>
-                            <RadioButton x:Name="PhoenixRadio" Content="Phoenix Visualizer" Tag="phoenix" Margin="0,5"/>
+                            <RadioButton x:Name="AvsRadio"
+                                         Content="AVS Engine (Winamp-style)"
+                                         Tag="avs"
+                                         IsChecked="True"
+                                         Margin="0,5"/>
+                            <RadioButton x:Name="PhoenixRadio"
+                                         Content="Phoenix Visualizer"
+                                         Tag="phoenix"
+                                         Margin="0,5"/>
                         </StackPanel>
-                        
-                        <TextBlock Text="AVS Engine provides Winamp AVS compatibility with superscope presets. Phoenix Visualizer offers audio-reactive phoenix animation." 
-                                   TextWrapping="Wrap" Foreground="Gray" FontSize="12"/>
                     </StackPanel>
                 </Border>
-                
-                <!-- Audio Settings Section -->
+
+                <!-- Audio Settings -->
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
                     <StackPanel>
-                        <TextBlock Text="Audio Settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                        
+                        <TextBlock Text="Audio Settings"
+                                   FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,0,0,10">
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Sample Rate:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox Grid.Row="0" Grid.Column="1" x:Name="SampleRateCombo" SelectedIndex="1">
@@ -55,7 +60,7 @@
                                 <ComboBoxItem Content="48000 Hz"/>
                                 <ComboBoxItem Content="96000 Hz"/>
                             </ComboBox>
-                            
+
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Buffer Size:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BufferSizeCombo" SelectedIndex="1">
                                 <ComboBoxItem Content="256 samples"/>
@@ -66,27 +71,25 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-                
-                <!-- Display Settings Section -->
+
+                <!-- Display Settings -->
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
                     <StackPanel>
-                        <TextBlock Text="Display Settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                        
-                        <CheckBox x:Name="VsyncCheck" Content="Enable V-Sync" IsChecked="True" Margin="0,5"/>
-                        <CheckBox x:Name="FullscreenCheck" Content="Start in Fullscreen Mode" Margin="0,5"/>
-                        <CheckBox x:Name="AutoHideUICheck" Content="Auto-hide UI in Fullscreen" IsChecked="True" Margin="0,5"/>
+                        <TextBlock Text="Display Settings"
+                                   FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <CheckBox x:Name="VsyncCheck"       Content="Enable V-Sync"               IsChecked="True"  Margin="0,5"/>
+                        <CheckBox x:Name="FullscreenCheck"  Content="Start in Fullscreen Mode"                      Margin="0,5"/>
+                        <CheckBox x:Name="AutoHideUICheck"  Content="Auto-hide UI in Fullscreen" IsChecked="True"  Margin="0,5"/>
                     </StackPanel>
                 </Border>
-                
+
             </StackPanel>
         </ScrollViewer>
-        
+
         <!-- Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
             <Button x:Name="BtnCancel" Content="Cancel" Width="80" Click="OnCancelClick"/>
-            <Button x:Name="BtnApply" Content="Apply" Width="80" Click="OnApplyClick" IsDefault="True"/>
+            <Button x:Name="BtnApply"  Content="Apply"  Width="80" Click="OnApplyClick" IsDefault="True"/>
         </StackPanel>
     </Grid>
-
 </Window>
-

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.PluginHost\PhoenixVisualizer.PluginHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

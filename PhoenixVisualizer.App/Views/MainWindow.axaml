@@ -1,3 +1,4 @@
+<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/MainWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PhoenixVisualizer.ViewModels"
@@ -11,24 +12,32 @@
         Title="PhoenixVisualizer">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <!-- Previewer-only DataContext; runtime is set in App.axaml.cs -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
     <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Top toolbar -->
         <StackPanel Orientation="Horizontal" Margin="8" Spacing="8">
             <Button x:Name="BtnOpen" Content="Open" Click="OnOpenClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnPlay" Content="Play" Click="OnPlayClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnPause" Content="Pause" Click="OnPauseClick" Margin="0,0,8,0"/>
-            <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick"/>
-            <Rectangle Width="1" Height="20" Fill="Gray" Margin="8,0"/>
-            <Button Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
-            <Rectangle Width="1" Height="20" Fill="Gray" Margin="8,0"/>
+            <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick" Margin="0,0,8,0"/>
+            <!-- New controls -->
+            <Button x:Name="BtnSettings" Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
+            <ComboBox x:Name="CmbPlugin" Width="160"/>
             <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
             <Button Content="Load Preset" Click="OnLoadPreset"/>
         </StackPanel>
-        <TextBlock Grid.Row="1" x:Name="LblFps" Margin="8"/>        
+
+        <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="8" Spacing="16">
+            <TextBlock x:Name="LblFps"/>
+            <TextBlock x:Name="LblBpm"/>
+            <TextBlock x:Name="LblTime"/>
+        </StackPanel>
+
+        <!-- Render surface -->
         <Border Grid.Row="2" Margin="8" Background="#111">
             <r:RenderSurface x:Name="RenderHost"/>
         </Border>
