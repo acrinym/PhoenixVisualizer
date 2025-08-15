@@ -6,14 +6,15 @@ public record AudioFeatures(
 	bool Beat,
 	float Volume,
 	float Rms,
-	float Peak,
-	float Energy,
-	float[] Fft,
-	float Bass,
-	float Mid,
-	float Treble,
-	string? Genre,
-	uint? SuggestedColorArgb
+        float Peak,
+        float Energy,
+        float[] Fft,
+        float[] Waveform,
+        float Bass,
+        float Mid,
+        float Treble,
+        string? Genre,
+        uint? SuggestedColorArgb
 );
 
 public interface IVisualizerPlugin

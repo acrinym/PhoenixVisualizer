@@ -22,10 +22,16 @@
             <Button x:Name="BtnPlay" Content="Play" Click="OnPlayClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnPause" Content="Pause" Click="OnPauseClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick"/>
+            <Button x:Name="BtnSettings" Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
+            <ComboBox x:Name="CmbPlugin" Width="160"/>
             <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
             <Button Content="Load Preset" Click="OnLoadPreset"/>
         </StackPanel>
-        <TextBlock Grid.Row="1" x:Name="LblFps" Margin="8"/>        
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="8" Spacing="16">
+            <TextBlock x:Name="LblFps"/>
+            <TextBlock x:Name="LblBpm"/>
+            <TextBlock x:Name="LblTime"/>
+        </StackPanel>
         <Border Grid.Row="2" Margin="8" Background="#111">
             <r:RenderSurface x:Name="RenderHost"/>
         </Border>

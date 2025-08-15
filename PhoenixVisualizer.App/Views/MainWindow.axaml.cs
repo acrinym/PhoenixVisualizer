@@ -1,11 +1,16 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using PhoenixVisualizer.Rendering;
+using System;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using Avalonia.Media;
 using PhoenixVisualizer.Plugins.Avs;
+using Avalonia.Threading;
+using PhoenixVisualizer.PluginHost;
+using System.Linq;
+using Avalonia.Layout;
 
 namespace PhoenixVisualizer.Views;
 
@@ -25,9 +30,57 @@ public partial class MainWindow : Window
                 if (lbl is not null)
                 {
                     // ensure UI-thread update
-                    Dispatcher.UIThread.Post(() => lbl.Text = $"FPS: {fps:F1}", Avalonia.Threading.DispatcherPriority.Background);
+                    Dispatcher.UIThread.Post(() => lbl.Text = $"FPS: {fps:F1}", DispatcherPriority.Background);
                 }
             };
+            RenderSurfaceControl.BpmChanged += bpm =>
+            {
+                var lbl = this.FindControl<TextBlock>("LblBpm");
+                if (lbl is not null)
+                {
+                    Dispatcher.UIThread.Post(() => lbl.Text = $"BPM: {bpm:F1}", DispatcherPriority.Background);
+                }
+            };
+            RenderSurfaceControl.PositionChanged += (pos, len) =>
+            {
+                var lbl = this.FindControl<TextBlock>("LblTime");
+                if (lbl is not null)
+                {
+                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\:ss");
+                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\:ss");
+                    Dispatcher.UIThread.Post(() => lbl.Text = $"{cur} / {tot}", DispatcherPriority.Background);
+                }
+            };
+
+            var combo = this.FindControl<ComboBox>("CmbPlugin");
+            if (combo is not null)
+            {
+                var plugins = PluginRegistry.Available.ToList();
+                combo.ItemsSource = plugins.Select(p => p.displayName).ToList();
+                combo.SelectedIndex = 0;
+                combo.SelectionChanged += (_, _) =>
+                {
+                    if (RenderSurfaceControl is null) return;
+                    int idx = combo.SelectedIndex;
+                    if (idx >= 0 && idx < plugins.Count)
+                    {
+                        var plug = PluginRegistry.Create(plugins[idx].id);
+                        if (plug is not null)
+                        {
+                            RenderSurfaceControl.SetPlugin(plug);
+                        }
+                    }
+                };
+
+                if (plugins.Count > 0)
+                {
+                    var plug = PluginRegistry.Create(plugins[0].id);
+                    if (plug is not null)
+                    {
+                        RenderSurfaceControl.SetPlugin(plug);
+                    }
+                }
+            }
         }
     }
 
@@ -64,14 +117,18 @@ public partial class MainWindow : Window
         RenderSurfaceControl?.Stop();
     }
 
+    private async void OnSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new SettingsWindow();
+        await dlg.ShowDialog(this);
+    }
+
     private void OnLoadPreset(object? sender, RoutedEventArgs e)
     {
         var tb = this.FindControl<TextBox>("TxtPreset");
-        if (tb is null) return;
-        // For now, directly create an AVS plugin and load preset, later we’ll route via a host registry
-        var plugin = new AvsVisualizerPlugin();
-        plugin.Initialize(800, 600);
+        if (tb is null || RenderSurfaceControl is null) return;
+        var plugin = PluginRegistry.Create("vis_avs") as AvsVisualizerPlugin ?? new AvsVisualizerPlugin();
+        RenderSurfaceControl.SetPlugin(plugin);
         plugin.LoadPreset(tb.Text ?? string.Empty);
-        // Note: wiring into the live RenderSurface pipeline will come with the plugin host step
     }
 }

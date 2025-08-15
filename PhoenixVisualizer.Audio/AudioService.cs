@@ -1,12 +1,14 @@
 using ManagedBass;
+using System;
 
 namespace PhoenixVisualizer.Audio;
 
-public sealed class AudioService
+public sealed class AudioService : IDisposable
 {
 	private int _stream;
 	private bool _initialized;
-	private readonly float[] _fftBuffer = new float[2048];
+        private readonly float[] _fftBuffer = new float[2048];
+        private readonly float[] _waveBuffer = new float[2048];
 
     public bool Initialize()
 	{
@@ -49,20 +51,49 @@ public sealed class AudioService
 		if (_stream != 0) Bass.ChannelStop(_stream);
 	}
 
-	public float[] ReadFft()
-	{
-		if (_stream == 0) Array.Clear(_fftBuffer, 0, _fftBuffer.Length);
-		else Bass.ChannelGetData(_stream, _fftBuffer, (int)DataFlags.FFT4096);
-		return _fftBuffer;
-	}
+        public float[] ReadFft()
+        {
+                if (_stream == 0) Array.Clear(_fftBuffer, 0, _fftBuffer.Length);
+                else Bass.ChannelGetData(_stream, _fftBuffer, (int)DataFlags.FFT4096);
+                return _fftBuffer;
+        }
 
-	public double GetPositionSeconds()
-	{
-		if (_stream == 0) return 0;
-		long pos = Bass.ChannelGetPosition(_stream);
-		double seconds = Bass.ChannelBytes2Seconds(_stream, pos);
-		return double.IsFinite(seconds) ? seconds : 0;
-	}
+        public float[] ReadWaveform()
+        {
+                if (_stream == 0) Array.Clear(_waveBuffer, 0, _waveBuffer.Length);
+                else Bass.ChannelGetData(_stream, _waveBuffer, _waveBuffer.Length);
+                return _waveBuffer;
+        }
+
+        public double GetPositionSeconds()
+        {
+                if (_stream == 0) return 0;
+                long pos = Bass.ChannelGetPosition(_stream);
+                double seconds = Bass.ChannelBytes2Seconds(_stream, pos);
+                return double.IsFinite(seconds) ? seconds : 0;
+        }
+
+        public double GetLengthSeconds()
+        {
+                if (_stream == 0) return 0;
+                long len = Bass.ChannelGetLength(_stream);
+                double seconds = Bass.ChannelBytes2Seconds(_stream, len);
+                return double.IsFinite(seconds) ? seconds : 0;
+        }
+
+        public void Dispose()
+        {
+                if (_stream != 0)
+                {
+                        Bass.StreamFree(_stream);
+                        _stream = 0;
+                }
+                if (_initialized)
+                {
+                        Bass.Free();
+                        _initialized = false;
+                }
+        }
 }
 
 
