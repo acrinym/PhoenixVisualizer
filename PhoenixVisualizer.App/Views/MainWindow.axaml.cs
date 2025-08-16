@@ -17,8 +17,10 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
-    // Strongly-typed reference to the render surface in XAML
-    private RenderSurface? RenderSurfaceControl => this.FindControl<RenderSurface>("RenderHost");
+    // Grab the render surface once on the UI thread so background tasks don't try
+    // to traverse the visual tree later (which would throw 🙅‍♂️)
+    private readonly RenderSurface? _renderSurface;
+    private RenderSurface? RenderSurfaceControl => _renderSurface;
 
     private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
 
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
     {
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
+        _renderSurface = this.FindControl<RenderSurface>("RenderHost");
 
         // Wire runtime UI updates if the render surface is present
         if (RenderSurfaceControl is not null)
@@ -62,8 +65,11 @@ public partial class MainWindow : Window
                 var lbl = this.FindControl<TextBlock>("LblTime");
                 if (lbl is not null)
                 {
-                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\\:ss");
-                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\\:ss");
+                    // Display current and total time as mm:ss 👇
+                    // NOTE: Use a single escaped colon; the previous double escape
+                    // threw a FormatException on runtime. 😅
+                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\:ss");
+                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\:ss");
                     Dispatcher.UIThread.Post(
                         () => lbl.Text = $"{cur} / {tot}",
                         DispatcherPriority.Background
@@ -140,7 +146,9 @@ public partial class MainWindow : Window
         var file = files.Count > 0 ? files[0] : null;
         if (file is null) return;
 
-        await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
+        // Capture the control reference on the UI thread 👇
+        var surface = RenderSurfaceControl;
+        await Task.Run(() => surface?.Open(file.Path.LocalPath));
     }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Play();
