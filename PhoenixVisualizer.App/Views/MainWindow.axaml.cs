@@ -87,19 +87,23 @@ public partial class MainWindow : Window
                 if (plugins.Count > 0)
                 {
                     combo.ItemsSource = plugins.Select(p => p.displayName).ToList();
-                    combo.SelectedIndex = 0;
 
-                    // Set initial plugin
-                    var first = PluginRegistry.Create(plugins[0].id);
-                    RenderSurfaceControl.SetPlugin(first ?? new AvsVisualizerPlugin());
+                    // Prefer the simple bars visual if it's registered
+                    int idx = plugins.FindIndex(p => p.id == "bars");
+                    if (idx < 0) idx = 0;
+                    combo.SelectedIndex = idx;
+
+                    // Set initial plugin based on the resolved index
+                    var initial = PluginRegistry.Create(plugins[idx].id);
+                    RenderSurfaceControl.SetPlugin(initial ?? new AvsVisualizerPlugin());
 
                     combo.SelectionChanged += (_, _) =>
                     {
                         if (RenderSurfaceControl is null) return;
-                        int idx = combo.SelectedIndex;
-                        if (idx >= 0 && idx < plugins.Count)
+                        int selected = combo.SelectedIndex;
+                        if (selected >= 0 && selected < plugins.Count)
                         {
-                            var plug = PluginRegistry.Create(plugins[idx].id)
+                            var plug = PluginRegistry.Create(plugins[selected].id)
                                        ?? new AvsVisualizerPlugin();
                             RenderSurfaceControl.SetPlugin(plug);
                         }
