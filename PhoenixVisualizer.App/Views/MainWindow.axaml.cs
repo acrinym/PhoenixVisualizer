@@ -17,8 +17,10 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
-    // Strongly-typed reference to the render surface in XAML
-    private RenderSurface? RenderSurfaceControl => this.FindControl<RenderSurface>("RenderHost");
+    // Grab the render surface once on the UI thread so background tasks don't try
+    // to traverse the visual tree later (which would throw 🙅‍♂️)
+    private readonly RenderSurface? _renderSurface;
+    private RenderSurface? RenderSurfaceControl => _renderSurface;
 
     private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
 
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
     {
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
+        _renderSurface = this.FindControl<RenderSurface>("RenderHost");
 
         // Wire runtime UI updates if the render surface is present
         if (RenderSurfaceControl is not null)
@@ -143,7 +146,9 @@ public partial class MainWindow : Window
         var file = files.Count > 0 ? files[0] : null;
         if (file is null) return;
 
-        await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
+        // Capture the control reference on the UI thread 👇
+        var surface = RenderSurfaceControl;
+        await Task.Run(() => surface?.Open(file.Path.LocalPath));
     }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Play();
