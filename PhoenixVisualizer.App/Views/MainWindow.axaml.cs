@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -10,6 +11,7 @@ using Avalonia.Threading;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
+using EditorWindow = PhoenixVisualizer.Editor.Views.MainWindow;
 
 namespace PhoenixVisualizer.Views;
 
@@ -108,7 +110,7 @@ public partial class MainWindow : Window
             }
         }
     }
-    
+
     private void InitializePlugin()
     {
         // Set default plugin after controls are ready
@@ -141,14 +143,27 @@ public partial class MainWindow : Window
         await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
     }
 
-    private void OnPlayClick(object? sender, RoutedEventArgs e)  => RenderSurfaceControl?.Play();
+    private void OnPlayClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Play();
     private void OnPauseClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Pause();
-    private void OnStopClick(object? sender, RoutedEventArgs e)  => RenderSurfaceControl?.Stop();
+    private void OnStopClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Stop();
 
     private async void OnSettingsClick(object? sender, RoutedEventArgs e)
     {
-        var dlg = new SettingsWindow();
-        await dlg.ShowDialog(this);
+        try
+        {
+            var dlg = new SettingsWindow();
+            await dlg.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Settings dialog failed: {ex}");
+        }
+    }
+
+    private async void OnEditorClick(object? sender, RoutedEventArgs e)
+    {
+        var editor = new EditorWindow();
+        await editor.ShowDialog(this);
     }
 
     private void OnLoadPreset(object? sender, RoutedEventArgs e)
@@ -156,11 +171,39 @@ public partial class MainWindow : Window
         var tb = this.FindControl<TextBox>("TxtPreset");
         if (tb is null || RenderSurfaceControl is null) return;
 
-        // Prefer registry AVS; fallback to built-in
-        var plugin = PluginRegistry.Create("vis_avs") as AvsVisualizerPlugin
-                     ?? new AvsVisualizerPlugin();
+        var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+        if (plug is null) return;
 
-        RenderSurfaceControl.SetPlugin(plugin);
-        plugin.LoadPreset(tb.Text ?? string.Empty);
+        RenderSurfaceControl.SetPlugin(plug);
+        plug.LoadPreset(tb.Text ?? string.Empty);
+    }
+
+    private async void OnImportPreset(object? sender, RoutedEventArgs e)
+    {
+        if (RenderSurfaceControl is null) return;
+
+        var files = await this.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions
+            {
+                Title = "Import AVS Preset",
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } }
+                }
+            });
+
+        var file = files.Count > 0 ? files[0] : null;
+        if (file is null) return;
+
+        var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+        if (plug is null) return;
+
+        using var stream = await file.OpenReadAsync();
+        using var reader = new StreamReader(stream);
+        var text = await reader.ReadToEndAsync();
+
+        RenderSurfaceControl.SetPlugin(plug);
+        plug.LoadPreset(text);
     }
 }

@@ -3,18 +3,18 @@
 public record AudioFeatures(
     double TimeSeconds,
     double Bpm,
-    bool   Beat,
-    float  Volume,
-    float  Rms,
-    float  Peak,
-    float  Energy,
+    bool Beat,
+    float Volume,
+    float Rms,
+    float Peak,
+    float Energy,
     float[] Fft,
     float[] Waveform,           // <-- new in PR
-    float  Bass,
-    float  Mid,
-    float  Treble,
+    float Bass,
+    float Mid,
+    float Treble,
     string? Genre,
-    uint?  SuggestedColorArgb
+    uint? SuggestedColorArgb
 );
 
 public interface IVisualizerPlugin
@@ -30,7 +30,10 @@ public interface IVisualizerPlugin
 
 public interface IApeEffect : IVisualizerPlugin { }
 
-public interface IAvsHostPlugin : IVisualizerPlugin { }
+public interface IAvsHostPlugin : IVisualizerPlugin
+{
+    void LoadPreset(string presetText);
+}
 
 public interface ISkiaCanvas
 {

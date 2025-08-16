@@ -16,24 +16,28 @@ public partial class SettingsWindow : Window
     public bool   AutoHideUI         { get; private set; } = true;
 
     // Named controls (must match XAML x:Name)
-    private RadioButton? AvsRadio        => this.FindControl<RadioButton>("AvsRadio");
-    private RadioButton? PhoenixRadio    => this.FindControl<RadioButton>("PhoenixRadio");
-    private ComboBox?    SampleRateCombo => this.FindControl<ComboBox>("SampleRateCombo");
-    private ComboBox?    BufferSizeCombo => this.FindControl<ComboBox>("BufferSizeCombo");
-    private CheckBox?    VsyncCheck      => this.FindControl<CheckBox>("VsyncCheck");
-    private CheckBox?    FullscreenCheck => this.FindControl<CheckBox>("FullscreenCheck");
-    private CheckBox?    AutoHideUICheck => this.FindControl<CheckBox>("AutoHideUICheck");
+    private RadioButton? AvsRadioControl        => this.FindControl<RadioButton>("AvsRadio");
+    private RadioButton? PhoenixRadioControl    => this.FindControl<RadioButton>("PhoenixRadio");
+    private ComboBox?    SampleRateComboControl => this.FindControl<ComboBox>("SampleRateCombo");
+    private ComboBox?    BufferSizeComboControl => this.FindControl<ComboBox>("BufferSizeCombo");
+    private CheckBox?    VsyncCheckControl      => this.FindControl<CheckBox>("VsyncCheck");
+    private CheckBox?    FullscreenCheckControl => this.FindControl<CheckBox>("FullscreenCheck");
+    private CheckBox?    AutoHideUICheckControl => this.FindControl<CheckBox>("AutoHideUICheck");
 
     public SettingsWindow()
     {
-        // Load the full XAML you pasted
-        AvaloniaXamlLoader.Load(this);
+        InitializeComponent();
 
         // OPTIONAL: if you actually have a ViewModel type, you can set it here.
         // DataContext = new ViewModels.SettingsWindowViewModel();
 
         // Sync current fields -> UI controls
         LoadCurrentSettings();
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 
     // Wire to Button Clicks in XAML
@@ -48,13 +52,13 @@ public partial class SettingsWindow : Window
     private void LoadCurrentSettings()
     {
         // Radios
-        if (SelectedPlugin == "phoenix") { PhoenixRadio?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
-        else                             { AvsRadio?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
+        if (SelectedPlugin == "phoenix") { PhoenixRadioControl?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
+        else                             { AvsRadioControl?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
 
         // SampleRate
-        if (SampleRateCombo is not null)
+        if (SampleRateComboControl is not null)
         {
-            SampleRateCombo.SelectedIndex = SampleRate switch
+            SampleRateComboControl.SelectedIndex = SampleRate switch
             {
                 22050 => 0,
                 44100 => 1,
@@ -65,9 +69,9 @@ public partial class SettingsWindow : Window
         }
 
         // BufferSize
-        if (BufferSizeCombo is not null)
+        if (BufferSizeComboControl is not null)
         {
-            BufferSizeCombo.SelectedIndex = BufferSize switch
+            BufferSizeComboControl.SelectedIndex = BufferSize switch
             {
                 256  => 0,
                 512  => 1,
@@ -77,18 +81,18 @@ public partial class SettingsWindow : Window
             };
         }
 
-        VsyncCheck?.SetCurrentValue(CheckBox.IsCheckedProperty,      EnableVsync);
-        FullscreenCheck?.SetCurrentValue(CheckBox.IsCheckedProperty, StartFullscreen);
-        AutoHideUICheck?.SetCurrentValue(CheckBox.IsCheckedProperty, AutoHideUI);
+        VsyncCheckControl?.SetCurrentValue(CheckBox.IsCheckedProperty,      EnableVsync);
+        FullscreenCheckControl?.SetCurrentValue(CheckBox.IsCheckedProperty, StartFullscreen);
+        AutoHideUICheckControl?.SetCurrentValue(CheckBox.IsCheckedProperty, AutoHideUI);
     }
 
     private void SaveSettingsFromUI()
     {
-        SelectedPlugin = PhoenixRadio?.IsChecked == true ? "phoenix" : "avs";
+        SelectedPlugin = PhoenixRadioControl?.IsChecked == true ? "phoenix" : "avs";
 
-        if (SampleRateCombo is not null)
+        if (SampleRateComboControl is not null)
         {
-            SampleRate = SampleRateCombo.SelectedIndex switch
+            SampleRate = SampleRateComboControl.SelectedIndex switch
             {
                 0 => 22050,
                 1 => 44100,
@@ -98,9 +102,9 @@ public partial class SettingsWindow : Window
             };
         }
 
-        if (BufferSizeCombo is not null)
+        if (BufferSizeComboControl is not null)
         {
-            BufferSize = BufferSizeCombo.SelectedIndex switch
+            BufferSize = BufferSizeComboControl.SelectedIndex switch
             {
                 0 => 256,
                 1 => 512,
@@ -110,8 +114,8 @@ public partial class SettingsWindow : Window
             };
         }
 
-        EnableVsync     = VsyncCheck?.IsChecked      ?? true;
-        StartFullscreen = FullscreenCheck?.IsChecked ?? false;
-        AutoHideUI      = AutoHideUICheck?.IsChecked ?? true;
+        EnableVsync     = VsyncCheckControl?.IsChecked      ?? true;
+        StartFullscreen = FullscreenCheckControl?.IsChecked ?? false;
+        AutoHideUI      = AutoHideUICheckControl?.IsChecked ?? true;
     }
 }

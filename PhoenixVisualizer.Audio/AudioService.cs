@@ -103,6 +103,14 @@ public sealed class AudioService : IDisposable
         try
         {
             _audioFile!.CurrentTime = TimeSpan.Zero;
+
+            // Clear cached audio so visualizers fall back to silence 🎧
+            lock (_lock)
+            {
+                Array.Clear(_ring, 0, _ring.Length);
+                _ringIndex = 0;
+            }
+
             System.Diagnostics.Debug.WriteLine("AudioService.Stop: Reset to beginning");
         }
         catch (Exception ex)

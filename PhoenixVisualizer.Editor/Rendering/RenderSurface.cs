@@ -8,21 +8,17 @@ using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 
-namespace PhoenixVisualizer.Rendering;
+namespace PhoenixVisualizer.Editor.Rendering;
 
 public sealed class RenderSurface : Control
 {
     private readonly AudioService _audio;
-    private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin(); // keep a sensible default
+    private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin();
     private Timer? _timer;
 
     // FFT smoothing
     private readonly float[] _smoothFft = new float[2048];
     private bool _fftInit;
-
-    // FPS
-    private DateTime _fpsWindowStart = DateTime.UtcNow;
-    private int _framesInWindow;
 
     // Simple beat/BPM estimation
     private float _prevEnergy;
@@ -32,11 +28,6 @@ public sealed class RenderSurface : Control
     // Resize tracking
     private int _lastWidth;
     private int _lastHeight;
-
-    // Events
-    public event Action<double>? FpsChanged;
-    public event Action<double>? BpmChanged;
-    public event Action<double, double>? PositionChanged;
 
     public RenderSurface()
     {
@@ -80,7 +71,7 @@ public sealed class RenderSurface : Control
     {
         var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 
-        // Handle dynamic resize for plugins that support it
+        // Handle dynamic resize
         int w = (int)Bounds.Width;
         int h = (int)Bounds.Height;
         if (w != _lastWidth || h != _lastHeight)
@@ -96,7 +87,7 @@ public sealed class RenderSurface : Control
         double pos = _audio.GetPositionSeconds();
         double total = _audio.GetLengthSeconds();
 
-        // Smooth FFT (EMA)
+        // Smooth FFT
         if (!_fftInit)
         {
             Array.Copy(fft, _smoothFft, Math.Min(fft.Length, _smoothFft.Length));
@@ -144,28 +135,24 @@ public sealed class RenderSurface : Control
             if (_lastBeat != DateTime.MinValue)
             {
                 _bpm = 60.0 / (now - _lastBeat).TotalSeconds;
-                Dispatcher.UIThread.Post(() => BpmChanged?.Invoke(_bpm), DispatcherPriority.Background);
             }
             _lastBeat = now;
         }
         _prevEnergy = _prevEnergy * 0.9f + energy * 0.1f;
 
-        // Use playback position as t (preferred for visual sync)
-        double t = pos;
-
         var features = new AudioFeatures(
-            t,            // time seconds (playhead)
-            _bpm,         // bpm
-            beat,         // beat flag
-            volume,       // avg magnitude
-            rms,          // rms
-            peak,         // peak
-            energy,       // energy
-            _smoothFft,   // fft
-            wave,         // waveform
-            bass,         // bass band sum
-            mid,          // mid band sum
-            treble,       // treble band sum
+            pos,       // time seconds
+            _bpm,      // bpm estimate
+            beat,      // beat flag
+            volume,    // average magnitude
+            rms,       // rms
+            peak,      // peak
+            energy,    // energy
+            _smoothFft,// fft
+            wave,      // waveform
+            bass,      // bass band
+            mid,       // mid band
+            treble,    // treble band
             null,
             null
         );
@@ -177,20 +164,6 @@ public sealed class RenderSurface : Control
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Plugin render failed: {ex}");
-        }
-
-        // push position to UI listeners
-        Dispatcher.UIThread.Post(() => PositionChanged?.Invoke(pos, total), DispatcherPriority.Background);
-
-        // FPS tracking
-        _framesInWindow++;
-        var span = now - _fpsWindowStart;
-        if (span.TotalSeconds >= 1)
-        {
-            double fps = _framesInWindow / span.TotalSeconds;
-            _framesInWindow = 0;
-            _fpsWindowStart = now;
-            Dispatcher.UIThread.Post(() => FpsChanged?.Invoke(fps), DispatcherPriority.Background);
         }
     }
 }

@@ -18,13 +18,12 @@ High-level plan: AVS-first runtime, Phoenix as APE plugin, MatPlot-inspired plot
 
 **Known Issues**:
 - ❌ **Visualization not appearing** - Black screen despite FFT data and render calls
-- ❌ **Stop/Pause bug** - Both controls do the same thing (pause)
 - 🔍 **Need to audit visualization pipeline** from `AvsEngine.RenderFrame` → `CanvasAdapter` → screen
 
 **Recent Fixes**:
 - ✅ **Audio safety** - Play/Pause/Stop now check for loaded audio file
 - ✅ **UI feedback** - Settings button shows message, Play button shows status
-- ✅ **Stop vs Pause** - Stop now resets to beginning, Pause just pauses
+- ✅ **Stop vs Pause** - Stop now resets to beginning and clears audio buffers; Pause just pauses
 - ✅ **Settings Window** - Proper modal dialog with plugin selection, audio settings, display options
 - ✅ **Winamp AVS Integration** - Real superscope preset parsing (init:, per_frame:, per_point:, beat:)
 - ✅ **Interface contracts** - LoadPreset method properly defined in IAvsHostPlugin
@@ -41,7 +40,7 @@ High-level plan: AVS-first runtime, Phoenix as APE plugin, MatPlot-inspired plot
 ## Phase 2 – Editor + Plots
 - [x] ~~Editor UI: preset browser, canvas viewport, properties panel~~
 - [x] ~~Plots lib: LineSeries, Polar/Wheel, Bar/Stem~~
-- [ ] Colormaps: viridis/plasma/magma/inferno + genre palettes
+ - [x] Colormaps: viridis/plasma/magma/inferno + genre palettes
 - [ ] Designer nodes: sources (FFT/BPM), transforms (scale/polar), styles (colormap/stroke), compose (overlay)
 
 **Current Status**: ✅ **COMPLETE** - Basic editor UI and plotting primitives working
@@ -57,7 +56,7 @@ High-level plan: AVS-first runtime, Phoenix as APE plugin, MatPlot-inspired plot
 - [x] ~~AVS: add fade/blur/color ops commonly used by presets~~
 - [x] ~~Real Winamp superscope preset parsing (init:, per_frame:, per_point:, beat:)~~
 - [ ] APE host: managed APE interface; optional native bridge later
-- [ ] Preset import: loader for common text-based presets
+- [x] Preset import: loader for common text-based presets
 - [ ] NS-EEL expression evaluator for superscope math
 
 **Current Status**: 🚧 **IN PROGRESS** - AVS engine enhanced with real Winamp preset parsing and beat/energy effects
