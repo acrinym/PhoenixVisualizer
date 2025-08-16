@@ -17,8 +17,10 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
-    // Strongly-typed reference to the render surface in XAML
-    private RenderSurface? RenderSurfaceControl => this.FindControl<RenderSurface>("RenderHost");
+    // Grab the render surface once on the UI thread so background tasks don't try
+    // to traverse the visual tree later (which would throw 🙅‍♂️)
+    private readonly RenderSurface? _renderSurface;
+    private RenderSurface? RenderSurfaceControl => _renderSurface;
 
     private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
 
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
     {
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
+        _renderSurface = this.FindControl<RenderSurface>("RenderHost");
 
         // Wire runtime UI updates if the render surface is present
         if (RenderSurfaceControl is not null)
@@ -62,8 +65,11 @@ public partial class MainWindow : Window
                 var lbl = this.FindControl<TextBlock>("LblTime");
                 if (lbl is not null)
                 {
-                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\\:ss");
-                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\\:ss");
+                    // Display current and total time as mm:ss 👇
+                    // NOTE: Use a single escaped colon; the previous double escape
+                    // threw a FormatException on runtime. 😅
+                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\:ss");
+                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\:ss");
                     Dispatcher.UIThread.Post(
                         () => lbl.Text = $"{cur} / {tot}",
                         DispatcherPriority.Background
@@ -81,19 +87,23 @@ public partial class MainWindow : Window
                 if (plugins.Count > 0)
                 {
                     combo.ItemsSource = plugins.Select(p => p.displayName).ToList();
-                    combo.SelectedIndex = 0;
 
-                    // Set initial plugin
-                    var first = PluginRegistry.Create(plugins[0].id);
-                    RenderSurfaceControl.SetPlugin(first ?? new AvsVisualizerPlugin());
+                    // Prefer the simple bars visual if it's registered
+                    int idx = plugins.FindIndex(p => p.id == "bars");
+                    if (idx < 0) idx = 0;
+                    combo.SelectedIndex = idx;
+
+                    // Set initial plugin based on the resolved index
+                    var initial = PluginRegistry.Create(plugins[idx].id);
+                    RenderSurfaceControl.SetPlugin(initial ?? new AvsVisualizerPlugin());
 
                     combo.SelectionChanged += (_, _) =>
                     {
                         if (RenderSurfaceControl is null) return;
-                        int idx = combo.SelectedIndex;
-                        if (idx >= 0 && idx < plugins.Count)
+                        int selected = combo.SelectedIndex;
+                        if (selected >= 0 && selected < plugins.Count)
                         {
-                            var plug = PluginRegistry.Create(plugins[idx].id)
+                            var plug = PluginRegistry.Create(plugins[selected].id)
                                        ?? new AvsVisualizerPlugin();
                             RenderSurfaceControl.SetPlugin(plug);
                         }
@@ -140,7 +150,9 @@ public partial class MainWindow : Window
         var file = files.Count > 0 ? files[0] : null;
         if (file is null) return;
 
-        await Task.Run(() => RenderSurfaceControl.Open(file.Path.LocalPath));
+        // Capture the control reference on the UI thread 👇
+        var surface = RenderSurfaceControl;
+        await Task.Run(() => surface?.Open(file.Path.LocalPath));
     }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Play();
