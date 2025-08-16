@@ -62,8 +62,11 @@ public partial class MainWindow : Window
                 var lbl = this.FindControl<TextBlock>("LblTime");
                 if (lbl is not null)
                 {
-                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\\:ss");
-                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\\:ss");
+                    // Display current and total time as mm:ss 👇
+                    // NOTE: Use a single escaped colon; the previous double escape
+                    // threw a FormatException on runtime. 😅
+                    string cur = TimeSpan.FromSeconds(pos).ToString(@"mm\:ss");
+                    string tot = TimeSpan.FromSeconds(len).ToString(@"mm\:ss");
                     Dispatcher.UIThread.Post(
                         () => lbl.Text = $"{cur} / {tot}",
                         DispatcherPriority.Background
