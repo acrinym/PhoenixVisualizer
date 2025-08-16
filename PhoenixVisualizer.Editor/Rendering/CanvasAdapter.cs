@@ -11,6 +11,8 @@ public sealed class CanvasAdapter : ISkiaCanvas
     private readonly double _width;
     private readonly double _height;
 
+    public float FrameBlend { get; set; }
+
     public CanvasAdapter(DrawingContext context, double width, double height)
     {
         _context = context;

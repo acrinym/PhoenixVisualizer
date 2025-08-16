@@ -8,9 +8,12 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;              // <-- manual XAML load
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.Input;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer; // preset manager
 using EditorWindow = PhoenixVisualizer.Editor.Views.MainWindow;
 
 namespace PhoenixVisualizer.Views;
@@ -29,6 +32,7 @@ public partial class MainWindow : Window
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
         _renderSurface = this.FindControl<RenderSurface>("RenderHost");
+        Presets.Initialize(_renderSurface);
 
         // Wire runtime UI updates if the render surface is present
         if (RenderSurfaceControl is not null)
@@ -217,5 +221,37 @@ public partial class MainWindow : Window
 
         RenderSurfaceControl.SetPlugin(plug);
         plug.LoadPreset(text);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (!VisualizerSettings.Load().EnableHotkeys) return;
+
+        switch (e.Key)
+        {
+            case Key.Y:
+                Presets.GoPrev();
+                break;
+            case Key.U:
+                Presets.GoNext();
+                break;
+            case Key.Space:
+                Presets.GoRandom();
+                break;
+            case Key.R:
+                var s = VisualizerSettings.Load();
+                s.RandomPresetMode = s.RandomPresetMode == RandomPresetMode.OnBeat ? RandomPresetMode.Off : RandomPresetMode.OnBeat;
+                s.Save();
+                break;
+            case Key.Enter:
+                ToggleFullscreen();
+                break;
+        }
+    }
+
+    private void ToggleFullscreen()
+    {
+        WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
     }
 }
