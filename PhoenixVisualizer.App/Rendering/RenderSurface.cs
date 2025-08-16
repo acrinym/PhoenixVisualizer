@@ -7,6 +7,9 @@ using Avalonia.Threading;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
+using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer.Core.Presets;
+using PhoenixVisualizer; // preset manager
 
 namespace PhoenixVisualizer.Rendering;
 
@@ -28,6 +31,9 @@ public sealed class RenderSurface : Control
     private float _prevEnergy;
     private DateTime _lastBeat = DateTime.MinValue;
     private double _bpm;
+
+    // random preset scheduler
+    private readonly PresetScheduler _presetScheduler = new();
 
     // Resize tracking
     private int _lastWidth;
@@ -105,12 +111,43 @@ public sealed class RenderSurface : Control
         else
         {
             int n = Math.Min(fft.Length, _smoothFft.Length);
-            const float alpha = 0.2f;
+            const float sAlpha = 0.2f;
             for (int i = 0; i < n; i++)
             {
-                _smoothFft[i] = _smoothFft[i] + alpha * (fft[i] - _smoothFft[i]);
+                _smoothFft[i] = _smoothFft[i] + sAlpha * (fft[i] - _smoothFft[i]);
             }
         }
+
+        // Load settings each frame (cheap JSON)
+        var vz = VisualizerSettings.Load();
+
+        // 1) Input gain
+        float gain = MathF.Pow(10f, vz.InputGainDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] *= gain;
+        for (int i = 0; i < wave.Length; i++) wave[i] = Math.Clamp(wave[i] * gain, -1f, 1f);
+
+        // 2) Noise gate
+        float gateLin = MathF.Pow(10f, vz.NoiseGateDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++)
+            if (_smoothFft[i] < gateLin) _smoothFft[i] = 0f;
+
+        // 3) Spectral scaling
+        if (vz.SpectrumScale == SpectrumScale.Sqrt)
+        {
+            for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] = MathF.Sqrt(_smoothFft[i]);
+        }
+        else if (vz.SpectrumScale == SpectrumScale.Log)
+        {
+            const float eps = 1e-12f;
+            for (int i = 0; i < _smoothFft.Length; i++)
+                _smoothFft[i] = MathF.Log10(_smoothFft[i] + eps) * 0.5f + 1f;
+        }
+
+        // 4) Floor/Ceiling clamp
+        float floorLin = MathF.Pow(10f, vz.FloorDb / 20f);
+        float ceilingLin = MathF.Pow(10f, vz.CeilingDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++)
+            _smoothFft[i] = Math.Clamp(_smoothFft[i], floorLin, ceilingLin);
 
         // Feature extraction
         int len = _smoothFft.Length;
@@ -135,40 +172,68 @@ public sealed class RenderSurface : Control
         float volume = volumeSum / len;
         float rms = MathF.Sqrt(energy / len);
 
-        // crude beat detection via energy jump
+        // 5) Auto gain control
+        if (vz.AutoGain)
+        {
+            float err = vz.TargetRms - rms;
+            float agc = 1f + err * 0.5f;
+            agc = Math.Clamp(agc, 0.85f, 1.15f);
+            for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] *= agc;
+            for (int i = 0; i < wave.Length; i++) wave[i] *= agc;
+            volume *= agc;
+            rms *= agc;
+            energy *= agc * agc;
+        }
+
+        // 6) Beat detection with user sensitivity + cooldown
         bool beat = false;
         var now = DateTime.UtcNow;
-        if (energy > _prevEnergy * 1.5f && energy > 1e-6f)
+        double mult = Math.Max(1.05, vz.BeatSensitivityOrDefault());
+        if (energy > _prevEnergy * mult && energy > 1e-8)
         {
-            beat = true;
-            if (_lastBeat != DateTime.MinValue)
+            if ((now - _lastBeat).TotalMilliseconds > Math.Max(0, vz.BeatCooldownMs))
             {
-                _bpm = 60.0 / (now - _lastBeat).TotalSeconds;
-                Dispatcher.UIThread.Post(() => BpmChanged?.Invoke(_bpm), DispatcherPriority.Background);
+                beat = true;
+                if (_lastBeat != DateTime.MinValue)
+                {
+                    _bpm = 60.0 / (now - _lastBeat).TotalSeconds;
+                    Dispatcher.UIThread.Post(() => BpmChanged?.Invoke(_bpm), DispatcherPriority.Background);
+                }
+                _lastBeat = now;
             }
-            _lastBeat = now;
         }
-        _prevEnergy = _prevEnergy * 0.9f + energy * 0.1f;
+        float alpha = TimeDeltaToAlpha(vz.SmoothingMs);
+        _prevEnergy = _prevEnergy * (1 - alpha) + energy * alpha;
+
+        // 7) Optional frame blending
+        adapter.FrameBlend = Math.Clamp(vz.FrameBlend, 0f, 1f);
 
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
         var features = new AudioFeatures(
-            t,            // time seconds (playhead)
-            _bpm,         // bpm
-            beat,         // beat flag
-            volume,       // avg magnitude
-            rms,          // rms
-            peak,         // peak
-            energy,       // energy
-            _smoothFft,   // fft
-            wave,         // waveform
-            bass,         // bass band sum
-            mid,          // mid band sum
-            treble,       // treble band sum
+            t,
+            _bpm,
+            beat,
+            volume,
+            rms,
+            peak,
+            energy,
+            _smoothFft,
+            wave,
+            bass,
+            mid,
+            treble,
             null,
             null
         );
+
+        // Random preset switching via scheduler
+        if (_presetScheduler.ShouldSwitch(features, vz))
+        {
+            Presets.GoRandom();
+            _presetScheduler.NotifySwitched();
+        }
 
         try
         {
@@ -192,5 +257,13 @@ public sealed class RenderSurface : Control
             _fpsWindowStart = now;
             Dispatcher.UIThread.Post(() => FpsChanged?.Invoke(fps), DispatcherPriority.Background);
         }
+    }
+
+    private static float TimeDeltaToAlpha(float smoothingMs)
+    {
+        if (smoothingMs <= 0) return 1f;
+        float dt = 1f / 60f; // ~60 FPS
+        float tau = smoothingMs / 1000f;
+        return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
     }
 }

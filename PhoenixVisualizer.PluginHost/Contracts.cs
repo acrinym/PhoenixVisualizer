@@ -40,4 +40,7 @@ public interface ISkiaCanvas
     void Clear(uint argb);
     void DrawLines(ReadOnlySpan<(float x, float y)> points, float thickness, uint argb);
     void FillCircle(float cx, float cy, float radius, uint argb);
+
+    // 👀 Optional frame blending hint (0..1) for smoother visuals
+    float FrameBlend { get; set; }
 }
