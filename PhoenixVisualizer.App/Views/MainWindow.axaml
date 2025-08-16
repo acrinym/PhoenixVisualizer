@@ -25,9 +25,11 @@
             <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick" Margin="0,0,8,0"/>
             <!-- New controls -->
             <Button x:Name="BtnSettings" Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
+            <Button x:Name="BtnEditor" Content="AVS Editor" Click="OnEditorClick" Margin="0,0,8,0"/>
             <ComboBox x:Name="CmbPlugin" Width="160"/>
             <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
             <Button Content="Load Preset" Click="OnLoadPreset"/>
+            <Button Content="Import Preset" Click="OnImportPreset"/>
         </StackPanel>
 
         <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->

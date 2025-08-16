@@ -27,12 +27,13 @@ public partial class App : Application
         {
             // --- Register bundled visualizer plugins BEFORE creating MainWindow ---
             // If any of these classes aren't present in this branch, comment that line out.
-            PluginRegistry.Register("bars",     "Simple Bars",  () => new BarsVisualizer());
-            PluginRegistry.Register("spectrum", "Spectrum Bars",() => new SpectrumVisualizer());
-            PluginRegistry.Register("waveform", "Waveform",     () => new WaveformVisualizer());
-            PluginRegistry.Register("pulse",    "Pulse Circle", () => new PulseVisualizer());
-            PluginRegistry.Register("energy",   "Energy Ring",  () => new EnergyVisualizer());
-            PluginRegistry.Register("vis_avs",  "AVS Runtime",  () => new AvsVisualizerPlugin());
+            PluginRegistry.Register("bars", "Simple Bars", () => new BarsVisualizer());
+            PluginRegistry.Register("spectrum", "Spectrum Bars", () => new SpectrumVisualizer());
+            PluginRegistry.Register("waveform", "Waveform", () => new WaveformVisualizer());
+            PluginRegistry.Register("pulse", "Pulse Circle", () => new PulseVisualizer());
+            PluginRegistry.Register("energy", "Energy Ring", () => new EnergyVisualizer());
+            PluginRegistry.Register("sanity", "Sanity Check", () => new SanityVisualizer());
+            PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
 
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
