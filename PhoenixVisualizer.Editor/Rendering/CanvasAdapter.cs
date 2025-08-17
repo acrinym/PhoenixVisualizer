@@ -125,4 +125,68 @@ public sealed class CanvasAdapter : ISkiaCanvas
         var fadeBrush = new SolidColorBrush(Color.FromUInt32(fadedColor));
         _context.FillRectangle(fadeBrush, new Rect(0, 0, _width, _height));
     }
+    
+    // Additional methods for superscopes
+    private float _lineWidth = 1.0f;
+    
+    public void DrawPolygon(System.Span<(float x, float y)> points, uint color, bool filled = false)
+    {
+        if (points.Length < 3) return;
+        
+        var geometry = new StreamGeometry();
+        using (var ctx = geometry.Open())
+        {
+            ctx.BeginFigure(new Point(points[0].x, points[0].y), filled);
+            for (int i = 1; i < points.Length; i++)
+            {
+                ctx.LineTo(new Point(points[i].x, points[i].y));
+            }
+            ctx.EndFigure(filled);
+        }
+        
+        if (filled)
+        {
+            var brush = new SolidColorBrush(Color.FromUInt32(color));
+            _context.DrawGeometry(brush, null, geometry);
+        }
+        else
+        {
+            var pen = new Pen(new SolidColorBrush(Color.FromUInt32(color)), _lineWidth);
+            _context.DrawGeometry(null, pen, geometry);
+        }
+    }
+    
+    public void DrawArc(float x, float y, float radius, float startAngle, float sweepAngle, uint color, float thickness = 1.0f)
+    {
+        var center = new Point(x, y);
+        var startPoint = new Point(
+            x + radius * Math.Cos(startAngle),
+            y + radius * Math.Sin(startAngle)
+        );
+        var endPoint = new Point(
+            x + radius * Math.Cos(startAngle + sweepAngle),
+            y + radius * Math.Sin(startAngle + sweepAngle)
+        );
+        
+        var geometry = new StreamGeometry();
+        using (var ctx = geometry.Open())
+        {
+            ctx.BeginFigure(startPoint, false);
+            ctx.ArcTo(endPoint, new Size(radius, radius), 0, sweepAngle > Math.PI, SweepDirection.Clockwise);
+            ctx.EndFigure(false);
+        }
+        
+        var pen = new Pen(new SolidColorBrush(Color.FromUInt32(color)), thickness);
+        _context.DrawGeometry(null, pen, geometry);
+    }
+    
+    public void SetLineWidth(float width)
+    {
+        _lineWidth = Math.Max(0.1f, width);
+    }
+    
+    public float GetLineWidth()
+    {
+        return _lineWidth;
+    }
 }

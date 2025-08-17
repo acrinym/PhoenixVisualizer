@@ -30,7 +30,11 @@ public static class Presets
             {
                 _presetTexts.Add(File.ReadAllText(file));
             }
-            catch { /* ignore bad files */ }
+            catch (Exception ex) 
+            { 
+                System.Diagnostics.Debug.WriteLine($"Failed to load preset file {file}: {ex.Message}");
+                /* ignore bad files */ 
+            }
         }
 
         if (_presetTexts.Count > 0)
