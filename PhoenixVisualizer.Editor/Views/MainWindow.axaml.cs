@@ -29,7 +29,7 @@ public partial class MainWindow : Window
                 if (e.PropertyName == nameof(MainWindowViewModel.PresetCode) && RenderSurfaceControl != null)
                 {
                     // Auto-load preset when code changes
-                    var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin ?? new AvsVisualizerPlugin();
+                    var plug = new AvsVisualizerPlugin();
                     RenderSurfaceControl.SetPlugin(plug);
                     plug.LoadPreset(vm.PresetCode);
                 }

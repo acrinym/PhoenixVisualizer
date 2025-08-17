@@ -1,0 +1,115 @@
+This document comments each function BASS_WA exports, on some functions it also shows a example on how the function can be used.
+
+---------------------------------------
+Some things you may like to know:
+
+Plugin index:
+  BASS_WA creates a list of plugins that are loaded from the plugins directory you provide. If you want 'for example' run a plugin, you only 
+  have to provide the plugin index number. You can get the list of plugins by calling the 'BASS_WA_LoadVisPlugin' function, then you can use a
+  loop to add all the plugins to a list box, the total number of plugins can be found using the 'BASS_WA_GetWinampPluginCount' function.
+  The plugin's name  you have to add to the list can be found using the 'BASS_WA_GetWinampPluginInfo' function, note that VB users have to
+  convert the pointer returned to a string, this can be done using the 'GetStringFromPointer' function, this function can be found in the VB example 
+  provided with BASS_WA. If you are done adding the plugin names to the listbox, you have to call the 'BASS_WA_FreeVisInfo' to free the 
+  VisInfo resources.
+
+Module index:
+  BASS_WA also creates a list of modules contained in the visual plugin, you can load the module info almost the same way as you load the
+  plugin indexes. If you want to display the modules contained in the plugin you have to loop trough all possible modules, the total number of
+  modules can be found using the 'BASS_WA_GetModuleCount' funcion. You can for example add the modules to a combo box, this way users 
+  can select the module they want to run. The module names can be found using the 'BASS_WA_GetModuleInfo' function, for VB users
+  the pointer returned has to be convered to a string using the 'GetStringFromPointer' funtion found in the VB example provided with BASS_WA. 
+
+---------------------------------------
+The Functions:
+
+BASS_WA_Config_Vis
+  This function takes to parameters, it can be used to open the plugin configuration window.
+  The first parameter you have to provide is the plugins index number, the second parameter has to be the module index number.
+
+BASS_WA_FreeVis
+  This function frees the resouces used by a loaded plugin, the function takes one parameter.
+  The parameter you have to provide is the plugin index number, the function ofcourse, only works on loaded plugins.
+
+BASS_WA_FreeVisInfo
+  Frees the VisInfo resouces, this function has to be called after you are done loading the plugin names using the 
+  'BASS_WA_GetWinampPluginInfo' function. This function takes no parameters.  
+
+BASS_WA_GetModuleCount
+  This function returns the total number of modules that are found in the visual plugin, the function takes one parameter.
+   The parameter you have to provide is the plugin index for which you want to recieve the total number of modules.
+
+BASS_WA_GetModuleInfo
+  This function returns the name of a module, the function takes two parameters.
+  The first parameter has to be the plugin index for which you want to recieve te module name, the second parameter has to be
+  the module index.
+
+BASS_WA_GetVisHwnd
+  This function returns the Hwnd of the currently running plugin, the function takes no parameters.
+
+BASS_WA_GetWinampPluginCount
+  Returns the total number of plugins containd in the plugin directory you provide using the 'BASS_WA_LoadVisPlugin' function.
+  This function takes no parameters.
+
+BASS_WA_GetWinampPluginInfo
+  This function returns the name of the plugin index you provide, the funcion takes one parameter.
+  The parameter you have to provide has to be the plugin index for which you want to recieve the name, the value returned is a 
+  pointer to a string, for VB users this pointer first has to be convered to a string using the 'GetStringFromPointer' function provided with
+  the Visual Basic example.
+
+BASS_WA_IsPlaying
+  This funcion let's the plugin know that you are playing some music, the function takes one parameter.
+  The parameter you have to provide has to be a boolean value, true is for playing, false for not playing.
+
+BASS_WA_LoadVis
+  With this function you can load a specified plugin, you have to call this funcion before you trie to start the plugin using the 
+  'BASS_WA_Start_Vis' function. The function takes one parameter.
+  The parameter you have to provide is the index of the plugin you would like to load. 
+
+BASS_WA_LoadAllVis
+  This function is the same as 'BASS_WA_LoadVis', except using this function you don't have to provide a plugin index number, the
+  function just loads all possible visual plugins. This function takes more resources, but makes plugin starting faster.
+  This function takes no parameters.
+
+BASS_WA_LoadVisPlugin
+  This function loads all plugins from a path you provide, the function takes one parameter and returns a boolean value to indicate that the 
+  load was succesfull.
+  The parameter you have to provide is the path to the plugins you would BASS_WA to load, the plugin names can later be found using 
+  the 'BASS_WA_GetWinampPluginInfo' function. 
+
+BASS_WA_New_Thread
+  This function is only used for debugging, you don't need to use it.
+
+BASS_WA_SetChannel
+  With this function you can set the current playing channel BASS uses, the function has to be called when the channel changes, this happens
+  for example when you load a new file. The funtion takes one parameter.
+  The parameter you have to provide is the current playing channel.
+
+BASS_WA_SetElapsed (test, not working correctly)
+  This function let's you send the elepsed time in the in the song to the plugin, some plugins display this kind of information while running.
+  The function takes one parameter, the parameter you have to provide is the time in seconds.
+  
+BASS_WA_SetSongTitle (test, not working correctly)
+  This function let's you send the song's title to the plugin, some plugins display this kind of information while running.
+  The function takes one parameter, the parameter you have to provide is the songs title.
+
+BASS_WA_SetLength (test, not working correctly)
+  This function let's you send the song's total length to the plugin, some plugins display this kind of information while running.
+  The function takes one parameter, the parameter you have to provide is the songs total length in seconds
+
+BASS_WA_SetHwnd
+  With this function you can set the hwnd of the window you are using, it's used for the message boxes and for the
+  plugin to know which window is parent. The function takes one parameter, the parameter you have to provide is the hwnd of
+  your program's main window.
+
+BASS_WA_SetModule
+  This function let's you set the module you like to use, this function has always to be called, even when using single-module plugins.
+  The function takes one parameter, the parameter you have to provide has to be the index of the module you would like to use.
+
+BASS_WA_Start_Vis
+  This funtion starts the visualization plugin and the selected module within the plugin you provide, the function takes two parameters.
+  The parameters you have to provide are the plugin's index number and the module index number.
+
+BASS_WA_Stop_Vis
+  This function stops the plugin you select using the index number, this function takes one parameter.
+  The parameter you have to provide is the plugin's index number you would like to stop.
+  

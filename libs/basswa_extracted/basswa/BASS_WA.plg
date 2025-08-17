@@ -1,0 +1,48 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: BASS_WA - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x413 /fo"Release/BASS_WA.res" /d "NDEBUG" "C:\Documents and Settings\Peter Hebels\Bureaublad\basswa\basswa\Bass_Wa\BASS_WA.RC"" 
+Creating temporary file "C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP11.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "BASS_WA_EXPORTS" /FR"Release/" /Fp"Release/BASS_WA.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Documents and Settings\Peter Hebels\Bureaublad\basswa\basswa\Bass_Wa\BASS_WA.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP11.tmp" 
+Creating temporary file "C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP12.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "BASS_WA_EXPORTS" /FR"Release/" /Fp"Release/BASS_WA.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Documents and Settings\Peter Hebels\Bureaublad\basswa\basswa\Bass_Wa\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP12.tmp" 
+Creating temporary file "C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP13.tmp" with contents
+[
+winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib msvcirt.lib /nologo /dll /incremental:no /pdb:"Release/BASS_WA.pdb" /machine:I386 /def:".\bass_wa.def" /out:"Release/BASS_WA.dll" /implib:"Release/BASS_WA.lib" /link50compat 
+".\Release\BASS_WA.obj"
+".\Release\StdAfx.obj"
+".\Release\BASS_WA.res"
+]
+Creating command line "link.exe @C:\DOCUME~1\PETERH~1\LOCALS~1\Temp\RSP13.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+BASS_WA.cpp
+Linking...
+   Creating library Release/BASS_WA.lib and object Release/BASS_WA.exp
+Creating command line "bscmake.exe /nologo /o"Release/BASS_WA.bsc"  ".\Release\StdAfx.sbr" ".\Release\BASS_WA.sbr""
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+BASS_WA.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

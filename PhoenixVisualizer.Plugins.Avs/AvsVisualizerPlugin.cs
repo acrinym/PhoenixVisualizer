@@ -3,10 +3,12 @@ using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Plugins.Avs;
 
-public sealed class AvsVisualizerPlugin : IAvsHostPlugin
+public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
 {
     public string Id => "vis_avs";
     public string DisplayName => "AVS Runtime";
+    public string Description => "Advanced Visualization Studio runtime for Winamp-style presets";
+    public bool IsEnabled { get; set; } = true;
 
     private int _w, _h;
 
@@ -15,8 +17,12 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin
     private Mode _mode = Mode.Line;
     private Source _source = Source.Fft;
 
+    public void Initialize() { }
     public void Initialize(int width, int height) { _w = width; _h = height; }
     public void Resize(int width, int height)     { _w = width; _h = height; }
+    public void Shutdown() { }
+    public void ProcessFrame(AudioFeatures features, ISkiaCanvas canvas) { RenderFrame(features, canvas); }
+    public void Configure() { LoadPreset(""); }
     public void Dispose() { }
 
     public void LoadPreset(string presetText)
@@ -47,7 +53,8 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin
         System.Diagnostics.Debug.WriteLine($"[vis_avs] Loaded mini preset: points={_points} mode={_mode} source={_source}");
     }
 
-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+    // IVisualizerPlugin implementation
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
         // solid background so we actually see something
         canvas.Clear(0xFF101010);
@@ -55,10 +62,10 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin
         switch (_mode)
         {
             case Mode.Line:
-                RenderLine(f, canvas);
+                RenderLine(features, canvas);
                 break;
             case Mode.Bars:
-                RenderBars(f, canvas);
+                RenderBars(features, canvas);
                 break;
         }
     }

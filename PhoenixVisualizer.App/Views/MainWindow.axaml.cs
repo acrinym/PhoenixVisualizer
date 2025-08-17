@@ -321,8 +321,12 @@ public partial class MainWindow : Window
         var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
         if (plug is null) return;
 
-        RenderSurfaceControl.SetPlugin(plug);
-        plug.LoadPreset(tb.Text ?? string.Empty);
+        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+        if (plug is IVisualizerPlugin visPlugin)
+        {
+            RenderSurfaceControl.SetPlugin(visPlugin);
+            plug.LoadPreset(tb.Text ?? string.Empty);
+        }
     }
 
     private async void OnImportPreset(object? sender, RoutedEventArgs e)
@@ -350,8 +354,12 @@ public partial class MainWindow : Window
         using var reader = new StreamReader(stream);
         var text = await reader.ReadToEndAsync();
 
-        RenderSurfaceControl.SetPlugin(plug);
-        plug.LoadPreset(text);
+        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+        if (plug is IVisualizerPlugin visPlugin)
+        {
+            RenderSurfaceControl.SetPlugin(visPlugin);
+            plug.LoadPreset(text);
+        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

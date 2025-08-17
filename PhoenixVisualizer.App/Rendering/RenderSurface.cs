@@ -154,40 +154,90 @@ public sealed class RenderSurface : Control
             _plugin?.Resize(w, h);
         }
 
-        // Audio data
+        // 1) Get fresh audio data
         var fft = _audio.ReadFft();
         var wave = _audio.ReadWaveform();
-        double pos = _audio.GetPositionSeconds();
-        double total = _audio.GetLengthSeconds();
-        
-        LogToFile($"[RenderSurface] Render frame - FFT length: {fft.Length}, Wave length: {wave.Length}, Pos: {pos:F2}s, Total: {total:F2}s");
-        
-        // Log FFT data to see if we're getting audio
-        if (fft.Length > 0)
-        {
-            var fftSum = fft.Sum(f => Math.Abs(f));
-            var waveSum = wave.Sum(w => Math.Abs(w));
-            LogToFile($"[RenderSurface] Audio data - FFT sum: {fftSum:F3}, Wave sum: {waveSum:F3}");
-        }
+        var pos = _audio.GetPositionSeconds();
+        var total = _audio.GetLengthSeconds();
 
-        // Smooth FFT (EMA)
-        if (!_fftInit)
+        // Log audio data status for debugging
+        LogToFile($"[RenderSurface] Audio data - FFT length: {fft.Length}, Wave length: {wave.Length}, Pos: {pos:F2}s, Total: {total:F2}s");
+
+        // Validate FFT data before processing - check if it's stuck
+        bool fftDataValid = true;
+        float fftSum = 0f;
+        float fftMax = 0f;
+        int fftNonZero = 0;
+        
+        for (int i = 0; i < fft.Length; i++)
         {
-            Array.Copy(fft, _smoothFft, Math.Min(fft.Length, _smoothFft.Length));
-            _fftInit = true;
+            float absVal = MathF.Abs(fft[i]);
+            fftSum += absVal;
+            if (absVal > fftMax) fftMax = absVal;
+            if (absVal > 0.001f) fftNonZero++;
         }
-        else
+        
+        LogToFile($"[RenderSurface] FFT validation - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
+        
+        // Check if FFT data is meaningful (not stuck)
+        if (fftSum < 0.001f || fftMax < 0.001f || fftNonZero < 10)
         {
-            int n = Math.Min(fft.Length, _smoothFft.Length);
-            const float sAlpha = 0.2f;
-            for (int i = 0; i < n; i++)
+            LogToFile($"[RenderSurface] FFT data appears stuck (sum: {fftSum:F6}, max: {fftMax:F6}, non-zero: {fftNonZero})");
+            fftDataValid = false;
+            
+            // If FFT is stuck, try to force a refresh by calling audio service methods
+            _audio.ReadFft(); // Force another read
+            fft = _audio.ReadFft(); // Get fresh data
+            
+            // Re-validate
+            fftSum = 0f;
+            fftMax = 0f;
+            fftNonZero = 0;
+            for (int i = 0; i < fft.Length; i++)
             {
-                _smoothFft[i] = _smoothFft[i] + sAlpha * (fft[i] - _smoothFft[i]);
+                float absVal = MathF.Abs(fft[i]);
+                fftSum += absVal;
+                if (absVal > fftMax) fftMax = absVal;
+                if (absVal > 0.001f) fftNonZero++;
+            }
+            
+            LogToFile($"[RenderSurface] After refresh - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
+            
+            if (fftSum < 0.001f || fftMax < 0.001f || fftNonZero < 10)
+            {
+                LogToFile($"[RenderSurface] FFT data still stuck after refresh attempt");
+                // Use a fallback pattern instead of stuck data
+                for (int i = 0; i < fft.Length; i++)
+                {
+                    fft[i] = MathF.Sin(i * 0.1f) * 0.1f; // Generate a simple sine wave pattern
+                }
+                LogToFile($"[RenderSurface] Applied fallback sine wave pattern");
             }
         }
 
         // Load settings each frame (cheap JSON)
         var vz = VisualizerSettings.Load();
+
+        // 2) FFT smoothing with validation
+        if (!_fftInit)
+        {
+            // First time: copy raw data
+            Array.Copy(fft, _smoothFft, fft.Length);
+            _fftInit = true;
+        }
+        else if (fftDataValid)
+        {
+            // Only apply smoothing if we have valid data
+            float smoothingAlpha = TimeDeltaToAlpha(vz.SmoothingMs);
+            for (int i = 0; i < _smoothFft.Length; i++)
+            {
+                // Ensure we're not smoothing with stuck data
+                if (MathF.Abs(fft[i] - _smoothFft[i]) > 0.001f)
+                {
+                    _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha) + fft[i] * smoothingAlpha;
+                }
+            }
+        }
 
         // 1) Input gain
         float gain = MathF.Pow(10f, vz.InputGainDb / 20f);
@@ -279,21 +329,13 @@ public sealed class RenderSurface : Control
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
-        var features = new PhoenixVisualizer.PluginHost.AudioFeatures(
-            t,
-            _bpm,
-            beat,
-            volume,
-            rms,
-            peak,
-            energy,
-            _smoothFft,
-            wave,
-            bass,
-            mid,
-            treble,
-            null,
-            null
+        // Use AudioFeaturesImpl.Create() instead of direct constructor
+        var features = AudioFeaturesImpl.Create(
+            _smoothFft,  // fft
+            wave,        // waveform
+            rms,         // rms
+            _bpm,        // bpm
+            beat         // beat
         );
 
         // Random preset switching via scheduler

@@ -63,8 +63,13 @@ public static class Presets
         if (_surface is null || _index < 0 || _index >= _presetTexts.Count) return;
         var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
         if (plug is null) return;
-        _surface.SetPlugin(plug);
-        plug.LoadPreset(_presetTexts[_index]);
+        
+        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+        if (plug is IVisualizerPlugin visPlugin)
+        {
+            _surface.SetPlugin(visPlugin);
+            plug.LoadPreset(_presetTexts[_index]);
+        }
     }
 }
 

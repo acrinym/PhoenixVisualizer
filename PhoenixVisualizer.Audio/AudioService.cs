@@ -3,6 +3,7 @@ using ManagedBass.Fx;
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Linq; // Added for .Take() and .Skip()
 
 namespace PhoenixVisualizer.Audio;
 
@@ -25,6 +26,10 @@ public sealed class AudioService : IDisposable
     bool _tempoEnabled = true; // default ON
     float _tempoPercent;       // -95..+500 (we'll clamp)
     float _pitchSemitones;     // -60..+60 (we'll clamp)
+    
+    // Audio buffer management
+    private readonly object _audioLock = new object();
+    private bool _isProcessing = false;
 
     const float TempoMinPercent = -95f;
     const float TempoMaxPercent = 500f;
@@ -54,51 +59,89 @@ public sealed class AudioService : IDisposable
         LogToFile($"[AudioService] Open called with: {filePath}");
         Close();
 
-        // Decode-only source
-        _sourceHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
-        LogToFile($"[AudioService] CreateStream result: {_sourceHandle}, Error: {Bass.LastError}");
-        if (_sourceHandle == 0) return false;
-
-        _currentFile = filePath;
-        LogToFile($"[AudioService] Source stream created successfully");
-
-        // Try to create tempo stream for pitch/tempo control
         try
         {
-            LogToFile($"[AudioService] Attempting to create tempo stream");
-            var flags = BassFlags.FxFreeSource | BassFlags.Float;
-            _tempoHandle = BassFx.TempoCreate(_sourceHandle, flags);
-            LogToFile($"[AudioService] TempoCreate result: {_tempoHandle}, Error: {Bass.LastError}");
+            // Decode-only source with better error handling
+            _sourceHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
+            LogToFile($"[AudioService] CreateStream result: {_sourceHandle}, Error: {Bass.LastError}");
             
-            if (_tempoHandle != 0)
+            if (_sourceHandle == 0)
             {
-                _tempoEnabled = true;
-                _playHandle = _tempoHandle;
-                LogToFile($"[AudioService] Tempo stream created successfully, tempo enabled");
-                ApplyTempoPitch();
+                LogToFile($"[AudioService] Failed to create source stream: {Bass.LastError}");
+                return false;
             }
-            else
-            {
-                _tempoEnabled = false;
-                LogToFile($"[AudioService] Tempo stream failed, falling back to direct stream");
-                _playHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
-                LogToFile($"[AudioService] Direct stream result: {_playHandle}, Error: {Bass.LastError}");
-                if (_playHandle == 0) return false;
-            }
-        }
-        catch (DllNotFoundException)
-        {
-            // BASS_FX not available, fall back to basic playback
-            LogToFile($"[AudioService] BASS_FX not available, falling back to basic playback");
-            System.Diagnostics.Debug.WriteLine("[Audio] BASS_FX not available, tempo/pitch disabled");
-            _tempoEnabled = false;
+
+            _currentFile = filePath;
+            LogToFile($"[AudioService] Source stream created successfully");
+
+            // Always start with a direct stream for stability
             _playHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
-            LogToFile($"[AudioService] Basic stream result: {_playHandle}, Error: {Bass.LastError}");
-            if (_playHandle == 0) return false;
+            if (_playHandle == 0)
+            {
+                LogToFile($"[AudioService] Failed to create direct play stream: {Bass.LastError}");
+                Bass.StreamFree(_sourceHandle);
+                _sourceHandle = 0;
+                _currentFile = null;
+                return false;
+            }
+
+            // Optimize audio buffer settings for visualization
+            try
+            {
+                // Set a larger buffer to prevent audio dropouts
+                Bass.ChannelSetAttribute(_playHandle, ChannelAttribute.Buffer, 1000); // 1 second buffer
+                LogToFile($"[AudioService] Audio buffer settings optimized");
+            }
+            catch (Exception ex)
+            {
+                LogToFile($"[AudioService] Failed to optimize audio buffer settings: {ex.Message}");
+            }
+
+            // Try to create tempo stream as backup (but don't use it yet)
+            try
+            {
+                LogToFile($"[AudioService] Attempting to create tempo stream");
+                var flags = BassFlags.FxFreeSource | BassFlags.Float;
+                _tempoHandle = BassFx.TempoCreate(_sourceHandle, flags);
+                LogToFile($"[AudioService] TempoCreate result: {_tempoHandle}, Error: {Bass.LastError}");
+                
+                if (_tempoHandle != 0)
+                {
+                    _tempoEnabled = true;
+                    LogToFile($"[AudioService] Tempo stream created successfully as backup");
+                    
+                    // Apply same buffer optimizations to tempo stream
+                    try
+                    {
+                        Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Buffer, 1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogToFile($"[AudioService] Failed to optimize tempo stream buffer settings: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    _tempoEnabled = false;
+                    LogToFile($"[AudioService] Tempo stream failed, using direct stream only");
+                }
+            }
+            catch (DllNotFoundException)
+            {
+                LogToFile($"[AudioService] BASS_FX not available, tempo/pitch disabled");
+                _tempoEnabled = false;
+                _tempoHandle = 0;
+            }
+            
+            LogToFile($"[AudioService] Open completed successfully. PlayHandle: {_playHandle}, TempoEnabled: {_tempoEnabled}");
+            return true;
         }
-        
-        LogToFile($"[AudioService] Open completed successfully. PlayHandle: {_playHandle}, TempoEnabled: {_tempoEnabled}");
-        return true;
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Open failed with exception: {ex.Message}");
+            Close();
+            return false;
+        }
     }
 
     public bool Play()
@@ -110,30 +153,93 @@ public sealed class AudioService : IDisposable
             return false;
         }
         
-        var result = Bass.ChannelPlay(_playHandle);
-        LogToFile($"[AudioService] ChannelPlay result: {result}, Error: {Bass.LastError}");
-        return result;
+        try
+        {
+            // Ensure the stream is in a clean state before playing
+            var state = Bass.ChannelIsActive(_playHandle);
+            if (state == PlaybackState.Stopped)
+            {
+                // Reset position to start if stopped
+                Bass.ChannelSetPosition(_playHandle, 0);
+            }
+            
+            var result = Bass.ChannelPlay(_playHandle);
+            LogToFile($"[AudioService] ChannelPlay result: {result}, Error: {Bass.LastError}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Play failed with exception: {ex.Message}");
+            return false;
+        }
     }
 
-    public void Pause() { if (_playHandle != 0) Bass.ChannelPause(_playHandle); }
+    public void Pause() 
+    { 
+        try
+        {
+            if (_playHandle != 0) 
+            {
+                var state = Bass.ChannelIsActive(_playHandle);
+                if (state == PlaybackState.Playing)
+                {
+                    Bass.ChannelPause(_playHandle);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Pause failed with exception: {ex.Message}");
+        }
+    }
+
     public void Stop()
     {
-        if (_playHandle != 0) Bass.ChannelStop(_playHandle);
-        if (_sourceHandle != 0) Bass.ChannelSetPosition(_sourceHandle, 0);
-        if (_tempoHandle != 0) Bass.ChannelSetPosition(_tempoHandle, 0);
+        try
+        {
+            if (_playHandle != 0) 
+            {
+                Bass.ChannelStop(_playHandle);
+                // Reset position to start
+                Bass.ChannelSetPosition(_playHandle, 0);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Stop failed with exception: {ex.Message}");
+        }
     }
 
     public void Close()
     {
-        if (_tempoHandle != 0) { Bass.StreamFree(_tempoHandle); _tempoHandle = 0; }
-        if (_playHandle != 0 && _playHandle != _tempoHandle) { Bass.StreamFree(_playHandle); }
-        _playHandle = 0;
-
-        if (_sourceHandle != 0) { Bass.StreamFree(_sourceHandle); _sourceHandle = 0; }
-        _currentFile = null;
-        _tempoPercent = 0;
-        _pitchSemitones = 0;
-        _tempoEnabled = false;
+        try
+        {
+            if (_tempoHandle != 0) 
+            { 
+                Bass.StreamFree(_tempoHandle); 
+                _tempoHandle = 0; 
+            }
+            if (_playHandle != 0) 
+            { 
+                Bass.StreamFree(_playHandle); 
+                _playHandle = 0;
+            }
+            if (_sourceHandle != 0) 
+            { 
+                Bass.StreamFree(_sourceHandle); 
+                _sourceHandle = 0; 
+            }
+            _currentFile = null;
+            _tempoPercent = 0;
+            _pitchSemitones = 0;
+            _tempoEnabled = false;
+            
+            LogToFile($"[AudioService] Close completed successfully");
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Close failed with exception: {ex.Message}");
+        }
     }
 
     // ---- Tempo/Pitch surface for UI ----
@@ -189,91 +295,152 @@ public sealed class AudioService : IDisposable
         ApplyTempoPitch();
     }
 
-    void ToggleTempo(bool enabled)
+    public bool ResetAudioStream()
     {
-        if (enabled == _tempoEnabled) return;
-        _tempoEnabled = enabled;
-        if (_currentFile == null) { _playHandle = 0; return; }
-
-        long pos = 0;
-        if (_playHandle != 0) pos = Bass.ChannelGetPosition(_playHandle);
-
-        if (_tempoEnabled)
+        LogToFile($"[AudioService] ResetAudioStream called");
+        
+        try
         {
-            if (_tempoHandle == 0 && _sourceHandle != 0)
+            if (_playHandle == 0) return false;
+            
+            var wasPlaying = Bass.ChannelIsActive(_playHandle) == PlaybackState.Playing;
+            var currentPos = Bass.ChannelGetPosition(_playHandle);
+            
+            // Stop current playback
+            Bass.ChannelStop(_playHandle);
+            
+            // Create a fresh stream
+            int newHandle;
+            if (_tempoEnabled && _tempoHandle != 0)
             {
-                _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
-                if (_tempoHandle == 0) { _tempoEnabled = false; return; }
-            }
-            _playHandle = _tempoHandle;
-        }
-        else
-        {
-            var direct = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
-            if (direct != 0)
-            {
-                var sec = Bass.ChannelBytes2Seconds(_playHandle, pos);
-                Bass.ChannelSetPosition(direct, Bass.ChannelSeconds2Bytes(direct, sec));
-                if (_playHandle != 0) Bass.ChannelStop(_playHandle);
-                _playHandle = direct;
+                newHandle = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
+                if (newHandle != 0)
+                {
+                    _playHandle = newHandle;
+                    ApplyTempoPitch();
+                }
             }
             else
             {
-                _tempoEnabled = true; // fail safe
-                _playHandle = _tempoHandle != 0 ? _tempoHandle : _playHandle;
+                newHandle = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
+                if (newHandle != 0)
+                {
+                    _playHandle = newHandle;
+                }
+            }
+            
+            if (newHandle != 0)
+            {
+                // Restore position and playback state
+                if (currentPos > 0)
+                {
+                    Bass.ChannelSetPosition(_playHandle, currentPos);
+                }
+                if (wasPlaying)
+                {
+                    Bass.ChannelPlay(_playHandle);
+                }
+                
+                LogToFile($"[AudioService] Audio stream reset successfully");
+                return true;
+            }
+            else
+            {
+                LogToFile($"[AudioService] Failed to create new audio stream: {Bass.LastError}");
+                return false;
             }
         }
-        ApplyTempoPitch();
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] ResetAudioStream failed with exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    void ToggleTempo(bool enabled)
+    {
+        if (enabled == _tempoEnabled) return;
+        
+        LogToFile($"[AudioService] ToggleTempo called: {enabled}");
+        
+        try
+        {
+            if (enabled && _tempoHandle != 0)
+            {
+                // Switch to tempo stream - simple approach
+                if (_playHandle != 0 && _playHandle != _tempoHandle)
+                {
+                    Bass.ChannelStop(_playHandle);
+                }
+                
+                _playHandle = _tempoHandle;
+                _tempoEnabled = true;
+                
+                LogToFile($"[AudioService] Switched to tempo stream successfully");
+            }
+            else if (!enabled)
+            {
+                // Switch back to direct stream - simple approach
+                if (_playHandle != 0 && _playHandle != _tempoHandle)
+                {
+                    Bass.ChannelStop(_playHandle);
+                }
+                
+                // Create new direct stream
+                var direct = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
+                if (direct != 0)
+                {
+                    _playHandle = direct;
+                    _tempoEnabled = false;
+                    LogToFile($"[AudioService] Switched to direct stream successfully");
+                }
+                else
+                {
+                    LogToFile($"[AudioService] Failed to create direct stream, keeping current stream");
+                    _tempoEnabled = true; // fail safe
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] ToggleTempo failed with exception: {ex.Message}");
+            // Keep current state on error
+        }
     }
 
     void RecreateTempoStream()
     {
+        // Simplified - just recreate the tempo stream without switching
         if (_sourceHandle == 0 || !_tempoEnabled) return;
         
-        var oldPos = _playHandle != 0 ? Bass.ChannelGetPosition(_playHandle) : 0;
-        var wasPlaying = _playHandle != 0 && Bass.ChannelIsActive(_playHandle) == PlaybackState.Playing;
+        LogToFile($"[AudioService] RecreateTempoStream called");
         
-        // Clean up old tempo stream
-        if (_tempoHandle != 0)
-        {
-            Bass.StreamFree(_tempoHandle);
-            _tempoHandle = 0;
-        }
-        
-        // Create new tempo stream
         try
         {
+            // Clean up old tempo stream
+            if (_tempoHandle != 0)
+            {
+                Bass.StreamFree(_tempoHandle);
+                _tempoHandle = 0;
+            }
+            
+            // Create new tempo stream
             _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
             if (_tempoHandle != 0)
             {
-                _playHandle = _tempoHandle;
+                LogToFile($"[AudioService] Tempo stream recreated successfully");
                 ApplyTempoPitch();
-                
-                // Restore position and playback state
-                if (oldPos > 0)
-                {
-                    Bass.ChannelSetPosition(_tempoHandle, oldPos);
-                }
-                if (wasPlaying)
-                {
-                    Bass.ChannelPlay(_tempoHandle);
-                }
+            }
+            else
+            {
+                LogToFile($"[AudioService] Failed to recreate tempo stream: {Bass.LastError}");
+                _tempoEnabled = false;
             }
         }
-        catch (DllNotFoundException)
+        catch (Exception ex)
         {
-            // BASS_FX not available, fall back to basic playback
-            System.Diagnostics.Debug.WriteLine("[Audio] BASS_FX not available during pitch change, tempo/pitch disabled");
+            LogToFile($"[AudioService] RecreateTempoStream failed with exception: {ex.Message}");
             _tempoEnabled = false;
-            _playHandle = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
-            if (_playHandle != 0 && oldPos > 0)
-            {
-                Bass.ChannelSetPosition(_playHandle, oldPos);
-            }
-            if (wasPlaying && _playHandle != 0)
-            {
-                Bass.ChannelPlay(_playHandle);
-            }
         }
     }
 
@@ -281,16 +448,17 @@ public sealed class AudioService : IDisposable
     {
         if (_playHandle == 0) return;
 
-        if (_tempoEnabled && _playHandle == _tempoHandle && _tempoHandle != 0)
+        try
         {
-            Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, _tempoPercent);
-        }
-        else
-        {
-            if (_tempoHandle != 0)
+            if (_tempoEnabled && _playHandle == _tempoHandle && _tempoHandle != 0)
             {
-                Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, 0);
+                Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, _tempoPercent);
+                LogToFile($"[AudioService] Applied tempo: {_tempoPercent:F1}%");
             }
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] ApplyTempoPitch failed with exception: {ex.Message}");
         }
     }
 
@@ -318,6 +486,26 @@ public sealed class AudioService : IDisposable
     public string GetStatus()
     {
         return $"PlayHandle: {(_playHandle != 0 ? "OK" : "NULL")}, File: {(_currentFile ?? "NONE")}, Ready: {IsReadyToPlay}, Tempo: {_tempoEnabled}, Tempo%: {_tempoPercent:F1}, Pitch: {_pitchSemitones:F1}";
+    }
+
+    public string GetAudioHealth()
+    {
+        if (_playHandle == 0) return "No audio handle";
+        
+        try
+        {
+            var state = Bass.ChannelIsActive(_playHandle);
+            var position = Bass.ChannelGetPosition(_playHandle);
+            var length = Bass.ChannelGetLength(_playHandle);
+            var freq = Bass.ChannelGetAttribute(_playHandle, ChannelAttribute.Frequency);
+            var volume = Bass.ChannelGetAttribute(_playHandle, ChannelAttribute.Volume);
+            
+            return $"State: {state}, Pos: {position}, Length: {length}, Freq: {freq:F0}Hz, Vol: {volume:F2}";
+        }
+        catch (Exception ex)
+        {
+            return $"Health check failed: {ex.Message}";
+        }
     }
 
     public AudioFileInfo? GetFileInfo()
@@ -353,56 +541,82 @@ public sealed class AudioService : IDisposable
             return new float[2048];
         }
         
-        try
+        // Thread-safe audio reading
+        lock (_audioLock)
         {
-            var fftData = new float[2048];
-            
-            // Check if channel is actually playing
-            var playbackState = Bass.ChannelIsActive(_playHandle);
-            LogToFile($"[AudioService] ReadFft: Playback state: {playbackState}");
-            
-            if (playbackState != PlaybackState.Playing)
+            if (_isProcessing)
             {
-                LogToFile($"[AudioService] ReadFft: Channel not playing, returning zeros");
-                return new float[2048];
+                return new float[2048]; // Return zeros if already processing
             }
             
-            // Force BASS to update the channel data before reading FFT
-            // This ensures we get fresh data each frame
-            Bass.Update(0); // 0 = update all channels
+            _isProcessing = true;
             
-            // Use FFT2048 to get 2048 frequency bins (0-22050 Hz for 44.1kHz audio)
-            // Mono FFT for stability (stereo FFTIndividual can cause blocking)
-            int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048);
-            LogToFile($"[AudioService] ReadFft: ChannelGetData result: {fftSize}, Error: {Bass.LastError}");
-            
-            if (fftSize > 0)
+            try
             {
-                // Log first few values to see if we're getting data
-                var firstValues = string.Join(",", fftData.Take(5).Select(f => f.ToString("F3")));
-                var lastValues = string.Join(",", fftData.Skip(2043).Take(5).Select(f => f.ToString("F3")));
-                LogToFile($"[AudioService] ReadFft: First 5 values: [{firstValues}], Last 5 values: [{lastValues}]");
+                var fftData = new float[2048];
                 
-                // Check if data is actually changing
-                var sum = fftData.Sum(f => Math.Abs(f));
-                LogToFile($"[AudioService] ReadFft: Data sum: {sum:F3}");
+                // Check if channel is actually playing
+                var playbackState = Bass.ChannelIsActive(_playHandle);
+                if (playbackState != PlaybackState.Playing)
+                {
+                    LogToFile($"[AudioService] ReadFft: Channel not playing, returning zeros");
+                    return new float[2048];
+                }
                 
-                // Additional validation: check if we have meaningful frequency data
-                var maxValue = fftData.Max(f => Math.Abs(f));
-                var nonZeroCount = fftData.Count(f => Math.Abs(f) > 0.001f);
-                LogToFile($"[AudioService] ReadFft: Max value: {maxValue:F3}, Non-zero bins: {nonZeroCount}/2048");
+                // Clear the FFT data array first to ensure we don't get stale data
+                Array.Clear(fftData, 0, fftData.Length);
                 
-                return fftData;
+                // Use FFT2048 to get 2048 frequency bins (0-22050 Hz for 44.1kHz audio)
+                // Mono FFT for stability (stereo FFTIndividual can cause blocking)
+                int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048);
+                
+                if (fftSize > 0)
+                {
+                    // Simple validation - just check if we got any meaningful data
+                    var sum = fftData.Sum(f => MathF.Abs(f));
+                    var maxValue = fftData.Max(f => MathF.Abs(f));
+                    
+                    if (sum > 0.001f && maxValue > 0.001f)
+                    {
+                        return fftData;
+                    }
+                    else
+                    {
+                        LogToFile($"[AudioService] ReadFft: Data appears stuck (sum: {sum:F6}, max: {maxValue:F6})");
+                        
+                        // Try to recover by resetting the audio stream
+                        if (ResetAudioStream())
+                        {
+                            LogToFile($"[AudioService] ReadFft: Audio stream reset, retrying FFT read");
+                            // Try reading again after reset
+                            Array.Clear(fftData, 0, fftData.Length);
+                            fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048);
+                            if (fftSize > 0)
+                            {
+                                sum = fftData.Sum(f => MathF.Abs(f));
+                                maxValue = fftData.Max(f => MathF.Abs(f));
+                                if (sum > 0.001f && maxValue > 0.001f)
+                                {
+                                    return fftData;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    LogToFile($"[AudioService] ReadFft: No data returned from ChannelGetData");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                LogToFile($"[AudioService] ReadFft: No data returned from ChannelGetData");
+                LogToFile($"[AudioService] ReadFft exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"AudioService.ReadFft failed: {ex.Message}");
             }
-        }
-        catch (Exception ex)
-        {
-            LogToFile($"[AudioService] ReadFft exception: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"AudioService.ReadFft failed: {ex.Message}");
+            finally
+            {
+                _isProcessing = false;
+            }
         }
         
         return new float[2048];
@@ -416,46 +630,83 @@ public sealed class AudioService : IDisposable
             return new float[2048];
         }
         
-        try
+        // Thread-safe audio reading
+        lock (_audioLock)
         {
-            var waveData = new float[2048];
-            
-            // Check if channel is actually playing
-            var playbackState = Bass.ChannelIsActive(_playHandle);
-            if (playbackState != PlaybackState.Playing)
+            if (_isProcessing)
             {
-                LogToFile($"[AudioService] ReadWaveform: Channel not playing, returning zeros");
-                return new float[2048];
+                return new float[2048]; // Return zeros if already processing
             }
             
-            // Force BASS to update the channel data before reading waveform
-            Bass.Update(0);
+            _isProcessing = true;
             
-            // Get raw waveform data - request exactly 2048 samples
-            // Explicit byte count prevents blocking for ~1MB of audio
-            int bytesToRead = waveData.Length * sizeof(float);
-            int waveSize = Bass.ChannelGetData(_playHandle, waveData, bytesToRead | (int)DataFlags.Float);
-            LogToFile($"[AudioService] ReadWaveform: ChannelGetData result: {waveSize}, Error: {Bass.LastError}");
-            
-            if (waveSize > 0)
+            try
             {
-                // Log some waveform data to see if it's changing
-                var firstValues = string.Join(",", waveData.Take(5).Select(w => w.ToString("F3")));
-                var sum = waveData.Sum(w => Math.Abs(w));
-                var maxValue = waveData.Max(w => Math.Abs(w));
-                var nonZeroCount = waveData.Count(w => Math.Abs(w) > 0.001f);
-                LogToFile($"[AudioService] ReadWaveform: First 5 values: [{firstValues}], Sum: {sum:F3}, Max: {maxValue:F3}, Non-zero: {nonZeroCount}/2048");
-                return waveData;
+                var waveData = new float[2048];
+                
+                // Check if channel is actually playing
+                var playbackState = Bass.ChannelIsActive(_playHandle);
+                if (playbackState != PlaybackState.Playing)
+                {
+                    LogToFile($"[AudioService] ReadWaveform: Channel not playing, returning zeros");
+                    return new float[2048];
+                }
+                
+                // Clear the waveform data array first to ensure we don't get stale data
+                Array.Clear(waveData, 0, waveData.Length);
+                
+                // Get raw waveform data - request exactly 2048 samples
+                // Explicit byte count prevents blocking for ~1MB of audio
+                int bytesToRead = waveData.Length * sizeof(float);
+                int waveSize = Bass.ChannelGetData(_playHandle, waveData, bytesToRead | (int)DataFlags.Float);
+                
+                if (waveSize > 0)
+                {
+                    // Simple validation - just check if we got any meaningful data
+                    var sum = waveData.Sum(w => MathF.Abs(w));
+                    var maxValue = waveData.Max(w => MathF.Abs(w));
+                    
+                    if (sum > 0.001f && maxValue > 0.001f)
+                    {
+                        return waveData;
+                    }
+                    else
+                    {
+                        LogToFile($"[AudioService] ReadWaveform: Data appears stuck (sum: {sum:F6}, max: {maxValue:F6})");
+                        
+                        // Try to recover by resetting the audio stream
+                        if (ResetAudioStream())
+                        {
+                            LogToFile($"[AudioService] ReadWaveform: Audio stream reset, retrying waveform read");
+                            // Try reading again after reset
+                            Array.Clear(waveData, 0, waveData.Length);
+                            waveSize = Bass.ChannelGetData(_playHandle, waveData, bytesToRead | (int)DataFlags.Float);
+                            if (waveSize > 0)
+                            {
+                                sum = waveData.Sum(w => MathF.Abs(w));
+                                maxValue = waveData.Max(w => MathF.Abs(w));
+                                if (sum > 0.001f && maxValue > 0.001f)
+                                {
+                                    return waveData;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    LogToFile($"[AudioService] ReadWaveform: No data returned from ChannelGetData");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                LogToFile($"[AudioService] ReadWaveform: No data returned from ChannelGetData");
+                LogToFile($"[AudioService] ReadWaveform exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"AudioService.ReadWaveform failed: {ex.Message}");
             }
-        }
-        catch (Exception ex)
-        {
-            LogToFile($"[AudioService] ReadWaveform exception: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"AudioService.ReadWaveform failed: {ex.Message}");
+            finally
+            {
+                _isProcessing = false;
+            }
         }
         
         return new float[2048];

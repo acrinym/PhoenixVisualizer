@@ -140,21 +140,13 @@ public sealed class RenderSurface : Control
         }
         _prevEnergy = _prevEnergy * 0.9f + energy * 0.1f;
 
-        var features = new AudioFeatures(
-            pos,       // time seconds
-            _bpm,      // bpm estimate
-            beat,      // beat flag
-            volume,    // average magnitude
-            rms,       // rms
-            peak,      // peak
-            energy,    // energy
-            _smoothFft,// fft
-            wave,      // waveform
-            bass,      // bass band
-            mid,       // mid band
-            treble,    // treble band
-            null,
-            null
+        // Use AudioFeaturesImpl.Create() instead of direct constructor
+        var features = AudioFeaturesImpl.Create(
+            _smoothFft,  // fft
+            wave,        // waveform  
+            rms,         // rms
+            _bpm,        // bpm
+            beat         // beat
         );
 
         try
