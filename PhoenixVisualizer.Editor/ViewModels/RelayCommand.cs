@@ -43,4 +43,9 @@ public class RelayCommand<T> : ICommand
     public bool CanExecute(object? parameter) => _canExecute?.Invoke((T?)parameter) ?? true;
 
     public void Execute(object? parameter) => _execute((T?)parameter);
+
+    public void RaiseCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
 }
