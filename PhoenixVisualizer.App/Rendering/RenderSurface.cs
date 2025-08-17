@@ -85,10 +85,15 @@ public sealed class RenderSurface : Control
         return result;
     }
     
-    public void Play() 
+    public bool Play() 
     {
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
-        _audio.Play();
+        var result = _audio.Play();
+        if (!result)
+        {
+            System.Diagnostics.Debug.WriteLine("[RenderSurface] Play failed - no audio file loaded or other error");
+        }
+        return result;
     }
     
     public void Pause() 

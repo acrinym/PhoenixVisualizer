@@ -180,8 +180,16 @@ public partial class MainWindow : Window
             }
             
             System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Starting playback");
-            RenderSurfaceControl.Play();
-            System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() called successfully");
+            var playResult = RenderSurfaceControl.Play();
+            if (playResult)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() called successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() failed - no audio file loaded");
+                // TODO: Show user-friendly message that they need to open an audio file first
+            }
         }
         catch (Exception ex)
         {

@@ -113,12 +113,16 @@ public sealed class AudioService : IDisposable
         }
     }
 
-    public void Play()
+    public bool Play()
     {
         if (!IsReadyToPlay)
         {
             System.Diagnostics.Debug.WriteLine($"AudioService.Play: Not ready to play. Status: {GetStatus()}");
-            return;
+            if (string.IsNullOrEmpty(_currentFilePath))
+            {
+                System.Diagnostics.Debug.WriteLine("AudioService.Play: No audio file loaded. Please open an audio file first.");
+            }
+            return false;
         }
         
         try
@@ -131,10 +135,12 @@ public sealed class AudioService : IDisposable
                     _isPlaying = true;
                     _isPaused = false;
                     System.Diagnostics.Debug.WriteLine("AudioService.Play: Resumed playback successfully");
+                    return true;
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"AudioService.Play resume failed: {Bass.LastError}");
+                    return false;
                 }
             }
             else
@@ -144,10 +150,12 @@ public sealed class AudioService : IDisposable
                 {
                     _isPlaying = true;
                     System.Diagnostics.Debug.WriteLine("AudioService.Play: Started playback successfully");
+                    return true;
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"AudioService.Play start failed: {Bass.LastError}");
+                    return false;
                 }
             }
         }
@@ -155,6 +163,7 @@ public sealed class AudioService : IDisposable
         {
             System.Diagnostics.Debug.WriteLine($"AudioService.Play failed: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"AudioService.Play stack trace: {ex.StackTrace}");
+            return false;
         }
     }
 
