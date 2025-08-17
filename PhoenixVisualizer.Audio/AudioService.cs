@@ -356,6 +356,18 @@ public sealed class AudioService : IDisposable
         try
         {
             var fftData = new float[2048];
+            
+            // Check if channel is actually playing
+            var playbackState = Bass.ChannelIsActive(_playHandle);
+            LogToFile($"[AudioService] ReadFft: Playback state: {playbackState}");
+            
+            if (playbackState != PlaybackState.Playing)
+            {
+                LogToFile($"[AudioService] ReadFft: Channel not playing, returning zeros");
+                return new float[2048];
+            }
+            
+            // Use FFTIndividual to get individual channel data (stereo)
             int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048 | (int)DataFlags.FFTIndividual);
             LogToFile($"[AudioService] ReadFft: ChannelGetData result: {fftSize}, Error: {Bass.LastError}");
             
@@ -363,7 +375,13 @@ public sealed class AudioService : IDisposable
             {
                 // Log first few values to see if we're getting data
                 var firstValues = string.Join(",", fftData.Take(5).Select(f => f.ToString("F3")));
-                LogToFile($"[AudioService] ReadFft: First 5 values: [{firstValues}]");
+                var lastValues = string.Join(",", fftData.Skip(2043).Take(5).Select(f => f.ToString("F3")));
+                LogToFile($"[AudioService] ReadFft: First 5 values: [{firstValues}], Last 5 values: [{lastValues}]");
+                
+                // Check if data is actually changing
+                var sum = fftData.Sum(f => Math.Abs(f));
+                LogToFile($"[AudioService] ReadFft: Data sum: {sum:F3}");
+                
                 return fftData;
             }
             else
@@ -382,20 +400,44 @@ public sealed class AudioService : IDisposable
 
     public float[] ReadWaveform()
     {
-        if (_playHandle == 0) return new float[2048];
+        if (_playHandle == 0) 
+        {
+            LogToFile($"[AudioService] ReadWaveform called but no play handle");
+            return new float[2048];
+        }
         
         try
         {
             var waveData = new float[2048];
+            
+            // Check if channel is actually playing
+            var playbackState = Bass.ChannelIsActive(_playHandle);
+            if (playbackState != PlaybackState.Playing)
+            {
+                LogToFile($"[AudioService] ReadWaveform: Channel not playing, returning zeros");
+                return new float[2048];
+            }
+            
+            // Get raw waveform data
             int waveSize = Bass.ChannelGetData(_playHandle, waveData, (int)DataFlags.Float);
+            LogToFile($"[AudioService] ReadWaveform: ChannelGetData result: {waveSize}, Error: {Bass.LastError}");
             
             if (waveSize > 0)
             {
+                // Log some waveform data to see if it's changing
+                var firstValues = string.Join(",", waveData.Take(5).Select(w => w.ToString("F3")));
+                var sum = waveData.Sum(w => Math.Abs(w));
+                LogToFile($"[AudioService] ReadWaveform: First 5 values: [{firstValues}], Sum: {sum:F3}");
                 return waveData;
+            }
+            else
+            {
+                LogToFile($"[AudioService] ReadWaveform: No data returned from ChannelGetData");
             }
         }
         catch (Exception ex)
         {
+            LogToFile($"[AudioService] ReadWaveform exception: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"AudioService.ReadWaveform failed: {ex.Message}");
         }
         
