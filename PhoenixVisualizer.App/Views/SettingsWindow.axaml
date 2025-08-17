@@ -1,6 +1,7 @@
 <!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/SettingsWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:PhoenixVisualizer.Views"
         x:Class="PhoenixVisualizer.Views.SettingsWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Phoenix Visualizer Settings"
@@ -26,10 +27,10 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="20">
 
-                <!-- Visualization Plugin -->
+                                <!-- Visualization Plugin -->
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
                     <StackPanel>
-                        <TextBlock Text="Visualization Plugin"
+                        <TextBlock Text="Visualization Plugin" 
                                    FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
                         <TextBlock Text="Choose the default visualization plugin:"
                                    Margin="0,0,0,10" />
@@ -44,6 +45,101 @@
                                          Tag="phoenix"
                                          Margin="0,5"/>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Plugin Manager -->
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Plugin Manager" 
+                                       FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button x:Name="BtnRefreshPlugins" 
+                                    Content="🔄 Refresh" 
+                                    Margin="15,0,0,0" 
+                                    Padding="8,4" 
+                                    Click="OnRefreshPluginsClick"/>
+                        </StackPanel>
+                        
+                        <!-- Plugin List -->
+                        <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+                            <Grid RowDefinitions="Auto,*">
+                                <TextBlock Grid.Row="0" Text="Available Plugins:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <ListBox x:Name="PluginListBox" Grid.Row="1" Height="120" SelectionChanged="OnPluginSelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="views:PluginInfo">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <CheckBox x:Name="PluginEnabledCheck" 
+                                                          IsChecked="{Binding IsEnabled}" 
+                                                          Checked="OnPluginEnabledChanged"
+                                                          Unchecked="OnPluginEnabledChanged"/>
+                                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="(" Foreground="Gray" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Id}" Foreground="Gray" VerticalAlignment="Center"/>
+                                                <TextBlock Text=")" Foreground="Gray" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- Plugin Details -->
+                        <Border x:Name="PluginDetailsPanel" 
+                                BorderBrush="LightGray" 
+                                BorderThickness="1" 
+                                Padding="10" 
+                                IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Plugin Details:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,8">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginNameText" Grid.Row="0" Grid.Column="1" Text=""/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Description:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginDescriptionText" Grid.Row="1" Grid.Column="1" Text=""/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Status:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginStatusText" Grid.Row="2" Grid.Column="1" Text=""/>
+                                </Grid>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                    <Button x:Name="BtnConfigurePlugin" 
+                                            Content="⚙️ Configure" 
+                                            Padding="8,4" 
+                                            Click="OnConfigurePluginClick"/>
+                                    <Button x:Name="BtnTestPlugin" 
+                                            Content="▶️ Test" 
+                                            Padding="8,4" 
+                                            Click="OnTestPluginClick"/>
+                                    <Button x:Name="BtnPluginInfo" 
+                                            Content="ℹ️ Info" 
+                                            Padding="8,4" 
+                                            Click="OnPluginInfoClick"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Plugin Installation -->
+                        <Border BorderBrush="LightGray" BorderThickness="1" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Install New Plugin:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="BtnBrowsePlugin" 
+                                            Content="📁 Browse..." 
+                                            Padding="8,4" 
+                                            Click="OnBrowsePluginClick"/>
+                                    <Button x:Name="BtnInstallPlugin" 
+                                            Content="📦 Install" 
+                                            Padding="8,4" 
+                                            Click="OnInstallPluginClick"/>
+                                    <TextBlock Text="Drop .dll files here or browse to install" 
+                                               VerticalAlignment="Center" 
+                                               Foreground="Gray" 
+                                               Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 

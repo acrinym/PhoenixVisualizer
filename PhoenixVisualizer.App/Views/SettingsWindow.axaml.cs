@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Views;
 
@@ -28,6 +30,16 @@ public partial class SettingsWindow : Window
     private CheckBox?    FullscreenCheckControl => this.FindControl<CheckBox>("FullscreenCheck");
     private CheckBox?    AutoHideUICheckControl => this.FindControl<CheckBox>("AutoHideUICheck");
 
+    // Plugin Manager controls
+    private ListBox?     PluginListBoxControl       => this.FindControl<ListBox>("PluginListBox");
+    private Border?      PluginDetailsPanelControl  => this.FindControl<Border>("PluginDetailsPanel");
+    private TextBlock?   PluginNameTextControl      => this.FindControl<TextBlock>("PluginNameText");
+    private TextBlock?   PluginDescriptionTextControl => this.FindControl<TextBlock>("PluginDescriptionText");
+    private TextBlock?   PluginStatusTextControl    => this.FindControl<TextBlock>("PluginStatusText");
+    private Button?      BtnConfigurePluginControl  => this.FindControl<Button>("BtnConfigurePlugin");
+    private Button?      BtnTestPluginControl       => this.FindControl<Button>("BtnTestPlugin");
+    private Button?      BtnPluginInfoControl       => this.FindControl<Button>("BtnPluginInfo");
+
     public SettingsWindow()
     {
         InitializeComponent();
@@ -38,6 +50,9 @@ public partial class SettingsWindow : Window
         // Sync current fields -> UI controls
         LoadCurrentSettings();
         LoadVisualizerSettings();
+        
+        // Initialize plugin list
+        RefreshPluginList();
     }
 
     private void InitializeComponent()
@@ -230,4 +245,191 @@ public partial class SettingsWindow : Window
 
         _vz.Save();
     }
+
+    #region Plugin Management
+
+    private void OnRefreshPluginsClick(object? sender, RoutedEventArgs e)
+    {
+        RefreshPluginList();
+    }
+
+    private void OnPluginSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (PluginListBoxControl?.SelectedItem is PluginInfo plugin)
+        {
+            ShowPluginDetails(plugin);
+        }
+        else
+        {
+            HidePluginDetails();
+        }
+    }
+
+    private void OnPluginEnabledChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox && checkBox.DataContext is PluginInfo plugin)
+        {
+            plugin.IsEnabled = checkBox.IsChecked ?? false;
+            UpdatePluginStatus(plugin);
+        }
+    }
+
+    private void OnConfigurePluginClick(object? sender, RoutedEventArgs e)
+    {
+        if (PluginListBoxControl?.SelectedItem is PluginInfo plugin)
+        {
+            ConfigurePlugin(plugin);
+        }
+    }
+
+    private void OnTestPluginClick(object? sender, RoutedEventArgs e)
+    {
+        if (PluginListBoxControl?.SelectedItem is PluginInfo plugin)
+        {
+            TestPlugin(plugin);
+        }
+    }
+
+    private void OnPluginInfoClick(object? sender, RoutedEventArgs e)
+    {
+        if (PluginListBoxControl?.SelectedItem is PluginInfo plugin)
+        {
+            ShowPluginInfo(plugin);
+        }
+    }
+
+    private void OnBrowsePluginClick(object? sender, RoutedEventArgs e)
+    {
+        BrowseForPlugin();
+    }
+
+    private void OnInstallPluginClick(object? sender, RoutedEventArgs e)
+    {
+        InstallSelectedPlugin();
+    }
+
+    private void RefreshPluginList()
+    {
+        try
+        {
+            var plugins = PluginRegistry.Available;
+            var pluginInfos = plugins.Select(p => new PluginInfo
+            {
+                Id = p.id,
+                DisplayName = p.displayName,
+                Description = $"Plugin: {p.id}", // TODO: Get actual description from plugin
+                IsEnabled = true // TODO: Load enabled state from settings
+            }).ToList();
+
+            PluginListBoxControl?.SetCurrentValue(ListBox.ItemsSourceProperty, pluginInfos);
+        }
+        catch (Exception ex)
+        {
+            // TODO: Show error message to user
+            Console.WriteLine($"Error refreshing plugins: {ex.Message}");
+        }
+    }
+
+    private void ShowPluginDetails(PluginInfo plugin)
+    {
+        if (PluginDetailsPanelControl != null)
+        {
+            PluginDetailsPanelControl.IsVisible = true;
+        }
+
+        if (PluginNameTextControl != null)
+        {
+            PluginNameTextControl.Text = plugin.DisplayName;
+        }
+
+        if (PluginDescriptionTextControl != null)
+        {
+            PluginDescriptionTextControl.Text = plugin.Description;
+        }
+
+        UpdatePluginStatus(plugin);
+    }
+
+    private void HidePluginDetails()
+    {
+        if (PluginDetailsPanelControl != null)
+        {
+            PluginDetailsPanelControl.IsVisible = false;
+        }
+    }
+
+    private void UpdatePluginStatus(PluginInfo plugin)
+    {
+        if (PluginStatusTextControl != null)
+        {
+            var status = plugin.IsEnabled ? "Enabled" : "Disabled";
+            PluginStatusTextControl.Text = status;
+        }
+    }
+
+    private void ConfigurePlugin(PluginInfo plugin)
+    {
+        try
+        {
+            var pluginInstance = PluginRegistry.Create(plugin.Id);
+            if (pluginInstance is IVisualizerPlugin visualizerPlugin)
+            {
+                // TODO: Show configuration dialog for the plugin
+                // For now, just show a message
+                Console.WriteLine($"Configuring plugin: {plugin.DisplayName}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error configuring plugin: {ex.Message}");
+        }
+    }
+
+    private void TestPlugin(PluginInfo plugin)
+    {
+        try
+        {
+            var pluginInstance = PluginRegistry.Create(plugin.Id);
+            if (pluginInstance is IVisualizerPlugin visualizerPlugin)
+            {
+                // TODO: Test the plugin with sample audio data
+                Console.WriteLine($"Testing plugin: {plugin.DisplayName}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error testing plugin: {ex.Message}");
+        }
+    }
+
+    private void ShowPluginInfo(PluginInfo plugin)
+    {
+        // TODO: Show detailed plugin information dialog
+        Console.WriteLine($"Plugin Info: {plugin.DisplayName} ({plugin.Id})");
+        Console.WriteLine($"Description: {plugin.Description}");
+        Console.WriteLine($"Status: {(plugin.IsEnabled ? "Enabled" : "Disabled")}");
+    }
+
+    private void BrowseForPlugin()
+    {
+        // TODO: Implement file browser for plugin selection
+        Console.WriteLine("Browse for plugin functionality not yet implemented");
+    }
+
+    private void InstallSelectedPlugin()
+    {
+        // TODO: Implement plugin installation
+        Console.WriteLine("Plugin installation functionality not yet implemented");
+    }
+
+    #endregion
+}
+
+// Plugin information model for the UI
+public class PluginInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; } = true;
 }
