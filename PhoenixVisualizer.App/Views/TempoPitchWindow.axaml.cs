@@ -20,41 +20,59 @@ namespace PhoenixVisualizer.Views
             AvaloniaXamlLoader.Load(this);
             _audio = audio;
 
+            // Find controls after XAML is loaded
+            var tempoSlider = this.FindControl<Slider>("TempoSlider");
+            var pitchSlider = this.FindControl<Slider>("PitchSlider");
+            var tempoLabel = this.FindControl<TextBlock>("TempoLabel");
+            var pitchLabel = this.FindControl<TextBlock>("PitchLabel");
+            var btn075 = this.FindControl<Button>("Btn075");
+            var btn050 = this.FindControl<Button>("Btn050");
+            var btn025 = this.FindControl<Button>("Btn025");
+            var btn005 = this.FindControl<Button>("Btn005");
+            var btnReset = this.FindControl<Button>("BtnReset");
+            var btnClose = this.FindControl<Button>("BtnClose");
+
             // Initialize labels
-            TempoLabel.Text = "1.00×";
-            PitchLabel.Text = "0 st";
+            if (tempoLabel != null) tempoLabel.Text = "1.00×";
+            if (pitchLabel != null) pitchLabel.Text = "0 st";
 
-            TempoSlider.PropertyChanged += (_, e) =>
+            if (tempoSlider != null)
             {
-                if (e.Property.Name == "Value" && _audio != null)
+                tempoSlider.PropertyChanged += (_, e) =>
                 {
-                    var m = (double)TempoSlider.Value;
-                    _audio.SetTempoMultiplier(m);
-                    TempoLabel.Text = $"{m:0.00}×";
-                }
-            };
+                    if (e.Property.Name == "Value" && _audio != null)
+                    {
+                        var m = (double)tempoSlider.Value;
+                        _audio.SetTempoMultiplier(m);
+                        if (tempoLabel != null) tempoLabel.Text = $"{m:0.00}×";
+                    }
+                };
+            }
 
-            PitchSlider.PropertyChanged += (_, e) =>
+            if (pitchSlider != null)
             {
-                if (e.Property.Name == "Value" && _audio != null)
+                pitchSlider.PropertyChanged += (_, e) =>
                 {
-                    var semis = (float)PitchSlider.Value;
-                    _audio.SetPitchSemitones(semis);
-                    PitchLabel.Text = $"{semis:+0;-0;0} st";
-                }
-            };
+                    if (e.Property.Name == "Value" && _audio != null)
+                    {
+                        var semis = (float)pitchSlider.Value;
+                        _audio.SetPitchSemitones(semis);
+                        if (pitchLabel != null) pitchLabel.Text = $"{semis:+0;-0;0} st";
+                    }
+                };
+            }
 
-            Btn075.Click += (_, __) => TempoSlider.Value = 0.75;
-            Btn050.Click += (_, __) => TempoSlider.Value = 0.50;
-            Btn025.Click += (_, __) => TempoSlider.Value = 0.25;
-            Btn005.Click += (_, __) => TempoSlider.Value = 0.05;
-            BtnReset.Click += (_, __) =>
+            if (btn075 != null) btn075.Click += (_, __) => { if (tempoSlider != null) tempoSlider.Value = 0.75; };
+            if (btn050 != null) btn050.Click += (_, __) => { if (tempoSlider != null) tempoSlider.Value = 0.50; };
+            if (btn025 != null) btn025.Click += (_, __) => { if (tempoSlider != null) tempoSlider.Value = 0.25; };
+            if (btn005 != null) btn005.Click += (_, __) => { if (tempoSlider != null) tempoSlider.Value = 0.05; };
+            if (btnReset != null) btnReset.Click += (_, __) =>
             {
-                TempoSlider.Value = 1.0;
-                PitchSlider.Value = 0.0;
+                if (tempoSlider != null) tempoSlider.Value = 1.0;
+                if (pitchSlider != null) pitchSlider.Value = 0.0;
             };
 
-            BtnClose.Click += (_, __) => Close();
+            if (btnClose != null) btnClose.Click += (_, __) => Close();
         }
     }
 }

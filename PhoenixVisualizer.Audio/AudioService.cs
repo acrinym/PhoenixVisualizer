@@ -1,8 +1,19 @@
 using ManagedBass;
 using ManagedBass.Fx;
 using System;
+using System.IO;
 
 namespace PhoenixVisualizer.Audio;
+
+public record AudioFileInfo
+{
+    public string FilePath { get; init; } = string.Empty;
+    public string FileName { get; init; } = string.Empty;
+    public double Duration { get; init; }
+    public float SampleRate { get; init; }
+    public int Channels { get; init; }
+    public float BitRate { get; init; }
+}
 
 public sealed class AudioService : IDisposable
 {
@@ -32,7 +43,9 @@ public sealed class AudioService : IDisposable
         _currentFile = filePath;
 
         // PLAYABLE tempo stream (NO Decode flag) → this is the core Play fix
-        _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
+        // Apply pitch during creation for better performance
+        var flags = BassFlags.FxFreeSource | BassFlags.Float;
+        _tempoHandle = BassFx.TempoCreate(_sourceHandle, flags);
         if (_tempoHandle == 0)
         {
             // Fallback: direct playable stream
@@ -93,8 +106,18 @@ public sealed class AudioService : IDisposable
 
     public void SetPitchSemitones(float semis)
     {
+        var oldSemis = _pitchSemitones;
         _pitchSemitones = Clamp(semis, PitchMinSemis, PitchMaxSemis);
-        ApplyTempoPitch();
+        
+        // If pitch changed significantly, recreate tempo stream
+        if (Math.Abs(_pitchSemitones - oldSemis) > 0.1f && _tempoEnabled && _sourceHandle != 0)
+        {
+            RecreateTempoStream();
+        }
+        else
+        {
+            ApplyTempoPitch();
+        }
     }
 
     // Multiplier helpers (what the UI uses)
@@ -158,6 +181,39 @@ public sealed class AudioService : IDisposable
         ApplyTempoPitch();
     }
 
+    void RecreateTempoStream()
+    {
+        if (_sourceHandle == 0 || !_tempoEnabled) return;
+        
+        var oldPos = _playHandle != 0 ? Bass.ChannelGetPosition(_playHandle) : 0;
+        var wasPlaying = _playHandle != 0 && Bass.ChannelIsActive(_playHandle) == PlaybackState.Playing;
+        
+        // Clean up old tempo stream
+        if (_tempoHandle != 0)
+        {
+            Bass.StreamFree(_tempoHandle);
+            _tempoHandle = 0;
+        }
+        
+        // Create new tempo stream
+        _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
+        if (_tempoHandle != 0)
+        {
+            _playHandle = _tempoHandle;
+            ApplyTempoPitch();
+            
+            // Restore position and playback state
+            if (oldPos > 0)
+            {
+                Bass.ChannelSetPosition(_tempoHandle, oldPos);
+            }
+            if (wasPlaying)
+            {
+                Bass.ChannelPlay(_tempoHandle);
+            }
+        }
+    }
+
     void ApplyTempoPitch()
     {
         if (_playHandle == 0) return;
@@ -165,8 +221,6 @@ public sealed class AudioService : IDisposable
         if (_tempoEnabled && _playHandle == _tempoHandle && _tempoHandle != 0)
         {
             Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, _tempoPercent);
-            // Note: Pitch control might need different approach in ManagedBass
-            // For now, we'll focus on tempo which should work
         }
         else
         {
@@ -201,6 +255,30 @@ public sealed class AudioService : IDisposable
     public string GetStatus()
     {
         return $"PlayHandle: {(_playHandle != 0 ? "OK" : "NULL")}, File: {(_currentFile ?? "NONE")}, Ready: {IsReadyToPlay}, Tempo: {_tempoEnabled}, Tempo%: {_tempoPercent:F1}, Pitch: {_pitchSemitones:F1}";
+    }
+
+    public AudioFileInfo? GetFileInfo()
+    {
+        if (string.IsNullOrEmpty(_currentFile) || _playHandle == 0) return null;
+        
+        try
+        {
+            var info = new AudioFileInfo
+            {
+                FilePath = _currentFile,
+                FileName = Path.GetFileName(_currentFile),
+                Duration = GetLengthSeconds(),
+                SampleRate = (float)Bass.ChannelGetAttribute(_playHandle, ChannelAttribute.Frequency),
+                Channels = 2, // Default to stereo for now
+                BitRate = 0 // Not easily available in BASS
+            };
+            return info;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"GetFileInfo failed: {ex.Message}");
+            return null;
+        }
     }
 
     // FFT and waveform reading (simplified for now)
