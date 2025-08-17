@@ -372,8 +372,8 @@ public sealed class AudioService : IDisposable
             Bass.Update(0); // 0 = update all channels
             
             // Use FFT2048 to get 2048 frequency bins (0-22050 Hz for 44.1kHz audio)
-            // FFTIndividual gives us individual channel data for stereo
-            int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048 | (int)DataFlags.FFTIndividual);
+            // Mono FFT for stability (stereo FFTIndividual can cause blocking)
+            int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048);
             LogToFile($"[AudioService] ReadFft: ChannelGetData result: {fftSize}, Error: {Bass.LastError}");
             
             if (fftSize > 0)
@@ -431,9 +431,10 @@ public sealed class AudioService : IDisposable
             // Force BASS to update the channel data before reading waveform
             Bass.Update(0);
             
-            // Get raw waveform data - request 2048 samples
-            // DataFlags.Float gives us 32-bit float samples
-            int waveSize = Bass.ChannelGetData(_playHandle, waveData, (int)DataFlags.Float);
+            // Get raw waveform data - request exactly 2048 samples
+            // Explicit byte count prevents blocking for ~1MB of audio
+            int bytesToRead = waveData.Length * sizeof(float);
+            int waveSize = Bass.ChannelGetData(_playHandle, waveData, bytesToRead | (int)DataFlags.Float);
             LogToFile($"[AudioService] ReadWaveform: ChannelGetData result: {waveSize}, Error: {Bass.LastError}");
             
             if (waveSize > 0)
