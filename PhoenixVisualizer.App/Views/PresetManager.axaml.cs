@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using PhoenixVisualizer.Models;
 
 namespace PhoenixVisualizer.Views
 {
@@ -70,7 +71,7 @@ namespace PhoenixVisualizer.Views
                 var targetPath = Path.Combine(targetDir, fileName);
 
                 Directory.CreateDirectory(targetDir);
-                File.Copy(filePath, targetPath, true);
+                await Task.Run(() => File.Copy(filePath, targetPath, true));
 
                 StatusText.Text = $"Preset imported: {fileName}";
                 RefreshPresetList();
@@ -174,19 +175,5 @@ namespace PhoenixVisualizer.Views
         private void OnImportFolder(object? sender, RoutedEventArgs e) { }
         private void OnExportAll(object? sender, RoutedEventArgs e) { }
         private void OnCleanDuplicates(object? sender, RoutedEventArgs e) { }
-    }
-
-    public class PresetInfo
-    {
-        public string Name { get; set; }
-        public string FilePath { get; set; }
-        public string Type { get; set; }
-
-        public PresetInfo(string filePath, string type)
-        {
-            FilePath = filePath;
-            Name = Path.GetFileNameWithoutExtension(filePath);
-            Type = type;
-        }
     }
 }

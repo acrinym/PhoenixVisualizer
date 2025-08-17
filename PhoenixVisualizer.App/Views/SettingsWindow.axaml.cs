@@ -324,6 +324,12 @@ public partial class SettingsWindow : Window
             wizard.Show(this);
         }
 
+        private void OnPresetManagerClick(object? sender, RoutedEventArgs e)
+        {
+            var presetManager = new PresetManager();
+            presetManager.Show(this);
+        }
+
     private void RefreshPluginList()
     {
         try

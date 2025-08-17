@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:PhoenixVisualizer.Models"
         x:Class="PhoenixVisualizer.Views.PresetManager"
         Title="Preset Manager"
         Width="800" Height="600"
@@ -58,17 +59,17 @@
                 
                 <!-- Preset List -->
                 <ListBox x:Name="PresetListBox" Height="300" SelectionChanged="OnPresetSelectionChanged">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="📄" FontSize="16"/>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding FilePath}" FontSize="10" Foreground="Gray"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
+                                                <ListBox.ItemTemplate>
+                                <DataTemplate DataType="models:PresetInfo">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="📄" FontSize="16"/>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding FilePath}" FontSize="10" Foreground="Gray"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
                 </ListBox>
                 
                 <!-- Preset Details -->

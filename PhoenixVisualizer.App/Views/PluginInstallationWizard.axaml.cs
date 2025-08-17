@@ -78,12 +78,12 @@ namespace PhoenixVisualizer.Views
             }
         }
 
-        private async Task<int> ScanDirectoryForPlugins()
+        private Task<int> ScanDirectoryForPlugins()
         {
             var count = 0;
             try
             {
-                var directories = new[] { "plugins/", "C:/Program Files/Winamp/Plugins/", "C:/Program Files (x86)/Winamp/Plugins/" };
+                var directories = new[] { "plugins/", "plugins/", "C:/Program Files/Winamp/Plugins/", "C:/Program Files (x86)/Winamp/Plugins/" };
                 
                 foreach (var dir in directories)
                 {
@@ -99,7 +99,7 @@ namespace PhoenixVisualizer.Views
                 Debug.WriteLine($"Error scanning for plugins: {ex.Message}");
             }
             
-            return count;
+            return Task.FromResult(count);
         }
 
         private async void OnInstallFromFile(object? sender, RoutedEventArgs e)
