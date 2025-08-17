@@ -27,6 +27,22 @@ public partial class MainWindow : Window
 
     private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
 
+    // Debug logging to file
+    static void LogToFile(string message)
+    {
+        try
+        {
+            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "main_debug.log");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            var logMessage = $"[{timestamp}] {message}";
+            File.AppendAllText(logPath, logMessage + Environment.NewLine);
+        }
+        catch
+        {
+            // Silently fail if logging fails
+        }
+    }
+
     public MainWindow()
     {
         // Manually load XAML so we don't depend on generated InitializeComponent()
@@ -145,7 +161,12 @@ public partial class MainWindow : Window
 
     private async void OnOpenClick(object? sender, RoutedEventArgs e)
     {
-        if (RenderSurfaceControl is null) return;
+        LogToFile($"[MainWindow] OnOpenClick: Starting file open process");
+        if (RenderSurfaceControl is null) 
+        {
+            LogToFile($"[MainWindow] OnOpenClick: RenderSurfaceControl is null");
+            return;
+        }
 
         var files = await this.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
@@ -159,40 +180,60 @@ public partial class MainWindow : Window
             });
 
         var file = files.Count > 0 ? files[0] : null;
-        if (file is null) return;
+        if (file is null) 
+        {
+            LogToFile($"[MainWindow] OnOpenClick: No file selected");
+            return;
+        }
+
+        LogToFile($"[MainWindow] OnOpenClick: File selected: {file.Path.LocalPath}");
 
         // Capture the control reference on the UI thread 👇
         var surface = RenderSurfaceControl;
-        await Task.Run(() => surface?.Open(file.Path.LocalPath));
+        LogToFile($"[MainWindow] OnOpenClick: RenderSurfaceControl is: {surface != null}");
+        
+        await Task.Run(() => 
+        {
+            LogToFile($"[MainWindow] OnOpenClick: Calling surface.Open from background thread");
+            var result = surface?.Open(file.Path.LocalPath);
+            LogToFile($"[MainWindow] OnOpenClick: surface.Open result: {result}");
+        });
     }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
         try
         {
+            LogToFile($"[MainWindow] OnPlayClick: Button clicked, RenderSurfaceControl is: {RenderSurfaceControl != null}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick: Button clicked, RenderSurfaceControl is: {RenderSurfaceControl != null}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick: _renderSurface field is: {_renderSurface != null}");
             
             if (RenderSurfaceControl is null)
             {
+                LogToFile($"[MainWindow] OnPlayClick: RenderSurfaceControl is null");
                 System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: RenderSurfaceControl is null");
                 return;
             }
             
+            LogToFile($"[MainWindow] OnPlayClick: Starting playback");
             System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Starting playback");
             var playResult = RenderSurfaceControl.Play();
+            LogToFile($"[MainWindow] OnPlayClick: Play() result: {playResult}");
             if (playResult)
             {
+                LogToFile($"[MainWindow] OnPlayClick: Play() called successfully");
                 System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() called successfully");
             }
             else
             {
+                LogToFile($"[MainWindow] OnPlayClick: Play() failed - no audio file loaded");
                 System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() failed - no audio file loaded");
                 // TODO: Show user-friendly message that they need to open an audio file first
             }
         }
         catch (Exception ex)
         {
+            LogToFile($"[MainWindow] OnPlayClick failed: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick failed: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick stack trace: {ex.StackTrace}");
         }

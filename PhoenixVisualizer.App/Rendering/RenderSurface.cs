@@ -10,6 +10,8 @@ using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Presets;
 using PhoenixVisualizer; // preset manager
+using System.IO;
+using System.Linq;
 
 namespace PhoenixVisualizer.Rendering;
 
@@ -43,6 +45,22 @@ public sealed class RenderSurface : Control
     public event Action<double>? FpsChanged;
     public event Action<double>? BpmChanged;
     public event Action<double, double>? PositionChanged;
+
+    // Debug logging to file
+    static void LogToFile(string message)
+    {
+        try
+        {
+            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "render_debug.log");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            var logMessage = $"[{timestamp}] {message}";
+            File.AppendAllText(logPath, timestamp + " " + message + Environment.NewLine);
+        }
+        catch
+        {
+            // Silently fail if logging fails
+        }
+    }
 
     public RenderSurface()
     {
@@ -79,18 +97,23 @@ public sealed class RenderSurface : Control
 
     public bool Open(string path) 
     {
+        LogToFile($"[RenderSurface] Opening audio file: {path}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Opening audio file: {path}");
         var result = _audio.Open(path);
+        LogToFile($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
         return result;
     }
     
     public bool Play() 
     {
+        LogToFile($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
         var result = _audio.Play();
+        LogToFile($"[RenderSurface] Play result: {result}");
         if (!result)
         {
+            LogToFile($"[RenderSurface] Play failed - no audio file loaded or other error");
             System.Diagnostics.Debug.WriteLine("[RenderSurface] Play failed - no audio file loaded or other error");
         }
         return result;
@@ -129,6 +152,16 @@ public sealed class RenderSurface : Control
         var wave = _audio.ReadWaveform();
         double pos = _audio.GetPositionSeconds();
         double total = _audio.GetLengthSeconds();
+        
+        LogToFile($"[RenderSurface] Render frame - FFT length: {fft.Length}, Wave length: {wave.Length}, Pos: {pos:F2}s, Total: {total:F2}s");
+        
+        // Log FFT data to see if we're getting audio
+        if (fft.Length > 0)
+        {
+            var fftSum = fft.Sum(f => Math.Abs(f));
+            var waveSum = wave.Sum(w => Math.Abs(w));
+            LogToFile($"[RenderSurface] Audio data - FFT sum: {fftSum:F3}, Wave sum: {waveSum:F3}");
+        }
 
         // Smooth FFT (EMA)
         if (!_fftInit)
