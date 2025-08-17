@@ -159,9 +159,63 @@ public partial class MainWindow : Window
         await Task.Run(() => surface?.Open(file.Path.LocalPath));
     }
 
-    private void OnPlayClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Play();
-    private void OnPauseClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Pause();
-    private void OnStopClick(object? sender, RoutedEventArgs e) => RenderSurfaceControl?.Stop();
+    private void OnPlayClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (RenderSurfaceControl is null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: RenderSurfaceControl is null");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Starting playback");
+            RenderSurfaceControl.Play();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick stack trace: {ex.StackTrace}");
+        }
+    }
+    
+    private void OnPauseClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (RenderSurfaceControl is null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] OnPauseClick: RenderSurfaceControl is null");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[MainWindow] OnPauseClick: Pausing playback");
+            RenderSurfaceControl.Pause();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPauseClick failed: {ex.Message}");
+        }
+    }
+    
+    private void OnStopClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (RenderSurfaceControl is null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] OnStopClick: RenderSurfaceControl is null");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[MainWindow] OnStopClick: Stopping playback");
+            RenderSurfaceControl.Stop();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnStopClick failed: {ex.Message}");
+        }
+    }
 
     private async void OnSettingsClick(object? sender, RoutedEventArgs e)
     {

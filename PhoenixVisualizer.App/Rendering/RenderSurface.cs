@@ -77,10 +77,31 @@ public sealed class RenderSurface : Control
         base.OnDetachedFromVisualTree(e);
     }
 
-    public bool Open(string path) => _audio.Open(path);
-    public void Play() => _audio.Play();
-    public void Pause() => _audio.Pause();
-    public void Stop() => _audio.Stop();
+    public bool Open(string path) 
+    {
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Opening audio file: {path}");
+        var result = _audio.Open(path);
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
+        return result;
+    }
+    
+    public void Play() 
+    {
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
+        _audio.Play();
+    }
+    
+    public void Pause() 
+    {
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Pause requested, Status: {_audio.GetStatus()}");
+        _audio.Pause();
+    }
+    
+    public void Stop() 
+    {
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Stop requested, Status: {_audio.GetStatus()}");
+        _audio.Stop();
+    }
 
     public override void Render(DrawingContext context)
     {

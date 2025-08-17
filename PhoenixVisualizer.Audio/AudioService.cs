@@ -1,15 +1,17 @@
 using System;
 using System.Numerics;
-using NAudio.Wave;
+using ManagedBass;
+using ManagedBass.Fx;
 
 namespace PhoenixVisualizer.Audio;
 
 public sealed class AudioService : IDisposable
 {
     // Playback
-    private WaveOutEvent? _waveOut;
-    private AudioFileReader? _audioFile;
-    private ISampleProvider? _tapProvider;
+    private int _streamHandle = 0;
+    private int _fxHandle = 0;
+    private bool _isPlaying = false;
+    private bool _isPaused = false;
 
     // Ring buffer for the last 2048 mono samples (power of two for FFT)
     private const int N = 2048;
@@ -22,21 +24,49 @@ public sealed class AudioService : IDisposable
     private readonly float[] _waveBuffer = new float[N];  // ordered last-2048 waveform (mono)
 
     private bool _initialized;
+    private string? _currentFilePath;
 
     public bool Initialize()
     {
         if (_initialized) return true;
+        
         try
         {
-            _waveOut = new WaveOutEvent();
+            // Initialize ManagedBass
+            if (!Bass.Init())
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Initialize failed: {Bass.LastError}");
+                return false;
+            }
+            
             _initialized = true;
+            System.Diagnostics.Debug.WriteLine("AudioService.Initialize: Successfully initialized ManagedBass");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"AudioService.Initialize failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Initialize stack trace: {ex.StackTrace}");
             _initialized = false;
         }
         return _initialized;
+    }
+    
+    /// <summary>
+    /// Reinitializes the audio service if there are issues
+    /// </summary>
+    public bool Reinitialize()
+    {
+        try
+        {
+            _initialized = false;
+            CloseCurrentStream();
+            return Initialize();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.Reinitialize failed: {ex.Message}");
+            return false;
+        }
     }
 
     public bool Open(string filePath)
@@ -45,13 +75,28 @@ public sealed class AudioService : IDisposable
 
         try
         {
-            _audioFile?.Dispose();
-            _audioFile = new AudioFileReader(filePath); // float samples, auto-converts format
+            // Close any existing stream
+            CloseCurrentStream();
+            
+            // Create a new stream
+            _streamHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
+            if (_streamHandle == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Open failed: {Bass.LastError}");
+                return false;
+            }
 
-            // Wrap with a tapping sample provider to capture samples into the ring buffer
-            _tapProvider = new TapSampleProvider(_audioFile, OnSamples);
-            _waveOut?.Init(_tapProvider);
+            // Create FFT effect
+            _fxHandle = BassFx.TempoCreate(_streamHandle, BassFlags.FxFreeSource);
+            if (_fxHandle == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Open: Failed to create FFT effect: {Bass.LastError}");
+                // Continue without FFT effect
+                _fxHandle = _streamHandle;
+            }
 
+            _currentFilePath = filePath;
+            
             // Reset ring/index when opening a new file
             lock (_lock)
             {
@@ -59,6 +104,7 @@ public sealed class AudioService : IDisposable
                 _ringIndex = 0;
             }
 
+            System.Diagnostics.Debug.WriteLine($"AudioService.Open: Successfully opened {filePath}");
             return true;
         }
         catch (Exception ex)
@@ -71,51 +117,121 @@ public sealed class AudioService : IDisposable
 
     public void Play()
     {
-        if (_audioFile == null)
+        if (!IsReadyToPlay)
         {
-            System.Diagnostics.Debug.WriteLine("AudioService.Play: No audio file loaded");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Play: Not ready to play. Status: {GetStatus()}");
             return;
         }
-        _waveOut?.Play();
+        
+        try
+        {
+            if (_isPaused)
+            {
+                // Resume from pause
+                if (Bass.ChannelPlay(_fxHandle))
+                {
+                    _isPlaying = true;
+                    _isPaused = false;
+                    System.Diagnostics.Debug.WriteLine("AudioService.Play: Resumed playback successfully");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"AudioService.Play resume failed: {Bass.LastError}");
+                }
+            }
+            else
+            {
+                // Start new playback
+                if (Bass.ChannelPlay(_fxHandle))
+                {
+                    _isPlaying = true;
+                    System.Diagnostics.Debug.WriteLine("AudioService.Play: Started playback successfully");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"AudioService.Play start failed: {Bass.LastError}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.Play failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Play stack trace: {ex.StackTrace}");
+        }
     }
 
     public void Pause()
     {
-        if (_audioFile == null)
+        if (!IsReadyToPlay)
         {
-            System.Diagnostics.Debug.WriteLine("AudioService.Pause: No audio file loaded");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Pause: Not ready to pause. Status: {GetStatus()}");
             return;
         }
-        _waveOut?.Pause();
+        
+        try
+        {
+            if (Bass.ChannelPause(_fxHandle))
+            {
+                _isPlaying = false;
+                _isPaused = true;
+                System.Diagnostics.Debug.WriteLine("AudioService.Pause: Paused playback successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Pause failed: {Bass.LastError}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.Pause failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Pause stack trace: {ex.StackTrace}");
+        }
     }
 
     public void Stop()
     {
-        if (_audioFile == null)
+        if (!IsReadyToPlay)
         {
-            System.Diagnostics.Debug.WriteLine("AudioService.Stop: No audio file loaded");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Stop: Not ready to stop. Status: {GetStatus()}");
             return;
         }
 
-        _waveOut?.Stop();
-
-        // Reset to beginning without re-creating the reader
         try
         {
-            _audioFile!.CurrentTime = TimeSpan.Zero;
-
-            // Clear cached audio so visualizers fall back to silence 🎧
-            lock (_lock)
+            if (Bass.ChannelStop(_fxHandle))
             {
-                Array.Clear(_ring, 0, _ring.Length);
-                _ringIndex = 0;
+                _isPlaying = false;
+                _isPaused = false;
+                System.Diagnostics.Debug.WriteLine("AudioService.Stop: Stopped playback successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Stop failed: {Bass.LastError}");
             }
 
-            System.Diagnostics.Debug.WriteLine("AudioService.Stop: Reset to beginning");
+            // Reset to beginning
+            try
+            {
+                Bass.ChannelSetPosition(_fxHandle, 0);
+                
+                // Clear cached audio so visualizers fall back to silence 🎧
+                lock (_lock)
+                {
+                    Array.Clear(_ring, 0, _ring.Length);
+                    _ringIndex = 0;
+                }
+
+                System.Diagnostics.Debug.WriteLine("AudioService.Stop: Reset to beginning");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioService.Stop reset failed: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"AudioService.Stop reset failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Stop failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"AudioService.Stop stack trace: {ex.StackTrace}");
         }
     }
 
@@ -125,34 +241,29 @@ public sealed class AudioService : IDisposable
     /// </summary>
     public float[] ReadFft()
     {
-        // Snapshot waveform (ordered) under lock
-        float[] time = new float[N];
-        lock (_lock)
+        if (_fxHandle == 0) return _fftBuffer;
+
+        try
         {
-            int idx = _ringIndex; // next write position (head)
-            int n1 = N - idx;
-            Array.Copy(_ring, idx, time, 0, n1);
-            if (idx != 0) Array.Copy(_ring, 0, time, n1, idx);
+            // Get FFT data from ManagedBass
+            var fftData = new float[N];
+            int fftSize = Bass.ChannelGetData(_fxHandle, fftData, (int)DataFlags.FFT2048 | (int)DataFlags.FFTIndividual);
+            
+            if (fftSize > 0)
+            {
+                // Copy FFT data to our buffer
+                Array.Copy(fftData, _fftBuffer, Math.Min(fftData.Length, _fftBuffer.Length));
+            }
+            else
+            {
+                // Fallback to silence if no FFT data
+                Array.Clear(_fftBuffer, 0, _fftBuffer.Length);
+            }
         }
-
-        // Prepare complex buffer with Hann window
-        Span<Complex> buf = stackalloc Complex[N];
-        for (int i = 0; i < N; i++)
+        catch (Exception ex)
         {
-            // Hann window
-            float w = 0.5f * (1f - (float)Math.Cos((2 * Math.PI * i) / (N - 1)));
-            buf[i] = new Complex(time[i] * w, 0.0);
-        }
-
-        // In-place iterative Cooley–Tukey FFT (radix-2)
-        FftInPlace(buf);
-
-        // Magnitude spectrum -> _fftBuffer
-        // Typically you'd use first N/2 bins for real signals, but we return N for flexibility.
-        for (int i = 0; i < N; i++)
-        {
-            double mag = buf[i].Magnitude;
-            _fftBuffer[i] = (float)mag;
+            System.Diagnostics.Debug.WriteLine($"AudioService.ReadFft failed: {ex.Message}");
+            Array.Clear(_fftBuffer, 0, _fftBuffer.Length);
         }
 
         return _fftBuffer;
@@ -163,139 +274,129 @@ public sealed class AudioService : IDisposable
     /// </summary>
     public float[] ReadWaveform()
     {
-        lock (_lock)
+        if (_fxHandle == 0) return _waveBuffer;
+
+        try
         {
-            int idx = _ringIndex;
-            int n1 = N - idx;
-            Array.Copy(_ring, idx, _waveBuffer, 0, n1);
-            if (idx != 0) Array.Copy(_ring, 0, _waveBuffer, n1, idx);
-        }
-        return _waveBuffer;
-    }
-
-    public double GetPositionSeconds() => _audioFile?.CurrentTime.TotalSeconds ?? 0.0;
-
-    public double GetLengthSeconds() => _audioFile?.TotalTime.TotalSeconds ?? 0.0;
-
-    public void Dispose()
-    {
-        try { _waveOut?.Stop(); } catch { /* ignore */ }
-        _waveOut?.Dispose();
-        _audioFile?.Dispose();
-        _waveOut = null;
-        _audioFile = null;
-        _tapProvider = null;
-    }
-
-    // ===== Internals =====
-
-    /// <summary>
-    /// Receives interleaved floats from the pipeline; folds to mono and writes into ring buffer.
-    /// </summary>
-    private void OnSamples(float[] buffer, int offset, int samplesRead, int channels)
-    {
-        if (samplesRead <= 0 || channels <= 0) return;
-
-        lock (_lock)
-        {
-            if (channels == 1)
+            // Get waveform data from ManagedBass
+            var waveData = new float[N];
+            int waveSize = Bass.ChannelGetData(_fxHandle, waveData, (int)DataFlags.Float);
+            
+            if (waveSize > 0)
             {
-                // Mono fast path
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    _ring[_ringIndex] = buffer[offset + i];
-                    _ringIndex = (_ringIndex + 1) & (N - 1);
-                }
+                // Copy waveform data to our buffer
+                Array.Copy(waveData, _waveBuffer, Math.Min(waveData.Length, _waveBuffer.Length));
             }
             else
             {
-                // Fold to mono: simple average across channels
-                int frames = samplesRead / channels;
-                int idx = offset;
-                for (int f = 0; f < frames; f++)
-                {
-                    float sum = 0f;
-                    for (int c = 0; c < channels; c++)
-                    {
-                        sum += buffer[idx++];
-                    }
-                    _ring[_ringIndex] = sum / channels;
-                    _ringIndex = (_ringIndex + 1) & (N - 1);
-                }
+                // Fallback to silence if no waveform data
+                Array.Clear(_waveBuffer, 0, _waveBuffer.Length);
             }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.ReadWaveform failed: {ex.Message}");
+            Array.Clear(_waveBuffer, 0, _waveBuffer.Length);
+        }
+
+        return _waveBuffer;
+    }
+
+    public double GetPositionSeconds()
+    {
+        if (_fxHandle == 0) return 0.0;
+        
+        try
+        {
+            long position = Bass.ChannelGetPosition(_fxHandle);
+            if (position >= 0)
+            {
+                return Bass.ChannelBytes2Seconds(_fxHandle, position);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.GetPositionSeconds failed: {ex.Message}");
+        }
+        
+        return 0.0;
+    }
+
+    public double GetLengthSeconds()
+    {
+        if (_fxHandle == 0) return 0.0;
+        
+        try
+        {
+            long length = Bass.ChannelGetLength(_fxHandle);
+            if (length >= 0)
+            {
+                return Bass.ChannelBytes2Seconds(_fxHandle, length);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.GetLengthSeconds failed: {ex.Message}");
+        }
+        
+        return 0.0;
+    }
+    
+    /// <summary>
+    /// Checks if the audio is ready to play (initialized, file loaded, and stream ready)
+    /// </summary>
+    public bool IsReadyToPlay => _initialized && _fxHandle != 0 && !string.IsNullOrEmpty(_currentFilePath);
+    
+    /// <summary>
+    /// Gets the current status string for debugging
+    /// </summary>
+    public string GetStatus()
+    {
+        return $"Initialized: {_initialized}, StreamHandle: {(_fxHandle != 0 ? "OK" : "NULL")}, File: {(_currentFilePath ?? "NONE")}, Ready: {IsReadyToPlay}, Playing: {_isPlaying}, Paused: {_isPaused}";
+    }
+
+    private void CloseCurrentStream()
+    {
+        try
+        {
+            if (_fxHandle != 0 && _fxHandle != _streamHandle)
+            {
+                Bass.StreamFree(_fxHandle);
+                _fxHandle = 0;
+            }
+            
+            if (_streamHandle != 0)
+            {
+                Bass.StreamFree(_streamHandle);
+                _streamHandle = 0;
+            }
+            
+            _isPlaying = false;
+            _isPaused = false;
+            _currentFilePath = null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AudioService.CloseCurrentStream failed: {ex.Message}");
         }
     }
 
-    /// <summary>
-    /// Iterative in-place radix-2 FFT on a Complex span (length must be power of two).
-    /// </summary>
-    private static void FftInPlace(Span<Complex> data)
+    public void Dispose()
     {
-        int n = data.Length;
-
-        // Bit-reversal permutation
-        int j = 0;
-        for (int i = 0; i < n; i++)
+        try
         {
-            if (i < j)
-            {
-                (data[i], data[j]) = (data[j], data[i]);
-            }
-            int m = n >> 1;
-            while (m >= 1 && j >= m)
-            {
-                j -= m;
-                m >>= 1;
-            }
-            j += m;
+            CloseCurrentStream();
         }
-
-        // Danielson–Lanczos butterflies
-        for (int len = 2; len <= n; len <<= 1)
+        catch { /* ignore */ }
+        
+        try
         {
-            double ang = -2.0 * Math.PI / len;
-            Complex wLen = new(Math.Cos(ang), Math.Sin(ang));
-            for (int i = 0; i < n; i += len)
+            if (_initialized)
             {
-                Complex w = Complex.One;
-                int half = len >> 1;
-                for (int k = 0; k < half; k++)
-                {
-                    Complex u = data[i + k];
-                    Complex v = data[i + k + half] * w;
-                    data[i + k] = u + v;
-                    data[i + k + half] = u - v;
-                    w *= wLen;
-                }
+                Bass.Free();
+                _initialized = false;
             }
         }
-    }
-
-    /// <summary>
-    /// Sample-provider wrapper that taps interleaved float samples as they flow through.
-    /// </summary>
-    private sealed class TapSampleProvider : ISampleProvider
-    {
-        private readonly ISampleProvider _source;
-        private readonly Action<float[], int, int, int> _onSamples;
-
-        public TapSampleProvider(ISampleProvider source, Action<float[], int, int, int> onSamples)
-        {
-            _source = source;
-            _onSamples = onSamples;
-            WaveFormat = source.WaveFormat;
-        }
-
-        public WaveFormat WaveFormat { get; }
-
-        public int Read(float[] buffer, int offset, int count)
-        {
-            int read = _source.Read(buffer, offset, count);
-            if (read > 0)
-            {
-                _onSamples(buffer, offset, read, WaveFormat.Channels);
-            }
-            return read;
-        }
+        catch { /* ignore */ }
     }
 }
