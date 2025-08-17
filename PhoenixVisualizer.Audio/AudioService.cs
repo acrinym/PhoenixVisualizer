@@ -16,7 +16,6 @@ public sealed class AudioService : IDisposable
     // Ring buffer for the last 2048 mono samples (power of two for FFT)
     private const int N = 2048;
     private readonly float[] _ring = new float[N];
-    private int _ringIndex;
     private readonly object _lock = new();
 
     // Reusable buffers (returned to callers; caller treats them as read-only snapshots)
@@ -97,11 +96,10 @@ public sealed class AudioService : IDisposable
 
             _currentFilePath = filePath;
             
-            // Reset ring/index when opening a new file
+            // Reset ring buffer when opening a new file
             lock (_lock)
             {
                 Array.Clear(_ring, 0, _ring.Length);
-                _ringIndex = 0;
             }
 
             System.Diagnostics.Debug.WriteLine($"AudioService.Open: Successfully opened {filePath}");
@@ -214,12 +212,11 @@ public sealed class AudioService : IDisposable
             {
                 Bass.ChannelSetPosition(_fxHandle, 0);
                 
-                // Clear cached audio so visualizers fall back to silence 🎧
-                lock (_lock)
-                {
-                    Array.Clear(_ring, 0, _ring.Length);
-                    _ringIndex = 0;
-                }
+                            // Clear cached audio so visualizers fall back to silence 🎧
+            lock (_lock)
+            {
+                Array.Clear(_ring, 0, _ring.Length);
+            }
 
                 System.Diagnostics.Debug.WriteLine("AudioService.Stop: Reset to beginning");
             }

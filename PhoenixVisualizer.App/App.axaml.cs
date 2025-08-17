@@ -39,10 +39,7 @@ public partial class App : Application
             DisableAvaloniaDataAnnotationValidation();
 
             // Boot main window
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(),
-            };
+            desktop.MainWindow = new MainWindow();
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -32,6 +32,13 @@ public partial class MainWindow : Window
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
         _renderSurface = this.FindControl<RenderSurface>("RenderHost");
+        
+        System.Diagnostics.Debug.WriteLine($"[MainWindow] Constructor: _renderSurface found: {_renderSurface != null}");
+        if (_renderSurface != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Constructor: RenderSurface bounds: {_renderSurface.Bounds}");
+        }
+        
         Presets.Initialize(_renderSurface);
 
         // Wire runtime UI updates if the render surface is present
@@ -163,6 +170,9 @@ public partial class MainWindow : Window
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick: Button clicked, RenderSurfaceControl is: {RenderSurfaceControl != null}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnPlayClick: _renderSurface field is: {_renderSurface != null}");
+            
             if (RenderSurfaceControl is null)
             {
                 System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: RenderSurfaceControl is null");
@@ -171,6 +181,7 @@ public partial class MainWindow : Window
             
             System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Starting playback");
             RenderSurfaceControl.Play();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] OnPlayClick: Play() called successfully");
         }
         catch (Exception ex)
         {

@@ -7,14 +7,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="PhoenixVisualizer.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+
         Icon="/Assets/avalonia-logo.ico"
         Title="PhoenixVisualizer">
 
-    <Design.DataContext>
-        <!-- Previewer-only DataContext; runtime is set in App.axaml.cs -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+
 
     <Grid RowDefinitions="Auto,Auto,*">
         <!-- Top toolbar -->
