@@ -255,6 +255,31 @@ public partial class MainWindow : Window
         await editor.ShowDialog(this);
     }
 
+    private void OnTempoPitchClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (RenderSurfaceControl is null) return;
+            
+            // Test tempo/pitch functionality
+            var audio = RenderSurfaceControl.GetAudioService();
+            if (audio != null)
+            {
+                // Test some tempo changes
+                audio.SetTempoMultiplier(0.5); // Half speed
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Set tempo to 0.5x (half speed)");
+                
+                // Test pitch change
+                audio.SetPitchSemitones(12); // One octave up
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Set pitch to +12 semitones (one octave up)");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] TempoPitch test failed: {ex.Message}");
+        }
+    }
+
     private void OnLoadPreset(object? sender, RoutedEventArgs e)
     {
         var tb = this.FindControl<TextBox>("TxtPreset");

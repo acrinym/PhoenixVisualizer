@@ -108,6 +108,8 @@ public sealed class RenderSurface : Control
         _audio.Stop();
     }
 
+    public AudioService? GetAudioService() => _audio;
+
     public override void Render(DrawingContext context)
     {
         var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);

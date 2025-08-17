@@ -21,6 +21,7 @@
             <Button x:Name="BtnPause" Content="Pause" Click="OnPauseClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnStop" Content="Stop" Click="OnStopClick" Margin="0,0,8,0"/>
             <!-- New controls -->
+            <Button x:Name="BtnTempoPitch" Content="Tempo/Pitch" Click="OnTempoPitchClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnSettings" Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnEditor" Content="AVS Editor" Click="OnEditorClick" Margin="0,0,8,0"/>
             <ComboBox x:Name="CmbPlugin" Width="160"/>
