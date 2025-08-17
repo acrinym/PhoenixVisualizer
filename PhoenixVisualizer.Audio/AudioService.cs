@@ -367,7 +367,12 @@ public sealed class AudioService : IDisposable
                 return new float[2048];
             }
             
-            // Use FFTIndividual to get individual channel data (stereo)
+            // Force BASS to update the channel data before reading FFT
+            // This ensures we get fresh data each frame
+            Bass.Update(0); // 0 = update all channels
+            
+            // Use FFT2048 to get 2048 frequency bins (0-22050 Hz for 44.1kHz audio)
+            // FFTIndividual gives us individual channel data for stereo
             int fftSize = Bass.ChannelGetData(_playHandle, fftData, (int)DataFlags.FFT2048 | (int)DataFlags.FFTIndividual);
             LogToFile($"[AudioService] ReadFft: ChannelGetData result: {fftSize}, Error: {Bass.LastError}");
             
@@ -381,6 +386,11 @@ public sealed class AudioService : IDisposable
                 // Check if data is actually changing
                 var sum = fftData.Sum(f => Math.Abs(f));
                 LogToFile($"[AudioService] ReadFft: Data sum: {sum:F3}");
+                
+                // Additional validation: check if we have meaningful frequency data
+                var maxValue = fftData.Max(f => Math.Abs(f));
+                var nonZeroCount = fftData.Count(f => Math.Abs(f) > 0.001f);
+                LogToFile($"[AudioService] ReadFft: Max value: {maxValue:F3}, Non-zero bins: {nonZeroCount}/2048");
                 
                 return fftData;
             }
@@ -418,7 +428,11 @@ public sealed class AudioService : IDisposable
                 return new float[2048];
             }
             
-            // Get raw waveform data
+            // Force BASS to update the channel data before reading waveform
+            Bass.Update(0);
+            
+            // Get raw waveform data - request 2048 samples
+            // DataFlags.Float gives us 32-bit float samples
             int waveSize = Bass.ChannelGetData(_playHandle, waveData, (int)DataFlags.Float);
             LogToFile($"[AudioService] ReadWaveform: ChannelGetData result: {waveSize}, Error: {Bass.LastError}");
             
@@ -427,7 +441,9 @@ public sealed class AudioService : IDisposable
                 // Log some waveform data to see if it's changing
                 var firstValues = string.Join(",", waveData.Take(5).Select(w => w.ToString("F3")));
                 var sum = waveData.Sum(w => Math.Abs(w));
-                LogToFile($"[AudioService] ReadWaveform: First 5 values: [{firstValues}], Sum: {sum:F3}");
+                var maxValue = waveData.Max(w => Math.Abs(w));
+                var nonZeroCount = waveData.Count(w => Math.Abs(w) > 0.001f);
+                LogToFile($"[AudioService] ReadWaveform: First 5 values: [{firstValues}], Sum: {sum:F3}, Max: {maxValue:F3}, Non-zero: {nonZeroCount}/2048");
                 return waveData;
             }
             else
