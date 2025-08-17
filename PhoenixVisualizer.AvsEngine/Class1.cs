@@ -68,7 +68,11 @@ public sealed class AvsEngine : IAvsEngine
 
             _preset = p;
         }
-        catch { _preset = Preset.CreateDefault(); }
+        catch (Exception ex) 
+        { 
+            System.Diagnostics.Debug.WriteLine($"Failed to parse preset: {ex.Message}");
+            _preset = Preset.CreateDefault(); 
+        }
     }
 
     private void ParseWinampPreset(string presetText, Preset preset)

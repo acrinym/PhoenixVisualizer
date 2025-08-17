@@ -27,6 +27,9 @@ phoenix
 - **[PLUGIN_MANAGEMENT.md](PLUGIN_MANAGEMENT.md)** - Complete plugin management guide
 - **[WINAMP_PLUGIN_SETUP.md](WINAMP_PLUGIN_SETUP.md)** - Winamp plugin integration
 
+### Plugin Development
+- **[PLUGIN_DEVELOPMENT_GUIDE.md](PLUGIN_DEVELOPMENT_GUIDE.md)** - Complete guide to creating plugins
+
 ### Plugin Types Supported
 - **Winamp Visualizers** - Direct .dll loading
 - **AVS Presets** - Advanced Visualization Studio

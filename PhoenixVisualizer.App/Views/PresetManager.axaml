@@ -1,0 +1,107 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PhoenixVisualizer.Views.PresetManager"
+        Title="Preset Manager"
+        Width="800" Height="600"
+        WindowStartupLocation="CenterOwner">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Preset Manager" 
+                       FontSize="24" FontWeight="Bold" 
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+            <TextBlock Text="Import, export, and manage AVS and MilkDrop presets" 
+                       FontSize="14" Foreground="Gray" 
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel - Preset Types and Actions -->
+            <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                <TextBlock Text="Preset Types" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <ListBox x:Name="PresetTypeList" SelectionChanged="OnPresetTypeChanged">
+                    <ListBoxItem Content="AVS Presets (.avs)" Tag="avs"/>
+                    <ListBoxItem Content="MilkDrop Presets (.milk)" Tag="milkdrop"/>
+                    <ListBoxItem Content="All Presets" Tag="all"/>
+                </ListBox>
+                
+                <TextBlock Text="Actions" FontWeight="Bold" Margin="0,20,0,10"/>
+                <Button Content="📁 Import Preset" Click="OnImportPreset" Margin="0,5"/>
+                <Button Content="📤 Export Preset" Click="OnExportPreset" Margin="0,5"/>
+                <Button Content="🔄 Refresh List" Click="OnRefreshList" Margin="0,5"/>
+                <Button Content="🗑️ Delete Selected" Click="OnDeletePreset" Margin="0,5"/>
+                <Button Content="📋 Copy to Clipboard" Click="OnCopyToClipboard" Margin="0,5"/>
+                
+                <TextBlock Text="Batch Operations" FontWeight="Bold" Margin="0,20,0,10"/>
+                <Button Content="📥 Import Folder" Click="OnImportFolder" Margin="0,5"/>
+                <Button Content="📤 Export All" Click="OnExportAll" Margin="0,5"/>
+                <Button Content="🧹 Clean Duplicates" Click="OnCleanDuplicates" Margin="0,5"/>
+            </StackPanel>
+            
+            <!-- Right Panel - Preset List and Details -->
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Available Presets" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <!-- Preset List -->
+                <ListBox x:Name="PresetListBox" Height="300" SelectionChanged="OnPresetSelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📄" FontSize="16"/>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding FilePath}" FontSize="10" Foreground="Gray"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <!-- Preset Details -->
+                <Border BorderBrush="LightGray" BorderThickness="1" Padding="15" Margin="0,15,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Preset Details:" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,8">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="PresetNameText" Grid.Row="0" Grid.Column="1" Text=""/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Type:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="PresetTypeText" Grid.Row="1" Grid.Column="1" Text=""/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Size:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="PresetSizeText" Grid.Row="2" Grid.Column="1" Text=""/>
+                            
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Modified:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="PresetModifiedText" Grid.Row="3" Grid.Column="1" Text=""/>
+                        </Grid>
+                        
+                        <TextBlock Text="Preview:" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <TextBox x:Name="PresetPreviewText" Height="100" IsReadOnly="True" 
+                                 TextWrapping="Wrap" FontFamily="Consolas" FontSize="10"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Footer Status -->
+        <StackPanel Grid.Row="2" Margin="0,20,0,0">
+            <Border BorderBrush="LightBlue" BorderThickness="1" Background="LightBlue" Padding="10">
+                <TextBlock x:Name="StatusText" Text="Ready to manage presets" FontWeight="SemiBold"/>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Window>

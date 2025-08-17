@@ -3,6 +3,11 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Layout;
+using Avalonia;
+using Avalonia.Controls.Primitives;
+using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 
@@ -19,7 +24,7 @@ public partial class SettingsWindow : Window
     public bool   AutoHideUI         { get; private set; } = true;
 
     // Visualizer settings 📊
-    private VisualizerSettings _vz = VisualizerSettings.Load();
+    private readonly VisualizerSettings _vz = VisualizerSettings.Load();
 
     // Named controls (must match XAML x:Name)
     private RadioButton? AvsRadioControl        => this.FindControl<RadioButton>("AvsRadio");
@@ -307,19 +312,30 @@ public partial class SettingsWindow : Window
     {
         InstallSelectedPlugin();
     }
+    
+            private void OnPerformanceMonitorClick(object? sender, RoutedEventArgs e)
+        {
+            ShowPerformancePanel();
+        }
+
+        private void OnInstallationWizardClick(object? sender, RoutedEventArgs e)
+        {
+            var wizard = new PluginInstallationWizard();
+            wizard.Show(this);
+        }
 
     private void RefreshPluginList()
     {
         try
         {
-            var plugins = PluginRegistry.Available;
-            var pluginInfos = plugins.Select(p => new PluginInfo
-            {
-                Id = p.id,
-                DisplayName = p.displayName,
-                Description = $"Plugin: {p.id}", // TODO: Get actual description from plugin
-                IsEnabled = true // TODO: Load enabled state from settings
-            }).ToList();
+                    var plugins = PluginRegistry.AvailablePlugins;
+        var pluginInfos = plugins.Select(p => new PluginInfo
+        {
+            Id = p.Id,
+            DisplayName = p.DisplayName,
+            Description = p.Description,
+            IsEnabled = p.IsEnabled
+        }).ToList();
 
             PluginListBoxControl?.SetCurrentValue(ListBox.ItemsSourceProperty, pluginInfos);
         }
@@ -372,17 +388,298 @@ public partial class SettingsWindow : Window
         try
         {
             var pluginInstance = PluginRegistry.Create(plugin.Id);
-            if (pluginInstance is IVisualizerPlugin visualizerPlugin)
+            if (pluginInstance is IVisualizerPlugin visualizerPluginPlugin)
             {
-                // TODO: Show configuration dialog for the plugin
-                // For now, just show a message
-                Console.WriteLine($"Configuring plugin: {plugin.DisplayName}");
+                // Try to call Configure if the plugin supports it
+                if (pluginInstance is IAvsHostPlugin avsPlugin)
+                {
+                    avsPlugin.Configure();
+                }
+                else
+                {
+                    // Show a simple configuration dialog
+                    ShowSimpleConfigDialog(plugin);
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error configuring plugin: {ex.Message}");
+            ShowErrorDialog($"Error configuring plugin: {ex.Message}");
         }
+    }
+
+    private void ShowSimpleConfigDialog(PluginInfo plugin)
+    {
+        // Create a simple configuration dialog
+        var dialog = new Window
+        {
+            Title = $"Configure {plugin.DisplayName}",
+            Width = 400,
+            Height = 300,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 10
+        };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"Plugin: {plugin.DisplayName}",
+            FontSize = 16,
+            FontWeight = FontWeight.Bold
+        });
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"ID: {plugin.Id}",
+            FontSize = 12
+        });
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"Description: {plugin.Description}",
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        var enabledCheckBox = new CheckBox
+        {
+            Content = "Enable Plugin",
+            IsChecked = plugin.IsEnabled
+        };
+
+        enabledCheckBox.IsCheckedChanged += (_, _) => 
+        {
+            if (enabledCheckBox.IsChecked == true)
+            {
+                plugin.IsEnabled = true;
+                PluginRegistry.SetPluginEnabled(plugin.Id, true);
+            }
+            else
+            {
+                plugin.IsEnabled = false;
+                PluginRegistry.SetPluginEnabled(plugin.Id, false);
+            }
+        };
+
+        panel.Children.Add(enabledCheckBox);
+
+        var closeButton = new Button
+        {
+            Content = "Close",
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 20, 0, 0)
+        };
+
+        closeButton.Click += (_, _) => dialog.Close();
+        panel.Children.Add(closeButton);
+
+        dialog.Content = panel;
+        dialog.ShowDialog(this);
+    }
+
+    private void ShowErrorDialog(string message)
+    {
+        var dialog = new Window
+        {
+            Title = "Error",
+            Width = 400,
+            Height = 200,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 10
+        };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "An error occurred:",
+            FontSize = 14,
+            FontWeight = FontWeight.Bold
+        });
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = message,
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        var closeButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 20, 0, 0)
+        };
+
+        closeButton.Click += (_, _) => dialog.Close();
+        panel.Children.Add(closeButton);
+
+        dialog.Content = panel;
+        dialog.ShowDialog(this);
+    }
+    
+    /// <summary>
+    /// Show plugin performance monitoring panel
+    /// </summary>
+    public void ShowPerformancePanel()
+    {
+        var dialog = new Window
+        {
+            Title = "Plugin Performance Monitor",
+            Width = 800,
+            Height = 600,
+            CanResize = true,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var mainPanel = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 15
+        };
+
+        // Summary section
+        var summaryPanel = new Border
+        {
+            BorderBrush = new SolidColorBrush(Colors.LightGray),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(10),
+            Child = new TextBlock
+            {
+                Text = "Performance Summary",
+                FontSize = 16,
+                FontWeight = FontWeight.Bold
+            }
+        };
+        mainPanel.Children.Add(summaryPanel);
+
+        // Performance metrics list
+        var metricsList = new ListBox
+        {
+            Height = 400
+        };
+
+        // Get performance data from the main window (if available)
+        var mainWindow = this.Owner as MainWindow;
+        if (mainWindow != null)
+        {
+            var renderSurface = mainWindow.FindControl<RenderSurface>("RenderHost");
+            if (renderSurface != null)
+            {
+                var perfMonitor = renderSurface.GetPerformanceMonitor();
+                var allMetrics = perfMonitor.GetAllMetrics().ToList();
+                
+                if (allMetrics.Any())
+                {
+                    // Update summary
+                    summaryPanel.Child = new TextBlock
+                    {
+                        Text = perfMonitor.GetPerformanceSummary(),
+                        FontSize = 12,
+                        TextWrapping = TextWrapping.Wrap
+                    };
+                    
+                    // Create metrics items
+                    var metricsItems = allMetrics.Select(m => new ListBoxItem
+                    {
+                        Content = CreateMetricsItem(m)
+                    }).ToList();
+                    
+                    metricsList.ItemsSource = metricsItems;
+                }
+                else
+                {
+                    metricsList.ItemsSource = new[] { new ListBoxItem { Content = "No performance data available yet. Run some plugins first." } };
+                }
+            }
+        }
+
+        mainPanel.Children.Add(metricsList);
+
+        // Buttons
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Spacing = 10
+        };
+
+        var refreshButton = new Button { Content = "Refresh" };
+        refreshButton.Click += (_, _) => 
+        {
+            dialog.Close();
+            ShowPerformancePanel(); // Refresh by reopening
+        };
+
+        var closeButton = new Button { Content = "Close" };
+        closeButton.Click += (_, _) => dialog.Close();
+
+        buttonPanel.Children.Add(refreshButton);
+        buttonPanel.Children.Add(closeButton);
+        mainPanel.Children.Add(buttonPanel);
+
+        dialog.Content = mainPanel;
+        dialog.ShowDialog(this);
+    }
+    
+    private Control CreateMetricsItem(PluginPerformanceMetrics metrics)
+    {
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(5),
+            Spacing = 5
+        };
+
+        // Plugin name and status
+        var headerPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10
+        };
+
+        headerPanel.Children.Add(new TextBlock
+        {
+            Text = metrics.PluginName,
+            FontWeight = FontWeight.Bold,
+            FontSize = 14
+        });
+
+        var statusText = new TextBlock
+        {
+            Text = $"({metrics.PerformanceStatus})",
+            Foreground = new SolidColorBrush(metrics.IsPerformingWell ? Colors.Green : Colors.Red),
+            FontSize = 12
+        };
+        headerPanel.Children.Add(statusText);
+
+        panel.Children.Add(headerPanel);
+
+        // Performance details
+        var detailsPanel = new UniformGrid
+        {
+            Columns = 2,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        detailsPanel.Children.Add(new TextBlock { Text = $"Current FPS: {metrics.CurrentFps:F1}" });
+        detailsPanel.Children.Add(new TextBlock { Text = $"Avg FPS: {metrics.AverageFps:F1}" });
+        detailsPanel.Children.Add(new TextBlock { Text = $"Render Time: {metrics.LastRenderTimeMs:F2}ms" });
+        detailsPanel.Children.Add(new TextBlock { Text = $"Avg Render: {metrics.AverageRenderTimeMs:F2}ms" });
+        detailsPanel.Children.Add(new TextBlock { Text = $"Frames: {metrics.TotalFramesRendered}" });
+        detailsPanel.Children.Add(new TextBlock { Text = $"Memory: {metrics.CurrentMemoryBytes / 1024 / 1024:F1}MB" });
+
+        panel.Children.Add(detailsPanel);
+
+        return panel;
     }
 
     private void TestPlugin(PluginInfo plugin)

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -10,8 +11,6 @@ using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Presets;
 using PhoenixVisualizer; // preset manager
-using System.IO;
-using System.Linq;
 
 namespace PhoenixVisualizer.Rendering;
 
@@ -41,26 +40,19 @@ public sealed class RenderSurface : Control
     private int _lastWidth;
     private int _lastHeight;
 
+    // cache settings; reload at most once per second
+    private VisualizerSettings _vz = VisualizerSettings.Load();
+    private DateTime _lastVzLoad = DateTime.UtcNow;
+    private const int SettingsReloadMs = 1000; // 1 Hz
+    
+    // Performance monitoring
+    private readonly PluginPerformanceMonitor _perfMonitor = new();
+    private readonly Stopwatch _renderStopwatch = new();
+
     // Events
     public event Action<double>? FpsChanged;
     public event Action<double>? BpmChanged;
     public event Action<double, double>? PositionChanged;
-
-    // Debug logging to file
-    static void LogToFile(string message)
-    {
-        try
-        {
-            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "render_debug.log");
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            var logMessage = $"[{timestamp}] {message}";
-            File.AppendAllText(logPath, timestamp + " " + message + Environment.NewLine);
-        }
-        catch
-        {
-            // Silently fail if logging fails
-        }
-    }
 
     public RenderSurface()
     {
@@ -69,19 +61,12 @@ public sealed class RenderSurface : Control
 
     public void SetPlugin(IVisualizerPlugin plugin)
     {
-        LogToFile($"[RenderSurface] SetPlugin called with: {plugin.DisplayName} ({plugin.Id})");
         _plugin?.Dispose();
         _plugin = plugin;
-        LogToFile($"[RenderSurface] Plugin set to: {_plugin?.DisplayName} ({_plugin?.Id})");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] SetPlugin: {plugin.DisplayName} ({plugin.Id})");
         if (Bounds.Width > 0 && Bounds.Height > 0)
         {
             _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
-            LogToFile($"[RenderSurface] Plugin initialized with size: {Bounds.Width}x{Bounds.Height}");
-        }
-        else
-        {
-            LogToFile($"[RenderSurface] WARNING: Bounds not ready, plugin not initialized yet");
         }
     }
 
@@ -89,7 +74,7 @@ public sealed class RenderSurface : Control
     {
         base.OnAttachedToVisualTree(e);
         _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
-        _audio.Initialize();
+        var audioInitResult = _audio.Initialize();
         _timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render), null, 0, 16);
     }
 
@@ -104,23 +89,18 @@ public sealed class RenderSurface : Control
 
     public bool Open(string path) 
     {
-        LogToFile($"[RenderSurface] Opening audio file: {path}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Opening audio file: {path}");
         var result = _audio.Open(path);
-        LogToFile($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
         return result;
     }
     
     public bool Play() 
     {
-        LogToFile($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
         var result = _audio.Play();
-        LogToFile($"[RenderSurface] Play result: {result}");
         if (!result)
         {
-            LogToFile($"[RenderSurface] Play failed - no audio file loaded or other error");
             System.Diagnostics.Debug.WriteLine("[RenderSurface] Play failed - no audio file loaded or other error");
         }
         return result;
@@ -139,6 +119,8 @@ public sealed class RenderSurface : Control
     }
 
     public AudioService? GetAudioService() => _audio;
+    
+    public PluginPerformanceMonitor GetPerformanceMonitor() => _perfMonitor;
 
     public override void Render(DrawingContext context)
     {
@@ -154,88 +136,48 @@ public sealed class RenderSurface : Control
             _plugin?.Resize(w, h);
         }
 
-        // 1) Get fresh audio data
-        var fft = _audio.ReadFft();
-        var wave = _audio.ReadWaveform();
-        var pos = _audio.GetPositionSeconds();
-        var total = _audio.GetLengthSeconds();
-
-        // Log audio data status for debugging
-        LogToFile($"[RenderSurface] Audio data - FFT length: {fft.Length}, Wave length: {wave.Length}, Pos: {pos:F2}s, Total: {total:F2}s");
-
-        // Validate FFT data before processing - check if it's stuck
-        bool fftDataValid = true;
-        float fftSum = 0f;
-        float fftMax = 0f;
-        int fftNonZero = 0;
+        // 1) Get fresh audio data - but only if audio service is ready
+        float[] fft;
+        float[] wave;
+        double pos = 0;
+        double total = 0;
         
-        for (int i = 0; i < fft.Length; i++)
+        if (_audio != null && _audio.IsReadyToPlay)
         {
-            float absVal = MathF.Abs(fft[i]);
-            fftSum += absVal;
-            if (absVal > fftMax) fftMax = absVal;
-            if (absVal > 0.001f) fftNonZero++;
+            fft = _audio.ReadFft();
+            wave = _audio.ReadWaveform();
+            pos = _audio.GetPositionSeconds();
+            total = _audio.GetLengthSeconds();
         }
-        
-        LogToFile($"[RenderSurface] FFT validation - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
-        
-        // Check if FFT data is meaningful (not stuck)
-        if (fftSum < 0.001f || fftMax < 0.001f || fftNonZero < 10)
+        else
         {
-            LogToFile($"[RenderSurface] FFT data appears stuck (sum: {fftSum:F6}, max: {fftMax:F6}, non-zero: {fftNonZero})");
-            fftDataValid = false;
-            
-            // If FFT is stuck, try to force a refresh by calling audio service methods
-            _audio.ReadFft(); // Force another read
-            fft = _audio.ReadFft(); // Get fresh data
-            
-            // Re-validate
-            fftSum = 0f;
-            fftMax = 0f;
-            fftNonZero = 0;
-            for (int i = 0; i < fft.Length; i++)
-            {
-                float absVal = MathF.Abs(fft[i]);
-                fftSum += absVal;
-                if (absVal > fftMax) fftMax = absVal;
-                if (absVal > 0.001f) fftNonZero++;
-            }
-            
-            LogToFile($"[RenderSurface] After refresh - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
-            
-            if (fftSum < 0.001f || fftMax < 0.001f || fftNonZero < 10)
-            {
-                LogToFile($"[RenderSurface] FFT data still stuck after refresh attempt");
-                // Use a fallback pattern instead of stuck data
-                for (int i = 0; i < fft.Length; i++)
-                {
-                    fft[i] = MathF.Sin(i * 0.1f) * 0.1f; // Generate a simple sine wave pattern
-                }
-                LogToFile($"[RenderSurface] Applied fallback sine wave pattern");
-            }
+            // Fallback if audio service is not ready
+            fft = new float[2048];
+            wave = new float[2048];
         }
 
-        // Load settings each frame (cheap JSON)
-        var vz = VisualizerSettings.Load();
+        // Load settings at most once per second
+        if ((DateTime.UtcNow - _lastVzLoad).TotalMilliseconds >= SettingsReloadMs)
+        {
+            _vz = VisualizerSettings.Load();
+            _lastVzLoad = DateTime.UtcNow;
+        }
+        var vz = _vz;
 
-        // 2) FFT smoothing with validation
+        // 2) FFT smoothing
         if (!_fftInit)
         {
             // First time: copy raw data
             Array.Copy(fft, _smoothFft, fft.Length);
             _fftInit = true;
         }
-        else if (fftDataValid)
+        else
         {
-            // Only apply smoothing if we have valid data
+            // Apply smoothing
             float smoothingAlpha = TimeDeltaToAlpha(vz.SmoothingMs);
             for (int i = 0; i < _smoothFft.Length; i++)
             {
-                // Ensure we're not smoothing with stuck data
-                if (MathF.Abs(fft[i] - _smoothFft[i]) > 0.001f)
-                {
-                    _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha) + fft[i] * smoothingAlpha;
-                }
+                _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha) + fft[i] * smoothingAlpha;
             }
         }
 
@@ -349,17 +291,31 @@ public sealed class RenderSurface : Control
         {
             if (_plugin == null)
             {
-                LogToFile($"[RenderSurface] WARNING: _plugin is NULL! Cannot render frame");
                 System.Diagnostics.Debug.WriteLine("[RenderSurface] WARNING: _plugin is NULL! Cannot render frame");
                 return;
             }
             
-            LogToFile($"[RenderSurface] Rendering frame with plugin: {_plugin.DisplayName} ({_plugin.Id})");
+            // Start performance monitoring
+            _renderStopwatch.Restart();
+            
             _plugin.RenderFrame(features, adapter);
+            
+            // Record performance metrics
+            _renderStopwatch.Stop();
+            var renderTimeMs = _renderStopwatch.Elapsed.TotalMilliseconds;
+            
+            // Start monitoring if not already monitoring this plugin
+            if (_plugin.Id != null)
+            {
+                if (_perfMonitor.GetMetrics(_plugin.Id) == null)
+                {
+                    _perfMonitor.StartMonitoring(_plugin.Id, _plugin.DisplayName);
+                }
+                _perfMonitor.RecordFrame(_plugin.Id, renderTimeMs);
+            }
         }
         catch (Exception ex)
         {
-            LogToFile($"[RenderSurface] Plugin render failed: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"Plugin render failed: {ex}");
         }
 

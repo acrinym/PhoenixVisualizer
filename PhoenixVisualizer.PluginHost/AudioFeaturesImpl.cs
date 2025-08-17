@@ -48,9 +48,8 @@ public class AudioFeaturesImpl : AudioFeatures
     private void CalculateAudioProperties()
     {
         if (Fft.Length == 0) return;
-        
+
         // Calculate frequency bands (simplified)
-        var sampleRate = 44100; // Assume standard sample rate
         var fftSize = Fft.Length;
         
         // Bass: 20-250 Hz (roughly first 5% of FFT)
