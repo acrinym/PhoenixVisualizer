@@ -69,12 +69,19 @@ public sealed class RenderSurface : Control
 
     public void SetPlugin(IVisualizerPlugin plugin)
     {
+        LogToFile($"[RenderSurface] SetPlugin called with: {plugin.DisplayName} ({plugin.Id})");
         _plugin?.Dispose();
         _plugin = plugin;
+        LogToFile($"[RenderSurface] Plugin set to: {_plugin?.DisplayName} ({_plugin?.Id})");
         System.Diagnostics.Debug.WriteLine($"[RenderSurface] SetPlugin: {plugin.DisplayName} ({plugin.Id})");
         if (Bounds.Width > 0 && Bounds.Height > 0)
         {
             _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
+            LogToFile($"[RenderSurface] Plugin initialized with size: {Bounds.Width}x{Bounds.Height}");
+        }
+        else
+        {
+            LogToFile($"[RenderSurface] WARNING: Bounds not ready, plugin not initialized yet");
         }
     }
 
@@ -298,10 +305,19 @@ public sealed class RenderSurface : Control
 
         try
         {
-            _plugin?.RenderFrame(features, adapter);
+            if (_plugin == null)
+            {
+                LogToFile($"[RenderSurface] WARNING: _plugin is NULL! Cannot render frame");
+                System.Diagnostics.Debug.WriteLine("[RenderSurface] WARNING: _plugin is NULL! Cannot render frame");
+                return;
+            }
+            
+            LogToFile($"[RenderSurface] Rendering frame with plugin: {_plugin.DisplayName} ({_plugin.Id})");
+            _plugin.RenderFrame(features, adapter);
         }
         catch (Exception ex)
         {
+            LogToFile($"[RenderSurface] Plugin render failed: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"Plugin render failed: {ex}");
         }
 
