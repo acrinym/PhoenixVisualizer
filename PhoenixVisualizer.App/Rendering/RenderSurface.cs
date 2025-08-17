@@ -239,7 +239,7 @@ public sealed class RenderSurface : Control
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
-        var features = new AudioFeatures(
+        var features = new PhoenixVisualizer.PluginHost.AudioFeatures(
             t,
             _bpm,
             beat,
