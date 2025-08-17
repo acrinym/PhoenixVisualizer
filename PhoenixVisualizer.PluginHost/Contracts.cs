@@ -43,6 +43,12 @@ public interface ISkiaCanvas
     void DrawText(string text, float x, float y, uint color, float size = 12.0f);
     void DrawPoint(float x, float y, uint color, float size = 1.0f);
     void Fade(uint color, float alpha);
+    
+    // Additional methods for superscopes
+    void DrawPolygon(System.Span<(float x, float y)> points, uint color, bool filled = false);
+    void DrawArc(float x, float y, float radius, float startAngle, float sweepAngle, uint color, float thickness = 1.0f);
+    void SetLineWidth(float width);
+    float GetLineWidth();
 }
 
 /// <summary>

@@ -118,7 +118,7 @@ public interface ISkiaCanvas
     int Width { get; }             // Canvas width
     int Height { get; }            // Canvas height
     
-    // Drawing methods
+    // Basic drawing methods
     void Clear(uint color);        // Clear with color (ARGB format)
     void DrawLine(float x1, float y1, float x2, float y2, uint color, float thickness = 1.0f);
     void DrawLines(Span<(float x, float y)> points, float thickness, uint color);
@@ -129,6 +129,12 @@ public interface ISkiaCanvas
     void DrawText(string text, float x, float y, uint color, float size = 12.0f);
     void DrawPoint(float x, float y, uint color, float size = 1.0f);
     void Fade(uint color, float alpha);  // Apply fade effect
+    
+    // Advanced drawing methods for superscopes
+    void DrawPolygon(Span<(float x, float y)> points, uint color, bool filled = false);
+    void DrawArc(float x, float y, float radius, float startAngle, float sweepAngle, uint color, float thickness = 1.0f);
+    void SetLineWidth(float width);  // Set line thickness for subsequent operations
+    float GetLineWidth();            // Get current line thickness
 }
 ```
 
@@ -393,6 +399,123 @@ foreach (var plugin in plugins)
     Console.WriteLine($"{plugin.DisplayName}: {plugin.Description}");
 }
 ```
+
+---
+
+## 🎭 **Superscopes Development**
+
+### **What are Superscopes?**
+
+Superscopes are mathematical visualizations that create complex geometric patterns by plotting points based on mathematical formulas. They respond to audio input (volume, beat detection) and create dynamic, animated visualizations.
+
+### **Creating a Superscope**
+
+```csharp
+public class MySuperscope : IVisualizerPlugin
+{
+    public string Id => "my_superscope";
+    public string DisplayName => "My Mathematical Visualization";
+    
+    private int _width, _height;
+    private float _time;
+    
+    public void Initialize(int width, int height)
+    {
+        _width = width;
+        _height = height;
+        _time = 0;
+    }
+    
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+    {
+        canvas.Clear(0xFF000000);
+        _time += 0.02f;
+        
+        var points = new List<(float x, float y)>();
+        
+        // Create mathematical pattern
+        for (int i = 0; i < 100; i++)
+        {
+            float t = i / 100.0f;
+            float angle = t * Math.PI * 2 + _time;
+            float radius = 0.3f + features.Volume * 0.2f;
+            
+            float x = (float)Math.Cos(angle) * radius;
+            float y = (float)Math.Sin(angle) * radius;
+            
+            // Scale and center
+            x = x * _width * 0.4f + _width * 0.5f;
+            y = y * _height * 0.4f + _height * 0.5f;
+            
+            points.Add((x, y));
+        }
+        
+        // Draw with rainbow colors
+        uint color = features.Beat ? 0xFFFFFF00 : 0xFF00FFFF;
+        canvas.SetLineWidth(1.0f);
+        canvas.DrawLines(points.ToArray(), 1.0f, color);
+    }
+}
+```
+
+### **Advanced Superscope Techniques**
+
+#### **3D Transformations**
+```csharp
+// Apply 3D rotation and perspective
+float x3d = x * Math.Cos(rotation) - y * Math.Sin(rotation);
+float y3d = x * Math.Sin(rotation) + y * Math.Cos(rotation);
+float z3d = z;
+
+// Perspective projection
+float pers = 1.0f / (1.0f + z3d);
+float finalX = x3d * pers;
+float finalY = y3d * pers;
+```
+
+#### **Rainbow Color Cycling**
+```csharp
+// Create rainbow effect
+float phi = i * 6.283f * 2;
+uint red = (uint)((0.5f + 0.5f * Math.Sin(phi)) * 255);
+uint green = (uint)((0.5f + 0.5f * Math.Sin(phi + 2.094f)) * 255);
+uint blue = (uint)((0.5f + 0.5f * Math.Sin(phi + 4.188f)) * 255);
+
+uint color = (uint)((0xFF << 24) | (red << 16) | (green << 8) | blue);
+```
+
+#### **Audio Response**
+```csharp
+// Respond to different audio features
+if (features.Beat)
+{
+    // Change pattern on beat
+    _patternType = (_patternType + 1) % 3;
+}
+
+// Use volume for size/amplitude
+float size = 0.3f + features.Volume * 0.4f;
+
+// Use frequency bands for color
+uint color = GetColorFromFrequency(features.Bass, features.Mid, features.Treble);
+```
+
+### **Built-in Superscopes**
+
+PhoenixVisualizer includes 11 pre-built superscopes:
+- **Spiral Superscope** - Classic spiral with volume response
+- **3D Scope Dish** - 3D dish with perspective projection
+- **Rotating Bow Thing** - Animated bow pattern
+- **Vertical Bouncing Scope** - Beat-responsive bouncing line
+- **Spiral Graph Fun** - Dynamic spiral with beat changes
+- **Rainbow Merkaba** - Complex 3D sacred geometry
+- **Cat Face Outline** - Animated cat with moving ears
+- **Cymatics Frequency** - Solfeggio frequency patterns
+- **Pong Simulation** - Interactive Pong game
+- **Butterfly** - Animated butterfly with flapping wings
+- **Rainbow Sphere Grid** - 3D sphere with grid distortion
+
+See `SUPERSCOPES_IMPLEMENTATION.md` for complete details and examples.
 
 ---
 

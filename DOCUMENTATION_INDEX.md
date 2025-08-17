@@ -49,6 +49,7 @@ phoenix
 - **FFT Spectrum** - Frequency-domain analysis
 - **Bars Visualizer** - Dynamic spectrum bars
 - **Energy Visualizer** - RMS-based energy display
+- **🎭 Superscopes** - 11 AVS-based mathematical visualizations
 
 ### Plugin Management UI
 - **Settings Integration** - Complete plugin manager
@@ -141,6 +142,7 @@ dotnet run --project PhoenixVisualizer.App
 | **[LAUNCHER_SYSTEM.md](LAUNCHER_SYSTEM.md)** | Launcher system explanation | Developers |
 | **[PLUGIN_MANAGEMENT.md](PLUGIN_MANAGEMENT.md)** | Plugin system guide | Plugin developers |
 | **[WINAMP_PLUGIN_SETUP.md](WINAMP_PLUGIN_SETUP.md)** | Winamp integration | Winamp users |
+| **[SUPERSCOPES_IMPLEMENTATION.md](SUPERSCOPES_IMPLEMENTATION.md)** | Superscopes guide and reference | All users |
 | **[TODO.md](TODO.md)** | Development roadmap | Developers |
 | **[PHOENIX_VISUALIZER_STATUS.md](PHOENIX_VISUALIZER_STATUS.md)** | Project status report | All users |
 

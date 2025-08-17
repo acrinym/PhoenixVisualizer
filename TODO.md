@@ -135,6 +135,7 @@ PhoenixVisualizer is now **fully production ready** with all planned features im
 
         - [ ] **User Experience Improvements**
           - [x] Plugin installation wizard
+          - [x] Superscopes implementation (11 AVS-based visualizations)
           - [ ] Preset import/export
           - [ ] Keyboard shortcuts
           - [ ] Accessibility features

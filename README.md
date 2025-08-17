@@ -4,6 +4,7 @@
 
 ## ✨ Latest Features (v2.0)
 
+- **🎭 Superscopes System**: 11 AVS-based mathematical visualizations with audio response
 - **🎯 Plugin Management UI**: Complete plugin manager in Settings window
 - **🔌 Winamp Plugin Support**: Direct loading of Winamp visualizer DLLs
 - **⚡ Enhanced Audio System**: Fixed freezing visualizers and audio corruption
@@ -26,6 +27,10 @@
 - **Bars Visualizer**: Dynamic spectrum bars with fallback patterns
 - **Energy Visualizer**: RMS-based energy display with smooth animations
 - **Fallback Patterns**: Automatic detection and recovery from stuck data
+- **🎭 Superscopes**: 11 AVS-based mathematical visualizations with audio response
+  - Spiral, 3D Scope Dish, Rotating Bow, Bouncing Scope, Spiral Graph
+  - Rainbow Merkaba, Cat Face, Cymatics Frequency, Pong Simulation
+  - Butterfly, Rainbow Sphere Grid with rainbow color cycling
 
 ### 🔌 Plugin System
 - **Winamp Compatibility**: Direct loading of Winamp visualizer DLLs
@@ -106,7 +111,7 @@ presets/
 - `PhoenixVisualizer.App` — Avalonia UI host app with plugin management
 - `PhoenixVisualizer.Core` — config, models, genre/vibe mapping, utilities
 - `PhoenixVisualizer.Audio` — enhanced playback + analysis (ManagedBass/BPM/FFT)
-- `PhoenixVisualizer.Visuals` — advanced visualizations (Waveform, FFT, Bars, Energy)
+- `PhoenixVisualizer.Visuals` — advanced visualizations (Waveform, FFT, Bars, Energy, Superscopes)
 - `PhoenixVisualizer.PluginHost` — comprehensive plugin interfaces and `AudioFeatures`
 - `PhoenixVisualizer.ApeHost` — managed APE-style host interfaces
 - `PhoenixVisualizer.AvsEngine` — AVS runtime (Superscope-first), Skia renderer
@@ -158,6 +163,7 @@ dotnet build PhoenixVisualizer.sln
 
 - **🚀 RUNNING.md** - Complete guide to running PhoenixVisualizer
 - **🔌 WINAMP_PLUGIN_SETUP.md** - Winamp plugin integration guide
+- **🎭 SUPERSCOPES_IMPLEMENTATION.md** - Complete superscopes guide and reference
 - **📋 TODO.md** - Development roadmap and progress tracking
 - **📊 PHOENIX_VISUALIZER_STATUS.md** - Comprehensive project status report
 
@@ -170,6 +176,7 @@ dotnet build PhoenixVisualizer.sln
 ### ✅ Completed (Phase 1-6)
 - **🎵 Audio System**: Complete audio playback and analysis with corruption recovery
 - **🎨 Visualizations**: Waveform, FFT, Bars, Energy visualizers with fallback patterns
+- **🎭 Superscopes**: 11 AVS-based mathematical visualizations with audio response
 - **🔌 Plugin Infrastructure**: Comprehensive plugin interfaces and registry system
 - **⚡ Winamp Integration**: Direct Winamp plugin loading and NS-EEL evaluator
 - **🎯 Plugin Management UI**: Complete settings-based plugin manager

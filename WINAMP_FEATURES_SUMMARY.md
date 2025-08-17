@@ -74,6 +74,17 @@
   - NS-EEL expression evaluation
   - Plugin caching and optimization
 
+### 8. Superscopes System
+- **Files**: Multiple in `PhoenixVisualizer.Visuals/`
+- **Purpose**: AVS-based mathematical visualizations
+- **Features**:
+  - 11 pre-built superscopes with audio response
+  - Advanced drawing methods (polygons, arcs, line width control)
+  - Beat-responsive color changes and animations
+  - 3D transformations and perspective projection
+  - Rainbow color cycling and mathematical patterns
+  - Volume and frequency-based parameter control
+
 ## 🔄 In Progress
 
 ### 1. Plugin Performance Monitoring
