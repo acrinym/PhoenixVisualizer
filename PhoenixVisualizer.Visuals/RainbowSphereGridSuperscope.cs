@@ -15,7 +15,7 @@ public sealed class RainbowSphereGridSuperscope : IVisualizerPlugin
     private int _height;
     private float _time;
     private float _phase;
-    private int _numPoints = 700;
+    private readonly int _numPoints = 700;
 
     public void Initialize(int width, int height)
     {
