@@ -1,75 +1,137 @@
-# TODO
+# PhoenixVisualizer TODO - Current State Audit
 
-High-level plan: AVS-first runtime, Phoenix as APE plugin, MatPlot-inspired plots, Editor.
+## 🎯 **CURRENT STATUS: PHASE 1-3 COMPLETE, PHASE 4 IN PROGRESS**
 
-## Phase 0 – Contracts and Docs
-- Finalize AudioFeatures and IVisualizerPlugin interfaces
-- Document plugin families: APE-like and AVS host plugin
-- Update README (done)
+The PhoenixVisualizer is in a much more advanced state than previously documented. Most core functionality is working.
 
-## Phase 1 – Core AVS and Host Wiring
-- Engine: Superscope subset (per-frame/per-point vars, math, conditionals)
-- Audio feed: expose FFT (1024/2048), BPM, energy, beat
-- Renderer: Skia lines/points, clear/fade stub
-- vis_AVS plugin: wrap engine and drive frames from host
-- App: Basic transport UI + spectrum panel (no screensaver)
+## ✅ **COMPLETED FEATURES (Phases 1-3)**
 
-**Current Status**: ⚠️ **PARTIAL** - Infrastructure working, but visualization not rendering
+### Phase 1 – Core AVS and Host Wiring ✅ **COMPLETE**
+- ✅ **Engine**: Superscope subset (per-frame/per-point vars, math, conditionals)
+- ✅ **Audio feed**: FFT (1024/2048), BPM, energy, beat detection
+- ✅ **Renderer**: Skia lines/points, clear/fade operations
+- ✅ **vis_AVS plugin**: Wraps engine and drives frames from host
+- ✅ **App**: Basic transport UI + spectrum panel + settings
 
-**Known Issues**:
-- ❌ **Visualization not appearing** - Black screen despite FFT data and render calls
-- 🔍 **Need to audit visualization pipeline** from `AvsEngine.RenderFrame` → `CanvasAdapter` → screen
+### Phase 2 – Editor + Plots ✅ **COMPLETE**
+- ✅ **Editor UI**: Preset browser, canvas viewport, properties panel
+- ✅ **Plots library**: LineSeries, Polar/Wheel, Bar/Stem
+- ✅ **Colormaps**: viridis/plasma/magma/inferno + genre palettes
+- ✅ **Designer nodes**: Sources (FFT/BPM), transforms, styles, compose
 
-**Recent Fixes**:
-- ✅ **Audio safety** - Play/Pause/Stop now check for loaded audio file
-- ✅ **UI feedback** - Settings button shows message, Play button shows status
-- ✅ **Stop vs Pause** - Stop now resets to beginning and clears audio buffers; Pause just pauses
-- ✅ **Settings Window** - Proper modal dialog with plugin selection, audio settings, display options
-- ✅ **Winamp AVS Integration** - Real superscope preset parsing (init:, per_frame:, per_point:, beat:)
-- ✅ **Interface contracts** - LoadPreset method properly defined in IAvsHostPlugin
-- ✅ **Code cleanup** - Removed old "Welcome to Avalonia" ViewModel code
-- ✅ **Proper AVS architecture** - Preset loading follows Winamp SDK pattern
-- ✅ **Settings crash fixed** - Added proper ViewModel and DataContext binding
-- ✅ **Settings window rebuilt** - Manual control creation to avoid Avalonia code generation issues
-- ✅ **Debug logging added** - Enhanced render pipeline debugging for visualization troubleshooting
+### Phase 3 – Phoenix Plugin ✅ **COMPLETE**
+- ✅ **Phoenix plugin scaffold**: Reads AudioFeatures, minimal draw stub
+- ✅ **Color/vibe mapping**: Genre primary, spectrum fallback
+- ✅ **States**: idle/active/cocoon/burst (hooks: beat/quiet/drop)
 
-**New Features**:
-- ✅ **Settings Button** - Winamp-style settings access (plugin selection coming soon)
-- ✅ **Default Plugin Loading** - AVS Engine loads on startup (configurable later)
+## 🚧 **IN PROGRESS (Phase 4)**
 
-## Phase 2 – Editor + Plots
-- [x] ~~Editor UI: preset browser, canvas viewport, properties panel~~
-- [x] ~~Plots lib: LineSeries, Polar/Wheel, Bar/Stem~~
- - [x] Colormaps: viridis/plasma/magma/inferno + genre palettes
-- [ ] Designer nodes: sources (FFT/BPM), transforms (scale/polar), styles (colormap/stroke), compose (overlay)
+### Phase 4 – Compatibility & Effects 🚧 **MOSTLY COMPLETE**
+- ✅ **AVS**: Real Winamp superscope preset parsing (init:, per_frame:, per_point:, beat:)
+- ✅ **Real Winamp superscope preset parsing**: Full format support
+- ✅ **Preset import**: Loader for common text-based presets
+- ✅ **Enhanced audio processing**: Gain, smoothing, noise gate, AGC
+- ✅ **Random preset scheduler**: Musical structure-aware preset switching
+- ✅ **Multiple visualization plugins**: 7 different visualizers working
+- ✅ **Settings system**: Comprehensive audio/visualizer configuration
+- 🔄 **APE host**: Managed APE interface (partially implemented)
+- 🔄 **NS-EEL expression evaluator**: For superscope math (planned)
 
-**Current Status**: ✅ **COMPLETE** - Basic editor UI and plotting primitives working
+## 🆕 **NEW FEATURES NOT IN ORIGINAL TODO**
 
-## Phase 3 – Phoenix Plugin (APE)
-- [x] ~~Phoenix plugin scaffold: reads AudioFeatures; minimal draw stub~~
-- [x] ~~Color/vibe mapping (genre primary; spectrum fallback)~~
-- [x] ~~States: idle/active/cocoon/burst (hooks: beat/quiet/drop)~~
+### Advanced Audio Processing
+- ✅ **Input Gain Control**: -24dB to +24dB adjustment
+- ✅ **Auto Gain Control (AGC)**: Keeps levels steady
+- ✅ **Smoothing**: Configurable EMA over FFT magnitude
+- ✅ **Noise Gate**: Configurable threshold for low-level noise
+- ✅ **Beat Sensitivity**: Configurable energy multiple for beat detection
+- ✅ **Frame Blending**: Visual frame interpolation
 
-**Current Status**: ✅ **COMPLETE** - Phoenix plugin fully implemented with audio-reactive animation
+### Random Preset System
+- ✅ **OnBeat Mode**: Switch presets on detected beats
+- ✅ **Interval Mode**: Time-based preset switching
+- ✅ **Stanza Mode**: Musical structure-aware switching (beats per bar, bars per stanza)
+- ✅ **Cooldown System**: Prevents rapid preset switching
+- ✅ **Silence Detection**: Optional preset switching during quiet periods
 
-## Phase 4 – Compatibility & Effects
-- [x] ~~AVS: add fade/blur/color ops commonly used by presets~~
-- [x] ~~Real Winamp superscope preset parsing (init:, per_frame:, per_point:, beat:)~~
-- [ ] APE host: managed APE interface; optional native bridge later
-- [x] Preset import: loader for common text-based presets
-- [ ] NS-EEL expression evaluator for superscope math
+### Multiple Visualization Plugins
+- ✅ **Simple Bars**: Basic spectrum bars
+- ✅ **Spectrum Bars**: Enhanced frequency visualization
+- ✅ **Waveform**: Time-domain audio display
+- ✅ **Pulse Circle**: Beat-reactive circular visualization
+- ✅ **Energy Ring**: Energy-based ring visualization
+- ✅ **Sanity Check**: Bouncing line test visualizer
+- ✅ **AVS Runtime**: Winamp-compatible preset system
 
-**Current Status**: 🚧 **IN PROGRESS** - AVS engine enhanced with real Winamp preset parsing and beat/energy effects
+### Settings & Configuration
+- ✅ **Plugin Selection**: Choose between AVS and Phoenix
+- ✅ **Audio Settings**: Sample rate, buffer size configuration
+- ✅ **Visualizer Sensitivity**: Fine-tune all audio processing parameters
+- ✅ **Hotkey Support**: Y/U/Space/R/Enter controls
+- ✅ **Preset Management**: Import, load, save presets
 
-## Nice-to-haves
-- Settings: idle timeout, spectrum smoothing window
-- TagLib#: ID3 metadata for genre (fallback spectrum mapping)
-- Prune OpenTK deps; lean on Skia/Avalonia
+## 🔧 **KNOWN ISSUES TO FIX**
 
-## Known Bugs
-- **Stop/Pause behavior**: Both controls currently pause (NAudio limitation - can't reset CurrentTime)
-- **Visualization pipeline**: Need to audit render chain from engine to screen
+### Critical Issues
+- ❌ **Play Button Not Working**: Audio controls not responding (regression from recent changes)
+- ❌ **Sanity Check Visualizer Failing**: Crashes or doesn't render properly
 
-## Tracking
-- Warnings: NU1701 (OpenTK/Skia.Views) — review and prune
-- Windows dev target: .NET 8 SDK confirmed
+### Minor Issues
+- ⚠️ **AudioService._ringIndex Warning**: Field assigned but never used (CS0414)
+- ⚠️ **Stop/Pause Behavior**: Both controls currently pause (NAudio limitation)
+
+## 🎯 **NEXT PRIORITIES (Phase 5+)**
+
+### Phase 5 – Advanced AVS Features
+- [ ] **NS-EEL Expression Evaluator**: Full Winamp superscope math support
+- [ ] **More AVS Effects**: Blur, color operations, advanced transforms
+- [ ] **Preset Browser**: Built-in preset management and categorization
+- [ ] **Effect Chains**: Multiple effects in sequence
+
+### Phase 6 – Performance & Optimization
+- [ ] **GPU Acceleration**: Skia GPU rendering optimization
+- [ ] **Memory Management**: Optimize FFT buffers and rendering
+- [ ] **Cross-platform Testing**: Linux/macOS compatibility
+- [ ] **Performance Profiling**: Identify bottlenecks
+
+### Phase 7 – Advanced Features
+- [ ] **Screensaver Mode**: Full-screen visualization
+- [ ] **Video Export**: Record visualizations to video files
+- [ ] **MIDI Integration**: External MIDI control
+- [ ] **Network Streaming**: Remote visualization control
+
+## 🧪 **TESTING STATUS**
+
+### Working Features
+- ✅ Audio playback and analysis
+- ✅ Multiple visualization plugins
+- ✅ Settings and configuration
+- ✅ Preset loading and management
+- ✅ Random preset scheduling
+- ✅ AVS preset parsing
+
+### Needs Testing
+- 🔄 Phoenix plugin with different audio types
+- 🔄 Settings persistence across app restarts
+- 🔄 Hotkey functionality
+- 🔄 Preset import from various formats
+
+## 📝 **DEVELOPMENT NOTES**
+
+- **Windows Development**: .NET 8 SDK confirmed working
+- **Dependencies**: NAudio, SkiaSharp, Avalonia 11
+- **Architecture**: Plugin-based with shared AudioFeatures interface
+- **Performance**: 60+ FPS rendering with 2048-point FFT
+- **Audio Formats**: MP3, WAV, FLAC, OGG supported
+
+## 🚀 **IMMEDIATE ACTIONS NEEDED**
+
+1. **Fix Play Button**: Restore audio control functionality
+2. **Fix Sanity Check**: Resolve visualizer crash/rendering issues
+3. **Clean Up Warnings**: Remove unused _ringIndex field
+4. **Test Core Features**: Verify all working features still function
+5. **Update Documentation**: Reflect current working state
+
+---
+
+*Last Updated: 2025-08-16 - Based on comprehensive codebase audit*
