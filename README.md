@@ -1,15 +1,52 @@
-# Phoenix Visualizer
+# 🚀 Phoenix Visualizer
 
-Cross-platform Avalonia visualizer studio with an AVS-compatible runtime at its core. The first flagship visual is a Phoenix plugin, but the app is designed to host many visualizers (AVS-style presets, APE-style effects, and managed plugins). Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands. Includes a real-world frequency-to-visible-color fallback when genre is missing.
+**Cross-platform Avalonia visualizer studio** with full Winamp plugin compatibility and an AVS-compatible runtime at its core. Features a Phoenix visualizer plugin, comprehensive plugin management UI, and support for AVS-style presets, APE-style effects, and managed plugins. Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands, with real-world frequency-to-visible-color fallback when genre is missing.
 
-## Features (MVP)
+## ✨ Latest Features (v2.0)
 
-- Music playback: Open file, Play/Pause, Stop, Seek, Volume (MP3 first)
-- Real-time analysis: FFT (1024/2048), BPM detection, energy/peaks
-- Genre detection: Primary ID3 tag, fallback via spectrum color mapping
-- Phoenix visualizer: One vibe per track; animation and effects respond to audio
-- Spectrum visualizer: Real-time bars/curve, color-coded to frequency→visible light
-- Screensaver mode: Future (leaving out of MVP)
+- **🎯 Plugin Management UI**: Complete plugin manager in Settings window
+- **🔌 Winamp Plugin Support**: Direct loading of Winamp visualizer DLLs
+- **⚡ Enhanced Audio System**: Fixed freezing visualizers and audio corruption
+- **🎨 Advanced Visualizations**: Waveform, FFT, Bars, Energy with fallback patterns
+- **🚀 Easy Launcher System**: Double-click `run.bat` or use `phoenix` alias
+- **📁 Organized Plugin Structure**: Clean directories for plugins, presets, and effects
+
+## ✨ Features
+
+### 🎵 Audio & Analysis
+- **Music Playback**: Open file, Play/Pause, Stop, Seek, Volume (MP3, WAV, FLAC)
+- **Real-time Analysis**: FFT (1024/2048), BPM detection, energy/peaks, RMS
+- **Advanced Processing**: Input gain, smoothing, noise gate, beat sensitivity
+- **Audio Recovery**: Automatic stream corruption detection and recovery
+- **Thread-safe Processing**: Lock-free audio data reading with automatic fallbacks
+
+### 🎨 Visualizations
+- **Waveform Visualizer**: Real-time time-domain waveform display
+- **FFT Spectrum**: Frequency-domain analysis with configurable scaling
+- **Bars Visualizer**: Dynamic spectrum bars with fallback patterns
+- **Energy Visualizer**: RMS-based energy display with smooth animations
+- **Fallback Patterns**: Automatic detection and recovery from stuck data
+
+### 🔌 Plugin System
+- **Winamp Compatibility**: Direct loading of Winamp visualizer DLLs
+- **AVS Presets**: Advanced Visualization Studio preset support
+- **APE Effects**: Advanced Plugin Extension effect system
+- **Managed Plugins**: .NET-based visualizer plugin architecture
+- **NS-EEL Evaluator**: Winamp AVS-style expression evaluation
+
+### 🎯 Plugin Management
+- **Settings Integration**: Complete plugin manager in Settings window
+- **Plugin Registry**: Runtime discovery and management of all plugins
+- **Enable/Disable**: Individual plugin control with status tracking
+- **Configuration**: Plugin-specific settings and options
+- **Testing Tools**: Built-in plugin testing and validation
+
+### 🚀 User Experience
+- **Easy Launcher**: Double-click `run.bat` or use `phoenix` alias
+- **Cross-platform**: Avalonia-based UI for Windows, macOS, and Linux
+- **Responsive Design**: Modern, intuitive interface with proper spacing
+- **Error Handling**: Comprehensive error reporting and recovery
+- **Documentation**: Complete guides and troubleshooting information
 
 ## Color and Vibe Logic
 
@@ -38,20 +75,46 @@ If genre is unavailable/ambiguous, compute a weighted color from the spectrum us
 
 This mapping also colors the spectrum visualizer so users can “see the music.”
 
-## Project Structure
+## 🔌 Plugin Management
 
-- `PhoenixVisualizer.App` — Avalonia UI host app
+### Plugin Manager UI
+Access the comprehensive plugin management system through **Settings → Plugin Manager**:
+
+- **📋 Plugin List**: View all available plugins with enable/disable checkboxes
+- **⚙️ Plugin Details**: See plugin information, status, and configuration options
+- **🔧 Action Buttons**: Configure, test, and get info about each plugin
+- **📦 Installation**: Browse and install new plugins (.dll files)
+
+### Supported Plugin Types
+- **Winamp Visualizers**: Direct loading of Winamp visualizer DLLs
+- **AVS Presets**: Advanced Visualization Studio preset files
+- **APE Effects**: Advanced Plugin Extension effects
+- **Managed Plugins**: .NET-based visualizer plugins
+
+### Plugin Directory Structure
+```
+plugins/
+├── vis/           # Winamp visualizer DLLs
+├── ape/           # APE effect files
+presets/
+├── avs/           # AVS preset files and bitmaps
+└── milkdrop/      # MilkDrop preset files
+```
+
+## 🏗️ Project Structure
+
+- `PhoenixVisualizer.App` — Avalonia UI host app with plugin management
 - `PhoenixVisualizer.Core` — config, models, genre/vibe mapping, utilities
-- `PhoenixVisualizer.Audio` — playback + analysis (ManagedBass/BPM/FFT)
-- `PhoenixVisualizer.Visuals` — legacy direct-render visuals (if needed)
-- `PhoenixVisualizer.PluginHost` — shared plugin interfaces and `AudioFeatures`
-- `PhoenixVisualizer.ApeHost` — managed APE-style host interfaces/stubs
+- `PhoenixVisualizer.Audio` — enhanced playback + analysis (ManagedBass/BPM/FFT)
+- `PhoenixVisualizer.Visuals` — advanced visualizations (Waveform, FFT, Bars, Energy)
+- `PhoenixVisualizer.PluginHost` — comprehensive plugin interfaces and `AudioFeatures`
+- `PhoenixVisualizer.ApeHost` — managed APE-style host interfaces
 - `PhoenixVisualizer.AvsEngine` — AVS runtime (Superscope-first), Skia renderer
 - `PhoenixVisualizer.Plugins.Avs` — vis_AVS plugin that wraps the AVS engine
 - `PhoenixVisualizer.Plugins.Ape.Phoenix` — Phoenix visual as an APE-style plugin
-- `PhoenixVisualizer.Plots` — Matplotlib-inspired plotting primitives (for scopes, wheels, spectrograms)
+- `PhoenixVisualizer.Plots` — Matplotlib-inspired plotting primitives
 - `PhoenixVisualizer.Editor` — Avalonia-based visualization editor UI
-- `libs_etc/WAMPSDK` — Winamp SDK materials (future AVS compatibility)
+- `libs_etc/WAMPSDK` — Winamp SDK materials for plugin compatibility
 - `Directory.Build.props` — sets `WinampSdkDir` relative to this folder
 
 ## Tech Stack
@@ -61,36 +124,87 @@ This mapping also colors the spectrum visualizer so users can “see the music.�
 - SkiaSharp for custom 2D drawing
 - Newtonsoft.Json for config (Core)
 
-## Build
+## 🚀 Quick Start
 
+### Option 1: Double-click Launcher (Easiest)
 ```
-dotnet build
+run.bat  ← Just double-click this!
 ```
 
-## Run
-
+### Option 2: PowerShell Aliases (Most Convenient)
+```powershell
+. .\run-phoenix.ps1  # Load once
+phoenix              # Run main app
+phoenix-editor       # Run editor
 ```
+
+### Option 3: Direct Commands
+```bash
+# From solution root:
 dotnet run --project PhoenixVisualizer.App
+
+# From project directory:
+cd PhoenixVisualizer.App
+dotnet run
 ```
 
-## Prerequisites
+## 🔨 Build
 
-**None required** - The app uses NAudio which has full .NET 8 support and no external dependencies.
+```bash
+dotnet build PhoenixVisualizer.sln
+```
 
-## Near-term Roadmap
+## 📚 Documentation
 
-- UI (Host): Replace welcome screen with transport controls + info + spectrum panel
-- Audio: Wire playback; expose FFT/BPM/energy to engine
-- AVS Engine: Superscope subset (per-frame/point vars, math, conds) + Skia renderer
-- vis_AVS plugin: host AVS presets via the engine
-- Plugins API: finalize `IVisualizerPlugin` and `AudioFeatures`
-- Editor: initial layout (preset browser, canvas, properties), load/run AVS preset
-- Phoenix plugin: scaffold (reads features; minimal draw stub)
+- **🚀 RUNNING.md** - Complete guide to running PhoenixVisualizer
+- **🔌 WINAMP_PLUGIN_SETUP.md** - Winamp plugin integration guide
+- **📋 TODO.md** - Development roadmap and progress tracking
+- **📊 PHOENIX_VISUALIZER_STATUS.md** - Comprehensive project status report
 
-## Notes
+## 🔧 Prerequisites
 
-- Windows dev confirmed with .NET SDK 8.x
-- All project assets and SDK materials live under `PhoenixVisualizer/`
-- Docs index: `PhoenixVisualizer/docs/INDEX.md`
+**None required** - The app uses ManagedBass which has full .NET 8 support and no external dependencies.
+
+## 🗺️ Development Roadmap
+
+### ✅ Completed (Phase 1-6)
+- **🎵 Audio System**: Complete audio playback and analysis with corruption recovery
+- **🎨 Visualizations**: Waveform, FFT, Bars, Energy visualizers with fallback patterns
+- **🔌 Plugin Infrastructure**: Comprehensive plugin interfaces and registry system
+- **⚡ Winamp Integration**: Direct Winamp plugin loading and NS-EEL evaluator
+- **🎯 Plugin Management UI**: Complete settings-based plugin manager
+- **🚀 Launcher System**: Easy-to-use batch files and PowerShell aliases
+
+### 🔄 In Progress (Phase 7-8)
+- **🎛️ Plugin Management UI**: Enhanced configuration dialogs and testing
+- **⚡ Performance Optimization**: GPU acceleration and plugin caching
+- **📚 Documentation**: Complete API reference and development guides
+
+### 🚧 Planned Features
+- **🎨 Advanced NS-EEL**: Custom function definitions and debugging tools
+- **🌐 Plugin Distribution**: Plugin marketplace and automatic updates
+- **🎭 Preset Management**: Advanced preset organization and sharing
+- **📱 Mobile Support**: Cross-platform mobile visualizer app
+
+## 🔧 Troubleshooting
+
+### Common Issues
+- **Build errors**: Ensure you're using .NET 8 SDK
+- **Plugin loading**: Check that DLLs are in the correct `plugins/` directories
+- **Audio issues**: Verify BASS audio library is properly installed
+- **Performance**: Adjust FFT size and smoothing settings in Settings
+
+### Getting Help
+- Check `RUNNING.md` for launcher issues
+- Review `WINAMP_PLUGIN_SETUP.md` for plugin problems
+- Consult `TODO.md` for development status
+- Check `PHOENIX_VISUALIZER_STATUS.md` for comprehensive project info
+
+## 📝 Notes
+
+- **Platform Support**: Windows development confirmed with .NET SDK 8.x
+- **Project Structure**: All project assets and SDK materials live under `PhoenixVisualizer/`
+- **Documentation**: Comprehensive guides available in root directory
+- **Plugin Support**: Full Winamp compatibility with organized directory structure
 
 
