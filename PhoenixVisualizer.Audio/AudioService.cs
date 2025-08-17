@@ -1,6 +1,7 @@
 using ManagedBass;
 using ManagedBass.Fx;
 using System;
+using System.Runtime.InteropServices;
 using System.IO;
 
 namespace PhoenixVisualizer.Audio;
@@ -42,24 +43,31 @@ public sealed class AudioService : IDisposable
 
         _currentFile = filePath;
 
-        // PLAYABLE tempo stream (NO Decode flag) → this is the core Play fix
-        // Apply pitch during creation for better performance
-        var flags = BassFlags.FxFreeSource | BassFlags.Float;
-        _tempoHandle = BassFx.TempoCreate(_sourceHandle, flags);
-        if (_tempoHandle == 0)
+        // Try to create tempo stream for pitch/tempo control
+        try
         {
-            // Fallback: direct playable stream
-            Bass.StreamFree(_sourceHandle);
-            _sourceHandle = 0;
+            var flags = BassFlags.FxFreeSource | BassFlags.Float;
+            _tempoHandle = BassFx.TempoCreate(_sourceHandle, flags);
+            if (_tempoHandle != 0)
+            {
+                _tempoEnabled = true;
+                _playHandle = _tempoHandle;
+                ApplyTempoPitch();
+            }
+            else
+            {
+                _tempoEnabled = false;
+                _playHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
+                if (_playHandle == 0) return false;
+            }
+        }
+        catch (DllNotFoundException)
+        {
+            // BASS_FX not available, fall back to basic playback
+            System.Diagnostics.Debug.WriteLine("[Audio] BASS_FX not available, tempo/pitch disabled");
+            _tempoEnabled = false;
             _playHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
             if (_playHandle == 0) return false;
-            _tempoEnabled = false;
-        }
-        else
-        {
-            _tempoEnabled = true;
-            _playHandle = _tempoHandle;
-            ApplyTempoPitch();
         }
         return true;
     }
@@ -196,20 +204,38 @@ public sealed class AudioService : IDisposable
         }
         
         // Create new tempo stream
-        _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
-        if (_tempoHandle != 0)
+        try
         {
-            _playHandle = _tempoHandle;
-            ApplyTempoPitch();
-            
-            // Restore position and playback state
-            if (oldPos > 0)
+            _tempoHandle = BassFx.TempoCreate(_sourceHandle, BassFlags.FxFreeSource | BassFlags.Float);
+            if (_tempoHandle != 0)
             {
-                Bass.ChannelSetPosition(_tempoHandle, oldPos);
+                _playHandle = _tempoHandle;
+                ApplyTempoPitch();
+                
+                // Restore position and playback state
+                if (oldPos > 0)
+                {
+                    Bass.ChannelSetPosition(_tempoHandle, oldPos);
+                }
+                if (wasPlaying)
+                {
+                    Bass.ChannelPlay(_tempoHandle);
+                }
             }
-            if (wasPlaying)
+        }
+        catch (DllNotFoundException)
+        {
+            // BASS_FX not available, fall back to basic playback
+            System.Diagnostics.Debug.WriteLine("[Audio] BASS_FX not available during pitch change, tempo/pitch disabled");
+            _tempoEnabled = false;
+            _playHandle = Bass.CreateStream(_currentFile, 0, 0, BassFlags.Float);
+            if (_playHandle != 0 && oldPos > 0)
             {
-                Bass.ChannelPlay(_tempoHandle);
+                Bass.ChannelSetPosition(_playHandle, oldPos);
+            }
+            if (wasPlaying && _playHandle != 0)
+            {
+                Bass.ChannelPlay(_playHandle);
             }
         }
     }

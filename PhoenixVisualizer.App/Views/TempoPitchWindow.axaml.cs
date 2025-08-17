@@ -32,6 +32,27 @@ namespace PhoenixVisualizer.Views
             var btnReset = this.FindControl<Button>("BtnReset");
             var btnClose = this.FindControl<Button>("BtnClose");
 
+            // Check if tempo/pitch is available
+            if (!_audio.TempoEnabled)
+            {
+                // Disable controls and show message
+                if (tempoSlider != null) tempoSlider.IsEnabled = false;
+                if (pitchSlider != null) pitchSlider.IsEnabled = false;
+                if (btn075 != null) btn075.IsEnabled = false;
+                if (btn050 != null) btn050.IsEnabled = false;
+                if (btn025 != null) btn025.IsEnabled = false;
+                if (btn005 != null) btn005.IsEnabled = false;
+                if (btnReset != null) btnReset.IsEnabled = false;
+                
+                if (tempoLabel != null) tempoLabel.Text = "Not Available";
+                if (pitchLabel != null) pitchLabel.Text = "Not Available";
+                
+                // Show info message
+                var infoText = this.FindControl<TextBlock>("InfoText");
+                if (infoText != null) infoText.Text = "Tempo/Pitch requires BASS_FX library. Basic playback only.";
+                return;
+            }
+
             // Initialize labels
             if (tempoLabel != null) tempoLabel.Text = "1.00×";
             if (pitchLabel != null) pitchLabel.Text = "0 st";
