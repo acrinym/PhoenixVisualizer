@@ -255,28 +255,20 @@ public partial class MainWindow : Window
         await editor.ShowDialog(this);
     }
 
-    private void OnTempoPitchClick(object? sender, RoutedEventArgs e)
+    private async void OnTempoPitchClick(object? sender, RoutedEventArgs e)
     {
         try
         {
             if (RenderSurfaceControl is null) return;
-            
-            // Test tempo/pitch functionality
-            var audio = RenderSurfaceControl.GetAudioService();
-            if (audio != null)
-            {
-                // Test some tempo changes
-                audio.SetTempoMultiplier(0.5); // Half speed
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Set tempo to 0.5x (half speed)");
-                
-                // Test pitch change
-                audio.SetPitchSemitones(12); // One octave up
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Set pitch to +12 semitones (one octave up)");
-            }
+            var audio = RenderSurfaceControl.GetAudioService(); // provided by RenderSurface
+            if (audio is null) return;
+
+            var dlg = new TempoPitchWindow(audio);
+            await dlg.ShowDialog(this);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] TempoPitch test failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] TempoPitch dialog failed: {ex.Message}");
         }
     }
 

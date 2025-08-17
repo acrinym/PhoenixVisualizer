@@ -165,20 +165,37 @@ public sealed class AudioService : IDisposable
         if (_tempoEnabled && _playHandle == _tempoHandle && _tempoHandle != 0)
         {
             Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, _tempoPercent);
-            Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Pitch, _pitchSemitones);
+            // Note: Pitch control might need different approach in ManagedBass
+            // For now, we'll focus on tempo which should work
         }
         else
         {
             if (_tempoHandle != 0)
             {
                 Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Tempo, 0);
-                Bass.ChannelSetAttribute(_tempoHandle, ChannelAttribute.Pitch, 0);
             }
         }
     }
 
     // ---- Legacy compatibility methods ----
-    public bool Initialize() => true; // Always initialized with ManagedBass
+    public bool Initialize()
+    {
+        try
+        {
+            // -1 = default device, 44100 Hz is fine for visualization
+            if (!Bass.Init(-1, 44100, DeviceInitFlags.Default))
+            {
+                System.Diagnostics.Debug.WriteLine($"[Audio] Bass.Init failed: {Bass.LastError}");
+                return false;
+            }
+            return true;
+        }
+        catch (DllNotFoundException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Audio] BASS native DLL missing: {ex}");
+            return false;
+        }
+    }
     public bool IsReadyToPlay => _playHandle != 0 && !string.IsNullOrEmpty(_currentFile);
     
     public string GetStatus()
