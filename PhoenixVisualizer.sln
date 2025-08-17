@@ -33,6 +33,9 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B26C6768-569E-4278-BD36-FB926B1C862B} = {B26C6768-569E-4278-BD36-FB926B1C862B}
+	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.Build.0 = Debug|Any CPU
