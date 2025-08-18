@@ -915,17 +915,16 @@ namespace PhoenixVisualizer.Core.Services
             
             for (int i = 0; i < count; i++)
             {
-                var angle = (float)i / count * 2 * (float)Math.PI + time * speed;
-                var distance = radius * (0.5f + 0.5f * Math.Sin(time * 0.5f + i * 0.1f));
-                
-                var x = distance * (float)Math.Cos(angle);
-                var y = distance * (float)Math.Sin(angle);
-                
+                float angle = ((float)i / count) * 2f * (float)Math.PI + time * speed;
+                float distance = radius * (0.5f + 0.5f * (float)Math.Sin(time * 0.5f + i * 0.1f));
+
+                float x = distance * (float)Math.Cos(angle);
+                float y = distance * (float)Math.Sin(angle);
+
                 float size = 2.0f + (float)Math.Sin(time + i) * 1.0f;
-                float hue = (float)(((time * 50.0) + i * 7) % 360.0f);
-                var rgb = HsvToRgb(hue, 1.0f, 1.0f);
-                
-                // Fix: explicitly cast RGB values to float and add alpha parameter
+                float hue  = (float)(((time * 50.0f) + i * 7) % 360.0f);
+                var rgb    = HsvToRgb(hue, 1.0f, 1.0f);
+
                 await _renderer.SetColorAsync(rgb.r, rgb.g, rgb.b, 0.8f);
                 await _renderer.DrawCircleAsync(x, y, size, true);
             }
