@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:PhoenixVisualizer.App.Models"
+        x:Class="PhoenixVisualizer.Views.HotkeyManagerWindow"
+        Title="Hotkey Manager"
+        Width="700" Height="600"
+        WindowStartupLocation="CenterOwner">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Hotkey Manager" 
+                       FontSize="24" FontWeight="Bold" 
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+            <TextBlock Text="Customize keyboard shortcuts for PhoenixVisualizer" 
+                       FontSize="14" Foreground="Gray" 
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="250"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel - Hotkey List -->
+            <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                <TextBlock Text="Available Hotkeys" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <ScrollViewer Height="400">
+                    <ItemsControl x:Name="HotkeyList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:HotkeyItem">
+                                <Border BorderBrush="LightGray" BorderThickness="1" Margin="0,2" Padding="10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Description}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Category}" FontSize="10" Foreground="Gray"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding CurrentBinding}" 
+                                                   FontFamily="Consolas" VerticalAlignment="Center" Margin="10,0"/>
+                                        <Button Grid.Column="2" Content="Edit" Click="OnEditHotkey" 
+                                                Tag="{Binding}" Margin="5,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+            
+            <!-- Right Panel - Actions and Info -->
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Actions" FontWeight="Bold" Margin="0,0,0,10"/>
+                <Button Content="🔄 Reset to Defaults" Click="OnResetToDefaults" Margin="0,5"/>
+                <Button Content="📤 Export Bindings" Click="OnExportBindings" Margin="0,5"/>
+                <Button Content="📥 Import Bindings" Click="OnImportBindings" Margin="0,5"/>
+                <Button Content="🧹 Clear Custom Bindings" Click="OnClearCustomBindings" Margin="0,5"/>
+                
+                <TextBlock Text="Information" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBlock Text="• Click 'Edit' to change a hotkey binding" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="• Custom bindings are saved automatically" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="• Use Ctrl, Shift, and Alt modifiers" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="• Press Escape to cancel editing" FontSize="11" Margin="0,2"/>
+                
+                <TextBlock Text="Quick Reference" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBlock Text="Y - Next preset" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="U - Previous preset" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="Space - Random preset" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="F - Toggle fullscreen" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="V - Toggle visualizer" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="B - Toggle beat detection" FontSize="11" Margin="0,2"/>
+                <TextBlock Text="R - Toggle random mode" FontSize="11" Margin="0,2"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Bottom Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Close" Click="OnClose" Margin="0,0,10,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

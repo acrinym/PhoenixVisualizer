@@ -29,6 +29,7 @@
             <Button Content="Load Preset" Click="OnLoadPreset"/>
             <Button Content="Execute Preset" Click="OnExecutePreset" Background="Green" Foreground="White" ToolTip.Tip="Execute the AVS preset in the text box (or press E key)"/>
             <Button Content="Import Preset" Click="OnImportPreset"/>
+            <Button Content="⌨️ Hotkeys" Click="OnHotkeyManagerClick" ToolTip.Tip="Manage keyboard shortcuts"/>
         </StackPanel>
 
         <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->

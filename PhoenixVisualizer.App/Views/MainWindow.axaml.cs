@@ -577,4 +577,20 @@ public partial class MainWindow : Window
     {
         WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
     }
+
+    private void OnHotkeyManagerClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var hotkeyService = new PhoenixVisualizer.Services.WinampHotkeyService(
+                PhoenixVisualizer.Core.Config.VisualizerSettings.Load()
+            );
+            var hotkeyWindow = new PhoenixVisualizer.Views.HotkeyManagerWindow(hotkeyService);
+            hotkeyWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[MainWindow] OnHotkeyManagerClick: Error opening hotkey manager: {ex.Message}");
+        }
+    }
 }
