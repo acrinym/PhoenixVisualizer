@@ -175,6 +175,37 @@ public partial class MainWindow : Window
                 }
             }
         }
+        
+        // Wire up button event handlers
+        WireUpEventHandlers();
+    }
+
+    private void WireUpEventHandlers()
+    {
+        // Wire up button click events
+        var btnOpen = this.FindControl<Button>("BtnOpen");
+        var btnPlay = this.FindControl<Button>("BtnPlay");
+        var btnPause = this.FindControl<Button>("BtnPause");
+        var btnStop = this.FindControl<Button>("BtnStop");
+        var btnTempoPitch = this.FindControl<Button>("BtnTempoPitch");
+        var btnSettings = this.FindControl<Button>("BtnSettings");
+        var btnEditor = this.FindControl<Button>("BtnEditor");
+        var btnLoadPreset = this.FindControl<Button>("BtnLoadPreset");
+        var btnExecutePreset = this.FindControl<Button>("BtnExecutePreset");
+        var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
+        var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
+
+        if (btnOpen != null) btnOpen.Click += OnOpenClick;
+        if (btnPlay != null) btnPlay.Click += OnPlayClick;
+        if (btnPause != null) btnPause.Click += OnPauseClick;
+        if (btnStop != null) btnStop.Click += OnStopClick;
+        if (btnTempoPitch != null) btnTempoPitch.Click += OnTempoPitchClick;
+        if (btnSettings != null) btnSettings.Click += OnSettingsClick;
+        if (btnEditor != null) btnEditor.Click += OnAvsEditorClick;
+        if (btnLoadPreset != null) btnLoadPreset.Click += OnLoadPreset;
+        if (btnExecutePreset != null) btnExecutePreset.Click += OnExecutePreset;
+        if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
+        if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
     }
 
     private void InitializePlugin()
