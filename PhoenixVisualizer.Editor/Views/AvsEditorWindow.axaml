@@ -1,0 +1,699 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
+        xmlns:models="using:PhoenixVisualizer.Core.Models"
+        x:Class="PhoenixVisualizer.Editor.Views.AvsEditorWindow"
+        x:Name="MainWindow"
+        Title="AVS Editor - PhoenixVisualizer"
+        Width="1400" Height="900"
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/avalonia-logo.ico">
+    
+    <Design.DataContext>
+        <vm:AvsEditorViewModel/>
+    </Design.DataContext>
+
+    <Grid x:DataType="vm:AvsEditorViewModel">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header Toolbar -->
+        <Border Grid.Row="0" Background="#2D2D30" BorderBrush="#3F3F46" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Button Content="New" Command="{Binding NewPresetCommand}" 
+                        Background="#007ACC" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Load" Command="{Binding LoadPresetCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Save" Command="{Binding SavePresetCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                <Separator Margin="10,0"/>
+                <Button Content="Test" Command="{Binding TestPresetCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Import" Command="{Binding ImportPresetCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Export" Command="{Binding ExportPresetCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                
+                <Separator Margin="10,0"/>
+                <Button Content="Send to Main Window" Command="{Binding SendToMainWindowCommand}" 
+                        Background="#28A745" Foreground="White" Margin="0,0,5,0" Padding="10,5"/>
+                
+                <Separator Margin="10,0"/>
+                <TextBlock Text="Audio:" VerticalAlignment="Center" Foreground="White" Margin="0,0,5,0"/>
+                <Button Content="▶" Command="{Binding PlayAudioCommand}" 
+                        Background="#2D2D30" Foreground="White" Margin="0,0,5,0" Padding="10,5" Width="40"/>
+                <Button Content="⏹" Command="{Binding StopAudioCommand}" 
+                        Background="#DC3545" Foreground="White" Margin="0,0,5,0" Padding="10,5" Width="40"/>
+                
+                <Separator Margin="10,0"/>
+                <TextBlock Text="Preset:" VerticalAlignment="Center" Foreground="White" Margin="0,0,5,0"/>
+                <TextBox Text="{Binding CurrentPreset.Name}" Width="200" Background="#1E1E1E" Foreground="White"/>
+                <TextBlock Text="by" VerticalAlignment="Center" Foreground="White" Margin="5,0"/>
+                <TextBox Text="{Binding CurrentPreset.Author}" Width="150" Background="#1E1E1E" Foreground="White"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350" MinWidth="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="400" MinWidth="350"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel: Effect Library -->
+            <Border Grid.Column="0" Background="#1E1E1E" BorderBrush="#3F3F46" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Effect Library Header -->
+                    <Border Grid.Row="0" Background="#2D2D30" Padding="10">
+                        <TextBlock Text="Effect Library" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                    </Border>
+                    
+                    <!-- Search Box -->
+                    <Border Grid.Row="1" Background="#2D2D30" BorderBrush="#3F3F46" BorderThickness="0,0,0,1" Padding="10">
+                        <TextBox Text="{Binding SearchTerm}" 
+                                 Watermark="Search effects..."
+                                 Background="#1E1E1E" Foreground="White" 
+                                 BorderBrush="#3F3F46"/>
+                    </Border>
+                    
+                    <!-- Effect Categories -->
+                    <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
+                        <TabItem Header="All" Background="#2D2D30" Foreground="White">
+                            <ListBox ItemsSource="{Binding FilteredEffectLibrary}" 
+                                     Background="Transparent" BorderThickness="0"
+                                     DoubleTapped="OnEffectDoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:AvsEffect">
+                                        <Border Background="Transparent" Padding="5" Margin="2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray" 
+                                                           TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Section}" FontSize="10" Foreground="Orange" 
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                        
+                        <TabItem Header="Init" Background="#2D2D30" Foreground="White">
+                            <ListBox ItemsSource="{Binding InitEffectsLibrary}" 
+                                     Background="Transparent" BorderThickness="0"
+                                     DoubleTapped="OnEffectDoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:AvsEffect">
+                                        <Border Background="Transparent" Padding="5" Margin="2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray" 
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                        
+                        <TabItem Header="Beat" Background="#2D2D30" Foreground="White">
+                            <ListBox ItemsSource="{Binding BeatEffectsLibrary}" 
+                                     Background="Transparent" BorderThickness="0"
+                                     DoubleTapped="OnEffectDoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:AvsEffect">
+                                        <Border Background="Transparent" Padding="5" Margin="2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray" 
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                        
+                        <TabItem Header="Frame" Background="#2D2D30" Foreground="White">
+                            <ListBox ItemsSource="{Binding FrameEffectsLibrary}" 
+                                     Background="Transparent" BorderThickness="0"
+                                     DoubleTapped="OnEffectDoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:AvsEffect">
+                                        <Border Background="Transparent" Padding="5" Margin="2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray" 
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                        
+                        <TabItem Header="Point" Background="#2D2D30" Foreground="White">
+                            <ListBox ItemsSource="{Binding PointEffectsLibrary}" 
+                                     Background="Transparent" BorderThickness="0"
+                                     DoubleTapped="OnEffectDoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:AvsEffect">
+                                        <Border Background="Transparent" Padding="5" Margin="2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray" 
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                        
+                        <TabItem Header="Categories" Background="#2D2D30" Foreground="White">
+                            <ScrollViewer>
+                                <StackPanel>
+                                    <Expander Header="Rendering" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding RenderingEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Movement" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding MovementEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Color" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding ColorEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Distortion" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding DistortionEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Particles" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding ParticleEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Audio" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding AudioEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Special" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding SpecialEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                    
+                                    <Expander Header="Custom" IsExpanded="False" Background="Transparent" Foreground="White">
+                                        <ListBox ItemsSource="{Binding CustomEffects}" Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate DataType="models:AvsEffect">
+                                                    <Border Background="Transparent" Padding="3" Margin="1">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Expander>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </Border>
+            
+            <!-- Center Panel: Active Effects by Section -->
+            <Border Grid.Column="1" Background="#1E1E1E">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <!-- Init Section -->
+                        <Border Background="#2D2D30" Margin="0,0,0,10" Padding="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Init" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Initialization code - runs once when preset starts" 
+                                                   FontSize="11" Foreground="LightGray"/>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="1" Content="Clear" 
+                                            Command="{Binding ClearSectionCommand}" 
+                                            CommandParameter="{x:Static models:AvsSection.Init}"
+                                            Background="#C42B1C" Foreground="White" Padding="10,5"/>
+                                </Grid>
+                                
+                                <ItemsControl Grid.Row="1" ItemsSource="{Binding InitEffects}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AvsEffect">
+                                            <Border Background="#3F3F46" Margin="0,2" Padding="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray"/>
+                                                        <CheckBox Content="Clear Every Frame" 
+                                                                  IsChecked="{Binding ClearEveryFrame}"
+                                                                  Foreground="White" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+                                                        <Button Content="↑" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                        <Button Content="↓" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                        <Button Content="Copy" Background="#2D2D30" Foreground="White" Padding="8,3"/>
+                                                        <Button Content="×" Background="#C42B1C" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Beat Section -->
+                        <Border Background="#2D2D30" Margin="0,0,0,10" Padding="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Beat" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Beat detection code - runs on each beat" 
+                                                   FontSize="11" Foreground="LightGray"/>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="1" Content="Clear" 
+                                            Command="{Binding ClearSectionCommand}" 
+                                            CommandParameter="{x:Static models:AvsSection.Beat}"
+                                            Background="#C42B1C" Foreground="White" Padding="10,5"/>
+                                </Grid>
+                                
+                                <ItemsControl Grid.Row="1" ItemsSource="{Binding BeatEffects}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AvsEffect">
+                                            <Border Background="#3F3F46" Margin="0,2" Padding="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray"/>
+                                                        <CheckBox Content="Clear Every Frame" 
+                                                                  IsChecked="{Binding ClearEveryFrame}"
+                                                                  Foreground="White" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+                                                        <Button Content="↑" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                        <Button Content="↓" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                        <Button Content="Copy" Background="#2D2D30" Foreground="White" Padding="8,3"/>
+                                                        <Button Content="×" Background="#C42B1C" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Frame Section -->
+                        <Border Background="#2D2D30" Margin="0,0,0,10" Padding="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Frame" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Per-frame code - runs every frame" 
+                                                   FontSize="11" Foreground="LightGray"/>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="1" Content="Clear" 
+                                            Command="{Binding ClearSectionCommand}" 
+                                            CommandParameter="{x:Static models:AvsSection.Frame}"
+                                            Background="#C42B1C" Foreground="White" Padding="10,5"/>
+                                </Grid>
+                                
+                                <ItemsControl Grid.Row="1" ItemsSource="{Binding FrameEffects}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AvsEffect">
+                                            <Border Background="#3F3F46" Margin="0,2" Padding="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray"/>
+                                                        <CheckBox Content="Clear Every Frame" 
+                                                                  IsChecked="{Binding ClearEveryFrame}"
+                                                                  Foreground="White" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+                                                        <Button Content="↑" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                        <Button Content="↓" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                        <Button Content="Copy" Background="#2D2D30" Foreground="White" Padding="8,3"/>
+                                                        <Button Content="×" Background="#C42B1C" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Point Section -->
+                        <Border Background="#2D2D30" Margin="0,0,0,10" Padding="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Point" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Per-point code - runs for each point in superscopes" 
+                                                   FontSize="11" Foreground="LightGray"/>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="1" Content="Clear" 
+                                            Command="{Binding ClearSectionCommand}" 
+                                            CommandParameter="{x:Static models:AvsSection.Point}"
+                                            Background="#C42B1C" Foreground="White" Padding="10,5"/>
+                                </Grid>
+                                
+                                <ItemsControl Grid.Row="1" ItemsSource="{Binding PointEffects}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AvsEffect">
+                                            <Border Background="#3F3F46" Margin="0,2" Padding="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="LightGray"/>
+                                                        <CheckBox Content="Clear Every Frame" 
+                                                                  IsChecked="{Binding ClearEveryFrame}"
+                                                                  Foreground="White" Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+                                                        <Button Content="↑" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                        <Button Content="↓" Background="#2D2D30" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                        <Button Content="Copy" Background="#2D2D30" Foreground="White" Padding="8,3"/>
+                                                        <Button Content="×" Background="#C42B1C" Foreground="White" Width="25"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Preview Area -->
+                        <Border Background="#2D2D30" Margin="0,0,0,10" Padding="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="300"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Preview" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Live preview of your AVS preset" 
+                                                   FontSize="11" Foreground="LightGray"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                                        <Button Content="Fullscreen" Background="#2D2D30" Foreground="White" Padding="10,5"/>
+                                        <Button Content="Screenshot" Background="#2D2D30" Foreground="White" Padding="10,5"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Border Grid.Row="1" Background="#1E1E1E" BorderBrush="#3F3F46" BorderThickness="1" Margin="0,10,0,0">
+                                    <Canvas x:Name="PreviewCanvas" Background="Black" Width="400" Height="280">
+                                        <!-- Preview canvas will be populated by the renderer -->
+                                    </Canvas>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+            
+            <!-- Right Panel: Effect Properties & Settings -->
+            <Border Grid.Column="2" Background="#1E1E1E" BorderBrush="#3F3F46" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Effect Properties Header -->
+                    <Border Grid.Row="0" Background="#2D2D30" Padding="10">
+                        <TextBlock Text="Effect Properties" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                    </Border>
+                    
+                    <!-- Effect Properties Content -->
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel Margin="10">
+                            <!-- Selected Effect Info -->
+                            <Border Background="#3F3F46" Padding="10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Selected Effect:" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{Binding SelectedEffect.DisplayName}" Foreground="LightBlue" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedEffect.Description}" Foreground="LightGray" FontSize="11" 
+                                               TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Effect Parameters -->
+                            <Border Background="#3F3F46" Padding="10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Parameters:" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                                    <ItemsControl ItemsSource="{Binding SelectedEffectParameters}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Key}" Foreground="White" FontSize="11"/>
+                                                    <TextBox Grid.Column="1" Text="{Binding Value}" Background="#1E1E1E" Foreground="White" 
+                                                             FontSize="11" Margin="5,0,0,0"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Effect Code Editor -->
+                            <Border Background="#3F3F46" Padding="10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Code:" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding SelectedEffect.Code}" 
+                                             AcceptsReturn="True" TextWrapping="NoWrap"
+                                             FontFamily="Consolas" FontSize="11"
+                                             Height="150" Background="#1E1E1E" Foreground="White"
+                                             IsEnabled="{Binding SelectedEffect.Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:AvsEffectType.Superscope}}"/>
+                                    <TextBlock Text="Code editing available for superscopes and custom effects" 
+                                               Foreground="LightGray" FontSize="10" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Clear Every Frame Option -->
+                            <Border Background="#3F3F46" Padding="10" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Options:" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                                    <CheckBox Content="Clear Every Frame" 
+                                              IsChecked="{Binding SelectedEffect.ClearEveryFrame}"
+                                              Foreground="White" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                    
+                    <!-- Settings Footer -->
+                    <Border Grid.Row="2" Background="#2D2D30" BorderBrush="#3F3F46" BorderThickness="0,1,0,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Preset Settings:" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                            <CheckBox Content="Clear Every Frame" 
+                                      IsChecked="{Binding CurrentPreset.ClearEveryFrame}"
+                                      Foreground="White" Margin="0,2,0,0"/>
+                            <CheckBox Content="Beat Detection" 
+                                      IsChecked="{Binding CurrentPreset.BeatDetection}"
+                                      Foreground="White" Margin="0,2,0,0"/>
+                            <CheckBox Content="Random Preset Switching" 
+                                      IsChecked="{Binding CurrentPreset.RandomPresetSwitching}"
+                                      Foreground="White" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Footer Status Bar -->
+        <Border Grid.Row="2" Background="#007ACC" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="Ready to edit AVS presets" Foreground="White" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Effects:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="0" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="|" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Init:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding InitEffects.Count}" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="|" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Beat:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding BeatEffects.Count}" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="|" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Frame:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding FrameEffects.Count}" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="|" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Point:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding PointEffects.Count}" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
