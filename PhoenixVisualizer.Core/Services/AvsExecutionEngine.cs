@@ -400,7 +400,7 @@ namespace PhoenixVisualizer.Core.Services
                 r = c; g = 0; b = x;
             }
             
-            return (r + m, g + m, b + m);
+            return ((float)(r + m), (float)(g + m), (float)(b + m));
         }
         
         private async Task ExecuteMovementEffectAsync(AvsEffect effect)
@@ -925,9 +925,8 @@ namespace PhoenixVisualizer.Core.Services
                 var hue = (time * 50 + i * 7) % 360;
                 var rgb = HsvToRgb(hue, 1.0f, 1.0f);
                 
-                // Temporarily commented out due to type conversion issues
-                // await _renderer.SetColorAsync(rgb.r, rgb.g, rgb.b, 0.8f);
-                await _renderer.SetColorAsync(1.0f, 0.5f, 0.8f, 0.8f); // Use fixed colors for now
+                // Fix: explicitly cast RGB values to float and add alpha parameter
+                await _renderer.SetColorAsync((float)rgb.r, (float)rgb.g, (float)rgb.b, 0.8f);
                 await _renderer.DrawCircleAsync(x, y, size, true);
             }
         }
