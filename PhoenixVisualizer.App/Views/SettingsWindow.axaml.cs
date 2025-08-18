@@ -76,11 +76,25 @@ public partial class SettingsWindow : Window
         var btnInstallPlugin = this.FindControl<Button>("BtnInstallPlugin");
         var btnInstallationWizard = this.FindControl<Button>("BtnInstallationWizard");
         var btnPresetManager = this.FindControl<Button>("BtnPresetManager");
+        var btnRefreshPlugins = this.FindControl<Button>("BtnRefreshPlugins");
+        var btnConfigurePlugin = this.FindControl<Button>("BtnConfigurePlugin");
+        var btnTestPlugin = this.FindControl<Button>("BtnTestPlugin");
+        var btnPluginInfo = this.FindControl<Button>("BtnPluginInfo");
+        var btnPerformanceMonitor = this.FindControl<Button>("BtnPerformanceMonitor");
+        var btnCancel = this.FindControl<Button>("BtnCancel");
+        var btnApply = this.FindControl<Button>("BtnApply");
 
         if (btnBrowsePlugin != null) btnBrowsePlugin.Click += BrowseForPlugin;
         if (btnInstallPlugin != null) btnInstallPlugin.Click += InstallPlugin;
         if (btnInstallationWizard != null) btnInstallationWizard.Click += OnInstallationWizardClick;
         if (btnPresetManager != null) btnPresetManager.Click += OnPresetManagerClick;
+        if (btnRefreshPlugins != null) btnRefreshPlugins.Click += OnRefreshPluginsClick;
+        if (btnConfigurePlugin != null) btnConfigurePlugin.Click += OnConfigurePluginClick;
+        if (btnTestPlugin != null) btnTestPlugin.Click += OnTestPluginClick;
+        if (btnPluginInfo != null) btnPluginInfo.Click += OnPluginInfoClick;
+        if (btnPerformanceMonitor != null) btnPerformanceMonitor.Click += OnPerformanceMonitorClick;
+        if (btnCancel != null) btnCancel.Click += OnCancelClick;
+        if (btnApply != null) btnApply.Click += OnApplyClick;
     }
 
     private void InitializeComponent()
