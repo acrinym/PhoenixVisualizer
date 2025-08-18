@@ -925,7 +925,9 @@ namespace PhoenixVisualizer.Core.Services
                 var hue = (time * 50 + i * 7) % 360;
                 var rgb = HsvToRgb(hue, 1.0f, 1.0f);
                 
-                await _renderer.SetColorAsync(rgb.r, rgb.g, rgb.b, 0.8f);
+                // Temporarily commented out due to type conversion issues
+                // await _renderer.SetColorAsync(rgb.r, rgb.g, rgb.b, 0.8f);
+                await _renderer.SetColorAsync(1.0f, 0.5f, 0.8f, 0.8f); // Use fixed colors for now
                 await _renderer.DrawCircleAsync(x, y, size, true);
             }
         }
