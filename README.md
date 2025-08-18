@@ -5,6 +5,7 @@
 ## ✨ Latest Features (v2.0)
 
 - **🎭 Superscopes System**: 11 AVS-based mathematical visualizations with audio response
+- **✏️ AVS Editor**: Full-featured editor for creating and editing AVS presets with real-time preview
 - **🎯 Plugin Management UI**: Complete plugin manager in Settings window
 - **🔌 Winamp Plugin Support**: Direct loading of Winamp visualizer DLLs
 - **⚡ Enhanced Audio System**: Fixed freezing visualizers and audio corruption
@@ -31,6 +32,10 @@
   - Spiral, 3D Scope Dish, Rotating Bow, Bouncing Scope, Spiral Graph
   - Rainbow Merkaba, Cat Face, Cymatics Frequency, Pong Simulation
   - Butterfly, Rainbow Sphere Grid with rainbow color cycling
+- **✏️ AVS Editor**: Full-featured editor for creating and editing AVS presets
+  - Real-time preview and validation
+  - Import/export functionality
+  - Seamless integration with main application
 
 ### 🔌 Plugin System
 - **Winamp Compatibility**: Direct loading of Winamp visualizer DLLs
@@ -177,6 +182,7 @@ dotnet build PhoenixVisualizer.sln
 - **🎵 Audio System**: Complete audio playback and analysis with corruption recovery
 - **🎨 Visualizations**: Waveform, FFT, Bars, Energy visualizers with fallback patterns
 - **🎭 Superscopes**: 11 AVS-based mathematical visualizations with audio response
+- **✏️ AVS Editor**: Full-featured editor with real-time preview and seamless integration
 - **🔌 Plugin Infrastructure**: Comprehensive plugin interfaces and registry system
 - **⚡ Winamp Integration**: Direct Winamp plugin loading and NS-EEL evaluator
 - **🎯 Plugin Management UI**: Complete settings-based plugin manager

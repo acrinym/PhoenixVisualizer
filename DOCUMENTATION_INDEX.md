@@ -29,6 +29,7 @@ phoenix
 
 ### Plugin Development
 - **[PLUGIN_DEVELOPMENT_GUIDE.md](PLUGIN_DEVELOPMENT_GUIDE.md)** - Complete guide to creating plugins
+- **[AVS_EDITOR_GUIDE.md](AVS_EDITOR_GUIDE.md)** - Complete guide to the AVS Editor system
 
 ### Plugin Types Supported
 - **Winamp Visualizers** - Direct .dll loading
@@ -50,6 +51,7 @@ phoenix
 - **Bars Visualizer** - Dynamic spectrum bars
 - **Energy Visualizer** - RMS-based energy display
 - **🎭 Superscopes** - 11 AVS-based mathematical visualizations
+- **✏️ AVS Editor** - Full-featured AVS preset editor with real-time preview
 
 ### Plugin Management UI
 - **Settings Integration** - Complete plugin manager
@@ -93,6 +95,8 @@ dotnet run --project PhoenixVisualizer.App
 ### ✅ Completed (Phase 1-6)
 - **Audio System** - Complete with corruption recovery
 - **Visualizations** - All core visualizers implemented
+- **🎭 Superscopes** - 11 AVS-based mathematical visualizations
+- **✏️ AVS Editor** - Full-featured editor with seamless integration
 - **Plugin Infrastructure** - Comprehensive plugin system
 - **Winamp Integration** - Direct plugin loading
 - **Plugin Management UI** - Complete settings integration

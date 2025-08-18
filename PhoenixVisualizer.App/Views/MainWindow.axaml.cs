@@ -359,7 +359,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnEditorClick(object? sender, RoutedEventArgs e)
+    private void OnEditorClick(object? sender, RoutedEventArgs e)
     {
         // The Editor project reference was removed, so this functionality is disabled.
         // var editor = new EditorWindow();
@@ -383,54 +383,164 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnLoadPreset(object? sender, RoutedEventArgs e)
-    {
-        var tb = this.FindControl<TextBox>("TxtPreset");
-        if (tb is null || RenderSurfaceControl is null) return;
-
-        var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
-        if (plug is null) return;
-
-        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
-        if (plug is IVisualizerPlugin visPlugin)
+            private void OnLoadPreset(object? sender, RoutedEventArgs e)
         {
-            RenderSurfaceControl.SetPlugin(visPlugin);
-            plug.LoadPreset(tb.Text ?? string.Empty);
-        }
-    }
+            var tb = this.FindControl<TextBox>("TxtPreset");
+            if (tb is null || RenderSurfaceControl is null) return;
 
-    private async void OnImportPreset(object? sender, RoutedEventArgs e)
-    {
-        if (RenderSurfaceControl is null) return;
+            var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+            if (plug is null) return;
 
-        var files = await this.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions
+            // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+            if (plug is IVisualizerPlugin visPlugin)
             {
-                Title = "Import AVS Preset",
-                AllowMultiple = false,
-                FileTypeFilter = new List<FilePickerFileType>
-                {
-                    new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } }
-                }
-            });
-
-        var file = files.Count > 0 ? files[0] : null;
-        if (file is null) return;
-
-        var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
-        if (plug is null) return;
-
-        using var stream = await file.OpenReadAsync();
-        using var reader = new StreamReader(stream);
-        var text = await reader.ReadToEndAsync();
-
-        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
-        if (plug is IVisualizerPlugin visPlugin)
-        {
-            RenderSurfaceControl.SetPlugin(visPlugin);
-            plug.LoadPreset(text);
+                RenderSurfaceControl.SetPlugin(visPlugin);
+                plug.LoadPreset(tb.Text ?? string.Empty);
+            }
         }
-    }
+
+        private void OnExecutePreset(object? sender, RoutedEventArgs e)
+        {
+            var tb = this.FindControl<TextBox>("TxtPreset");
+            if (tb is null || RenderSurfaceControl is null) return;
+
+            var presetText = tb.Text;
+            if (string.IsNullOrWhiteSpace(presetText))
+            {
+                // Show error message
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = "No preset to execute!";
+                }
+                return;
+            }
+
+            try
+            {
+                // Create and set AVS plugin
+                var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+                if (plug is null)
+                {
+                    // Fallback to direct AVS plugin creation
+                    plug = new AvsVisualizerPlugin();
+                }
+
+                // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+                if (plug is IVisualizerPlugin visPlugin)
+                {
+                    RenderSurfaceControl.SetPlugin(visPlugin);
+                    plug.LoadPreset(presetText);
+                    
+                    // Show success message
+                    var statusText = this.FindControl<TextBlock>("LblTime");
+                    if (statusText != null)
+                    {
+                        statusText.Text = "Preset executed successfully!";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to execute preset: {ex.Message}");
+                
+                // Show error message
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = $"Preset execution failed: {ex.Message}";
+                }
+            }
+        }
+
+        private async void OnImportPreset(object? sender, RoutedEventArgs e)
+        {
+            if (RenderSurfaceControl is null) return;
+
+            var files = await this.StorageProvider.OpenFilePickerAsync(
+                new FilePickerOpenOptions
+                {
+                    Title = "Import AVS Preset",
+                    AllowMultiple = false,
+                    FileTypeFilter = new List<FilePickerFileType>
+                    {
+                        new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } }
+                    }
+                });
+
+            var file = files.Count > 0 ? files[0] : null;
+            if (file is null) return;
+
+            var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+            if (plug is null) return;
+
+            using var stream = await file.OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            var text = await reader.ReadToEndAsync();
+
+            // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+            if (plug is IVisualizerPlugin visPlugin)
+            {
+                RenderSurfaceControl.SetPlugin(visPlugin);
+                plug.LoadPreset(text);
+            }
+        }
+
+        private void OnAvsEditorClick(object? sender, RoutedEventArgs e)
+        {
+            var avsEditor = new Views.AvsEditor();
+            
+            // Subscribe to the AVS content import event
+            avsEditor.AvsContentImported += (avsContent) =>
+            {
+                // Handle the AVS content in the main window
+                HandleAvsContentFromEditor(avsContent);
+            };
+            
+            avsEditor.Show();
+        }
+
+        private void HandleAvsContentFromEditor(string avsContent)
+        {
+            try
+            {
+                // Update the preset text box with the AVS content
+                var presetTextBox = this.FindControl<TextBox>("TxtPreset");
+                if (presetTextBox != null)
+                {
+                    presetTextBox.Text = avsContent;
+                }
+
+                // Automatically execute the preset
+                if (RenderSurfaceControl != null)
+                {
+                    var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+                    if (plug != null && plug is IVisualizerPlugin visPlugin)
+                    {
+                        RenderSurfaceControl.SetPlugin(visPlugin);
+                        plug.LoadPreset(avsContent);
+                        
+                        // Show success message
+                        var statusText = this.FindControl<TextBlock>("LblTime");
+                        if (statusText != null)
+                        {
+                            statusText.Text = "AVS preset loaded and executed from editor!";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to handle AVS content from editor: {ex.Message}");
+                
+                // Show error message
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = $"Failed to execute preset: {ex.Message}";
+                }
+            }
+        }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
@@ -455,6 +565,10 @@ public partial class MainWindow : Window
                 break;
             case Key.Enter:
                 ToggleFullscreen();
+                break;
+            case Key.E:
+                // Execute preset with E key
+                OnExecutePreset(null, null!);
                 break;
         }
     }

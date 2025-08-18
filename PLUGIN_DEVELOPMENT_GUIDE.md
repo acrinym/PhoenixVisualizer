@@ -502,6 +502,54 @@ uint color = GetColorFromFrequency(features.Bass, features.Mid, features.Treble)
 
 ### **Built-in Superscopes**
 
+## ✏️ **AVS Editor Integration**
+
+The AVS Editor provides a complete development environment for creating and testing superscopes with seamless integration to the main application.
+
+### **Key Features**
+- **Real-time Editing**: Write AVS code with immediate feedback
+- **Live Preview**: See validation results as you type
+- **Seamless Integration**: Send code directly to main application
+- **Export Options**: Generate C# code or save as AVS files
+
+### **Workflow**
+1. **Open AVS Editor** from main window toolbar
+2. **Write/edit superscope code** with real-time validation
+3. **Test with live preview** showing superscope count and validation
+4. **Send to main window** for immediate execution
+5. **Export as C# plugin** or save as AVS file
+
+### **AVS to C# Conversion**
+The editor automatically converts common AVS syntax:
+- `sin(` → `Math.Sin(`
+- `cos(` → `Math.Cos(`
+- `tan(` → `Math.Tan(`
+- `sqrt(` → `Math.Sqrt(`
+- `pow(` → `Math.Pow(`
+- `abs(` → `Math.Abs(`
+- `t` → `_time`
+- `w` → `_width`
+- `h` → `_height`
+
+### **Example AVS Code**
+```avs
+// AVS Preset Code
+superscope("MyScope", "
+  // Your code here
+  x = sin(t) * 100;
+  y = cos(t) * 100;
+  red = sin(t) * 0.5 + 0.5;
+  green = cos(t) * 0.5 + 0.5;
+  blue = 0.5;
+");
+```
+
+### **Integration with Main Application**
+- **"Send to Main Window" button** transfers code seamlessly
+- **Automatic execution** when content is received
+- **Preset text box updates** with the new content
+- **Immediate visualization** starts without manual steps
+
 PhoenixVisualizer includes 11 pre-built superscopes:
 - **Spiral Superscope** - Classic spiral with volume response
 - **3D Scope Dish** - 3D dish with perspective projection

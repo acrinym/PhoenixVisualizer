@@ -35,9 +35,10 @@
                 <TextBlock Text="Preset Types" FontWeight="Bold" Margin="0,0,0,10"/>
                 
                 <ListBox x:Name="PresetTypeList" SelectionChanged="OnPresetTypeChanged">
-                    <ListBoxItem Content="AVS Presets (.avs)" Tag="avs"/>
-                    <ListBoxItem Content="MilkDrop Presets (.milk)" Tag="milkdrop"/>
                     <ListBoxItem Content="All Presets" Tag="all"/>
+                    <ListBoxItem Content="AVS Presets" Tag="avs"/>
+                    <ListBoxItem Content="MilkDrop Presets" Tag="milkdrop"/>
+                    <ListBoxItem Content="Imported Superscopes" Tag="imported"/>
                 </ListBox>
                 
                 <TextBlock Text="Actions" FontWeight="Bold" Margin="0,20,0,10"/>

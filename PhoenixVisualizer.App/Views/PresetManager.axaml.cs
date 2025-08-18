@@ -9,9 +9,10 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using PhoenixVisualizer.Models;
+using PhoenixVisualizer.App.Services;
 
 namespace PhoenixVisualizer.Views
 {
@@ -20,12 +21,14 @@ namespace PhoenixVisualizer.Views
         private string _selectedPresetType = "all";
         private List<PresetInfo> _allPresets = new();
         private PresetInfo? _selectedPreset;
+        private readonly AvsImportService _avsImportService = new();
 
         public PresetManager()
         {
             // Manually load XAML since InitializeComponent() isn't generated
             AvaloniaXamlLoader.Load(this);
             
+            // Find XAML controls and initialize
             var presetTypeList = this.FindControl<ListBox>("PresetTypeList");
             if (presetTypeList != null)
             {
@@ -65,27 +68,16 @@ namespace PhoenixVisualizer.Views
                 AllowMultiple = false,
                 FileTypeFilter = new List<FilePickerFileType>
                 {
-                    new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } },
-                    new("MilkDrop Preset") { Patterns = new[] { "*.milk" } },
-                    new("All Files") { Patterns = new[] { "*.*" } }
+                    new FilePickerFileType("AVS Presets") { Patterns = new[] { "*.avs", "*.txt" } },
+                    new FilePickerFileType("MilkDrop Presets") { Patterns = new[] { "*.milk" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
                 }
             };
 
             var files = await StorageProvider.OpenFilePickerAsync(options);
             if (files.Count > 0)
             {
-                var file = files[0];
-                var extension = Path.GetExtension(file.Path.LocalPath).ToLower();
-                
-                if (extension == ".avs" || extension == ".txt")
-                {
-                    // TODO: Implement AVS import functionality
-                    statusText.Text = "AVS import functionality coming soon!";
-                }
-                else
-                {
-                    await ImportPresetFile(file.Path.LocalPath);
-                }
+                await ImportPresetFile(files[0].Path.LocalPath);
             }
         }
 
@@ -98,13 +90,34 @@ namespace PhoenixVisualizer.Views
             {
                 var fileName = Path.GetFileName(filePath);
                 var extension = Path.GetExtension(filePath).ToLower();
-                var targetDir = GetTargetDirectory(extension);
-                var targetPath = Path.Combine(targetDir, fileName);
+                
+                if (extension == ".avs" || extension == ".txt")
+                {
+                    // Import AVS file using the enhanced service
+                    var success = _avsImportService.ImportAvsFile(filePath, out var errorMessage);
+                    if (success)
+                    {
+                        statusText.Text = $"AVS file imported successfully: {fileName}";
+                        ShowImportSuccessDialog(fileName);
+                    }
+                    else
+                    {
+                        statusText.Text = $"AVS import failed: {errorMessage}";
+                        ShowImportErrorDialog(fileName, errorMessage);
+                    }
+                }
+                else
+                {
+                    // Handle other preset types
+                    var targetDir = GetTargetDirectory(extension);
+                    var targetPath = Path.Combine(targetDir, fileName);
 
-                Directory.CreateDirectory(targetDir);
-                await Task.Run(() => File.Copy(filePath, targetPath, true));
+                    Directory.CreateDirectory(targetDir);
+                    await Task.Run(() => File.Copy(filePath, targetPath, true));
 
-                statusText.Text = $"Preset imported: {fileName}";
+                    statusText.Text = $"Preset imported: {fileName}";
+                }
+                
                 RefreshPresetList();
             }
             catch (Exception ex)
@@ -129,6 +142,7 @@ namespace PhoenixVisualizer.Views
             
             try
             {
+                // Add built-in presets
                 var avsDir = "presets/avs";
                 if (Directory.Exists(avsDir))
                 {
@@ -147,6 +161,13 @@ namespace PhoenixVisualizer.Views
                     }
                 }
 
+                // Add imported superscopes
+                var importedSuperscopes = _avsImportService.GetImportedSuperscopes();
+                foreach (var scope in importedSuperscopes)
+                {
+                    _allPresets.Add(new PresetInfo(scope.FilePath, "Imported Superscope"));
+                }
+
                 FilterPresets();
             }
             catch (Exception ex)
@@ -161,6 +182,7 @@ namespace PhoenixVisualizer.Views
             {
                 "avs" => _allPresets.Where(p => p.Type == "AVS").ToList(),
                 "milkdrop" => _allPresets.Where(p => p.Type == "MilkDrop").ToList(),
+                "imported" => _allPresets.Where(p => p.Type == "Imported Superscope").ToList(),
                 _ => _allPresets
             };
 
@@ -184,7 +206,7 @@ namespace PhoenixVisualizer.Views
             var presetSizeText = this.FindControl<TextBlock>("PresetSizeText");
             var presetModifiedText = this.FindControl<TextBlock>("PresetModifiedText");
             var presetPreviewText = this.FindControl<TextBox>("PresetPreviewText");
-
+            
             if (presetNameText == null || presetTypeText == null || 
                 presetSizeText == null || presetModifiedText == null || 
                 presetPreviewText == null) return;
@@ -207,6 +229,107 @@ namespace PhoenixVisualizer.Views
             {
                 Debug.WriteLine($"Error showing preset details: {ex.Message}");
             }
+        }
+
+        private void ShowImportSuccessDialog(string fileName)
+        {
+            var dialog = new Window
+            {
+                Title = "Import Successful",
+                Width = 400,
+                Height = 200,
+                CanResize = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            var panel = new StackPanel
+            {
+                Margin = new Thickness(20),
+                Spacing = 10
+            };
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Successfully imported:",
+                FontWeight = FontWeight.Bold,
+                FontSize = 14
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = fileName,
+                FontSize = 12
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = "The superscope has been added to your imported presets and is now available for use.",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 11
+            });
+
+            var okButton = new Button
+            {
+                Content = "OK",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+            okButton.Click += (_, __) => dialog.Close();
+            panel.Children.Add(okButton);
+
+            dialog.Content = panel;
+            dialog.ShowDialog(this);
+        }
+
+        private void ShowImportErrorDialog(string fileName, string? errorMessage)
+        {
+            var dialog = new Window
+            {
+                Title = "Import Failed",
+                Width = 400,
+                Height = 200,
+                CanResize = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            var panel = new StackPanel
+            {
+                Margin = new Thickness(20),
+                Spacing = 10
+            };
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Failed to import:",
+                FontWeight = FontWeight.Bold,
+                FontSize = 14
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = fileName,
+                FontSize = 12
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Error: {errorMessage ?? "Unknown error"}",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 11,
+                Foreground = Brushes.Red
+            });
+
+            var okButton = new Button
+            {
+                Content = "OK",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+            okButton.Click += (_, __) => dialog.Close();
+            panel.Children.Add(okButton);
+
+            dialog.Content = panel;
+            dialog.ShowDialog(this);
         }
 
         // Placeholder methods for other buttons

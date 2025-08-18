@@ -23,10 +23,11 @@
             <!-- New controls -->
             <Button x:Name="BtnTempoPitch" Content="Tempo/Pitch" Click="OnTempoPitchClick" Margin="0,0,8,0"/>
             <Button x:Name="BtnSettings" Content="Settings" Click="OnSettingsClick" Margin="0,0,8,0"/>
-            <Button x:Name="BtnEditor" Content="AVS Editor" Click="OnEditorClick" Margin="0,0,8,0"/>
+            <Button x:Name="BtnEditor" Content="AVS Editor" Click="OnAvsEditorClick" Margin="0,0,8,0"/>
             <ComboBox x:Name="CmbPlugin" Width="160"/>
             <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
             <Button Content="Load Preset" Click="OnLoadPreset"/>
+            <Button Content="Execute Preset" Click="OnExecutePreset" Background="Green" Foreground="White" ToolTip.Tip="Execute the AVS preset in the text box (or press E key)"/>
             <Button Content="Import Preset" Click="OnImportPreset"/>
         </StackPanel>
 
