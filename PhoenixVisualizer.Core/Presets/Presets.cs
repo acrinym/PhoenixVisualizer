@@ -1,0 +1,70 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace PhoenixVisualizer.Core;
+
+// 🎚️ Minimal preset manager – cycles through presets in the "Presets" folder
+public static class Presets
+{
+    private static readonly List<string> _presetTexts = new();
+    private static readonly Random _rng = new();
+    private static int _index = -1;
+    private static object? _surface;
+
+    public static void Initialize(object? surface)
+    {
+        _surface = surface;
+        _presetTexts.Clear();
+        _index = -1;
+
+        var dir = Path.Combine(AppContext.BaseDirectory, "Presets");
+        if (!Directory.Exists(dir)) return;
+
+        foreach (var file in Directory.GetFiles(dir, "*.avs"))
+        {
+            try
+            {
+                _presetTexts.Add(File.ReadAllText(file));
+            }
+            catch (Exception ex) 
+            { 
+                System.Diagnostics.Debug.WriteLine($"Failed to load preset file {file}: {ex.Message}");
+                /* ignore bad files */ 
+            }
+        }
+
+        if (_presetTexts.Count > 0)
+            _index = 0;
+    }
+
+    public static void GoPrev()
+    {
+        if (_presetTexts.Count == 0 || _surface is null) return;
+        _index = (_index - 1 + _presetTexts.Count) % _presetTexts.Count;
+        ApplyCurrent();
+    }
+
+    public static void GoNext()
+    {
+        if (_presetTexts.Count == 0 || _surface is null) return;
+        _index = (_index + 1) % _presetTexts.Count;
+        ApplyCurrent();
+    }
+
+    public static void GoRandom()
+    {
+        if (_presetTexts.Count == 0 || _surface is null) return;
+        _index = _rng.Next(_presetTexts.Count);
+        ApplyCurrent();
+    }
+
+    private static void ApplyCurrent()
+    {
+        if (_surface is null || _index < 0 || _index >= _presetTexts.Count) return;
+        
+        // For now, just log that we would apply a preset
+        // The actual implementation would depend on how the surface is used
+        System.Diagnostics.Debug.WriteLine($"Would apply preset {_index}: {_presetTexts[_index].Substring(0, Math.Min(50, _presetTexts[_index].Length))}...");
+    }
+}

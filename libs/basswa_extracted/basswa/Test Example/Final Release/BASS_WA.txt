@@ -1,0 +1,131 @@
+Files that you should have found in the BASS_WA "package"
+======================================================
+BASS_WA.TXT      This file
+BASS_WA.DLL      The BASS_WA module
+FILE_ID.DIZ   BBS description file
+C\            C/C++ API
+  BASS_WA.H        BASS_WA C/C++ header file
+  BASS_WA.LIB      BASS_WA import library
+VB\           Visual Basic API and samples...
+  MOD_BASSWA.BAS      BASS_WA Visual Basic module file
+  BASS.BAS      BASS Visual Basic module file
+  FORM1.FRM      BASS_WA Visual Basic form file
+  BASS_WA.vbp      BASS_WA Visual Basic project file
+  BASS_WA TEST.exe      BASS_WA Compiled sample exe
+DELPHI\
+  UNIT1.PAS    Main unit
+  BASS_WA.PAS      BASS_WA Delphi unit
+  BASS_WA_TEST.DPR      Project file
+  DYNAMIC_BASS.PAS      BASS Delphi unit
+  UNIT1.DFM    Main form
+PLUGINS\           Some example plugins that can be used with BASS_WA
+
+NOTE: The ZIP should be decompressed with the directory stucture maintained.
+
+NOTE: To run the sample EXEs, first you'll have to copy BASS.DLL, BASS_WA.DLL and the
+Plugins directory into the same directory as the EXEs.
+
+To open the vb example, you'll first have to copy BASS.bas into the same direcory as the example.
+To open the Delphi example you'll first have to copy Dynamic_BASS.pas into the same directory as the example.
+
+What's the point?
+=================
+BASS_WA is a add-on for the BASS Sound System, BASS_WA allows the usage of Winamp
+visual plugins within your applications.
+
+
+Requirements
+============
+BASS version 2.x
+
+
+Using BASS_WA
+==========
+C/C++, Delphi and Visual Basic APIs are provided, to use BASS_WA with
+another language you'll first have to convert the header file. Or, as a
+last resort, you could use LoadLibrary and GetProcAddress.
+
+For the BASS_WA functions that return strings (char*), VB users should use
+the VBStrFromAnsiPtr function to convert the returned pointer into a VB
+string.
+
+
+Latest Version
+==============
+The latest version of BASS_WA can always be found at the BASS forum:
+
+        http://www.un4seen.com/forum
+
+
+Copyright, Disclaimer, and all that other jazz
+==============================================
+This software is provided "as is", without warranty of ANY KIND,
+either expressed or implied, including but not limited to the
+implied warranties of merchantability and/or fitness for a
+particular purpose. The author shall NOT be held liable for
+ANY damage to you, your computer, or to anyone or anything else,
+that may result from its use, or misuse. Basically, you use it
+at YOUR OWN RISK.
+
+Usage of BASS_WA indicates that you agree to the above conditions.
+
+You may freely distribute the BASS_WA package as long as NO FEE is
+charged and all the files remain INTACT AND UNMODIFIED.
+
+All trademarks and other registered names contained in the BASS_WA
+package are the property of their respective owners.
+
+
+History
+=======
+These are the major (and not so major) changes at each version
+stage. There are ofcourse bug fixes and other little improvements
+made along the way too! To make upgrading simpler, all functions
+affected by a change to the BASS_WA interface are listed.
+
+1.5 - 01/08/2004
+----------------
+*Some bugs removed that were posted on the Un4seen forum.
+
+1.4 - 05/01/2004
+----------------
+*Removed some trash code, only the dll did not get any smaller some way :(
+*Given proper credit to Saïd Bougribate aka KarLKoX, because I've taken some code from his winamp dll.
+*Rewritten some functions in a try to make them faster.
+*Some minor bugs removed, really minor :)
+
+1.3 - 03/01/2004
+----------------
+*Much smaller dll, the dll is now only 8kB in size!
+*Made plugin loading a bit faster.
+*Now the C/C++ lib file is also compatible with VC5 and some other compilers.
+*Some (not so major) bugs removed.
+
+1.2 - 29/12/2003
+----------------
+*Added spectrum plugin support.
+*Faster pcm data sending to the plugin.
+*Removed a bug that caused some plugins to crash while loading.
+*Added a spectum test plugin to the plugin examples directory.
+
+1.1 - 26/12/2003 
+---------------
+* First public release.
+
+Credits - Code Contributors
+=================================
+Some function names, Winamp vis header and Fake Winamp window code - Saïd Bougribate
+
+
+Credits - API/Sample Contributors
+=================================
+Delphi - Silhwan
+
+
+Bug reports, Suggestions, Comments, Enquiries, etc...
+=====================================================
+If you have any of the aforementioned please see the BASS forum (at
+the website). If you can't find an answer there, you can email:
+
+        info@phsoft.nl
+

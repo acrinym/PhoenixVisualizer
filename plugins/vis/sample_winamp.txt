@@ -1,0 +1,2 @@
+// Sample Winamp Visualizer Plugin
+// This is a placeholder for a real .dll file

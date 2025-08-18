@@ -25,7 +25,11 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         canvas.Clear(0xFF000000);
         float size = Math.Min(_width, _height);
         float baseRadius = size * 0.15f;
-        float radius = baseRadius + features.Energy * size * 0.35f;
+
+        // Energy can spike way above 1, so cap it to keep the circle on screen 🚫🎯
+        float energy = MathF.Min(1f, features.Energy);
+        float radius = baseRadius + energy * size * 0.35f;
+
         uint color = features.Beat ? 0xFFFFFFFFu : 0xFFFFAA00u;
         canvas.FillCircle(_width / 2f, _height / 2f, radius, color);
     }

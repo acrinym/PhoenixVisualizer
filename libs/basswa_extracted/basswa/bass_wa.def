@@ -1,0 +1,24 @@
+LIBRARY "BASS_WA.dll"
+
+EXPORTS
+	BASS_WA_New_Thread
+	BASS_WA_SetHwnd
+	BASS_WA_GetVisHwnd
+	BASS_WA_SetSongTitle
+	BASS_WA_SetElapsed
+	BASS_WA_SetLength
+	BASS_WA_IsPlaying
+	BASS_WA_SetModule
+	BASS_WA_GetWinampPluginInfo
+	BASS_WA_GetWinampPluginCount
+	BASS_WA_GetModuleCount
+	BASS_WA_GetModuleInfo
+	BASS_WA_Config_Vis
+	BASS_WA_Start_Vis
+	BASS_WA_Stop_Vis
+	BASS_WA_LoadVisPlugin
+	BASS_WA_FreeVisInfo
+	BASS_WA_FreeVis
+	BASS_WA_LoadVis
+	BASS_WA_LoadAllVis
+	BASS_WA_SetChannel

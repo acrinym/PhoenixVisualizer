@@ -1,6 +1,7 @@
 <!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/SettingsWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:PhoenixVisualizer.Views"
         x:Class="PhoenixVisualizer.Views.SettingsWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Phoenix Visualizer Settings"
@@ -26,10 +27,10 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="20">
 
-                <!-- Visualization Plugin -->
+                                <!-- Visualization Plugin -->
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
                     <StackPanel>
-                        <TextBlock Text="Visualization Plugin"
+                        <TextBlock Text="Visualization Plugin" 
                                    FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
                         <TextBlock Text="Choose the default visualization plugin:"
                                    Margin="0,0,0,10" />
@@ -44,6 +45,116 @@
                                          Tag="phoenix"
                                          Margin="0,5"/>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Plugin Manager -->
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Plugin Manager" 
+                                       FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button x:Name="BtnRefreshPlugins" 
+                                    Content="🔄 Refresh" 
+                                    Margin="15,0,0,0" 
+                                    Padding="8,4" 
+                                    Click="OnRefreshPluginsClick"/>
+                        </StackPanel>
+                        
+                        <!-- Plugin List -->
+                        <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+                            <Grid RowDefinitions="Auto,*">
+                                <TextBlock Grid.Row="0" Text="Available Plugins:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <ListBox x:Name="PluginListBox" Grid.Row="1" Height="120" SelectionChanged="OnPluginSelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="views:PluginInfo">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <CheckBox x:Name="PluginEnabledCheck" 
+                                                          IsChecked="{Binding IsEnabled}" 
+                                                          Checked="OnPluginEnabledChanged"
+                                                          Unchecked="OnPluginEnabledChanged"/>
+                                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="(" Foreground="Gray" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Id}" Foreground="Gray" VerticalAlignment="Center"/>
+                                                <TextBlock Text=")" Foreground="Gray" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- Plugin Details -->
+                        <Border x:Name="PluginDetailsPanel" 
+                                BorderBrush="LightGray" 
+                                BorderThickness="1" 
+                                Padding="10" 
+                                IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Plugin Details:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,8">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginNameText" Grid.Row="0" Grid.Column="1" Text=""/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Description:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginDescriptionText" Grid.Row="1" Grid.Column="1" Text=""/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Status:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="PluginStatusText" Grid.Row="2" Grid.Column="1" Text=""/>
+                                </Grid>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                    <Button x:Name="BtnConfigurePlugin" 
+                                            Content="⚙️ Configure" 
+                                            Padding="8,4" 
+                                            Click="OnConfigurePluginClick"/>
+                                    <Button x:Name="BtnTestPlugin" 
+                                            Content="▶️ Test" 
+                                            Padding="8,4" 
+                                            Click="OnTestPluginClick"/>
+                                    <Button x:Name="BtnPluginInfo" 
+                                            Content="ℹ️ Info" 
+                                            Padding="8,4" 
+                                            Click="OnPluginInfoClick"/>
+                                </StackPanel>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                    <Button x:Name="BtnPerformanceMonitor" 
+                                            Content="📊 Performance Monitor" 
+                                            Padding="8,4" 
+                                            Click="OnPerformanceMonitorClick"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Plugin Installation -->
+                        <Border BorderBrush="LightGray" BorderThickness="1" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Install New Plugin:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="BtnBrowsePlugin" 
+                                            Content="📁 Browse..." 
+                                            Padding="8,4" 
+                                            Click="OnBrowsePluginClick"/>
+                                    <Button x:Name="BtnInstallPlugin" 
+                                            Content="📦 Install" 
+                                            Padding="8,4" 
+                                            Click="OnInstallPluginClick"/>
+                                    <Button x:Name="BtnInstallationWizard" 
+                                            Content="🧙 Installation Wizard" 
+                                            Padding="8,4" 
+                                            Click="OnInstallationWizardClick"/>
+                                    <Button x:Name="BtnPresetManager" 
+                                            Content="📄 Preset Manager" 
+                                            Padding="8,4" 
+                                            Click="OnPresetManagerClick"/>
+                                    <TextBlock Text="Drop .dll files here or browse to install" 
+                                               VerticalAlignment="Center" 
+                                               Foreground="Gray" 
+                                               Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 
@@ -69,6 +180,111 @@
                                 <ComboBoxItem Content="2048 samples"/>
                             </ComboBox>
                         </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Visualizer Sensitivity -->
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="Visualizer Sensitivity" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Input Gain (dB)"/>
+                                <Slider x:Name="GainSlider" Minimum="-24" Maximum="24" Width="250"/>
+                                <TextBlock x:Name="GainLabel" Width="52" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Smoothing (ms)"/>
+                                <Slider x:Name="SmoothSlider" Minimum="0" Maximum="400" Width="250"/>
+                                <TextBlock x:Name="SmoothLabel" Width="52" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Noise Gate (dBFS)"/>
+                                <Slider x:Name="GateSlider" Minimum="-90" Maximum="-30" Width="250"/>
+                                <TextBlock x:Name="GateLabel" Width="52" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Beat Sensitivity (×)"/>
+                                <Slider x:Name="BeatSlider" Minimum="1.05" Maximum="1.8" Width="250"/>
+                                <TextBlock x:Name="BeatLabel" Width="52" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Frame Blend (0–1)"/>
+                                <Slider x:Name="BlendSlider" Minimum="0" Maximum="1" Width="250"/>
+                                <TextBlock x:Name="BlendLabel" Width="52" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="FFT Size"/>
+                                <ComboBox x:Name="FftCombo" Width="120">
+                                    <ComboBoxItem Content="1024"/>
+                                    <ComboBoxItem Content="2048"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Spectrum Scale"/>
+                                <ComboBox x:Name="ScaleCombo" Width="150">
+                                    <ComboBoxItem Content="Linear"/>
+                                    <ComboBoxItem Content="Log"/>
+                                    <ComboBoxItem Content="Sqrt"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <CheckBox x:Name="AutoGainCheck" Content="Auto Gain (AGC)"/>
+                                <CheckBox x:Name="PeaksCheck" Content="Show Peaks"/>
+                                <CheckBox x:Name="RandomOnBeatCheck" Content="Random preset on beat"/>
+                                <CheckBox x:Name="HotkeysCheck" Content="Enable Winamp hotkeys (Y/U/Space/R)"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Random Preset Switching -->
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5" Margin="0,0,0,10">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Random Preset Mode" FontSize="16" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Width="150" VerticalAlignment="Center" Text="Mode"/>
+                            <ComboBox x:Name="RandModeCombo" Width="180">
+                                <ComboBoxItem Content="Off"/>
+                                <ComboBoxItem Content="On Beat"/>
+                                <ComboBoxItem Content="Every N seconds"/>
+                                <ComboBoxItem Content="Per stanza (bars)"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel x:Name="RandIntervalPanel" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Width="150" VerticalAlignment="Center" Text="Interval"/>
+                            <ComboBox x:Name="RandIntervalCombo" Width="120">
+                                <ComboBoxItem Content="15"/>
+                                <ComboBoxItem Content="30"/>
+                                <ComboBoxItem Content="60"/>
+                            </ComboBox>
+                            <TextBlock VerticalAlignment="Center" Text="seconds"/>
+                        </StackPanel>
+                        <StackPanel x:Name="RandStanzaPanel" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Beats per bar"/>
+                                <ComboBox x:Name="BeatsPerBarCombo" Width="120">
+                                    <ComboBoxItem Content="4"/>
+                                    <ComboBoxItem Content="3"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Width="150" VerticalAlignment="Center" Text="Bars per stanza"/>
+                                <ComboBox x:Name="BarsPerStanzaCombo" Width="120">
+                                    <ComboBoxItem Content="8"/>
+                                    <ComboBoxItem Content="16"/>
+                                    <ComboBoxItem Content="32"/>
+                                    <ComboBoxItem Content="64"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,6,0,0">
+                            <CheckBox x:Name="RandomWhenSilentCheck" Content="Allow switching while silent"/>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock VerticalAlignment="Center" Text="Cooldown (ms)"/>
+                                <NumericUpDown x:Name="RandCooldownUpDown" Minimum="0" Maximum="5000" Width="100"/>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

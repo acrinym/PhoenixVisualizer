@@ -1,0 +1,73 @@
+# DEBUG CODE - DISABLED BY DEFAULT
+# To re-enable debug logging, copy the relevant sections to the appropriate files
+
+# ============================================================================
+# RENDER SURFACE DEBUG CODE
+# File: PhoenixVisualizer.App/Rendering/RenderSurface.cs
+# ============================================================================
+
+# Add this field after the other private fields:
+# private const bool DebugLog = true;       // enables per-frame file logging
+
+# Add this after the FFT validation loop:
+# if (DebugLog) LogToFile($"[RenderSurface] FFT validation - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
+
+# Add this in the FFT stuck detection:
+# if (DebugLog) LogToFile($"[RenderSurface] FFT data appears stuck (sum: {fftSum:F6}, max: {fftMax:F6}, non-zero: {fftNonZero})");
+
+# Add this after FFT refresh:
+# if (DebugLog) LogToFile($"[RenderSurface] After refresh - Sum: {fftSum:F6}, Max: {fftMax:F6}, Non-zero: {fftNonZero}/2048");
+
+# Add this in the fallback pattern section:
+# if (DebugLog) LogToFile($"[RenderSurface] FFT data still stuck after refresh attempt");
+# if (DebugLog) LogToFile($"[RenderSurface] Applied fallback sine wave pattern");
+
+# Add this before plugin rendering:
+# if (DebugLog) LogToFile($"[RenderSurface] Rendering frame with plugin: {_plugin.DisplayName} ({_plugin.Id})");
+
+# Add this for audio data status:
+# if (DebugLog) LogToFile($"[RenderSurface] Audio data - FFT length: {fft.Length}, Wave length: {wave.Length}, Pos: {pos:F2}s, Total: {total:F2}s");
+
+# ============================================================================
+# AUDIO SERVICE DEBUG CODE
+# File: PhoenixVisualizer.Audio/AudioService.cs
+# ============================================================================
+
+# Add this field after the other private fields:
+# private const bool DebugLog = true;
+
+# Add this in ReadWaveform method:
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform called but no play handle");
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform: Channel not playing, returning zeros");
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform: Data appears stuck (sum: {sum:F6}, max: {maxValue:F6})");
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform: Audio stream reset, retrying waveform read");
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform: No data returned from ChannelGetData");
+# if (DebugLog) LogToFile($"[AudioService] ReadWaveform exception: {ex.Message}");
+
+# Add this in ReadFft method:
+# if (DebugLog) LogToFile($"[AudioService] ReadFft: Channel not playing, returning zeros");
+
+# ============================================================================
+# USAGE INSTRUCTIONS
+# ============================================================================
+
+# 1. To enable debug logging, change the DebugLog constant to true in the relevant file
+# 2. Debug logs will be written to:
+#    - render_debug.log (for RenderSurface)
+#    - audio_debug.log (for AudioService)
+# 3. WARNING: Enabling debug logging will significantly impact performance
+# 4. Only use for troubleshooting, disable for production use
+# 5. Log files are created in the application's base directory
+
+# ============================================================================
+# PERFORMANCE IMPACT
+# ============================================================================
+
+# Debug logging adds significant overhead:
+# - File I/O on every frame (~60x per second)
+# - String formatting and concatenation
+# - Disk writes that can block the UI thread
+# - Can cause visualizer to appear "frozen" or stutter
+
+# The original issue was caused by per-frame logging blocking the render loop.
+# This debug code should only be enabled when actively debugging issues.

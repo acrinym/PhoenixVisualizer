@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
+        xmlns:r="using:PhoenixVisualizer.Editor.Rendering"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -15,6 +16,64 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" MinWidth="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300" MinWidth="250"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Panel: Preset Browser -->
+        <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Preset Browser" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBox Name="PresetInput" Text="{Binding PresetCode}" Margin="0,0,0,10"/>
+                <Button Content="Load Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding LoadPresetCommand}"/>
+                <Button Content="Save Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding SavePresetCommand}"/>
+                <Separator Margin="0,10"/>
+                <TextBlock Text="Recent Presets" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                <ListBox Name="RecentPresets" Height="200" ItemsSource="{Binding RecentPresets}" 
+                         DoubleTapped="OnRecentPresetDoubleTapped">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Border>
+        
+        <!-- Center: Visualization Canvas -->
+        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <r:RenderSurface x:Name="RenderHost"/>
+        </Border>
+        
+        <!-- Right Panel: Properties -->
+        <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Points" FontWeight="Bold" Margin="0,10,0,5"/>
+                <Slider Name="PointsSlider" Minimum="16" Maximum="1024" Value="{Binding Points}" TickFrequency="64" IsSnapToTickEnabled="True"/>
+                <TextBlock Text="{Binding Points, StringFormat='{}{0:F0}'}" HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="Mode" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ComboBox Name="ModeCombo" SelectedItem="{Binding Mode}" ItemsSource="{Binding AvailableModes}"/>
+                
+                <TextBlock Text="Source" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ComboBox Name="SourceCombo" SelectedItem="{Binding Source}" ItemsSource="{Binding AvailableSources}"/>
+                
+                <Separator Margin="0,20"/>
+                <TextBlock Text="Audio Controls" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="▶" Width="40" Height="30" Margin="2" Command="{Binding PlayCommand}"/>
+                    <Button Content="⏸" Width="40" Height="30" Margin="2" Command="{Binding PauseCommand}"/>
+                    <Button Content="⏹" Width="40" Height="30" Margin="2" Command="{Binding StopCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding CurrentTime, StringFormat='Time: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding TotalTime, StringFormat='Total: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
 
 </Window>
