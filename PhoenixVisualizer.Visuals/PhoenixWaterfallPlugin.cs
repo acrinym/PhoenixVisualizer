@@ -11,9 +11,11 @@ public sealed class PhoenixWaterfallPlugin : IVisualizerPlugin
     public bool IsEnabled { get; set; } = true;
 
     private readonly float[,] _waterfallBuffer;
-    private readonly int _bufferHeight = 256;
-    private readonly int _maxFftBins = 512;
+    private readonly int _bufferHeight = 128;  // Reduced from 256 for performance
+    private readonly int _maxFftBins = 256;   // Reduced from 512 for performance
     private int _w, _h;
+    private int _frameCount = 0;
+    private const int RENDER_EVERY_N_FRAMES = 2; // Skip every other frame for performance
 
     // Phoenix color palette (NO GREEN!)
     private readonly uint[] _fireColors = new uint[]
@@ -44,6 +46,28 @@ public sealed class PhoenixWaterfallPlugin : IVisualizerPlugin
     {
         if (features.Fft?.Length == 0) return;
 
+        // Always update the buffer for smooth scrolling
+        UpdateWaterfallBuffer(features);
+
+        // Skip rendering every other frame for performance
+        _frameCount++;
+        if (_frameCount % RENDER_EVERY_N_FRAMES != 0)
+        {
+            return;
+        }
+
+        // Render the Phoenix waterfall with optimized drawing
+        RenderWaterfallOptimized(canvas, features);
+
+        // Optional: Add Phoenix flame effects on strong bass hits (less frequently)
+        if (features.Bass > 0.7f && _frameCount % 4 == 0)
+        {
+            AddPhoenixFlameEffect(canvas, features);
+        }
+    }
+
+    private void UpdateWaterfallBuffer(AudioFeatures features)
+    {
         // Scroll buffer down (classic waterfall effect)
         for (int y = _bufferHeight - 1; y > 0; y--)
         {
@@ -65,17 +89,24 @@ public sealed class PhoenixWaterfallPlugin : IVisualizerPlugin
             magnitude *= bassBoost * trebleSparkle;
             _waterfallBuffer[x, 0] = magnitude;
         }
+    }
 
-        // Render the Phoenix waterfall
+    private void RenderWaterfallOptimized(ISkiaCanvas canvas, AudioFeatures features)
+    {
         var cellWidth = _w / (float)Math.Min(features.Fft.Length, _maxFftBins);
         var cellHeight = _h / (float)_bufferHeight;
 
-        for (int y = 0; y < _bufferHeight; y++)
+        // Use larger cells for better performance
+        var renderCellWidth = Math.Max(cellWidth, 2f);
+        var renderCellHeight = Math.Max(cellHeight, 2f);
+
+        // Skip rendering very quiet areas and use larger cells
+        for (int y = 0; y < _bufferHeight; y += 2) // Skip every other row
         {
-            for (int x = 0; x < Math.Min(features.Fft.Length, _maxFftBins); x++)
+            for (int x = 0; x < Math.Min(features.Fft.Length, _maxFftBins); x += 2) // Skip every other column
             {
                 var intensity = _waterfallBuffer[x, y];
-                if (intensity < 0.05f) continue; // Skip very quiet areas
+                if (intensity < 0.1f) continue; // Higher threshold for skipping
 
                 // Phoenix color mapping based on intensity and frequency
                 var color = GetPhoenixColor(intensity, x, features.Fft.Length);
@@ -84,14 +115,9 @@ public sealed class PhoenixWaterfallPlugin : IVisualizerPlugin
                 var alpha = (byte)(intensity * 255);
                 color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
 
-                canvas.DrawRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight, color, true);
+                // Draw larger cells for better performance
+                canvas.DrawRect(x * cellWidth, y * cellHeight, renderCellWidth, renderCellHeight, color, true);
             }
-        }
-
-        // Optional: Add Phoenix flame effects on strong bass hits
-        if (features.Bass > 0.7f)
-        {
-            AddPhoenixFlameEffect(canvas, features);
         }
     }
 
