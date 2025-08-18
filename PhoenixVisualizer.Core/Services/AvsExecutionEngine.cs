@@ -911,7 +911,7 @@ namespace PhoenixVisualizer.Core.Services
             var radius = GetParameterValue(effect, "radius", 100.0f);
             var speed = GetParameterValue(effect, "speed", 1.0f);
             
-            var time = Convert.ToSingle(_variables.GetValueOrDefault("time", 0.0));
+            float time = (float)_variables.GetValueOrDefault("time", 0.0);
             
             for (int i = 0; i < count; i++)
             {
@@ -921,12 +921,12 @@ namespace PhoenixVisualizer.Core.Services
                 var x = distance * (float)Math.Cos(angle);
                 var y = distance * (float)Math.Sin(angle);
                 
-                var size = 2.0f + Math.Sin(time + i) * 1.0f;
-                var hue = (time * 50 + i * 7) % 360;
+                float size = 2.0f + (float)Math.Sin(time + i) * 1.0f;
+                float hue = (float)(((time * 50.0) + i * 7) % 360.0f);
                 var rgb = HsvToRgb(hue, 1.0f, 1.0f);
                 
                 // Fix: explicitly cast RGB values to float and add alpha parameter
-                await _renderer.SetColorAsync((float)rgb.r, (float)rgb.g, (float)rgb.b, 0.8f);
+                await _renderer.SetColorAsync(rgb.r, rgb.g, rgb.b, 0.8f);
                 await _renderer.DrawCircleAsync(x, y, size, true);
             }
         }
