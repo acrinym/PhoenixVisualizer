@@ -14,7 +14,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
-using Avalonia.Controls;
 using Avalonia.Dialogs;
 
 namespace PhoenixVisualizer.Views;
@@ -56,6 +55,9 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
 
+        // Wire up button event handlers
+        WireUpEventHandlers();
+
         // OPTIONAL: if you actually have a ViewModel type, you can set it here.
         // DataContext = new ViewModels.SettingsWindowViewModel();
 
@@ -65,6 +67,20 @@ public partial class SettingsWindow : Window
         
         // Initialize plugin list
         RefreshPluginList();
+    }
+
+    private void WireUpEventHandlers()
+    {
+        // Wire up button click events
+        var btnBrowsePlugin = this.FindControl<Button>("BtnBrowsePlugin");
+        var btnInstallPlugin = this.FindControl<Button>("BtnInstallPlugin");
+        var btnInstallationWizard = this.FindControl<Button>("BtnInstallationWizard");
+        var btnPresetManager = this.FindControl<Button>("BtnPresetManager");
+
+        if (btnBrowsePlugin != null) btnBrowsePlugin.Click += BrowseForPlugin;
+        if (btnInstallPlugin != null) btnInstallPlugin.Click += InstallPlugin;
+        if (btnInstallationWizard != null) btnInstallationWizard.Click += OnInstallationWizardClick;
+        if (btnPresetManager != null) btnPresetManager.Click += OnPresetManagerClick;
     }
 
     private void InitializeComponent()

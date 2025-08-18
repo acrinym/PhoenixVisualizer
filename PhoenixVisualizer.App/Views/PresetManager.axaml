@@ -42,16 +42,16 @@
                 </ListBox>
                 
                 <TextBlock Text="Actions" FontWeight="Bold" Margin="0,20,0,10"/>
-                <Button Content="📁 Import Preset" Click="OnImportPreset" Margin="0,5"/>
-                <Button Content="📤 Export Preset" Click="OnExportPreset" Margin="0,5"/>
-                <Button Content="🔄 Refresh List" Click="OnRefreshList" Margin="0,5"/>
-                <Button Content="🗑️ Delete Selected" Click="OnDeletePreset" Margin="0,5"/>
-                <Button Content="📋 Copy to Clipboard" Click="OnCopyToClipboard" Margin="0,5"/>
+                <Button Content="📁 Import Preset" x:Name="BtnImportPreset" Margin="0,5"/>
+                <Button Content="📤 Export Preset" x:Name="BtnExportPreset" Margin="0,5"/>
+                <Button Content="🔄 Refresh List" x:Name="BtnRefreshList" Margin="0,5"/>
+                <Button Content="🗑️ Delete Selected" x:Name="BtnDeletePreset" Margin="0,5"/>
+                <Button Content="📋 Copy to Clipboard" x:Name="BtnCopyToClipboard" Margin="0,5"/>
                 
                 <TextBlock Text="Batch Operations" FontWeight="Bold" Margin="0,20,0,10"/>
-                <Button Content="📥 Import Folder" Click="OnImportFolder" Margin="0,5"/>
-                <Button Content="📤 Export All" Click="OnExportAll" Margin="0,5"/>
-                <Button Content="🧹 Clean Duplicates" Click="OnCleanDuplicates" Margin="0,5"/>
+                <Button Content="📥 Import Folder" x:Name="BtnImportFolder" Margin="0,5"/>
+                <Button Content="📤 Export All" x:Name="BtnExportAll" Margin="0,5"/>
+                <Button Content="🧹 Clean Duplicates" x:Name="BtnCleanDuplicates" Margin="0,5"/>
             </StackPanel>
             
             <!-- Right Panel - Preset List and Details -->

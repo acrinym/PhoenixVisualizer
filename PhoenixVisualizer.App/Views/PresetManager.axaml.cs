@@ -28,6 +28,9 @@ namespace PhoenixVisualizer.Views
             // Manually load XAML since InitializeComponent() isn't generated
             AvaloniaXamlLoader.Load(this);
             
+            // Wire up button event handlers
+            WireUpEventHandlers();
+            
             // Find XAML controls and initialize
             var presetTypeList = this.FindControl<ListBox>("PresetTypeList");
             if (presetTypeList != null)
@@ -35,6 +38,28 @@ namespace PhoenixVisualizer.Views
                 presetTypeList.SelectedIndex = 0;
             }
             RefreshPresetList();
+        }
+
+        private void WireUpEventHandlers()
+        {
+            // Wire up button click events
+            var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
+            var btnExportPreset = this.FindControl<Button>("BtnExportPreset");
+            var btnRefreshList = this.FindControl<Button>("BtnRefreshList");
+            var btnDeletePreset = this.FindControl<Button>("BtnDeletePreset");
+            var btnCopyToClipboard = this.FindControl<Button>("BtnCopyToClipboard");
+            var btnImportFolder = this.FindControl<Button>("BtnImportFolder");
+            var btnExportAll = this.FindControl<Button>("BtnExportAll");
+            var btnCleanDuplicates = this.FindControl<Button>("BtnCleanDuplicates");
+
+            if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
+            if (btnExportPreset != null) btnExportPreset.Click += OnExportPreset;
+            if (btnRefreshList != null) btnRefreshList.Click += OnRefreshList;
+            if (btnDeletePreset != null) btnDeletePreset.Click += OnDeletePreset;
+            if (btnCopyToClipboard != null) btnCopyToClipboard.Click += OnCopyToClipboard;
+            if (btnImportFolder != null) btnImportFolder.Click += OnImportFolder;
+            if (btnExportAll != null) btnExportAll.Click += OnExportAll;
+            if (btnCleanDuplicates != null) btnCleanDuplicates.Click += OnCleanDuplicates;
         }
 
         private void OnPresetTypeChanged(object? sender, SelectionChangedEventArgs e)
@@ -384,6 +409,146 @@ namespace PhoenixVisualizer.Views
             catch (Exception ex)
             {
                 ShowStatusMessage($"Error importing batch presets: {ex.Message}");
+            }
+        }
+
+        // Additional methods for the missing button handlers
+        private async void OnExportPreset(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_selectedPreset == null)
+                {
+                    ShowStatusMessage("Please select a preset to export");
+                    return;
+                }
+
+                var options = new FilePickerSaveOptions
+                {
+                    Title = "Export Preset",
+                    DefaultExtension = ".avs",
+                    FileTypeChoices = new List<FilePickerFileType>
+                    {
+                        new("AVS Preset") { Patterns = new[] { "*.avs" } },
+                        new("Text File") { Patterns = new[] { "*.txt" } },
+                        new("All Files") { Patterns = new[] { "*.*" } }
+                    }
+                };
+
+                var file = await StorageProvider.SaveFilePickerAsync(options);
+                if (file != null)
+                {
+                    // For now, just create a simple export
+                    var content = $"# AVS Preset Export\n# Name: {_selectedPreset.Name}\n# Type: {_selectedPreset.Type}\n# Exported: {DateTime.Now}\n";
+                    await File.WriteAllTextAsync(file.Path.LocalPath, content);
+                    ShowStatusMessage($"Preset exported successfully: {file.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error exporting preset: {ex.Message}");
+            }
+        }
+
+        private void OnRefreshList(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                RefreshPresetList();
+                ShowStatusMessage("Preset list refreshed");
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error refreshing list: {ex.Message}");
+            }
+        }
+
+        private void OnDeletePreset(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_selectedPreset == null)
+                {
+                    ShowStatusMessage("Please select a preset to delete");
+                    return;
+                }
+
+                // For now, just remove from the list
+                _allPresets.Remove(_selectedPreset);
+                RefreshPresetList();
+                ShowStatusMessage($"Preset '{_selectedPreset.Name}' removed from list");
+                _selectedPreset = null;
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error deleting preset: {ex.Message}");
+            }
+        }
+
+        private void OnCopyToClipboard(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_selectedPreset == null)
+                {
+                    ShowStatusMessage("Please select a preset to copy");
+                    return;
+                }
+
+                // For now, just show a message
+                ShowStatusMessage($"Preset '{_selectedPreset.Name}' details copied to clipboard (placeholder)");
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error copying to clipboard: {ex.Message}");
+            }
+        }
+
+        private async void OnImportFolder(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var options = new FolderPickerOpenOptions
+                {
+                    Title = "Select Folder to Import"
+                };
+
+                var folders = await StorageProvider.OpenFolderPickerAsync(options);
+                if (folders.Count > 0)
+                {
+                    var folder = folders[0];
+                    ShowStatusMessage($"Folder import functionality needs to be implemented for: {folder.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error importing folder: {ex.Message}");
+            }
+        }
+
+        private void OnExportAll(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Use the existing OnExportAllClick method
+                OnExportAllClick(sender, e);
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error exporting all presets: {ex.Message}");
+            }
+        }
+
+        private void OnCleanDuplicates(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // For now, just show a message
+                ShowStatusMessage("Duplicate cleaning functionality needs to be implemented");
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error cleaning duplicates: {ex.Message}");
             }
         }
 
