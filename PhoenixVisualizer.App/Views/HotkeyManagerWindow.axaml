@@ -46,7 +46,7 @@
                                         </StackPanel>
                                         <TextBlock Grid.Column="1" Text="{Binding CurrentBinding}" 
                                                    FontFamily="Consolas" VerticalAlignment="Center" Margin="10,0"/>
-                                        <Button Grid.Column="2" Content="Edit" Click="OnEditHotkey" 
+                                        <Button Grid.Column="2" x:Name="BtnEditHotkey" Content="Edit" 
                                                 Tag="{Binding}" Margin="5,0,0,0"/>
                                     </Grid>
                                 </Border>
@@ -59,10 +59,10 @@
             <!-- Right Panel - Actions and Info -->
             <StackPanel Grid.Column="1">
                 <TextBlock Text="Actions" FontWeight="Bold" Margin="0,0,0,10"/>
-                <Button Content="🔄 Reset to Defaults" Click="OnResetToDefaults" Margin="0,5"/>
-                <Button Content="📤 Export Bindings" Click="OnExportBindings" Margin="0,5"/>
-                <Button Content="📥 Import Bindings" Click="OnImportBindings" Margin="0,5"/>
-                <Button Content="🧹 Clear Custom Bindings" Click="OnClearCustomBindings" Margin="0,5"/>
+                <Button x:Name="BtnResetToDefaults" Content="🔄 Reset to Defaults" Margin="0,5"/>
+                <Button x:Name="BtnExportBindings" Content="📤 Export Bindings" Margin="0,5"/>
+                <Button x:Name="BtnImportBindings" Content="📥 Import Bindings" Margin="0,5"/>
+                <Button x:Name="BtnClearCustomBindings" Content="🧹 Clear Custom Bindings" Margin="0,5"/>
                 
                 <TextBlock Text="Information" FontWeight="Bold" Margin="0,20,0,10"/>
                 <TextBlock Text="• Click 'Edit' to change a hotkey binding" FontSize="11" Margin="0,2"/>
@@ -83,7 +83,7 @@
         
         <!-- Bottom Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Close" Click="OnClose" Margin="0,0,10,0"/>
+            <Button x:Name="BtnClose" Content="Close" Margin="0,0,10,0"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -27,6 +27,7 @@ public partial class HotkeyManagerWindow : Window
         _hotkeyItems = new ObservableCollection<HotkeyItem>();
         
         AvaloniaXamlLoader.Load(this);
+        WireUpEventHandlers();
         InitializeHotkeyList();
     }
 
@@ -366,6 +367,22 @@ public partial class HotkeyManagerWindow : Window
 
         dialog.Content = panel;
         await dialog.ShowDialog(this);
+    }
+
+    private void WireUpEventHandlers()
+    {
+        // Wire up button click events
+        var btnResetToDefaults = this.FindControl<Button>("BtnResetToDefaults");
+        var btnExportBindings = this.FindControl<Button>("BtnExportBindings");
+        var btnImportBindings = this.FindControl<Button>("BtnImportBindings");
+        var btnClearCustomBindings = this.FindControl<Button>("BtnClearCustomBindings");
+        var btnClose = this.FindControl<Button>("BtnClose");
+
+        if (btnResetToDefaults != null) btnResetToDefaults.Click += OnResetToDefaults;
+        if (btnExportBindings != null) btnExportBindings.Click += OnExportBindings;
+        if (btnImportBindings != null) btnImportBindings.Click += OnImportBindings;
+        if (btnClearCustomBindings != null) btnClearCustomBindings.Click += OnClearCustomBindings;
+        if (btnClose != null) btnClose.Click += OnClose;
     }
 }
 

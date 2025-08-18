@@ -22,6 +22,9 @@ namespace PhoenixVisualizer.Views
             // Manually load XAML since InitializeComponent() isn't generated
             AvaloniaXamlLoader.Load(this);
             
+            // Wire up event handlers
+            WireUpEventHandlers();
+            
             // Set initial selection
             var pluginTypeList = this.FindControl<ListBox>("PluginTypeList");
             if (pluginTypeList != null)
@@ -219,6 +222,22 @@ namespace PhoenixVisualizer.Views
         private void OnClose(object? sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void WireUpEventHandlers()
+        {
+            // Wire up button click events
+            var btnScanForPlugins = this.FindControl<Button>("BtnScanForPlugins");
+            var btnBrowsePluginFile = this.FindControl<Button>("BtnBrowsePluginFile");
+            var btnInstallPlugin = this.FindControl<Button>("BtnInstallPlugin");
+            var btnClose = this.FindControl<Button>("BtnClose");
+            var installButton = this.FindControl<Button>("InstallButton");
+
+            if (btnScanForPlugins != null) btnScanForPlugins.Click += OnScanForPlugins;
+            if (btnBrowsePluginFile != null) btnBrowsePluginFile.Click += OnBrowsePluginFile;
+            if (btnInstallPlugin != null) btnInstallPlugin.Click += OnInstallPlugin;
+            if (btnClose != null) btnClose.Click += OnClose;
+            if (installButton != null) installButton.Click += OnInstallPlugin;
         }
     }
 }

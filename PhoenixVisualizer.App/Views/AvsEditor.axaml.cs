@@ -25,6 +25,7 @@ namespace PhoenixVisualizer.Views
         public AvsEditor()
         {
             AvaloniaXamlLoader.Load(this);
+            WireUpEventHandlers();
         }
 
         private async void OnLoadFile(object? sender, RoutedEventArgs e)
@@ -515,6 +516,30 @@ namespace PhoenixVisualizer.ExportedPresets
 
             dialog.Content = panel;
             dialog.ShowDialog(this);
+        }
+
+        private void WireUpEventHandlers()
+        {
+            // Wire up button click events
+            var btnLoadFile = this.FindControl<Button>("BtnLoadFile");
+            var btnSaveFile = this.FindControl<Button>("BtnSaveFile");
+            var btnClear = this.FindControl<Button>("BtnClear");
+            var btnTestPreset = this.FindControl<Button>("BtnTestPreset");
+            var btnImportToLibrary = this.FindControl<Button>("BtnImportToLibrary");
+            var btnExportCSharp = this.FindControl<Button>("BtnExportCSharp");
+            var btnSendToMainWindow = this.FindControl<Button>("BtnSendToMainWindow");
+            var btnClose = this.FindControl<Button>("BtnClose");
+            var applyButton = this.FindControl<Button>("ApplyButton");
+
+            if (btnLoadFile != null) btnLoadFile.Click += OnLoadFile;
+            if (btnSaveFile != null) btnSaveFile.Click += OnSaveFile;
+            if (btnClear != null) btnClear.Click += OnClear;
+            if (btnTestPreset != null) btnTestPreset.Click += OnTestPreset;
+            if (btnImportToLibrary != null) btnImportToLibrary.Click += OnImportToLibrary;
+            if (btnExportCSharp != null) btnExportCSharp.Click += OnExportCSharp;
+            if (btnSendToMainWindow != null) btnSendToMainWindow.Click += OnSendToMainWindow;
+            if (btnClose != null) btnClose.Click += OnClose;
+            if (applyButton != null) applyButton.Click += OnApplyPreset;
         }
     }
 }

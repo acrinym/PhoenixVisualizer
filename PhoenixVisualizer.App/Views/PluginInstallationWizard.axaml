@@ -41,9 +41,9 @@
                 </ListBox>
                 
                 <TextBlock Text="Quick Actions" FontWeight="Bold" Margin="0,20,0,10"/>
-                <Button Content="Scan for Plugins" Click="OnScanForPlugins" Margin="0,5"/>
-                <Button Content="Browse Plugin File" Click="OnBrowsePluginFile" Margin="0,5"/>
-                <Button Content="Install Plugin" Click="OnInstallPlugin" Margin="0,5"/>
+                <Button x:Name="BtnScanForPlugins" Content="Scan for Plugins" Margin="0,5"/>
+                <Button x:Name="BtnBrowsePluginFile" Content="Browse Plugin File" Margin="0,5"/>
+                <Button x:Name="BtnInstallPlugin" Content="Install Plugin" Margin="0,5"/>
             </StackPanel>
             
             <!-- Right Panel - Details and Installation -->
@@ -83,8 +83,8 @@
         
         <!-- Footer Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Close" Click="OnClose" Margin="0,0,10,0"/>
-            <Button Content="Install Plugin" x:Name="InstallButton" Click="OnInstallPlugin" 
+            <Button x:Name="BtnClose" Content="Close" Margin="0,0,10,0"/>
+            <Button x:Name="InstallButton" Content="Install Plugin" 
                     IsEnabled="False" Background="Green" Foreground="White"/>
         </StackPanel>
     </Grid>
