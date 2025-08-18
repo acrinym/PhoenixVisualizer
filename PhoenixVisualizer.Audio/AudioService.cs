@@ -38,6 +38,57 @@ public sealed class AudioService : IDisposable
 
     static float Clamp(float v, float min, float max) => v < min ? min : (v > max ? max : v);
 
+    // Load additional BASS codec plugins for better format support
+    private static void LoadBassCodecPlugins()
+    {
+        try
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var libsDir = Path.Combine(baseDir, "libs");
+            
+            // List of common BASS codec plugins to try loading
+            var codecPlugins = new[]
+            {
+                "bassflac.dll",      // FLAC support
+                "bassogg.dll",       // OGG support
+                "bass_aac.dll",      // AAC/M4A support
+                "basswma.dll",       // WMA support
+                "bass_mpc.dll",      // Musepack support
+                "bass_ape.dll",      // Monkey's Audio support
+                "bass_tta.dll",      // TTA support
+                "bass_alac.dll",     // Apple Lossless support
+            };
+
+            foreach (var plugin in codecPlugins)
+            {
+                var pluginPath = Path.Combine(libsDir, plugin);
+                if (File.Exists(pluginPath))
+                {
+                    try
+                    {
+                        var result = Bass.PluginLoad(pluginPath);
+                        if (result != 0)
+                        {
+                            LogToFile($"[AudioService] Successfully loaded codec plugin: {plugin}");
+                        }
+                        else
+                        {
+                            LogToFile($"[AudioService] Failed to load codec plugin: {plugin}, Error: {Bass.LastError}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogToFile($"[AudioService] Exception loading codec plugin {plugin}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogToFile($"[AudioService] Error in LoadBassCodecPlugins: {ex.Message}");
+        }
+    }
+
     // Debug logging to file
     static void LogToFile(string message)
     {
@@ -61,20 +112,65 @@ public sealed class AudioService : IDisposable
 
         try
         {
-            // Decode-only source with better error handling
+            // Load additional BASS codec plugins for better format support
+            LoadBassCodecPlugins();
+
+            // Validate file exists and is accessible
+            if (!File.Exists(filePath))
+            {
+                LogToFile($"[AudioService] File does not exist: {filePath}");
+                return false;
+            }
+
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length == 0)
+            {
+                LogToFile($"[AudioService] File is empty: {filePath}");
+                return false;
+            }
+
+            LogToFile($"[AudioService] File validation passed. Size: {fileInfo.Length} bytes");
+
+            // Ensure BASS is initialized (skip complex checking for now)
+            try
+            {
+                Bass.Init();
+                LogToFile($"[AudioService] BASS initialization attempted");
+            }
+            catch (Exception ex)
+            {
+                LogToFile($"[AudioService] BASS initialization exception: {ex.Message}");
+                // Continue anyway - BASS might already be initialized
+            }
+
+            // Try to create stream with more detailed error reporting
+            LogToFile($"[AudioService] Attempting to create source stream...");
             _sourceHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
-            LogToFile($"[AudioService] CreateStream result: {_sourceHandle}, Error: {Bass.LastError}");
+            var sourceError = Bass.LastError;
+            LogToFile($"[AudioService] CreateStream result: {_sourceHandle}, Error: {sourceError}");
             
             if (_sourceHandle == 0)
             {
-                LogToFile($"[AudioService] Failed to create source stream: {Bass.LastError}");
-                return false;
+                LogToFile($"[AudioService] Failed to create source stream: {sourceError}");
+                
+                // Try alternative approach - direct stream without decode flag
+                LogToFile($"[AudioService] Trying alternative stream creation...");
+                _sourceHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
+                var altError = Bass.LastError;
+                LogToFile($"[AudioService] Alternative CreateStream result: {_sourceHandle}, Error: {altError}");
+                
+                if (_sourceHandle == 0)
+                {
+                    LogToFile($"[AudioService] All stream creation attempts failed");
+                    return false;
+                }
             }
 
             _currentFile = filePath;
             LogToFile($"[AudioService] Source stream created successfully");
 
-            // Always start with a direct stream for stability
+            // Create playable stream
+            LogToFile($"[AudioService] Creating playable stream...");
             _playHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Float);
             if (_playHandle == 0)
             {
@@ -84,6 +180,8 @@ public sealed class AudioService : IDisposable
                 _currentFile = null;
                 return false;
             }
+
+            LogToFile($"[AudioService] Playable stream created successfully");
 
             // Optimize audio buffer settings for visualization
             try
@@ -139,6 +237,7 @@ public sealed class AudioService : IDisposable
         catch (Exception ex)
         {
             LogToFile($"[AudioService] Open failed with exception: {ex.Message}");
+            LogToFile($"[AudioService] Exception stack trace: {ex.StackTrace}");
             Close();
             return false;
         }

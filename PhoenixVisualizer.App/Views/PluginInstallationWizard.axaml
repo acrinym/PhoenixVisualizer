@@ -42,8 +42,8 @@
                 
                 <TextBlock Text="Quick Actions" FontWeight="Bold" Margin="0,20,0,10"/>
                 <Button Content="Scan for Plugins" Click="OnScanForPlugins" Margin="0,5"/>
-                <Button Content="Install from File" Click="OnInstallFromFile" Margin="0,5"/>
-                <Button Content="Download Sample" Click="OnDownloadSample" Margin="0,5"/>
+                <Button Content="Browse Plugin File" Click="OnBrowsePluginFile" Margin="0,5"/>
+                <Button Content="Install Plugin" Click="OnInstallPlugin" Margin="0,5"/>
             </StackPanel>
             
             <!-- Right Panel - Details and Installation -->
@@ -83,7 +83,6 @@
         
         <!-- Footer Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Help" Click="OnHelp" Margin="0,0,10,0"/>
             <Button Content="Close" Click="OnClose" Margin="0,0,10,0"/>
             <Button Content="Install Plugin" x:Name="InstallButton" Click="OnInstallPlugin" 
                     IsEnabled="False" Background="Green" Foreground="White"/>

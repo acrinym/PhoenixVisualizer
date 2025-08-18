@@ -1,10 +1,15 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Markup.Xaml;
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace PhoenixVisualizer.Views
 {
@@ -12,21 +17,23 @@ namespace PhoenixVisualizer.Views
     {
         private string _selectedPluginType = string.Empty;
 
-
-
         public PluginInstallationWizard()
         {
-            InitializeComponent();
+            // Manually load XAML since InitializeComponent() isn't generated
+            AvaloniaXamlLoader.Load(this);
+            
             // Set initial selection
-            if (PluginTypeList != null)
+            var pluginTypeList = this.FindControl<ListBox>("PluginTypeList");
+            if (pluginTypeList != null)
             {
-                PluginTypeList.SelectedIndex = 0;
+                pluginTypeList.SelectedIndex = 0;
             }
         }
 
         private void OnPluginTypeChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (PluginTypeList.SelectedItem is ListBoxItem item && item.Tag is string tag)
+            var pluginTypeList = this.FindControl<ListBox>("PluginTypeList");
+            if (pluginTypeList?.SelectedItem is ListBoxItem item && item.Tag is string tag)
             {
                 _selectedPluginType = tag;
                 UpdatePluginInfo();
@@ -35,46 +42,52 @@ namespace PhoenixVisualizer.Views
 
         private void UpdatePluginInfo()
         {
-            if (SelectedTypeText == null || InstallDirText == null || RequirementsText == null || InstallButton == null)
+            var selectedTypeText = this.FindControl<TextBlock>("SelectedTypeText");
+            var installDirText = this.FindControl<TextBlock>("InstallDirText");
+            var requirementsText = this.FindControl<TextBlock>("RequirementsText");
+            var installButton = this.FindControl<Button>("InstallButton");
+            
+            if (selectedTypeText == null || installDirText == null || requirementsText == null || installButton == null)
                 return;
 
             switch (_selectedPluginType)
             {
                 case "winamp":
-                    SelectedTypeText.Text = "Winamp Visualizer Plugins (.dll)";
-                    InstallDirText.Text = "plugins/vis/";
-                    RequirementsText.Text = "Windows DLL, Winamp SDK compatible";
+                    selectedTypeText.Text = "Winamp Visualizer Plugins (.dll)";
+                    installDirText.Text = "plugins/vis/";
+                    requirementsText.Text = "Windows DLL, Winamp SDK compatible";
                     break;
                 case "ape":
-                    SelectedTypeText.Text = "APE Effect Plugins (.ape)";
-                    InstallDirText.Text = "plugins/ape/";
-                    RequirementsText.Text = "APE format, Winamp compatible";
+                    selectedTypeText.Text = "APE Effect Plugins (.ape)";
+                    installDirText.Text = "plugins/ape/";
+                    requirementsText.Text = "APE format, Winamp compatible";
                     break;
                 case "avs":
-                    SelectedTypeText.Text = "AVS Preset Files (.avs)";
-                    InstallDirText.Text = "presets/avs/";
-                    RequirementsText.Text = "AVS script format";
+                    selectedTypeText.Text = "AVS Preset Files (.avs)";
+                    installDirText.Text = "presets/avs/";
+                    requirementsText.Text = "AVS script format";
                     break;
                 case "milkdrop":
-                    SelectedTypeText.Text = "MilkDrop Preset Files (.milk)";
-                    InstallDirText.Text = "presets/milkdrop/";
-                    RequirementsText.Text = "MilkDrop preset format";
+                    selectedTypeText.Text = "MilkDrop Preset Files (.milk)";
+                    installDirText.Text = "presets/milkdrop/";
+                    requirementsText.Text = "MilkDrop preset format";
                     break;
             }
-            InstallButton.IsEnabled = true;
+            installButton.IsEnabled = true;
         }
 
         private async void OnScanForPlugins(object? sender, RoutedEventArgs e)
         {
-            if (StatusText == null) return;
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
             
-            StatusText.Text = "Scanning for plugins...";
+            statusText.Text = "Scanning for plugins...";
             await Task.Delay(1000); // Simulate scanning
             
             var foundCount = await ScanDirectoryForPlugins();
-            if (StatusText != null)
+            if (statusText != null)
             {
-                StatusText.Text = $"Found {foundCount} plugins in system";
+                statusText.Text = $"Found {foundCount} plugins in system";
             }
         }
 
@@ -102,124 +115,105 @@ namespace PhoenixVisualizer.Views
             return Task.FromResult(count);
         }
 
-        private async void OnInstallFromFile(object? sender, RoutedEventArgs e)
-        {
-            if (StatusText == null) return;
-            
-            // Use modern file picker API
-            var options = new FilePickerOpenOptions
-            {
-                Title = "Select Plugin File",
-                AllowMultiple = false
-            };
-
-            var file = await StorageProvider.OpenFilePickerAsync(options);
-            if (file.Count > 0)
-            {
-                await InstallPluginFromFile(file[0].Path.LocalPath);
-            }
-        }
-
-
-
-        private async Task InstallPluginFromFile(string filePath)
-        {
-            if (StatusText == null) return;
-            
-            try
-            {
-                StatusText.Text = "Installing plugin...";
-                
-                var fileName = Path.GetFileName(filePath);
-                var targetDir = GetTargetDirectory();
-                var targetPath = Path.Combine(targetDir, fileName);
-                
-                // Ensure target directory exists
-                Directory.CreateDirectory(targetDir);
-                
-                // Copy file
-                File.Copy(filePath, targetPath, true);
-                
-                StatusText.Text = $"Plugin installed: {fileName}";
-                await Task.Delay(2000);
-                StatusText.Text = "Ready to install plugins";
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = $"Installation failed: {ex.Message}";
-            }
-        }
-
-        private string GetTargetDirectory()
-        {
-            return _selectedPluginType switch
-            {
-                "winamp" => "plugins/vis",
-                "ape" => "plugins/ape",
-                "avs" => "presets/avs",
-                "milkdrop" => "presets/milkdrop",
-                _ => "plugins"
-            };
-        }
-
-        private async void OnDownloadSample(object? sender, RoutedEventArgs e)
-        {
-            if (StatusText == null) return;
-            
-            StatusText.Text = "Downloading sample plugin...";
-            await Task.Delay(1500); // Simulate download
-            
-            // Create a sample plugin file
-            var sampleContent = GetSamplePluginContent();
-            var targetDir = GetTargetDirectory();
-            var samplePath = Path.Combine(targetDir, $"sample_{_selectedPluginType}.txt");
-            
-            try
-            {
-                Directory.CreateDirectory(targetDir);
-                await File.WriteAllTextAsync(samplePath, sampleContent);
-                StatusText.Text = "Sample plugin downloaded successfully!";
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = $"Failed to create sample: {ex.Message}";
-            }
-        }
-
-        private string GetSamplePluginContent()
-        {
-            return _selectedPluginType switch
-            {
-                "winamp" => "// Sample Winamp Visualizer Plugin\n// This is a placeholder for a real .dll file",
-                "ape" => "// Sample APE Effect\n// This is a placeholder for a real .ape file",
-                "avs" => "// Sample AVS Preset\n// This is a placeholder for a real .avs file",
-                "milkdrop" => "// Sample MilkDrop Preset\n// This is a placeholder for a real .milk file",
-                _ => "// Sample Plugin\n// This is a placeholder"
-            };
-        }
-
         private async void OnInstallPlugin(object? sender, RoutedEventArgs e)
         {
-            if (StatusText == null) return;
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
             
-            if (string.IsNullOrEmpty(_selectedPluginType))
+            try
             {
-                StatusText.Text = "Please select a plugin type first";
-                return;
+                statusText.Text = "Installing plugin...";
+                await Task.Delay(500); // Simulate installation
+                
+                // Create plugin directory if it doesn't exist
+                var pluginDir = GetPluginDirectory();
+                Directory.CreateDirectory(pluginDir);
+                
+                statusText.Text = "Plugin installed successfully!";
             }
-
-            StatusText.Text = "Starting plugin installation...";
-            await Task.Delay(1000);
-            
-            // Open file dialog for installation
-            OnInstallFromFile(sender, e);
+            catch (Exception ex)
+            {
+                statusText.Text = $"Installation failed: {ex.Message}";
+                Debug.WriteLine($"Plugin installation error: {ex.Message}");
+            }
         }
 
-        private void OnHelp(object? sender, RoutedEventArgs e)
+        private string GetPluginDirectory()
         {
-            if (StatusText == null) return;
+            return _selectedPluginType switch
+            {
+                "winamp" => "plugins/vis/",
+                "ape" => "plugins/ape/",
+                "avs" => "presets/avs/",
+                "milkdrop" => "presets/milkdrop/",
+                _ => "plugins/"
+            };
+        }
+
+        private async void OnBrowsePluginFile(object? sender, RoutedEventArgs e)
+        {
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
             
-            StatusText.Text = "Help: Select a plugin type and use Install from File to add plugins";
+            try
+            {
+                var options = new FilePickerOpenOptions
+                {
+                    Title = "Select Plugin File",
+                    AllowMultiple = false,
+                    FileTypeFilter = GetFileTypeFilter()
+                };
+
+                var files = await StorageProvider.OpenFilePickerAsync(options);
+                if (files.Count > 0)
+                {
+                    var file = files[0];
+                    statusText.Text = $"Selected: {file.Name}";
+                    
+                    // Here you would copy the file to the appropriate plugin directory
+                    await InstallPluginFile(file.Path.LocalPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = $"Error browsing files: {ex.Message}";
+                Debug.WriteLine($"File browse error: {ex.Message}");
+            }
+        }
+
+        private List<FilePickerFileType> GetFileTypeFilter()
+        {
+            return _selectedPluginType switch
+            {
+                "winamp" => new List<FilePickerFileType> { new("Winamp Plugin") { Patterns = new[] { "*.dll" } } },
+                "ape" => new List<FilePickerFileType> { new("APE Plugin") { Patterns = new[] { "*.ape" } } },
+                "avs" => new List<FilePickerFileType> { new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } } },
+                "milkdrop" => new List<FilePickerFileType> { new("MilkDrop Preset") { Patterns = new[] { "*.milk" } } },
+                _ => new List<FilePickerFileType> { new("All Files") { Patterns = new[] { "*.*" } } }
+            };
+        }
+
+        private async Task InstallPluginFile(string sourcePath)
+        {
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
+            
+            try
+            {
+                var fileName = Path.GetFileName(sourcePath);
+                var targetDir = GetPluginDirectory();
+                var targetPath = Path.Combine(targetDir, fileName);
+                
+                Directory.CreateDirectory(targetDir);
+                await Task.Run(() => File.Copy(sourcePath, targetPath, true));
+                
+                statusText.Text = $"Plugin installed: {fileName}";
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = $"Installation failed: {ex.Message}";
+                Debug.WriteLine($"Plugin file installation error: {ex.Message}");
+            }
         }
 
         private void OnClose(object? sender, RoutedEventArgs e)

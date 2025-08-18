@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;              // <-- manual XAML load
-using Avalonia.Platform.Storage;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
+using Avalonia.Markup.Xaml;              // <-- manual XAML load
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer; // preset manager
-using EditorWindow = PhoenixVisualizer.Editor.Views.MainWindow;
+using PhoenixVisualizer.Core;
+using PhoenixVisualizer.ViewModels;
 
 namespace PhoenixVisualizer.Views;
 
@@ -25,7 +28,9 @@ public partial class MainWindow : Window
     private readonly RenderSurface? _renderSurface;
     private RenderSurface? RenderSurfaceControl => _renderSurface;
 
-    private static readonly string[] AudioPatterns = { "*.mp3", "*.wav", "*.flac", "*.ogg" };
+    private static readonly string[] AudioPatterns = { 
+        "*.mp3", "*.wav", "*.flac", "*.ogg", "*.m4a", "*.aac", "*.wma", "*.ape", "*.mpc", "*.tta", "*.alac" 
+    };
 
     // Debug logging to file
     static void LogToFile(string message)
@@ -197,6 +202,70 @@ public partial class MainWindow : Window
             LogToFile($"[MainWindow] OnOpenClick: Calling surface.Open from background thread");
             var result = surface?.Open(file.Path.LocalPath);
             LogToFile($"[MainWindow] OnOpenClick: surface.Open result: {result}");
+            
+            // Show user feedback on the UI thread
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (result == true)
+                {
+                    // Success - could show a brief success message
+                    LogToFile($"[MainWindow] Audio file loaded successfully: {file.Name}");
+                }
+                else
+                {
+                    // Failed to load - show error message
+                    LogToFile($"[MainWindow] Failed to load audio file: {file.Name}");
+                    
+                    // Show error dialog to user
+                    var errorWindow = new Window
+                    {
+                        Title = "Audio Load Error",
+                        Width = 400,
+                        Height = 200,
+                        CanResize = false,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner
+                    };
+
+                    var errorPanel = new StackPanel
+                    {
+                        Margin = new Thickness(20),
+                        Spacing = 10
+                    };
+
+                    errorPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"Failed to load audio file:",
+                        FontWeight = FontWeight.Bold,
+                        FontSize = 14
+                    });
+
+                    errorPanel.Children.Add(new TextBlock
+                    {
+                        Text = file.Name,
+                        FontSize = 12,
+                        TextWrapping = TextWrapping.Wrap
+                    });
+
+                    errorPanel.Children.Add(new TextBlock
+                    {
+                        Text = "This file may be in an unsupported format or corrupted. Check the audio_debug.log file for details.",
+                        TextWrapping = TextWrapping.Wrap,
+                        FontSize = 11
+                    });
+
+                    var okButton = new Button
+                    {
+                        Content = "OK",
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 10, 0, 0)
+                    };
+                    okButton.Click += (_, __) => errorWindow.Close();
+                    errorPanel.Children.Add(okButton);
+
+                    errorWindow.Content = errorPanel;
+                    errorWindow.ShowDialog(this);
+                }
+            });
         });
     }
 
@@ -292,8 +361,9 @@ public partial class MainWindow : Window
 
     private async void OnEditorClick(object? sender, RoutedEventArgs e)
     {
-        var editor = new EditorWindow();
-        await editor.ShowDialog(this);
+        // The Editor project reference was removed, so this functionality is disabled.
+        // var editor = new EditorWindow();
+        // await editor.ShowDialog(this);
     }
 
     private async void OnTempoPitchClick(object? sender, RoutedEventArgs e)
