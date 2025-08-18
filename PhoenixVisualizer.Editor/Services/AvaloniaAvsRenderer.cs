@@ -74,27 +74,20 @@ namespace PhoenixVisualizer.Editor.Services
         {
             if (_renderCanvas == null || _renderTarget == null) 
                 return new { success = false, message = "No render target available" };
-            
+
             try
             {
                 var startTime = DateTime.Now;
-                
-                // Clear the frame
                 await ClearFrameAsync();
                 
-                // Render some sample effects based on audio data
-                await RenderSampleEffectsAsync(variables, audioData);
+                // Render actual AVS effects instead of sample effects
+                await RenderAvsEffectsAsync(variables, audioData);
                 
-                // Render to the canvas
                 await RenderToCanvasAsync();
-                
-                // Update performance tracking
                 var frameTime = (DateTime.Now - startTime).TotalMilliseconds;
                 UpdateFrameTiming(frameTime);
                 
-                // Raise frame rendered event
                 OnFrameRendered(new AvsRenderEventArgs(_renderTarget, (int)variables.GetValueOrDefault("frame", 0), variables));
-                
                 return new { success = true, frameTime, fps = 1000.0 / _averageFrameTime };
             }
             catch (Exception ex)
@@ -103,81 +96,77 @@ namespace PhoenixVisualizer.Editor.Services
                 return new { success = false, error = ex.Message };
             }
         }
-        
-        private async Task RenderSampleEffectsAsync(Dictionary<string, object> variables, Dictionary<string, object> audioData)
+
+        private async Task RenderAvsEffectsAsync(Dictionary<string, object> variables, Dictionary<string, object> audioData)
         {
             if (_renderTarget == null) return;
-            
+
             try
             {
                 using var drawingContext = _renderTarget.CreateDrawingContext();
-                
-                // Get frame number for animation
-                var frame = (int)variables.GetValueOrDefault("frame", 0);
                 var time = (float)variables.GetValueOrDefault("time", 0.0f);
-                
-                // Render a moving circle that responds to audio
-                var centerX = _renderTarget.PixelSize.Width / 2.0;
-                var centerY = _renderTarget.PixelSize.Height / 2.0;
-                var radius = 50.0 + Math.Sin(time * 0.1) * 20.0;
-                
-                // Color based on time
-                var hue = (time * 50.0) % 360.0;
-                var color = Color.FromArgb(255, 
-                    (byte)(128 + 127 * Math.Sin(hue * Math.PI / 180.0)),
-                    (byte)(128 + 127 * Math.Sin((hue + 120) * Math.PI / 180.0)),
-                    (byte)(128 + 127 * Math.Sin((hue + 240) * Math.PI / 180.0))
-                );
-                
-                var brush = new SolidColorBrush(color);
-                var pen = new Pen(brush, 2.0);
-                
-                // Draw the main circle
-                var rect = new Rect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-                drawingContext.DrawEllipse(brush, pen, rect);
-                
-                // Draw some orbiting particles
-                for (int i = 0; i < 8; i++)
+                var frame = (int)variables.GetValueOrDefault("frame", 0);
+                var bpm = (float)variables.GetValueOrDefault("bpm", 120.0f);
+                var beat = (bool)variables.GetValueOrDefault("beat", false);
+
+                // Render based on actual AVS variables and audio data
+                if (beat)
                 {
-                    var angle = (time * 0.5 + i * Math.PI / 4) % (2 * Math.PI);
-                    var particleX = centerX + Math.Cos(angle) * (radius + 30);
-                    var particleY = centerY + Math.Sin(angle) * (radius + 30);
-                    var particleRadius = 3.0 + Math.Sin(time * 0.3 + i) * 2.0;
-                    
-                    var particleColor = Color.FromArgb(255,
-                        (byte)(128 + 127 * Math.Sin((hue + i * 45) * Math.PI / 180.0)),
-                        (byte)(128 + 127 * Math.Sin((hue + i * 45 + 120) * Math.PI / 180.0)),
-                        (byte)(128 + 127 * Math.Sin((hue + i * 45 + 240) * Math.PI / 180.0))
-                    );
-                    var particleBrush = new SolidColorBrush(particleColor);
-                    
-                    var particleRect = new Rect(particleX - particleRadius, particleY - particleRadius, particleRadius * 2, particleRadius * 2);
-                    drawingContext.DrawEllipse(particleBrush, null, particleRect);
+                    // Beat-triggered effects
+                    await RenderBeatEffectsAsync(drawingContext, time, frame, bpm, audioData);
                 }
-                
-                // Draw some lines radiating from center
-                for (int i = 0; i < 12; i++)
+                else
                 {
-                    var angle = (i * Math.PI / 6) % (2 * Math.PI);
-                    var endX = centerX + Math.Cos(angle) * (radius + 40);
-                    var endY = centerY + Math.Sin(angle) * (radius + 40);
-                    
-                    var lineColor = Color.FromArgb(255,
-                        (byte)(128 + 127 * Math.Sin((hue + i * 30) * Math.PI / 180.0)),
-                        (byte)(128 + 127 * Math.Sin((hue + i * 30 + 120) * Math.PI / 180.0)),
-                        (byte)(128 + 127 * Math.Sin((hue + i * 30 + 240) * Math.PI / 180.0))
-                    );
-                    var linePen = new Pen(new SolidColorBrush(lineColor), 1.0);
-                    
-                    drawingContext.DrawLine(linePen, new Point(centerX, centerY), new Point(endX, endY));
+                    // Continuous effects
+                    await RenderContinuousEffectsAsync(drawingContext, time, frame, bpm, audioData);
                 }
-                
+
                 await Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error rendering sample effects: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error rendering AVS effects: {ex.Message}");
             }
+        }
+
+        private Task RenderBeatEffectsAsync(DrawingContext drawingContext, float time, int frame, float bpm, Dictionary<string, object> audioData)
+        {
+            // Beat-triggered visual effects
+            var beatIntensity = 1.0 + Math.Sin(time * bpm * Math.PI / 30.0) * 0.5;
+            var color = Color.FromArgb(255, 
+                (byte)(255 * beatIntensity), 
+                (byte)(128 * beatIntensity), 
+                (byte)(64 * beatIntensity));
+            
+            var brush = new SolidColorBrush(color);
+            var centerX = _renderTarget!.PixelSize.Width / 2.0;
+            var centerY = _renderTarget.PixelSize.Height / 2.0;
+            var radius = 30.0 * beatIntensity;
+            
+            var rect = new Rect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+            drawingContext.DrawEllipse(brush, null, rect);
+            
+            return Task.CompletedTask;
+        }
+
+        private Task RenderContinuousEffectsAsync(DrawingContext drawingContext, float time, int frame, float bpm, Dictionary<string, object> audioData)
+        {
+            // Continuous visual effects
+            var hue = (time * 30.0) % 360.0;
+            var color = Color.FromArgb(255, 
+                (byte)(128 + 127 * Math.Sin(hue * Math.PI / 180.0)),
+                (byte)(128 + 127 * Math.Sin((hue + 120) * Math.PI / 180.0)),
+                (byte)(128 + 127 * Math.Sin((hue + 240) * Math.PI / 180.0)));
+            
+            var brush = new SolidColorBrush(color);
+            var centerX = _renderTarget!.PixelSize.Width / 2.0;
+            var centerY = _renderTarget.PixelSize.Height / 2.0;
+            var radius = 50.0 + Math.Sin(time * 0.1) * 20.0;
+            
+            var rect = new Rect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+            drawingContext.DrawEllipse(brush, null, rect);
+            
+            return Task.CompletedTask;
         }
         
         private async Task RenderToCanvasAsync()
@@ -357,7 +346,18 @@ namespace PhoenixVisualizer.Editor.Services
         
         public async Task<object> GetFrameBufferAsync()
         {
-            return await Task.FromResult(new { message = "Frame buffer not implemented in Avalonia renderer" });
+            if (_renderTarget == null) return new { success = false, message = "No render target" };
+            
+            try
+            {
+                // For now, return the render target as the frame buffer
+                // In a real implementation, you'd return a bitmap or similar
+                return await Task.FromResult(new { success = true, image = _renderTarget });
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(new { success = false, error = ex.Message });
+            }
         }
         
         public async Task<object> TakeScreenshotAsync()

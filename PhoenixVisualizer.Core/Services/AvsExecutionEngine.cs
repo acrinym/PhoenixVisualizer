@@ -418,12 +418,197 @@ namespace PhoenixVisualizer.Core.Services
         /// </summary>
         private static object ParseAndExecuteCode(string code, Dictionary<string, object> parameters)
         {
-            // This is a very basic implementation
-            // In production, you'd want a proper expression parser
+            try
+            {
+                // Create a mathematical expression evaluator
+                var evaluator = new MathExpressionEvaluator();
+                
+                // Add parameters to the evaluator context
+                foreach (var param in parameters)
+                {
+                    evaluator.SetVariable(param.Key, Convert.ToDouble(param.Value));
+                }
+                
+                // Add common mathematical constants and functions
+                evaluator.SetVariable("pi", Math.PI);
+                evaluator.SetVariable("e", Math.E);
+                evaluator.SetVariable("t", Convert.ToDouble(parameters.GetValueOrDefault("time", 0.0)));
+                evaluator.SetVariable("frame", Convert.ToDouble(parameters.GetValueOrDefault("frame", 0)));
+                evaluator.SetVariable("bpm", Convert.ToDouble(parameters.GetValueOrDefault("bpm", 120.0)));
+                
+                // Parse and evaluate the code
+                var result = evaluator.Evaluate(code);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, error = ex.Message, message = "Code execution failed" };
+            }
+        }
+        
+        /// <summary>
+        /// Simple mathematical expression evaluator for AVS code
+        /// </summary>
+        private class MathExpressionEvaluator
+        {
+            private readonly Dictionary<string, double> _variables = new();
             
-            // For now, just return a placeholder result
-            // This would need to be implemented with a proper math expression evaluator
-            return new { success = true, message = "Code execution placeholder" };
+            public void SetVariable(string name, double value)
+            {
+                _variables[name] = value;
+            }
+            
+            public double Evaluate(string expression)
+            {
+                // Remove whitespace and convert to lowercase
+                expression = expression.Replace(" ", "").ToLowerInvariant();
+                
+                // Handle basic mathematical operations
+                return EvaluateExpression(expression);
+            }
+            
+            private double EvaluateExpression(string expr)
+            {
+                // Handle parentheses first
+                if (expr.Contains('('))
+                {
+                    var openIndex = expr.LastIndexOf('(');
+                    var closeIndex = expr.IndexOf(')', openIndex);
+                    if (closeIndex == -1) throw new ArgumentException("Mismatched parentheses");
+                    
+                    var innerExpr = expr.Substring(openIndex + 1, closeIndex - openIndex - 1);
+                    var innerResult = EvaluateExpression(innerExpr);
+                    
+                    var newExpr = expr.Substring(0, openIndex) + innerResult + expr.Substring(closeIndex + 1);
+                    return EvaluateExpression(newExpr);
+                }
+                
+                // Handle functions
+                if (expr.Contains("sin(") || expr.Contains("cos(") || expr.Contains("tan(") ||
+                    expr.Contains("log(") || expr.Contains("sqrt(") || expr.Contains("abs("))
+                {
+                    return EvaluateFunctions(expr);
+                }
+                
+                // Handle basic operations
+                return EvaluateBasicOperations(expr);
+            }
+            
+            private double EvaluateFunctions(string expr)
+            {
+                if (expr.StartsWith("sin("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "sin");
+                    return Math.Sin(EvaluateExpression(arg));
+                }
+                if (expr.StartsWith("cos("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "cos");
+                    return Math.Cos(EvaluateExpression(arg));
+                }
+                if (expr.StartsWith("tan("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "tan");
+                    return Math.Tan(EvaluateExpression(arg));
+                }
+                if (expr.StartsWith("log("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "log");
+                    return Math.Log(EvaluateExpression(arg));
+                }
+                if (expr.StartsWith("sqrt("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "sqrt");
+                    return Math.Sqrt(EvaluateExpression(arg));
+                }
+                if (expr.StartsWith("abs("))
+                {
+                    var arg = ExtractFunctionArgument(expr, "abs");
+                    return Math.Abs(EvaluateExpression(arg));
+                }
+                
+                throw new ArgumentException($"Unknown function in expression: {expr}");
+            }
+            
+            private string ExtractFunctionArgument(string expr, string funcName)
+            {
+                var startIndex = funcName.Length + 1;
+                var parenCount = 1;
+                var endIndex = startIndex;
+                
+                while (endIndex < expr.Length && parenCount > 0)
+                {
+                    if (expr[endIndex] == '(') parenCount++;
+                    else if (expr[endIndex] == ')') parenCount--;
+                    endIndex++;
+                }
+                
+                if (parenCount != 0) throw new ArgumentException("Mismatched parentheses in function");
+                return expr.Substring(startIndex, endIndex - startIndex - 1);
+            }
+            
+            private double EvaluateBasicOperations(string expr)
+            {
+                // Handle addition and subtraction
+                var addIndex = expr.LastIndexOf('+');
+                var subIndex = expr.LastIndexOf('-');
+                
+                if (addIndex > 0 && (subIndex == -1 || addIndex > subIndex))
+                {
+                    var left = expr.Substring(0, addIndex);
+                    var right = expr.Substring(addIndex + 1);
+                    return EvaluateExpression(left) + EvaluateExpression(right);
+                }
+                
+                if (subIndex > 0)
+                {
+                    var left = expr.Substring(0, subIndex);
+                    var right = expr.Substring(subIndex + 1);
+                    return EvaluateExpression(left) - EvaluateExpression(right);
+                }
+                
+                // Handle multiplication and division
+                var mulIndex = expr.LastIndexOf('*');
+                var divIndex = expr.LastIndexOf('/');
+                
+                if (mulIndex > 0 && (divIndex == -1 || mulIndex > divIndex))
+                {
+                    var left = expr.Substring(0, mulIndex);
+                    var right = expr.Substring(mulIndex + 1);
+                    return EvaluateExpression(left) * EvaluateExpression(right);
+                }
+                
+                if (divIndex > 0)
+                {
+                    var left = expr.Substring(0, divIndex);
+                    var right = expr.Substring(divIndex + 1);
+                    var rightVal = EvaluateExpression(right);
+                    if (rightVal == 0) throw new DivideByZeroException();
+                    return EvaluateExpression(left) / rightVal;
+                }
+                
+                // Handle power
+                var powIndex = expr.LastIndexOf('^');
+                if (powIndex > 0)
+                {
+                    var left = expr.Substring(0, powIndex);
+                    var right = expr.Substring(powIndex + 1);
+                    return Math.Pow(EvaluateExpression(left), EvaluateExpression(right));
+                }
+                
+                // Try to parse as a number or variable
+                if (double.TryParse(expr, out var number))
+                {
+                    return number;
+                }
+                
+                if (_variables.TryGetValue(expr, out var variable))
+                {
+                    return variable;
+                }
+                
+                throw new ArgumentException($"Cannot evaluate expression: {expr}");
+            }
         }
         
         /// <summary>

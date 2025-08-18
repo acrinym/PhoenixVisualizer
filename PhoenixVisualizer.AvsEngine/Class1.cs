@@ -212,6 +212,209 @@ public sealed class AvsEngine : IAvsEngine
 
         return (r << 16) | (g << 8) | b;
     }
+
+    /// <summary>
+    /// Minimal Superscope-like evaluator for AVS effects
+    /// </summary>
+    public class SuperscopeEvaluator
+    {
+        private readonly Dictionary<string, double> _variables = new();
+        private readonly Dictionary<string, Func<double[], double>> _functions = new();
+
+        public SuperscopeEvaluator()
+        {
+            InitializeBuiltInFunctions();
+        }
+
+        private void InitializeBuiltInFunctions()
+        {
+            // Mathematical functions
+            _functions["sin"] = args => Math.Sin(args[0]);
+            _functions["cos"] = args => Math.Cos(args[0]);
+            _functions["tan"] = args => Math.Tan(args[0]);
+            _functions["sqrt"] = args => Math.Sqrt(args[0]);
+            _functions["abs"] = args => Math.Abs(args[0]);
+            _functions["log"] = args => Math.Log(args[0]);
+            _functions["pow"] = args => Math.Pow(args[0], args[1]);
+            
+            // AVS-specific functions
+            _functions["getosc"] = args => GetOscillatorValue(args[0], args[1]);
+            _functions["getspec"] = args => GetSpectrumValue(args[0], args[1]);
+            _functions["bass"] = args => GetBassLevel();
+            _functions["mid"] = args => GetMidLevel();
+            _functions["treb"] = args => GetTrebleLevel();
+        }
+
+        public void SetVariable(string name, double value)
+        {
+            _variables[name] = value;
+        }
+
+        public double GetVariable(string name)
+        {
+            return _variables.TryGetValue(name, out var value) ? value : 0.0;
+        }
+
+        public double EvaluateExpression(string expression)
+        {
+            try
+            {
+                // Simple expression parser for basic mathematical operations
+                return ParseAndEvaluate(expression);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error evaluating expression '{expression}': {ex.Message}");
+                return 0.0;
+            }
+        }
+
+        private double ParseAndEvaluate(string expr)
+        {
+            // Remove whitespace
+            expr = expr.Replace(" ", "");
+            
+            // Handle function calls
+            if (expr.Contains("("))
+            {
+                return EvaluateFunction(expr);
+            }
+            
+            // Handle basic arithmetic
+            return EvaluateArithmetic(expr);
+        }
+
+        private double EvaluateFunction(string expr)
+        {
+            var openParen = expr.IndexOf('(');
+            var closeParen = expr.LastIndexOf(')');
+            
+            if (openParen == -1 || closeParen == -1)
+                throw new ArgumentException("Invalid function syntax");
+            
+            var funcName = expr.Substring(0, openParen);
+            var argsStr = expr.Substring(openParen + 1, closeParen - openParen - 1);
+            
+            var args = ParseArguments(argsStr);
+            
+            if (_functions.TryGetValue(funcName, out var func))
+            {
+                return func(args);
+            }
+            
+            throw new ArgumentException($"Unknown function: {funcName}");
+        }
+
+        private double[] ParseArguments(string argsStr)
+        {
+            if (string.IsNullOrEmpty(argsStr))
+                return new double[0];
+            
+            var args = new List<double>();
+            var current = "";
+            var parenCount = 0;
+            
+            for (int i = 0; i < argsStr.Length; i++)
+            {
+                var ch = argsStr[i];
+                
+                if (ch == '(') parenCount++;
+                else if (ch == ')') parenCount--;
+                else if (ch == ',' && parenCount == 0)
+                {
+                    if (!string.IsNullOrEmpty(current))
+                    {
+                        args.Add(EvaluateArithmetic(current));
+                        current = "";
+                    }
+                    continue;
+                }
+                
+                current += ch;
+            }
+            
+            if (!string.IsNullOrEmpty(current))
+            {
+                args.Add(EvaluateArithmetic(current));
+            }
+            
+            return args.ToArray();
+        }
+
+        private double EvaluateArithmetic(string expr)
+        {
+            // Simple arithmetic evaluator
+            // This is a basic implementation - in production you'd want a proper parser
+            
+            if (double.TryParse(expr, out var number))
+                return number;
+            
+            if (_variables.TryGetValue(expr, out var variable))
+                return variable;
+            
+            // Handle basic operations (very simplified)
+            if (expr.Contains("+"))
+            {
+                var parts = expr.Split('+');
+                return parts.Sum(p => EvaluateArithmetic(p));
+            }
+            
+            if (expr.Contains("-"))
+            {
+                var parts = expr.Split('-');
+                if (parts.Length == 2)
+                    return EvaluateArithmetic(parts[0]) - EvaluateArithmetic(parts[1]);
+            }
+            
+            if (expr.Contains("*"))
+            {
+                var parts = expr.Split('*');
+                return parts.Aggregate(1.0, (acc, p) => acc * EvaluateArithmetic(p));
+            }
+            
+            if (expr.Contains("/"))
+            {
+                var parts = expr.Split('/');
+                if (parts.Length == 2)
+                    return EvaluateArithmetic(parts[0]) / EvaluateArithmetic(parts[1]);
+            }
+            
+            throw new ArgumentException($"Cannot evaluate expression: {expr}");
+        }
+
+        // Mock implementations for AVS functions
+        private double GetOscillatorValue(double band, double channel)
+        {
+            // Mock oscillator value based on time and parameters
+            var time = _variables.GetValueOrDefault("time", 0.0);
+            return Math.Sin(time * band + channel) * 0.5 + 0.5;
+        }
+
+        private double GetSpectrumValue(double band, double channel)
+        {
+            // Mock spectrum value
+            var time = _variables.GetValueOrDefault("time", 0.0);
+            return Math.Max(0, Math.Sin(time * band + channel) * 0.3 + 0.2);
+        }
+
+        private double GetBassLevel()
+        {
+            var time = _variables.GetValueOrDefault("time", 0.0);
+            return Math.Max(0, Math.Sin(time * 0.5) * 0.4 + 0.3);
+        }
+
+        private double GetMidLevel()
+        {
+            var time = _variables.GetValueOrDefault("time", 0.0);
+            return Math.Max(0, Math.Sin(time * 1.0) * 0.3 + 0.2);
+        }
+
+        private double GetTrebleLevel()
+        {
+            var time = _variables.GetValueOrDefault("time", 0.0);
+            return Math.Max(0, Math.Sin(time * 2.0) * 0.2 + 0.1);
+        }
+    }
 }
 
 internal sealed class Preset

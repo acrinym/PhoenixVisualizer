@@ -215,7 +215,7 @@ public partial class AvsEditorWindow : Window
                     _viewModel?.MoveEffectDownCommand.Execute(effect);
                     break;
                 case "Duplicate":
-                    // TODO: Implement effect duplication
+                    _viewModel?.CopyEffectCommand.Execute(effect);
                     break;
                 case "Remove":
                     _viewModel?.RemoveEffectCommand.Execute(effect);
@@ -275,6 +275,21 @@ public partial class AvsEditorWindow : Window
     // Helper method to refresh the UI
     public void RefreshUI()
     {
-        // TODO: Implement UI refresh if needed
+        // Refresh the effect library display
+        var effectLibrary = this.FindControl<ListBox>("EffectLibrary");
+        if (effectLibrary != null)
+        {
+            effectLibrary.ItemsSource = null;
+            effectLibrary.ItemsSource = _viewModel?.FilteredEffectLibrary;
+        }
+
+        // Refresh the preview canvas
+        if (PreviewCanvas != null && _viewModel != null)
+        {
+            _viewModel.SetPreviewCanvas(PreviewCanvas);
+        }
+
+        // Force a visual update
+        this.InvalidateVisual();
     }
 }

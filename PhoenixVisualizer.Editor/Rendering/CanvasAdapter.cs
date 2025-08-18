@@ -97,12 +97,31 @@ public sealed class CanvasAdapter : ISkiaCanvas
 
     public void DrawText(string text, float x, float y, uint color, float size = 12.0f)
     {
-        var brush = new SolidColorBrush(Color.FromUInt32(color));
-        // Use a simpler approach for text rendering in Avalonia
-        var point = new Point(x, y);
-        // For now, just draw a placeholder since FormattedText is complex
-        // TODO: Implement proper text rendering
-        _context.DrawEllipse(brush, null, point, size/2, size/2);
+        try
+        {
+            // Create a proper text rendering implementation
+            var textColor = Color.FromUInt32(color);
+            var brush = new SolidColorBrush(textColor);
+            
+            // Create formatted text for proper rendering using correct Avalonia API
+            var typeface = new Typeface("Arial");
+            var formattedText = new FormattedText(
+                text, 
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                typeface, 
+                size, 
+                brush);
+            
+            // Draw the text
+            _context?.DrawText(formattedText, new Point(x, y));
+        }
+        catch (Exception ex)
+        {
+            // Fallback to simple text rendering if FormattedText fails
+            System.Diagnostics.Debug.WriteLine($"Text rendering failed: {ex.Message}, falling back to debug output");
+            System.Diagnostics.Debug.WriteLine($"Text: {text} at ({x}, {y})");
+        }
     }
 
     public void DrawPoint(float x, float y, uint color, float size = 1.0f)

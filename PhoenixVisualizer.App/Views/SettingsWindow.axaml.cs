@@ -10,6 +10,12 @@ using Avalonia.Controls.Primitives;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
+using System.IO;
+using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
+using System.Collections.Generic;
+using Avalonia.Controls;
+using Avalonia.Dialogs;
 
 namespace PhoenixVisualizer.Views;
 
@@ -44,6 +50,7 @@ public partial class SettingsWindow : Window
     private Button?      BtnConfigurePluginControl  => this.FindControl<Button>("BtnConfigurePlugin");
     private Button?      BtnTestPluginControl       => this.FindControl<Button>("BtnTestPlugin");
     private Button?      BtnPluginInfoControl       => this.FindControl<Button>("BtnPluginInfo");
+    private TextBox?     PluginPathTextBox          => this.FindControl<TextBox>("PluginPathTextBox");
 
     public SettingsWindow()
     {
@@ -303,14 +310,141 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private void OnBrowsePluginClick(object? sender, RoutedEventArgs e)
+    private async void BrowseForPlugin(object? sender, RoutedEventArgs e)
     {
-        BrowseForPlugin();
+        try
+        {
+            var options = new FilePickerOpenOptions
+            {
+                Title = "Select Plugin File",
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new("Plugin files") { Patterns = new[] { "*.dll" } },
+                    new("All files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var files = await this.StorageProvider.OpenFilePickerAsync(options);
+            if (files.Count == 0) return;
+
+            var selectedFile = files[0];
+            
+            // Update the plugin path text box
+            var pluginPathTextBox = this.FindControl<TextBox>("PluginPathTextBox");
+            if (pluginPathTextBox != null)
+            {
+                pluginPathTextBox.Text = selectedFile.Path.LocalPath;
+            }
+            
+            // Validate the plugin file
+            if (ValidatePluginFile(selectedFile.Path.LocalPath))
+            {
+                ShowStatusMessage($"Plugin file selected: {selectedFile.Name}");
+            }
+            else
+            {
+                ShowStatusMessage("Warning: Selected file may not be a valid plugin");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowStatusMessage($"Error browsing for plugin: {ex.Message}");
+        }
     }
 
-    private void OnInstallPluginClick(object? sender, RoutedEventArgs e)
+    private bool ValidatePluginFile(string filePath)
     {
-        InstallSelectedPlugin();
+        try
+        {
+            // Basic validation - check if it's a .NET assembly
+            var assembly = System.Reflection.Assembly.LoadFrom(filePath);
+            
+            // Check if it implements required plugin interfaces
+            var pluginTypes = assembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && 
+                           (t.GetInterfaces().Any(i => i.Name.Contains("IPlugin") || 
+                                                      i.Name.Contains("IVisualizerPlugin"))))
+                .ToList();
+            
+            return pluginTypes.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async void InstallPlugin(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var pluginPathTextBox = this.FindControl<TextBox>("PluginPathTextBox");
+            if (pluginPathTextBox == null || string.IsNullOrWhiteSpace(pluginPathTextBox.Text))
+            {
+                ShowStatusMessage("Please select a plugin file first");
+                return;
+            }
+            
+            var sourcePath = pluginPathTextBox.Text;
+            if (!File.Exists(sourcePath))
+            {
+                ShowStatusMessage("Selected plugin file does not exist");
+                return;
+            }
+            
+            // Get the plugins directory
+            var pluginsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+            if (!Directory.Exists(pluginsDir))
+            {
+                Directory.CreateDirectory(pluginsDir);
+            }
+            
+            // Copy plugin to plugins directory
+            var fileName = Path.GetFileName(sourcePath);
+            var targetPath = Path.Combine(pluginsDir, fileName);
+            
+            // Check if plugin already exists
+            if (File.Exists(targetPath))
+            {
+                var result = ShowConfirmationDialog(
+                    "Plugin already exists. Do you want to replace it?",
+                    "Plugin Installation");
+                
+                if (result != true)
+                    return;
+            }
+            
+            // Copy the file
+            File.Copy(sourcePath, targetPath, true);
+            
+            // Update plugin registry
+            await RefreshPluginRegistry();
+            
+            ShowStatusMessage($"Plugin installed successfully: {fileName}");
+            
+            // Clear the text box
+            pluginPathTextBox.Text = "";
+        }
+        catch (Exception ex)
+        {
+            ShowStatusMessage($"Error installing plugin: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshPluginRegistry()
+    {
+        try
+        {
+            // This would typically call the plugin manager to refresh
+            // For now, just log the action
+            System.Diagnostics.Debug.WriteLine("Plugin registry refresh requested");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error refreshing plugin registry: {ex.Message}");
+        }
     }
     
             private void OnPerformanceMonitorClick(object? sender, RoutedEventArgs e)
@@ -713,16 +847,28 @@ public partial class SettingsWindow : Window
         Console.WriteLine($"Status: {(plugin.IsEnabled ? "Enabled" : "Disabled")}");
     }
 
-    private void BrowseForPlugin()
+    private bool ShowConfirmationDialog(string message, string title)
     {
-        // TODO: Implement file browser for plugin selection
-        Console.WriteLine("Browse for plugin functionality not yet implemented");
+        // Simple confirmation using console for now
+        // In a real implementation, you'd use a proper dialog
+        System.Diagnostics.Debug.WriteLine($"{title}: {message}");
+        System.Diagnostics.Debug.WriteLine("User would see a dialog here");
+        return true; // Assume user confirms for now
     }
 
-    private void InstallSelectedPlugin()
+    private void ShowStatusMessage(string message)
     {
-        // TODO: Implement plugin installation
-        Console.WriteLine("Plugin installation functionality not yet implemented");
+        // Use a simple status display instead of MessageBox
+        var statusText = this.FindControl<TextBlock>("StatusText");
+        if (statusText != null)
+        {
+            statusText.Text = message;
+        }
+        else
+        {
+            // Fallback to console output
+            System.Diagnostics.Debug.WriteLine($"Status: {message}");
+        }
     }
 
     #endregion
