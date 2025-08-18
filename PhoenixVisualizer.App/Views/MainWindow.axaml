@@ -39,9 +39,13 @@
             <TextBlock x:Name="LblTime"/>
         </StackPanel>
 
-        <!-- Render surface -->
+        <!-- Render surface with AVS overlay -->
         <Border Grid.Row="2" Margin="8" Background="#111">
-            <r:RenderSurface x:Name="RenderHost"/>
+            <Grid>
+                <r:RenderSurface x:Name="RenderHost"/>
+                <!-- Overlay canvas for AVS engine rendering -->
+                <Canvas x:Name="AvsCanvasHost" Background="Transparent"/>
+            </Grid>
         </Border>
     </Grid>
 

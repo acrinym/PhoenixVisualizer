@@ -18,6 +18,8 @@ using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core;
 using PhoenixVisualizer.ViewModels;
+using PhoenixVisualizer.Core.Services;
+using Avalonia.Controls; // Canvas type
 
 namespace PhoenixVisualizer.Views;
 
@@ -31,6 +33,11 @@ public partial class MainWindow : Window
     private static readonly string[] AudioPatterns = { 
         "*.mp3", "*.wav", "*.flac", "*.ogg", "*.m4a", "*.aac", "*.wma", "*.ape", "*.mpc", "*.tta", "*.alac" 
     };
+
+    // AVS engine overlay
+    private readonly AvsEditorBridge _avsBridge = new();
+    private readonly AvsAudioProvider _avsAudio = new();
+    private Canvas? _avsCanvas;
 
     // Debug logging to file
     static void LogToFile(string message)
@@ -53,6 +60,7 @@ public partial class MainWindow : Window
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
         _renderSurface = this.FindControl<RenderSurface>("RenderHost");
+        _avsCanvas = this.FindControl<Canvas>("AvsCanvasHost");
         
         System.Diagnostics.Debug.WriteLine($"[MainWindow] Constructor: _renderSurface found: {_renderSurface != null}");
         if (_renderSurface != null)
@@ -61,6 +69,22 @@ public partial class MainWindow : Window
         }
         
         Presets.Initialize(_renderSurface);
+
+        // Initialize AVS overlay renderer
+        try
+        {
+            if (_avsCanvas is not null)
+            {
+                var renderer = new PhoenixVisualizer.Rendering.AvaloniaAvsRenderer();
+                renderer.SetRenderCanvas(_avsCanvas);
+                _avsBridge.SetRenderer(renderer);
+                _avsBridge.SetAudioProvider(_avsAudio);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] AVS overlay init failed: {ex.Message}");
+        }
 
         // Wire runtime UI updates if the render surface is present
         if (RenderSurfaceControl is not null)
@@ -523,7 +547,46 @@ public partial class MainWindow : Window
                     presetTextBox.Text = avsContent;
                 }
 
-                // Automatically execute the preset
+                // Prefer full AVS engine via overlay
+                if (_avsCanvas is not null)
+                {
+                    var preset = new PhoenixVisualizer.Core.Models.AvsPreset
+                    {
+                        Name = "From Editor",
+                        Description = "Sent from AVS Editor",
+                        Author = "Editor"
+                    };
+                    preset.FrameEffects.Add(new PhoenixVisualizer.Core.Models.AvsEffect
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Custom",
+                        DisplayName = "Custom Code",
+                        Description = "Imported from text",
+                        Type = PhoenixVisualizer.Core.Models.AvsEffectType.Custom,
+                        Section = PhoenixVisualizer.Core.Models.AvsSection.Frame,
+                        Code = avsContent,
+                        IsEnabled = true,
+                        ClearEveryFrame = true
+                    });
+
+                    Task.Run(async () =>
+                    {
+                        var ok = await _avsBridge.LoadPresetAsync(preset);
+                        if (ok)
+                        {
+                            await _avsAudio.StartAsync();
+                            await _avsBridge.StartPresetAsync();
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                var statusText = this.FindControl<TextBlock>("LblTime");
+                                if (statusText != null) statusText.Text = "AVS engine running (editor preset)";
+                            });
+                        }
+                    });
+                    return;
+                }
+
+                // Fallback to mini plugin
                 if (RenderSurfaceControl != null)
                 {
                     var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
@@ -531,13 +594,8 @@ public partial class MainWindow : Window
                     {
                         RenderSurfaceControl.SetPlugin(visPlugin);
                         plug.LoadPreset(avsContent);
-                        
-                        // Show success message
                         var statusText = this.FindControl<TextBlock>("LblTime");
-                        if (statusText != null)
-                        {
-                            statusText.Text = "AVS preset loaded and executed from editor!";
-                        }
+                        if (statusText != null) statusText.Text = "AVS mini plugin executed from editor!";
                     }
                 }
             }
