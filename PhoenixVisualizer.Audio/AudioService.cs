@@ -46,6 +46,16 @@ public sealed class AudioService : IDisposable
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var libsDir = Path.Combine(baseDir, "libs");
             
+            LogToFile($"[AudioService] Looking for codec plugins in: {libsDir}");
+            
+            // Check if libs directory exists
+            if (!Directory.Exists(libsDir))
+            {
+                LogToFile($"[AudioService] Warning: libs directory does not exist: {libsDir}");
+                LogToFile($"[AudioService] This may cause some audio formats to not play correctly");
+                return;
+            }
+            
             // List of common BASS codec plugins to try loading
             var codecPlugins = new[]
             {
@@ -59,6 +69,7 @@ public sealed class AudioService : IDisposable
                 "bass_alac.dll",     // Apple Lossless support
             };
 
+            var loadedPlugins = 0;
             foreach (var plugin in codecPlugins)
             {
                 var pluginPath = Path.Combine(libsDir, plugin);
@@ -69,11 +80,13 @@ public sealed class AudioService : IDisposable
                         var result = Bass.PluginLoad(pluginPath);
                         if (result != 0)
                         {
+                            loadedPlugins++;
                             LogToFile($"[AudioService] Successfully loaded codec plugin: {plugin}");
                         }
                         else
                         {
-                            LogToFile($"[AudioService] Failed to load codec plugin: {plugin}, Error: {Bass.LastError}");
+                            var error = Bass.LastError;
+                            LogToFile($"[AudioService] Failed to load codec plugin: {plugin}, Error: {error}");
                         }
                     }
                     catch (Exception ex)
@@ -81,6 +94,18 @@ public sealed class AudioService : IDisposable
                         LogToFile($"[AudioService] Exception loading codec plugin {plugin}: {ex.Message}");
                     }
                 }
+                else
+                {
+                    LogToFile($"[AudioService] Codec plugin not found: {plugin}");
+                }
+            }
+            
+            LogToFile($"[AudioService] Loaded {loadedPlugins} codec plugins out of {codecPlugins.Length} attempted");
+            
+            if (loadedPlugins == 0)
+            {
+                LogToFile($"[AudioService] Warning: No codec plugins loaded. Only basic formats (MP3, WAV) may work.");
+                LogToFile($"[AudioService] Consider downloading BASS codec plugins from: https://www.un4seen.com/");
             }
         }
         catch (Exception ex)
@@ -130,6 +155,7 @@ public sealed class AudioService : IDisposable
             }
 
             LogToFile($"[AudioService] File validation passed. Size: {fileInfo.Length} bytes");
+            LogToFile($"[AudioService] File extension: {Path.GetExtension(filePath)}");
 
             // Ensure BASS is initialized (skip complex checking for now)
             try
@@ -162,6 +188,8 @@ public sealed class AudioService : IDisposable
                 if (_sourceHandle == 0)
                 {
                     LogToFile($"[AudioService] All stream creation attempts failed");
+                    LogToFile($"[AudioService] This file format may not be supported by BASS");
+                    LogToFile($"[AudioService] Try installing additional codec plugins or convert to MP3/WAV");
                     return false;
                 }
             }
