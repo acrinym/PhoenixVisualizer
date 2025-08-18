@@ -35,6 +35,19 @@ public partial class App : Application
             PluginRegistry.Register("sanity", "Sanity Check", () => new SanityVisualizer());
             PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
             
+            // --- Register Phoenix Waterfall (Classic Winamp DNA) ---
+            PluginRegistry.Register("phoenix_waterfall", "🔥 Phoenix Waterfall", () => new PhoenixWaterfallPlugin());
+            
+            // --- Register Classic Winamp DNA Visuals ---
+            PluginRegistry.Register("phoenix_radial_bars", "🔥 Phoenix Radial Bars", () => new PhoenixRadialBarsPlugin());
+            PluginRegistry.Register("phoenix_xy_oscilloscope", "🔥 Phoenix XY Oscilloscope", () => new PhoenixXYOscilloscopePlugin());
+            PluginRegistry.Register("phoenix_kaleidoscope", "🔥 Phoenix Kaleidoscope", () => new PhoenixKaleidoscopePlugin());
+            PluginRegistry.Register("phoenix_particle_fountain", "🔥 Phoenix Particle Fountain", () => new PhoenixParticleFountainPlugin());
+            
+            // --- Register Fun Visuals ---
+            PluginRegistry.Register("fun.chicken.peck", "🐔 Chicken Field (Wireframe)", () => new ChickenVisualizer());
+            PluginRegistry.Register("phoenix_circular_bars", "🎨 Phoenix Circular Bars", () => new PhoenixCircularBarsPlugin());
+            
             // --- Register all superscopes ---
             PluginRegistry.Register("spiral_superscope", "🎭 Spiral Superscope", () => new SpiralSuperscope());
             PluginRegistry.Register("scope_dish_superscope", "🎭 3D Scope Dish", () => new ScopeDishSuperscope());

@@ -107,9 +107,21 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
             
             canvas.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, color, 1.0f);
         }
+
+        // Close the shape for better continuity
+        if (points.Count > 2)
+        {
+            float phi = (points.Count - 1) * 6.283f * 2;
+            uint red = (uint)((0.5f + 0.5f * Math.Sin(phi + _time * 2)) * 255);
+            uint green = (uint)((0.5f + 0.5f * Math.Sin(phi + _time * 2 + 2.094f)) * 255);
+            uint blue = (uint)((0.5f + 0.5f * Math.Sin(phi + _time * 2 + 4.188f)) * 255);
+            uint color = (uint)((0xFF << 24) | (red << 16) | (green << 8) | blue);
+            canvas.DrawLine(points[^1].x, points[^1].y, points[0].x, points[0].y, color, 1.0f);
+        }
         
         // Draw antennae
-        uint antennaColor = beat ? 0xFFFFFF00 : 0xFF00FF00;
+        // Avoid green; use warm phoenix tones
+        uint antennaColor = beat ? 0xFFFFDD00 : 0xFFFF8800;
         canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.4f, _height * 0.2f, antennaColor, 2.0f);
         canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.6f, _height * 0.2f, antennaColor, 2.0f);
     }

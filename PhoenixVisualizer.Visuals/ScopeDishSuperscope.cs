@@ -37,19 +37,24 @@ public sealed class ScopeDishSuperscope : IVisualizerPlugin
         // Get audio data
         float volume = features.Volume;
         bool beat = features.Beat;
+
+        // Advance time for animation
+        _time += 0.02f;
         
         // Create points array for the 3D dish
         var points = new System.Collections.Generic.List<(float x, float y)>();
         
         for (int i = 0; i < _numPoints; i++)
         {
-            float t = i / (float)_numPoints;
+            float t = i / (float)(_numPoints - 1);
             
-            // 3D dish formula from AVS: iz=1.3+sin(r+i*$PI*2)*(v+0.5)*0.88; ix=cos(r+i*$PI*2)*(v+0.5)*.88; iy=-0.3+abs(cos(v*$PI)); x=ix/iz;y=iy/iz;
-            float r = _time + i * (float)Math.PI * 2;
-            float iz = 1.3f + (float)Math.Sin(r + i * (float)Math.PI * 2) * (volume + 0.5f) * 0.88f;
-            float ix = (float)Math.Cos(r + i * (float)Math.PI * 2) * (volume + 0.5f) * 0.88f;
-            float iy = -0.3f + Math.Abs((float)Math.Cos(volume * (float)Math.PI));
+            // 3D dish formula (fixed):
+            // r varies smoothly around the circle for each point; use t, not i twice
+            float r = _time + t * ((float)Math.PI * 2f);
+            float v = 0.3f + volume * 0.7f; // radius influenced by volume
+            float iz = 1.3f + (float)Math.Sin(r) * (v + 0.5f) * 0.88f;
+            float ix = (float)Math.Cos(r) * (v + 0.5f) * 0.88f;
+            float iy = -0.3f + Math.Abs((float)Math.Cos(t * (float)Math.PI));
             
             // Perspective projection
             float x = ix / iz;
@@ -63,7 +68,8 @@ public sealed class ScopeDishSuperscope : IVisualizerPlugin
         }
         
         // Draw the 3D dish
-        uint color = beat ? 0xFFFF00FF : 0xFF00FF00; // Magenta on beat, green otherwise
+        // Phoenix-friendly colors (avoid green)
+        uint color = beat ? 0xFFFF55AA : 0xFFFFAA33; // Magenta-orange blend on beat, amber otherwise
         canvas.SetLineWidth(1.0f);
         canvas.DrawLines(points.ToArray(), 1.0f, color);
     }

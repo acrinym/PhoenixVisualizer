@@ -429,15 +429,27 @@ public partial class MainWindow : Window
                 // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
                 if (plug is IVisualizerPlugin visPlugin)
                 {
+                    // CRITICAL: Set the plugin on the render surface FIRST
                     RenderSurfaceControl.SetPlugin(visPlugin);
+                    
+                    // THEN load the preset
                     plug.LoadPreset(presetText);
+                    
+                    // Force a visual refresh
+                    RenderSurfaceControl.InvalidateVisual();
                     
                     // Show success message
                     var statusText = this.FindControl<TextBlock>("LblTime");
                     if (statusText != null)
                     {
-                        statusText.Text = "Preset executed successfully!";
+                        statusText.Text = $"Preset executed: {presetText}";
                     }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Preset executed successfully: {presetText}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to cast plugin to IVisualizerPlugin");
                 }
             }
             catch (Exception ex)

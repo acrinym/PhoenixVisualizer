@@ -67,14 +67,20 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             points.Add((x, y));
         }
         
-        // Draw the cat face
-        uint color = beat ? 0xFFFFA500 : 0xFF00FFFF; // Orange on beat, cyan otherwise
+        // Draw the cat face (avoid cyan/green)
+        uint color = beat ? 0xFFFFA500 : 0xFFFF8844; // Orange on beat, warm orange otherwise
         canvas.SetLineWidth(2.0f);
         canvas.DrawLines(points.ToArray(), 2.0f, color);
+        // Close the loop for a solid outline
+        if (points.Count > 1)
+        {
+            canvas.DrawLine(points[^1].x, points[^1].y, points[0].x, points[0].y, color, 2.0f);
+        }
         
         // Draw cat eyes
         float eyeSize = 8.0f;
-        uint eyeColor = beat ? 0xFFFF0000 : 0xFF00FF00; // Red on beat, green otherwise
+        // Avoid green for idle
+        uint eyeColor = beat ? 0xFFFF0000 : 0xFFFFCC00; // Red on beat, yellow otherwise
         
         // Left eye
         canvas.FillCircle(_width * 0.4f, _height * 0.45f, eyeSize, eyeColor);
