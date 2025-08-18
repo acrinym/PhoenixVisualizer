@@ -371,7 +371,7 @@ namespace PhoenixVisualizer.Core.Services
         private static (float r, float g, float b) HsvToRgb(float h, float s, float v)
         {
             float c = v * s;
-            float x = c * (1 - Math.Abs((h / 60) % 2 - 1));
+            float x = c * (1.0f - Math.Abs((h / 60.0f) % 2.0f - 1.0f));
             float m = v - c;
             
             float r, g, b;
@@ -923,9 +923,9 @@ namespace PhoenixVisualizer.Core.Services
                 
                 var size = 2.0f + Math.Sin(time + i) * 1.0f;
                 var hue = (time * 50 + i * 7) % 360;
-                var (r, g, b) = HsvToRgb(hue, 1.0f, 1.0f);
+                (float r, float g, float b) = HsvToRgb(hue, 1.0f, 1.0f);
                 
-                await _renderer.SetColorAsync((float)r, (float)g, (float)b, 0.8f);
+                await _renderer.SetColorAsync(r, g, b, 0.8f);
                 await _renderer.DrawCircleAsync(x, y, size, true);
             }
         }
