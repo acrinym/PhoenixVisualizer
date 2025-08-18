@@ -178,6 +178,12 @@ namespace PhoenixVisualizer.Core.Services
             // Get current audio data
             await UpdateAudioDataAsync();
             
+            // Update time-based variables
+            var currentTime = DateTime.Now;
+            _variables["time"] = (currentTime - _lastFrameTime).TotalSeconds;
+            _variables["frame"] = _frameCount;
+            _variables["fps"] = FPS;
+            
             // Execute Init section (only once)
             if (_frameCount == 0)
             {
@@ -314,6 +320,87 @@ namespace PhoenixVisualizer.Core.Services
             // Get spectrum data from audio provider
             var spectrumData = await _audioProvider.GetSpectrumDataAsync(channels);
             _variables["spectrum_data"] = spectrumData;
+            
+            // Draw spectrum visualization
+            if (spectrumData.ContainsKey("channel_0") && spectrumData["channel_0"] is float[] fft)
+            {
+                await DrawSpectrumVisualization(fft, effect);
+            }
+        }
+        
+        /// <summary>
+        /// Draws a spectrum visualization based on FFT data
+        /// </summary>
+        private async Task DrawSpectrumVisualization(float[] fft, AvsEffect effect)
+        {
+            var barWidth = GetParameterValue(effect, "bar_width", 2.0f);
+            var barSpacing = GetParameterValue(effect, "bar_spacing", 1.0f);
+            var maxHeight = GetParameterValue(effect, "max_height", 100.0f);
+            var colorMode = GetParameterValue(effect, "color_mode", "rainbow");
+            
+            var totalWidth = fft.Length * (barWidth + barSpacing);
+            var startX = -totalWidth / 2;
+            
+            for (int i = 0; i < fft.Length; i++)
+            {
+                var magnitude = Math.Min(1.0f, fft[i]);
+                var height = magnitude * maxHeight;
+                var x = startX + i * (barWidth + barSpacing);
+                var y = -height / 2;
+                
+                // Set color based on mode
+                if (colorMode == "rainbow")
+                {
+                    var hue = (float)i / fft.Length * 360.0f;
+                    var (r, g, b) = HsvToRgb(hue, 1.0f, magnitude);
+                    await _renderer.SetColorAsync(r, g, b, 1.0f);
+                }
+                else
+                {
+                    await _renderer.SetColorAsync(1.0f, 1.0f, 1.0f, magnitude);
+                }
+                
+                // Draw the bar
+                await _renderer.DrawRectangleAsync(x, y, barWidth, height, true);
+            }
+        }
+        
+        /// <summary>
+        /// Converts HSV color to RGB
+        /// </summary>
+        private static (float r, float g, float b) HsvToRgb(float h, float s, float v)
+        {
+            float c = v * s;
+            float x = c * (1 - Math.Abs((h / 60) % 2 - 1));
+            float m = v - c;
+            
+            float r, g, b;
+            if (h >= 0 && h < 60)
+            {
+                r = c; g = x; b = 0;
+            }
+            else if (h >= 60 && h < 120)
+            {
+                r = x; g = c; b = 0;
+            }
+            else if (h >= 120 && h < 180)
+            {
+                r = 0; g = c; b = x;
+            }
+            else if (h >= 180 && h < 240)
+            {
+                r = 0; g = x; b = c;
+            }
+            else if (h >= 240 && h < 300)
+            {
+                r = x; g = 0; b = c;
+            }
+            else
+            {
+                r = c; g = 0; b = x;
+            }
+            
+            return (r + m, g + m, b + m);
         }
         
         private async Task ExecuteMovementEffectAsync(AvsEffect effect)
@@ -336,7 +423,7 @@ namespace PhoenixVisualizer.Core.Services
             await _renderer.SetColorAsync(red, green, blue, alpha);
         }
         
-        private Task ExecuteParticleEffectAsync(AvsEffect effect)
+        private async Task ExecuteParticleEffectAsync(AvsEffect effect)
         {
             var count = GetParameterValue(effect, "count", 100);
             var size = GetParameterValue(effect, "size", 2.0f);
@@ -346,7 +433,26 @@ namespace PhoenixVisualizer.Core.Services
             var particles = GenerateParticles(count, size, speed);
             _variables["particles"] = particles;
             
-            return Task.CompletedTask;
+            // Draw particles
+            foreach (var particle in particles)
+            {
+                if (particle is Dictionary<string, object> p && 
+                    p.TryGetValue("x", out var x) && p.TryGetValue("y", out var y) &&
+                    p.TryGetValue("size", out var pSize))
+                {
+                    var px = Convert.ToSingle(x);
+                    var py = Convert.ToSingle(y);
+                    var psz = Convert.ToSingle(pSize);
+                    
+                    // Set particle color based on velocity or other properties
+                    var velocity = p.TryGetValue("velocity", out var vel) ? Convert.ToSingle(vel) : 1.0f;
+                    var intensity = Math.Min(1.0f, velocity / 5.0f);
+                    await _renderer.SetColorAsync(intensity, intensity * 0.5f, 1.0f, 0.8f);
+                    
+                    // Draw particle as circle
+                    await _renderer.DrawCircleAsync(px, py, psz, true);
+                }
+            }
         }
         
         /// <summary>
@@ -371,7 +477,22 @@ namespace PhoenixVisualizer.Core.Services
             // Generic effect execution - could be extended for other effect types
             _variables[$"effect_{effect.Name}"] = true;
             
-            return Task.CompletedTask;
+            // Handle specific effect types that might not have dedicated handlers
+            switch (effect.Name.ToLowerInvariant())
+            {
+                case "wave":
+                    return ExecuteWaveEffectAsync(effect);
+                case "fountain":
+                    return ExecuteFountainEffectAsync(effect);
+                case "scatter":
+                    return ExecuteScatterEffectAsync(effect);
+                case "beat":
+                    return ExecuteBeatEffectAsync(effect);
+                case "text":
+                    return ExecuteTextEffectAsync(effect);
+                default:
+                    return Task.CompletedTask;
+            }
         }
         
         /// <summary>
@@ -724,6 +845,132 @@ namespace PhoenixVisualizer.Core.Services
             
             // Initialize renderer
             await _renderer.InitializeAsync(_variables);
+        }
+        
+        /// <summary>
+        /// Executes a wave effect
+        /// </summary>
+        private async Task ExecuteWaveEffectAsync(AvsEffect effect)
+        {
+            var amplitude = GetParameterValue(effect, "amplitude", 50.0f);
+            var frequency = GetParameterValue(effect, "frequency", 1.0f);
+            var phase = GetParameterValue(effect, "phase", 0.0f);
+            var points = GetParameterValue(effect, "points", 100);
+            
+            var time = Convert.ToSingle(_variables.GetValueOrDefault("time", 0.0));
+            var totalWidth = 200.0f;
+            var startX = -totalWidth / 2;
+            
+            for (int i = 0; i < points - 1; i++)
+            {
+                var t1 = (float)i / (points - 1);
+                var t2 = (float)(i + 1) / (points - 1);
+                
+                var x1 = startX + t1 * totalWidth;
+                var y1 = amplitude * (float)Math.Sin(2 * (float)Math.PI * frequency * t1 + phase + time);
+                var x2 = startX + t2 * totalWidth;
+                var y2 = amplitude * (float)Math.Sin(2 * (float)Math.PI * frequency * t2 + phase + time);
+                
+                await _renderer.DrawLineAsync(x1, y1, x2, y2, 2.0f);
+            }
+        }
+        
+        /// <summary>
+        /// Executes a fountain effect
+        /// </summary>
+        private async Task ExecuteFountainEffectAsync(AvsEffect effect)
+        {
+            var count = GetParameterValue(effect, "count", 20);
+            var speed = GetParameterValue(effect, "speed", 2.0f);
+            var spread = GetParameterValue(effect, "spread", 30.0f);
+            
+            var time = Convert.ToSingle(_variables.GetValueOrDefault("time", 0.0));
+            
+            for (int i = 0; i < count; i++)
+            {
+                var angle = (float)i / count * spread * (float)Math.PI / 180.0f;
+                var distance = speed * time;
+                
+                var x = distance * (float)Math.Sin(angle);
+                var y = -distance * (float)Math.Cos(angle) + 0.5f * 9.81f * time * time; // gravity
+                
+                var size = Math.Max(1.0f, 5.0f - time * 0.5f);
+                var alpha = Math.Max(0.0f, 1.0f - time * 0.1f);
+                
+                await _renderer.SetColorAsync(1.0f, 0.5f, 0.0f, alpha);
+                await _renderer.DrawCircleAsync(x, y, size, true);
+            }
+        }
+        
+        /// <summary>
+        /// Executes a scatter effect
+        /// </summary>
+        private async Task ExecuteScatterEffectAsync(AvsEffect effect)
+        {
+            var count = GetParameterValue(effect, "count", 50);
+            var radius = GetParameterValue(effect, "radius", 100.0f);
+            var speed = GetParameterValue(effect, "speed", 1.0f);
+            
+            var time = Convert.ToSingle(_variables.GetValueOrDefault("time", 0.0));
+            
+            for (int i = 0; i < count; i++)
+            {
+                var angle = (float)i / count * 2 * (float)Math.PI + time * speed;
+                var distance = radius * (0.5f + 0.5f * Math.Sin(time * 0.5f + i * 0.1f));
+                
+                var x = distance * (float)Math.Cos(angle);
+                var y = distance * (float)Math.Sin(angle);
+                
+                var size = 2.0f + Math.Sin(time + i) * 1.0f;
+                var hue = (time * 50 + i * 7) % 360;
+                var (r, g, b) = HsvToRgb(hue, 1.0f, 1.0f);
+                
+                await _renderer.SetColorAsync((float)r, (float)g, (float)b, 0.8f);
+                await _renderer.DrawCircleAsync(x, y, size, true);
+            }
+        }
+        
+        /// <summary>
+        /// Executes a beat-reactive effect
+        /// </summary>
+        private async Task ExecuteBeatEffectAsync(AvsEffect effect)
+        {
+            var intensity = GetParameterValue(effect, "intensity", 1.0f);
+            var decay = GetParameterValue(effect, "decay", 0.9f);
+            
+            var beat = Convert.ToBoolean(_variables.GetValueOrDefault("beat", false));
+            var beatIntensity = Convert.ToSingle(_variables.GetValueOrDefault("beat_intensity", 0.0f));
+            
+            if (beat)
+            {
+                beatIntensity = intensity;
+            }
+            else
+            {
+                beatIntensity *= decay;
+            }
+            
+            _variables["beat_intensity"] = beatIntensity;
+            
+            // Draw beat-reactive visualization
+            var size = 20.0f + beatIntensity * 50.0f;
+            var alpha = Math.Min(1.0f, beatIntensity);
+            
+            await _renderer.SetColorAsync(1.0f, 0.0f, 0.0f, alpha);
+            await _renderer.DrawCircleAsync(0, 0, size, false);
+        }
+        
+        /// <summary>
+        /// Executes a text effect
+        /// </summary>
+        private async Task ExecuteTextEffectAsync(AvsEffect effect)
+        {
+            var text = GetParameterValue(effect, "text", "AVS");
+            var x = GetParameterValue(effect, "x", 0.0f);
+            var y = GetParameterValue(effect, "y", 0.0f);
+            var fontSize = GetParameterValue(effect, "font_size", 24.0f);
+            
+            await _renderer.DrawTextAsync(text, x, y, fontSize);
         }
         
         // Event raising methods
