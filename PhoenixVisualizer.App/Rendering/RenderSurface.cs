@@ -9,7 +9,6 @@ using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.Core.Presets;
 using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Rendering;

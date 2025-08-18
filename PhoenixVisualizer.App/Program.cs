@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace PhoenixVisualizer;
+namespace PhoenixVisualizer.App;
 
 sealed class Program
 {

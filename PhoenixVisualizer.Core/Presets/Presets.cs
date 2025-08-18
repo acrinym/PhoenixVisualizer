@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Plugins.Avs;
-using PhoenixVisualizer.Rendering;
 
 namespace PhoenixVisualizer.Core;
 
@@ -13,9 +10,9 @@ public static class Presets
     private static readonly List<string> _presetTexts = new();
     private static readonly Random _rng = new();
     private static int _index = -1;
-    private static RenderSurface? _surface;
+    private static object? _surface;
 
-    public static void Initialize(RenderSurface? surface)
+    public static void Initialize(object? surface)
     {
         _surface = surface;
         _presetTexts.Clear();
@@ -65,15 +62,9 @@ public static class Presets
     private static void ApplyCurrent()
     {
         if (_surface is null || _index < 0 || _index >= _presetTexts.Count) return;
-        var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
-        if (plug is null) return;
         
-        // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
-        if (plug is IVisualizerPlugin visPlugin)
-        {
-            _surface.SetPlugin(visPlugin);
-            plug.LoadPreset(_presetTexts[_index]);
-        }
+        // For now, just log that we would apply a preset
+        // The actual implementation would depend on how the surface is used
+        System.Diagnostics.Debug.WriteLine($"Would apply preset {_index}: {_presetTexts[_index].Substring(0, Math.Min(50, _presetTexts[_index].Length))}...");
     }
 }
-

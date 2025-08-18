@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using PhoenixVisualizer.ViewModels;
 
-namespace PhoenixVisualizer;
+namespace PhoenixVisualizer.App;
 
 public class ViewLocator : IDataTemplate
 {

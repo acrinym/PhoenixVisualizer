@@ -11,7 +11,7 @@ using PhoenixVisualizer.ViewModels;
 using PhoenixVisualizer.Views;
 using PhoenixVisualizer.Visuals;
 
-namespace PhoenixVisualizer;
+namespace PhoenixVisualizer.App;
 
 public partial class App : Application
 {

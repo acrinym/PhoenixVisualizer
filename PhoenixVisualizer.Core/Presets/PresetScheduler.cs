@@ -2,7 +2,7 @@ using System;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 
-namespace PhoenixVisualizer.Core.Presets;
+namespace PhoenixVisualizer.Core;
 
 // 🤖 Decides when to switch presets
 public sealed class PresetScheduler

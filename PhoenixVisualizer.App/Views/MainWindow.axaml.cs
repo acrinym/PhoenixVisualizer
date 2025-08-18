@@ -16,7 +16,7 @@ using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.Core; // preset manager
+using PhoenixVisualizer.Core;
 using PhoenixVisualizer.ViewModels;
 
 namespace PhoenixVisualizer.Views;
