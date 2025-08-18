@@ -16,9 +16,8 @@ using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer; // preset manager
+using PhoenixVisualizer.Core; // preset manager
 using PhoenixVisualizer.ViewModels;
-using EditorWindow = PhoenixVisualizer.Editor.Views.MainWindow;
 
 namespace PhoenixVisualizer.Views;
 
@@ -362,8 +361,9 @@ public partial class MainWindow : Window
 
     private async void OnEditorClick(object? sender, RoutedEventArgs e)
     {
-        var editor = new EditorWindow();
-        await editor.ShowDialog(this);
+        // The Editor project reference was removed, so this functionality is disabled.
+        // var editor = new EditorWindow();
+        // await editor.ShowDialog(this);
     }
 
     private async void OnTempoPitchClick(object? sender, RoutedEventArgs e)

@@ -10,7 +10,7 @@ using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Presets;
-using PhoenixVisualizer; // preset manager
+using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Rendering;
 

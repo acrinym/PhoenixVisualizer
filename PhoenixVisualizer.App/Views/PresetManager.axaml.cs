@@ -1,6 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Markup.Xaml;
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -19,14 +23,21 @@ namespace PhoenixVisualizer.Views
 
         public PresetManager()
         {
-            InitializeComponent();
-            PresetTypeList.SelectedIndex = 0;
+            // Manually load XAML since InitializeComponent() isn't generated
+            AvaloniaXamlLoader.Load(this);
+            
+            var presetTypeList = this.FindControl<ListBox>("PresetTypeList");
+            if (presetTypeList != null)
+            {
+                presetTypeList.SelectedIndex = 0;
+            }
             RefreshPresetList();
         }
 
         private void OnPresetTypeChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (PresetTypeList.SelectedItem is ListBoxItem item && item.Tag is string tag)
+            var presetTypeList = this.FindControl<ListBox>("PresetTypeList");
+            if (presetTypeList?.SelectedItem is ListBoxItem item && item.Tag is string tag)
             {
                 _selectedPresetType = tag;
                 FilterPresets();
@@ -35,7 +46,8 @@ namespace PhoenixVisualizer.Views
 
         private void OnPresetSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (PresetListBox.SelectedItem is PresetInfo preset)
+            var presetListBox = this.FindControl<ListBox>("PresetListBox");
+            if (presetListBox?.SelectedItem is PresetInfo preset)
             {
                 _selectedPreset = preset;
                 ShowPresetDetails(preset);
@@ -44,24 +56,43 @@ namespace PhoenixVisualizer.Views
 
         private async void OnImportPreset(object? sender, RoutedEventArgs e)
         {
-            if (StatusText == null) return;
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
 
             var options = new FilePickerOpenOptions
             {
                 Title = "Select Preset File",
-                AllowMultiple = false
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new("AVS Preset") { Patterns = new[] { "*.avs", "*.txt" } },
+                    new("MilkDrop Preset") { Patterns = new[] { "*.milk" } },
+                    new("All Files") { Patterns = new[] { "*.*" } }
+                }
             };
 
             var files = await StorageProvider.OpenFilePickerAsync(options);
             if (files.Count > 0)
             {
-                await ImportPresetFile(files[0].Path.LocalPath);
+                var file = files[0];
+                var extension = Path.GetExtension(file.Path.LocalPath).ToLower();
+                
+                if (extension == ".avs" || extension == ".txt")
+                {
+                    // TODO: Implement AVS import functionality
+                    statusText.Text = "AVS import functionality coming soon!";
+                }
+                else
+                {
+                    await ImportPresetFile(file.Path.LocalPath);
+                }
             }
         }
 
         private async Task ImportPresetFile(string filePath)
         {
-            if (StatusText == null) return;
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText == null) return;
 
             try
             {
@@ -73,12 +104,12 @@ namespace PhoenixVisualizer.Views
                 Directory.CreateDirectory(targetDir);
                 await Task.Run(() => File.Copy(filePath, targetPath, true));
 
-                StatusText.Text = $"Preset imported: {fileName}";
+                statusText.Text = $"Preset imported: {fileName}";
                 RefreshPresetList();
             }
             catch (Exception ex)
             {
-                StatusText.Text = $"Import failed: {ex.Message}";
+                statusText.Text = $"Import failed: {ex.Message}";
             }
         }
 
@@ -133,31 +164,42 @@ namespace PhoenixVisualizer.Views
                 _ => _allPresets
             };
 
-            PresetListBox.ItemsSource = filteredPresets;
-            
-            if (StatusText != null)
+            var presetListBox = this.FindControl<ListBox>("PresetListBox");
+            if (presetListBox != null)
             {
-                StatusText.Text = $"Found {filteredPresets.Count} presets";
+                presetListBox.ItemsSource = filteredPresets;
+            }
+            
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText != null)
+            {
+                statusText.Text = $"Found {filteredPresets.Count} presets";
             }
         }
 
         private void ShowPresetDetails(PresetInfo preset)
         {
-            if (PresetNameText == null || PresetTypeText == null || 
-                PresetSizeText == null || PresetModifiedText == null || 
-                PresetPreviewText == null) return;
+            var presetNameText = this.FindControl<TextBlock>("PresetNameText");
+            var presetTypeText = this.FindControl<TextBlock>("PresetTypeText");
+            var presetSizeText = this.FindControl<TextBlock>("PresetSizeText");
+            var presetModifiedText = this.FindControl<TextBlock>("PresetModifiedText");
+            var presetPreviewText = this.FindControl<TextBox>("PresetPreviewText");
+
+            if (presetNameText == null || presetTypeText == null || 
+                presetSizeText == null || presetModifiedText == null || 
+                presetPreviewText == null) return;
 
             try
             {
                 var fileInfo = new FileInfo(preset.FilePath);
                 
-                PresetNameText.Text = preset.Name;
-                PresetTypeText.Text = preset.Type;
-                PresetSizeText.Text = $"{fileInfo.Length / 1024.0:F1} KB";
-                PresetModifiedText.Text = fileInfo.LastWriteTime.ToString("g");
+                presetNameText.Text = preset.Name;
+                presetTypeText.Text = preset.Type;
+                presetSizeText.Text = $"{fileInfo.Length / 1024.0:F1} KB";
+                presetModifiedText.Text = fileInfo.LastWriteTime.ToString("g");
 
                 var content = File.ReadAllText(preset.FilePath);
-                PresetPreviewText.Text = content.Length > 500 
+                presetPreviewText.Text = content.Length > 500 
                     ? content.Substring(0, 500) + "..." 
                     : content;
             }

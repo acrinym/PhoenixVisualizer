@@ -5,7 +5,7 @@ using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 
-namespace PhoenixVisualizer;
+namespace PhoenixVisualizer.Core;
 
 // 🎚️ Minimal preset manager – cycles through presets in the "Presets" folder
 public static class Presets
