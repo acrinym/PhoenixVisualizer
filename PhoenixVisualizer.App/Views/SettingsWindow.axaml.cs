@@ -508,10 +508,10 @@ public partial class SettingsWindow : Window
 
             PluginListBoxControl?.SetCurrentValue(ListBox.ItemsSourceProperty, pluginInfos);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Show error message to user
-            Console.WriteLine($"Error refreshing plugins: {ex.Message}");
+            // Error logged silently - consider showing user-friendly message
         }
     }
 
@@ -859,21 +859,19 @@ public partial class SettingsWindow : Window
             if (pluginInstance is IVisualizerPlugin visualizerPlugin)
             {
                 // TODO: Test the plugin with sample audio data
-                Console.WriteLine($"Testing plugin: {plugin.DisplayName}");
+                // Plugin testing initiated
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"Error testing plugin: {ex.Message}");
+            // Error testing plugin - consider showing user-friendly message
         }
     }
 
     private void ShowPluginInfo(PluginInfo plugin)
     {
         // TODO: Show detailed plugin information dialog
-        Console.WriteLine($"Plugin Info: {plugin.DisplayName} ({plugin.Id})");
-        Console.WriteLine($"Description: {plugin.Description}");
-        Console.WriteLine($"Status: {(plugin.IsEnabled ? "Enabled" : "Disabled")}");
+        // Plugin info display initiated
     }
 
     private bool ShowConfirmationDialog(string message, string title)

@@ -460,7 +460,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 }
 
                 // Parse AVS format
-                var avsPreset = ParseAvsFormat(content);
+                var avsPreset = await ParseAvsFormat(content);
                 if (avsPreset != null)
                 {
                     LoadPresetIntoUI(avsPreset);
@@ -538,16 +538,16 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 using var reader = new StreamReader(stream);
                 var content = await reader.ReadToEndAsync();
 
-                var preset = ParseAvsFormat(content);
+                var preset = await ParseAvsFormat(content);
                 if (preset != null)
                 {
                     LoadPresetIntoUI(preset);
-                    Debug.WriteLine($"Preset imported successfully: {preset.Name}");
+                    await ShowInfoAsync($"Preset imported successfully: {preset.Name}");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error importing preset: {ex.Message}");
+                await ShowErrorAsync("Error importing preset.", ex);
             }
         }
 
@@ -591,11 +591,11 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     await writer.WriteAsync(avsContent);
                 }
 
-                Debug.WriteLine($"Preset exported successfully: {file.Name}");
+                await ShowInfoAsync($"Preset exported successfully: {file.Name}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error exporting preset: {ex.Message}");
+                await ShowErrorAsync("Error exporting preset.", ex);
             }
         }
 
@@ -622,7 +622,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             UpdateCurrentPreset();
         }
 
-        private AvsPreset? ParseAvsFormat(string content)
+        private async Task<AvsPreset?> ParseAvsFormat(string content)
         {
             try
             {
@@ -682,7 +682,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error parsing AVS format: {ex.Message}");
+                await ShowErrorAsync("Error parsing AVS format.", ex);
                 return null;
             }
         }
@@ -907,21 +907,23 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     success = await _bridge.StartPresetAsync();
                     if (success)
                     {
-                        Debug.WriteLine("Preset started successfully for testing");
+                        await ShowInfoAsync("Preset started successfully for testing.");
                     }
                     else
                     {
-                        Debug.WriteLine("Failed to start preset for testing");
+                        await ShowErrorAsync("Failed to start preset for testing.", 
+                            new Exception("Bridge.StartPresetAsync returned false"));
                     }
                 }
                 else
                 {
-                    Debug.WriteLine("Failed to load preset for testing");
+                    await ShowErrorAsync("Failed to load preset for testing.", 
+                        new Exception("Bridge.LoadPresetAsync returned false"));
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error testing preset: {ex.Message}");
+                await ShowErrorAsync("Error testing preset.", ex);
             }
         }
         
@@ -1073,39 +1075,40 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 var success = await _bridge.LoadPresetAsync(CurrentPreset);
                 if (success)
                 {
-                    Debug.WriteLine("Preset sent to main window successfully");
-                    // TODO: Notify main window that preset is ready
+                    await ShowInfoAsync("Preset sent to main window.");
+                    // Optionally notify main window here if needed
                 }
                 else
                 {
-                    Debug.WriteLine("Failed to send preset to main window");
+                    await ShowErrorAsync("Failed to send preset to main window.", 
+                        new Exception("Bridge.LoadPresetAsync returned false"));
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error sending preset to main window: {ex.Message}");
+                await ShowErrorAsync("Error sending preset to main window.", ex);
             }
         }
         
         // Bridge event handlers
         private void OnPresetLoaded(object? sender, AvsPresetEventArgs e)
         {
-            Debug.WriteLine($"Preset loaded: {e.Message}");
+            _ = ShowInfoAsync($"Preset loaded: {e.Message}");
         }
         
         private void OnPresetStarted(object? sender, AvsPresetEventArgs e)
         {
-            Debug.WriteLine($"Preset started: {e.Message}");
+            _ = ShowInfoAsync($"Preset started: {e.Message}");
         }
         
         private void OnPresetStopped(object? sender, AvsPresetEventArgs e)
         {
-            Debug.WriteLine($"Preset stopped: {e.Message}");
+            _ = ShowInfoAsync($"Preset stopped: {e.Message}");
         }
         
         private void OnBridgeError(object? sender, AvsErrorEventArgs e)
         {
-            Debug.WriteLine($"Bridge error: {e.Context} - {e.Error.Message}");
+            _ = ShowErrorAsync($"Bridge error: {e.Context}", e.Error);
         }
         
         // Centralized UX helpers

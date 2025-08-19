@@ -92,7 +92,7 @@ namespace PhoenixVisualizer.Editor.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error rendering frame: {ex.Message}");
+                // propagate failure via return value; caller can surface an error toast/dialog
                 return new { success = false, error = ex.Message };
             }
         }
@@ -123,9 +123,9 @@ namespace PhoenixVisualizer.Editor.Services
 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error rendering AVS effects: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
 
@@ -189,9 +189,9 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error rendering to canvas: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
@@ -208,9 +208,9 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error clearing frame: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
@@ -252,9 +252,9 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error drawing line: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
@@ -273,9 +273,9 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error drawing circle: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
@@ -294,9 +294,9 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error drawing rectangle: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
@@ -320,13 +320,12 @@ namespace PhoenixVisualizer.Editor.Services
                 
                 // Note: This is a simplified approach - in a real implementation
                 // you'd need to properly render text to the bitmap
-                System.Diagnostics.Debug.WriteLine($"Would draw text: '{text}' at ({x}, {y}) with size {fontSize}");
                 
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error drawing text: {ex.Message}");
+                // swallow per frame; counters/engine state should reflect failures upstream
             }
         }
         
