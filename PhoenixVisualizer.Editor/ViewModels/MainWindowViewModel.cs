@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using Avalonia.Input;
-using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Editor.ViewModels;
 

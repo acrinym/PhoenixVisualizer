@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Models;
-using PhoenixVisualizer.Core.Services;
 
 namespace PhoenixVisualizer.Core.Services
 {
@@ -16,7 +11,7 @@ namespace PhoenixVisualizer.Core.Services
         private readonly IAvsRenderer _renderer;
         private readonly IAvsAudioProvider _audioProvider;
         
-        private CancellationTokenSource _executionCancellation;
+        private CancellationTokenSource? _executionCancellation;
         private Task? _executionTask;
         private bool _isRunning;
         private bool _isDisposed;
@@ -75,6 +70,7 @@ namespace PhoenixVisualizer.Core.Services
                 await InitializePresetAsync();
                 
                 // Start the main execution loop
+                _executionCancellation = new CancellationTokenSource();
                 _executionTask = ExecutePresetAsync(_executionCancellation.Token);
                 await _executionTask;
             }
@@ -96,9 +92,10 @@ namespace PhoenixVisualizer.Core.Services
             try
             {
                 _isRunning = false;
-                _executionCancellation.Cancel();
+                try { _executionCancellation?.Cancel(); }
+                catch { /* ignore */ }
                 
-                if (_executionTask != null && !_executionTask.IsCompleted)
+                if (_executionTask is not null && !_executionTask.IsCompleted)
                 {
                     await _executionTask;
                 }
@@ -106,6 +103,12 @@ namespace PhoenixVisualizer.Core.Services
             catch (Exception ex)
             {
                 OnErrorOccurred(new AvsErrorEventArgs(ex, "Failed to stop AVS execution engine"));
+            }
+            finally
+            {
+                _executionCancellation?.Dispose();
+                _executionCancellation = null;
+                _executionTask = null;
             }
         }
         

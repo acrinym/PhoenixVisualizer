@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PhoenixVisualizer.Plots;
+﻿namespace PhoenixVisualizer.Plots;
 
 // Core plotting primitives for audio visualization
 public sealed class LineSeries

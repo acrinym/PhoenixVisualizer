@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
-using PhoenixVisualizer.Core.Config;
 
 namespace PhoenixVisualizer.Core.Services
 {

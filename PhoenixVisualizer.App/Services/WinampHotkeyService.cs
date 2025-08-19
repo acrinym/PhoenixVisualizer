@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Windows.Input;
-using Avalonia.Input;
 using PhoenixVisualizer.Core.Config;
-using System.IO;
 using System.Text.Json;
 
 namespace PhoenixVisualizer.Services

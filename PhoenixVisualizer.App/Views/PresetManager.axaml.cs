@@ -1,16 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
-using Avalonia.Markup.Xaml;
-using Avalonia;
-using Avalonia.Layout;
-using Avalonia.Media;
-using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-
-using System.Threading.Tasks;
 using PhoenixVisualizer.Models;
 using PhoenixVisualizer.App.Services;
 
@@ -122,12 +109,12 @@ namespace PhoenixVisualizer.Views
                     var success = _avsImportService.ImportAvsFile(filePath, out var errorMessage);
                     if (success)
                     {
-                        statusText.Text = $"AVS file imported successfully: {fileName}";
+                        statusText.Text = $"✅ AVS file imported successfully: {fileName}";
                         ShowImportSuccessDialog(fileName);
                     }
                     else
                     {
-                        statusText.Text = $"AVS import failed: {errorMessage}";
+                        statusText.Text = $"❌ AVS import failed: {errorMessage}";
                         ShowImportErrorDialog(fileName, errorMessage);
                     }
                 }
@@ -140,14 +127,14 @@ namespace PhoenixVisualizer.Views
                     Directory.CreateDirectory(targetDir);
                     await Task.Run(() => File.Copy(filePath, targetPath, true));
 
-                    statusText.Text = $"Preset imported: {fileName}";
+                    statusText.Text = $"✅ Preset imported: {fileName}";
                 }
                 
                 RefreshPresetList();
             }
             catch (Exception ex)
             {
-                statusText.Text = $"Import failed: {ex.Message}";
+                statusText.Text = $"❌ Import failed: {ex.Message}";
             }
         }
 
@@ -220,7 +207,7 @@ namespace PhoenixVisualizer.Views
             var statusText = this.FindControl<TextBlock>("StatusText");
             if (statusText != null)
             {
-                statusText.Text = $"Found {filteredPresets.Count} presets";
+                statusText.Text = $"ℹ️ Found {filteredPresets.Count} presets";
             }
         }
 
@@ -558,7 +545,10 @@ namespace PhoenixVisualizer.Views
             var statusText = this.FindControl<TextBlock>("StatusText");
             if (statusText != null)
             {
-                statusText.Text = message;
+                // If caller didn't include an emoji, prefix with info symbol
+                statusText.Text = (message.StartsWith("✅") || message.StartsWith("❌") || message.StartsWith("⚠️") || message.StartsWith("ℹ️"))
+                    ? message
+                    : $"ℹ️ {message}";
             }
             else
             {

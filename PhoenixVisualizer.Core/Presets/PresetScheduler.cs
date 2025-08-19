@@ -1,4 +1,3 @@
-using System;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 

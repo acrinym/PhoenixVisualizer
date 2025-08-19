@@ -1,18 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Editor.Services;
-using System.IO;
-using Avalonia.Platform;
-using Avalonia.Controls;
 
 namespace PhoenixVisualizer.Editor.ViewModels
 {
@@ -119,21 +111,21 @@ namespace PhoenixVisualizer.Editor.ViewModels
             _bridge.PresetStopped += OnPresetStopped;
             _bridge.ErrorOccurred += OnBridgeError;
             
-            // Initialize commands
-            NewPresetCommand = new RelayCommand(NewPreset);
-            LoadPresetCommand = new RelayCommand(LoadPreset);
-            SavePresetCommand = new RelayCommand(SavePreset);
-            TestPresetCommand = new RelayCommand(TestPreset);
-            ImportPresetCommand = new RelayCommand(ImportPreset);
-            ExportPresetCommand = new RelayCommand(ExportPreset);
-            PlayAudioCommand = new RelayCommand(ToggleAudio);
-            StopAudioCommand = new RelayCommand(StopAudio);
-            ClearSectionCommand = new RelayCommand<AvsSection>(ClearSection);
-            MoveEffectUpCommand = new RelayCommand<AvsEffect?>(MoveEffectUp);
-            MoveEffectDownCommand = new RelayCommand<AvsEffect?>(MoveEffectDown);
-            CopyEffectCommand = new RelayCommand<AvsEffect?>(CopyEffect);
-            RemoveEffectCommand = new RelayCommand<AvsEffect?>(RemoveEffect);
-            SendToMainWindowCommand = new RelayCommand(SendToMainWindow);
+                    // Initialize commands
+        NewPresetCommand = new RelayCommand(NewPreset);
+        LoadPresetCommand = new RelayCommand(LoadPreset);
+        SavePresetCommand = new RelayCommand(SavePreset);
+        TestPresetCommand = new AsyncCommand(TestPresetAsync);
+        ImportPresetCommand = new RelayCommand(ImportPreset);
+        ExportPresetCommand = new RelayCommand(ExportPreset);
+        PlayAudioCommand = new RelayCommand(ToggleAudio);
+        StopAudioCommand = new RelayCommand(StopAudio);
+        ClearSectionCommand = new RelayCommand<AvsSection>(ClearSection);
+        MoveEffectUpCommand = new RelayCommand<AvsEffect?>(MoveEffectUp);
+        MoveEffectDownCommand = new RelayCommand<AvsEffect?>(MoveEffectDown);
+        CopyEffectCommand = new RelayCommand<AvsEffect?>(CopyEffect);
+        RemoveEffectCommand = new RelayCommand<AvsEffect?>(RemoveEffect);
+        SendToMainWindowCommand = new AsyncCommand(SendToMainWindowAsync);
             
             // Initialize current preset
             CurrentPreset = new AvsPreset
@@ -894,7 +886,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             return null!;
         }
         
-        private async void TestPreset()
+        private async Task TestPresetAsync()
         {
             try
             {
@@ -907,24 +899,30 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     success = await _bridge.StartPresetAsync();
                     if (success)
                     {
-                        await ShowInfoAsync("Preset started successfully for testing.");
+                        await ShowInfoAsync("✅ Preset started for testing.");
                     }
                     else
                     {
-                        await ShowErrorAsync("Failed to start preset for testing.", 
+                        await ShowErrorAsync("❌ Failed to start preset for testing.", 
                             new Exception("Bridge.StartPresetAsync returned false"));
                     }
                 }
                 else
                 {
-                    await ShowErrorAsync("Failed to load preset for testing.", 
+                    await ShowErrorAsync("❌ Failed to load preset for testing.", 
                         new Exception("Bridge.LoadPresetAsync returned false"));
                 }
             }
             catch (Exception ex)
             {
-                await ShowErrorAsync("Error testing preset.", ex);
+                await ShowErrorAsync("❌ Error testing preset.", ex);
+                Log.Error("Editor VM: test-preset failed", ex);
             }
+        }
+
+        private async void TestPreset()
+        {
+            _ = TestPresetAsync(); // Fire and forget for backward compatibility
         }
         
         private async void ToggleAudio()
@@ -1065,7 +1063,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             UpdateCurrentPreset();
         }
         
-        private async void SendToMainWindow()
+        private async Task SendToMainWindowAsync()
         {
             try
             {
@@ -1075,19 +1073,25 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 var success = await _bridge.LoadPresetAsync(CurrentPreset);
                 if (success)
                 {
-                    await ShowInfoAsync("Preset sent to main window.");
+                    await ShowInfoAsync("✅ Preset sent to main window.");
                     // Optionally notify main window here if needed
                 }
                 else
                 {
-                    await ShowErrorAsync("Failed to send preset to main window.", 
+                    await ShowErrorAsync("❌ Failed to send preset to main window.", 
                         new Exception("Bridge.LoadPresetAsync returned false"));
                 }
             }
             catch (Exception ex)
             {
-                await ShowErrorAsync("Error sending preset to main window.", ex);
+                await ShowErrorAsync("❌ Error sending preset to main window.", ex);
+                Log.Error("Editor VM: send-to-main-window failed", ex);
             }
+        }
+
+        private async void SendToMainWindow()
+        {
+            _ = SendToMainWindowAsync(); // Fire and forget for backward compatibility
         }
         
         // Bridge event handlers
@@ -1112,8 +1116,11 @@ namespace PhoenixVisualizer.Editor.ViewModels
         }
         
         // Centralized UX helpers
-        private Task ShowInfoAsync(string message) => Task.CompletedTask; // TODO: Implement toast notification
-        private Task ShowErrorAsync(string message, Exception ex) => Task.CompletedTask; // TODO: Implement error dialog
+        private Task ShowInfoAsync(string message)
+            => Task.CompletedTask; // TODO: Implement toast notification
+
+        private Task ShowErrorAsync(string message, Exception ex)
+            => Task.CompletedTask; // TODO: Implement error dialog
         
         public void Dispose()
         {

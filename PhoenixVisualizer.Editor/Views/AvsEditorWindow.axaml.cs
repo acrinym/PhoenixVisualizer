@@ -1,13 +1,8 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using PhoenixVisualizer.Core.Models;
-using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Editor.ViewModels;
-using System;
-using System.Linq;
-using Avalonia.Platform;
 
 namespace PhoenixVisualizer.Editor.Views;
 

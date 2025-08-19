@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using PhoenixVisualizer.PluginHost;
+﻿using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.ApeHost;
 

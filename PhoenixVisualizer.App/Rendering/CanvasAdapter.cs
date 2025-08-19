@@ -1,6 +1,3 @@
-using System;
-using Avalonia;
-using Avalonia.Media;
 using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Rendering;

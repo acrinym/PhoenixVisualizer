@@ -1,4 +1,3 @@
-using System;
 using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Plugins.Avs;

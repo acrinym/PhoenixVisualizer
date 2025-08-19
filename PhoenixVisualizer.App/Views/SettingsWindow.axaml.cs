@@ -1,20 +1,7 @@
-using System;
-using System.Linq;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Layout;
-using Avalonia;
 using Avalonia.Controls.Primitives;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
-using System.IO;
-using System.Threading.Tasks;
-using Avalonia.Platform.Storage;
-using System.Collections.Generic;
-using Avalonia.Dialogs;
 
 namespace PhoenixVisualizer.Views;
 

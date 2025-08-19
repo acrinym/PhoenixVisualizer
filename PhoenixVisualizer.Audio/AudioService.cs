@@ -1,9 +1,5 @@
 using ManagedBass;
 using ManagedBass.Fx;
-using System;
-using System.Runtime.InteropServices;
-using System.IO;
-using System.Linq; // Added for .Take() and .Skip()
 
 namespace PhoenixVisualizer.Audio;
 
@@ -17,7 +13,7 @@ public record AudioFileInfo
     public float BitRate { get; init; }
 }
 
-public sealed class AudioService : IDisposable
+public sealed class AudioService : IAsyncDisposable
 {
     int _sourceHandle;      // decode source
     int _playHandle;        // the handle we actually play (tempo or direct)
@@ -26,6 +22,10 @@ public sealed class AudioService : IDisposable
     bool _tempoEnabled = true; // default ON
     float _tempoPercent;       // -95..+500 (we'll clamp)
     float _pitchSemitones;     // -60..+60 (we'll clamp)
+    
+    // Error handling
+    public Exception? LastError { get; private set; }
+    public event Action<Exception>? Error;
     
     // Audio buffer management
     private readonly object _audioLock = new object();
@@ -875,5 +875,15 @@ public sealed class AudioService : IDisposable
     public void Dispose()
     {
         Close();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            await Task.Run(() => Close(), cts.Token);
+        }
+        catch { /* swallow during dispose */ }
     }
 }

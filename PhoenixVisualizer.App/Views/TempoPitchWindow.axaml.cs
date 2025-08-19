@@ -1,8 +1,4 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using PhoenixVisualizer.Audio;
-using System;
 
 namespace PhoenixVisualizer.Views
 {

@@ -1,23 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Layout;
-using Avalonia.Media;
-using Avalonia.Threading;
-using Avalonia.Input;
-using Avalonia.Platform.Storage;
-using Avalonia.Markup.Xaml;              // <-- manual XAML load
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.Core;
-using PhoenixVisualizer.ViewModels;
 using PhoenixVisualizer.Core.Services;
 
 namespace PhoenixVisualizer.Views;
@@ -305,7 +289,11 @@ public partial class MainWindow : Window
             }
             
             var playResult = RenderSurfaceControl.Play();
-            if (!playResult)
+            if (playResult)
+            {
+                // TODO: Show user-friendly success message
+            }
+            else
             {
                 // TODO: Show user-friendly message that they need to open an audio file first
             }

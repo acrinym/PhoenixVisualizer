@@ -1,16 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
-using Avalonia.Markup.Xaml;
-using Avalonia;
-using Avalonia.Layout;
-using Avalonia.Media;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections.Generic;
-
 namespace PhoenixVisualizer.Views
 {
     public partial class PluginInstallationWizard : Window

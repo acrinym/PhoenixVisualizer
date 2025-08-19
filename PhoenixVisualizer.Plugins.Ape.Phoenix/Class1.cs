@@ -1,6 +1,4 @@
-﻿using System;
-using PhoenixVisualizer.PluginHost;
-using System.Collections.Generic; // Added for List and Dictionary
+﻿using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Plugins.Ape.Phoenix;
 

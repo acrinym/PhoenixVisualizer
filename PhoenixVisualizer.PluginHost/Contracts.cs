@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PhoenixVisualizer.PluginHost;
+﻿namespace PhoenixVisualizer.PluginHost;
 
 /// <summary>
 /// Audio features extracted from audio data

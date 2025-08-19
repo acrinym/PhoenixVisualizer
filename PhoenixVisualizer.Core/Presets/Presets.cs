@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 namespace PhoenixVisualizer.Core;
 
 // 🎚️ Minimal preset manager – cycles through presets in the "Presets" folder

@@ -1,6 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Editor.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;

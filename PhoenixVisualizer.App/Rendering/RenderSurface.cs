@@ -1,15 +1,8 @@
-using System;
-using System.Threading;
 using System.Diagnostics;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Media;
-using Avalonia.Threading;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Rendering;
 

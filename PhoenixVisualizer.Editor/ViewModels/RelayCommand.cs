@@ -1,7 +1,3 @@
-using System;
-using System.Windows.Input;
-using Avalonia.Input;
-
 namespace PhoenixVisualizer.Editor.ViewModels;
 
 public class RelayCommand : ICommand
