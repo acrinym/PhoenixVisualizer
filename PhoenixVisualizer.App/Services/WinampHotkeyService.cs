@@ -1,5 +1,6 @@
-using PhoenixVisualizer.Core.Config;
 using System.Text.Json;
+
+using PhoenixVisualizer.Core.Config;
 
 namespace PhoenixVisualizer.Services
 {

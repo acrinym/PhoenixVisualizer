@@ -1,7 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
-using PhoenixVisualizer.Services;
+
 using PhoenixVisualizer.App.Models;
+using PhoenixVisualizer.Services;
 
 namespace PhoenixVisualizer.Views;
 

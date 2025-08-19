@@ -1,6 +1,6 @@
-using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Editor.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
+using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Editor.Views;
 

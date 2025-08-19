@@ -1,4 +1,5 @@
 using Avalonia.Media.Imaging;
+
 using PhoenixVisualizer.Core.Services;
 
 namespace PhoenixVisualizer.Rendering

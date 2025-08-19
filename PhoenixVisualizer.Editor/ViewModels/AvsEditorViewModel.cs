@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Avalonia.Platform.Storage;
+
 using PhoenixVisualizer.Core.Models;
-using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Editor.Services;
 
 namespace PhoenixVisualizer.Editor.ViewModels

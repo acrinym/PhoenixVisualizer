@@ -1,5 +1,5 @@
-using PhoenixVisualizer.Models;
 using PhoenixVisualizer.App.Services;
+using PhoenixVisualizer.Models;
 
 namespace PhoenixVisualizer.Views
 {

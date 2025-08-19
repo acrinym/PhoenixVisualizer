@@ -1,6 +1,7 @@
 // PhoenixVisualizer/PhoenixVisualizer.App/App.axaml.cs
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
+
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Views;

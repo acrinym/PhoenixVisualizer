@@ -1,4 +1,5 @@
 using Avalonia.Controls.Templates;
+
 using PhoenixVisualizer.Editor.ViewModels;
 
 namespace PhoenixVisualizer.Editor;

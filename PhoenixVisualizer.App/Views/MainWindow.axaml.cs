@@ -1,8 +1,8 @@
+using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
-using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.Core.Services;
 
 namespace PhoenixVisualizer.Views;
 

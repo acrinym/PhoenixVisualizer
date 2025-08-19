@@ -1,8 +1,9 @@
 using System.Diagnostics;
+
 using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
-using PhoenixVisualizer.Core.Config;
 
 namespace PhoenixVisualizer.Rendering;
 
