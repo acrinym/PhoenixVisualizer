@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PhoenixVisualizer.Core.Services;
 
 namespace PhoenixVisualizer.Editor.Services
 {
