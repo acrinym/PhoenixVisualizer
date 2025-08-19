@@ -9,6 +9,4 @@ global using Avalonia.Interactivity;
 global using Avalonia.Layout;
 global using Avalonia.Threading;
 global using Avalonia.Markup.Xaml;
-global using System.Windows.Input;
-global using PhoenixVisualizer.Core.Diagnostics;
 global using PhoenixVisualizer.Core;
