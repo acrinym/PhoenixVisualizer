@@ -597,14 +597,12 @@ public sealed class AudioService : IDisposable
             // -1 = default device, 44100 Hz is fine for visualization
             if (!Bass.Init(-1, 44100, DeviceInitFlags.Default))
             {
-                System.Diagnostics.Debug.WriteLine($"[Audio] Bass.Init failed: {Bass.LastError}");
                 return false;
             }
             return true;
         }
-        catch (DllNotFoundException ex)
+        catch (DllNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"[Audio] BASS native DLL missing: {ex}");
             return false;
         }
     }
@@ -652,9 +650,8 @@ public sealed class AudioService : IDisposable
             };
             return info;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"GetFileInfo failed: {ex.Message}");
             return null;
         }
     }
@@ -738,7 +735,6 @@ public sealed class AudioService : IDisposable
             catch (Exception ex)
             {
                 LogToFile($"[AudioService] ReadFft exception: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"AudioService.ReadFft failed: {ex.Message}");
             }
             finally
             {
@@ -828,7 +824,6 @@ public sealed class AudioService : IDisposable
             catch (Exception ex)
             {
                 LogToFile($"[AudioService] ReadWaveform exception: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"AudioService.ReadWaveform failed: {ex.Message}");
             }
             finally
             {
@@ -851,9 +846,8 @@ public sealed class AudioService : IDisposable
                 return Bass.ChannelBytes2Seconds(_playHandle, position);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"AudioService.GetPositionSeconds failed: {ex.Message}");
         }
         
         return 0.0;
@@ -871,9 +865,8 @@ public sealed class AudioService : IDisposable
                 return Bass.ChannelBytes2Seconds(_playHandle, length);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"AudioService.GetLengthSeconds failed: {ex.Message}");
         }
         
         return 0.0;

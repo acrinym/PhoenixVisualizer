@@ -100,8 +100,7 @@ public class GpuAcceleratedRenderer : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"GPU initialization failed: {ex.Message}");
-            Status = GpuAccelerationStatus.Error;
+            throw new InvalidOperationException($"GPU initialization failed: {ex.Message}", ex);
         }
     }
     
@@ -192,7 +191,6 @@ public class GpuAcceleratedRenderer : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"GPU rendering failed: {ex.Message}");
             // Fallback to CPU rendering
             return await RenderFrameCpuAsync(features, canvas, plugin);
         }
@@ -219,7 +217,6 @@ public class GpuAcceleratedRenderer : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"GPU batch rendering failed: {ex.Message}");
             throw;
         }
     }
@@ -240,7 +237,6 @@ public class GpuAcceleratedRenderer : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"CPU rendering failed: {ex.Message}");
             return false;
         }
     }
@@ -323,11 +319,11 @@ public class GpuAcceleratedRenderer : IDisposable
             _config.MaxBatchSize = processorCount >= 8 ? 2000 : 1000; // Larger batches for more cores
             _config.EnableAsyncRendering = processorCount >= 4; // Async for multi-core systems
             
-            System.Diagnostics.Debug.WriteLine($"Optimized GPU renderer: {_config.RenderThreads} threads, batch size {_config.MaxBatchSize}");
+            // Hardware optimization completed successfully
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Hardware optimization failed: {ex.Message}");
+            // Hardware optimization failed silently
         }
     }
     
@@ -345,9 +341,9 @@ public class GpuAcceleratedRenderer : IDisposable
             _gpuInitialized = false;
             Status = GpuAccelerationStatus.NotAvailable;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"GPU cleanup failed: {ex.Message}");
+            // GPU cleanup failed silently
         }
     }
 }

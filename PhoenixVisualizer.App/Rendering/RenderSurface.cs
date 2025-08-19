@@ -62,7 +62,6 @@ public sealed class RenderSurface : Control
     {
         _plugin?.Dispose();
         _plugin = plugin;
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] SetPlugin: {plugin.DisplayName} ({plugin.Id})");
         if (Bounds.Width > 0 && Bounds.Height > 0)
         {
             _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
@@ -88,32 +87,23 @@ public sealed class RenderSurface : Control
 
     public bool Open(string path) 
     {
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Opening audio file: {path}");
         var result = _audio.Open(path);
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Open result: {result}, Status: {_audio.GetStatus()}");
         return result;
     }
     
     public bool Play() 
     {
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Play requested, Status: {_audio.GetStatus()}");
         var result = _audio.Play();
-        if (!result)
-        {
-            System.Diagnostics.Debug.WriteLine("[RenderSurface] Play failed - no audio file loaded or other error");
-        }
         return result;
     }
     
     public void Pause() 
     {
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Pause requested, Status: {_audio.GetStatus()}");
         _audio.Pause();
     }
     
     public void Stop() 
     {
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] Stop requested, Status: {_audio.GetStatus()}");
         _audio.Stop();
     }
 
@@ -290,7 +280,6 @@ public sealed class RenderSurface : Control
         {
             if (_plugin == null)
             {
-                System.Diagnostics.Debug.WriteLine("[RenderSurface] WARNING: _plugin is NULL! Cannot render frame");
                 return;
             }
             
@@ -313,9 +302,9 @@ public sealed class RenderSurface : Control
                 _perfMonitor.RecordFrame(_plugin.Id, renderTimeMs);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"Plugin render failed: {ex}");
+            // Plugin render failed - keep UI responsive
         }
 
         // push position to UI listeners

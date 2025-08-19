@@ -23,9 +23,9 @@ namespace PhoenixVisualizer.Core.Services
         private float _currentRotation = 0.0f;
         private float _currentScale = 1.0f;
         
-        // Performance tracking
-        private readonly Queue<DateTime> _frameTimes = new(60);
-        private double _averageFrameTime;
+        // Performance tracking (EMA for simplicity + stability)
+        private double _averageFrameTime = 0.0; // exponential moving average
+        private const double FrameEmaAlpha = 0.1;
         
         public event EventHandler<AvsRenderEventArgs>? FrameRendered;
         
@@ -90,7 +90,6 @@ namespace PhoenixVisualizer.Core.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error rendering frame: {ex.Message}");
                 return new { success = false, error = ex.Message };
             }
         }
@@ -100,38 +99,34 @@ namespace PhoenixVisualizer.Core.Services
             switch (command.Type)
             {
                 case RenderCommandType.Clear:
-                    // Clear command - just log it for now
-                    System.Diagnostics.Debug.WriteLine($"Clear frame with color: {command.Color}");
+                    // Clear command - no debug output needed
                     break;
                 case RenderCommandType.SetBlendMode:
-                    // Blend mode command - just log it for now
-                    System.Diagnostics.Debug.WriteLine($"Set blend mode: {command.BlendMode} with opacity: {command.Opacity}");
+                    // Blend mode command - no debug output needed
                     break;
                 case RenderCommandType.SetTransform:
                     _currentX = command.X;
                     _currentY = command.Y;
                     _currentRotation = command.Rotation;
                     _currentScale = command.Scale;
-                    System.Diagnostics.Debug.WriteLine($"Set transform: pos=({_currentX}, {_currentY}), rot={_currentRotation}, scale={_currentScale}");
                     break;
                 case RenderCommandType.SetColor:
                     _currentRed = command.Red;
                     _currentGreen = command.Green;
                     _currentBlue = command.Blue;
                     _currentAlpha = command.Alpha;
-                    System.Diagnostics.Debug.WriteLine($"Set color: RGBA({_currentRed}, {_currentGreen}, {_currentBlue}, {_currentAlpha})");
                     break;
                 case RenderCommandType.DrawLine:
-                    System.Diagnostics.Debug.WriteLine($"Draw line: ({command.X1}, {command.Y1}) to ({command.X2}, {command.Y2}) with thickness {command.Thickness}");
+                    // Draw line command - no debug output needed
                     break;
                 case RenderCommandType.DrawCircle:
-                    System.Diagnostics.Debug.WriteLine($"Draw circle: center=({command.X}, {command.Y}), radius={command.Radius}, filled={command.Filled}");
+                    // Draw circle command - no debug output needed
                     break;
                 case RenderCommandType.DrawRectangle:
-                    System.Diagnostics.Debug.WriteLine($"Draw rectangle: pos=({command.X}, {command.Y}), size=({command.Width}, {command.Height}), filled={command.Filled}");
+                    // Draw rectangle command - no debug output needed
                     break;
                 case RenderCommandType.DrawText:
-                    System.Diagnostics.Debug.WriteLine($"Draw text: '{command.Text}' at ({command.X}, {command.Y}) with size {command.FontSize}");
+                    // Draw text command - no debug output needed
                     break;
             }
             
@@ -297,19 +292,8 @@ namespace PhoenixVisualizer.Core.Services
         
         private void UpdateFrameTiming(double frameTime)
         {
-            _frameTimes.Enqueue(DateTime.Now);
-            
-            if (_frameTimes.Count > 60)
-            {
-                _frameTimes.Dequeue();
-            }
-            
-            _averageFrameTime = 0;
-            foreach (var time in _frameTimes)
-            {
-                _averageFrameTime += (DateTime.Now - time).TotalMilliseconds;
-            }
-            _averageFrameTime /= _frameTimes.Count;
+            var ms = frameTime;
+            _averageFrameTime = _averageFrameTime <= 0 ? ms : (_averageFrameTime * (1 - FrameEmaAlpha) + ms * FrameEmaAlpha);
         }
         
         protected virtual void OnFrameRendered(AvsRenderEventArgs e)

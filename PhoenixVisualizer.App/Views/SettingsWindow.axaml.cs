@@ -467,13 +467,12 @@ public partial class SettingsWindow : Window
         try
         {
             // This would typically call the plugin manager to refresh
-            // For now, just log the action
-            System.Diagnostics.Debug.WriteLine("Plugin registry refresh requested");
+            // Plugin registry refresh requested
             await Task.CompletedTask;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"Error refreshing plugin registry: {ex.Message}");
+            // Error refreshing plugin registry silently
         }
     }
     
@@ -881,8 +880,6 @@ public partial class SettingsWindow : Window
     {
         // Simple confirmation using console for now
         // In a real implementation, you'd use a proper dialog
-        System.Diagnostics.Debug.WriteLine($"{title}: {message}");
-        System.Diagnostics.Debug.WriteLine("User would see a dialog here");
         return true; // Assume user confirms for now
     }
 
@@ -896,8 +893,7 @@ public partial class SettingsWindow : Window
         }
         else
         {
-            // Fallback to console output
-            System.Diagnostics.Debug.WriteLine($"Status: {message}");
+            // Fallback to console output - status message not displayed
         }
     }
 

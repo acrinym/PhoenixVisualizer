@@ -24,9 +24,9 @@ namespace PhoenixVisualizer.Editor.Services
         private double _currentOpacity = 1.0;
         private Matrix _currentTransform = Matrix.Identity;
         
-        // Performance tracking
-        private readonly Queue<DateTime> _frameTimes = new(60);
-        private double _averageFrameTime;
+        // Performance tracking (EMA for simplicity + stability)
+        private double _averageFrameTime = 0.0;
+        private const double FrameEmaAlpha = 0.1;
         
         public event EventHandler<AvsRenderEventArgs>? FrameRendered;
         
@@ -55,9 +55,9 @@ namespace PhoenixVisualizer.Editor.Services
                     _renderTarget = new RenderTargetBitmap(pixelSize);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to initialize render target: {ex.Message}");
+                // Keep UI responsive; error surfaced upstream
             }
         }
         
@@ -421,19 +421,8 @@ namespace PhoenixVisualizer.Editor.Services
         
         private void UpdateFrameTiming(double frameTime)
         {
-            _frameTimes.Enqueue(DateTime.Now);
-            
-            if (_frameTimes.Count > 60)
-            {
-                _frameTimes.Dequeue();
-            }
-            
-            _averageFrameTime = 0;
-            foreach (var time in _frameTimes)
-            {
-                _averageFrameTime += (DateTime.Now - time).TotalMilliseconds;
-            }
-            _averageFrameTime /= _frameTimes.Count;
+            var ms = frameTime;
+            _averageFrameTime = _averageFrameTime <= 0 ? ms : (_averageFrameTime * (1 - FrameEmaAlpha) + ms * FrameEmaAlpha);
         }
         
         protected virtual void OnFrameRendered(AvsRenderEventArgs e)

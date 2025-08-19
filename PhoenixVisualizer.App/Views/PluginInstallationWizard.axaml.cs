@@ -110,9 +110,9 @@ namespace PhoenixVisualizer.Views
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error scanning for plugins: {ex.Message}");
+                // Error scanning for plugins silently
             }
             
             return Task.FromResult(count);
@@ -137,7 +137,6 @@ namespace PhoenixVisualizer.Views
             catch (Exception ex)
             {
                 statusText.Text = $"Installation failed: {ex.Message}";
-                Debug.WriteLine($"Plugin installation error: {ex.Message}");
             }
         }
 
@@ -180,7 +179,6 @@ namespace PhoenixVisualizer.Views
             catch (Exception ex)
             {
                 statusText.Text = $"Error browsing files: {ex.Message}";
-                Debug.WriteLine($"File browse error: {ex.Message}");
             }
         }
 
@@ -215,7 +213,6 @@ namespace PhoenixVisualizer.Views
             catch (Exception ex)
             {
                 statusText.Text = $"Installation failed: {ex.Message}";
-                Debug.WriteLine($"Plugin file installation error: {ex.Message}");
             }
         }
 

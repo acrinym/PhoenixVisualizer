@@ -115,10 +115,9 @@ public sealed class CanvasAdapter : ISkiaCanvas
             
             _context.DrawText(formattedText, point);
         }
-        catch (Exception ex)
+        catch
         {
             // Fallback to simple shape if text rendering fails
-            System.Diagnostics.Debug.WriteLine($"Text rendering failed: {ex.Message}, drawing fallback shape");
             var brush = new SolidColorBrush(Color.FromUInt32(color));
             var point = new Point(x, y);
             _context.DrawEllipse(brush, null, point, size/2, size/2);

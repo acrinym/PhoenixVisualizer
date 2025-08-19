@@ -27,9 +27,8 @@ public static class Presets
             {
                 _presetTexts.Add(File.ReadAllText(file));
             }
-            catch (Exception ex) 
+            catch
             { 
-                System.Diagnostics.Debug.WriteLine($"Failed to load preset file {file}: {ex.Message}");
                 /* ignore bad files */ 
             }
         }
@@ -63,8 +62,7 @@ public static class Presets
     {
         if (_surface is null || _index < 0 || _index >= _presetTexts.Count) return;
         
-        // For now, just log that we would apply a preset
+        // For now, just note that we would apply a preset
         // The actual implementation would depend on how the surface is used
-        System.Diagnostics.Debug.WriteLine($"Would apply preset {_index}: {_presetTexts[_index].Substring(0, Math.Min(50, _presetTexts[_index].Length))}...");
     }
 }

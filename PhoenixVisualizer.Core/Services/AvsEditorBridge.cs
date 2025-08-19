@@ -207,8 +207,8 @@ namespace PhoenixVisualizer.Core.Services
                 FPS = _currentEngine.FPS,
                 BPM = _currentEngine.BPM,
                 BeatDetected = _currentEngine.IsBeatDetected,
-                FrameCount = 0, // TODO: Add frame count to engine
-                ErrorCount = 0   // TODO: Add error count to engine
+                FrameCount = (int)_currentEngine.FrameCount,
+                ErrorCount = (int)_currentEngine.ErrorCount
             };
         }
         

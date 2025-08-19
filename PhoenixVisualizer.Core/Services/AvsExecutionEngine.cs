@@ -29,16 +29,20 @@ namespace PhoenixVisualizer.Core.Services
         private bool _beatDetected;
         private float _bpm = 120.0f;
         
-        // Performance tracking
-        private readonly Queue<double> _frameTimes = new(60);
+        // Performance + telemetry
         private double _averageFrameTime;
+        private const double FrameEmaAlpha = 0.1;
+        private long _totalFrames;
+        private long _errorCount;
         
         public event EventHandler<AvsRenderEventArgs>? FrameRendered;
         public event EventHandler<AvsBeatEventArgs>? BeatDetected;
         public event EventHandler<AvsErrorEventArgs>? ErrorOccurred;
         
         public bool IsRunning => _isRunning;
-        public double FPS => _frameTimes.Count > 0 ? 1000.0 / _averageFrameTime : 0.0;
+        public double FPS => _averageFrameTime > 0 ? 1000.0 / _averageFrameTime : 0.0;
+        public long FrameCount => _totalFrames;
+        public long ErrorCount => _errorCount;
         public float BPM => _bpm;
         public bool IsBeatDetected => _beatDetected;
         
@@ -63,6 +67,8 @@ namespace PhoenixVisualizer.Core.Services
                 _isRunning = true;
                 _lastFrameTime = DateTime.Now;
                 _frameCount = 0;
+                _totalFrames = 0;
+                _errorCount = 0;
                 _beatDetected = false;
                 
                 // Initialize variables from preset
@@ -777,19 +783,9 @@ namespace PhoenixVisualizer.Core.Services
         /// </summary>
         private void UpdateFrameTiming(double frameTime)
         {
-            _frameTimes.Enqueue(frameTime);
-            
-            if (_frameTimes.Count > 60)
-            {
-                _frameTimes.Dequeue();
-            }
-            
-            _averageFrameTime = 0;
-            foreach (var time in _frameTimes)
-            {
-                _averageFrameTime += time;
-            }
-            _averageFrameTime /= _frameTimes.Count;
+            var ms = frameTime;
+            _averageFrameTime = _averageFrameTime <= 0 ? ms : (_averageFrameTime * (1 - FrameEmaAlpha) + ms * FrameEmaAlpha);
+            _totalFrames++;
         }
         
         /// <summary>
@@ -986,6 +982,7 @@ namespace PhoenixVisualizer.Core.Services
         
         protected virtual void OnErrorOccurred(AvsErrorEventArgs e)
         {
+            _errorCount++;
             ErrorOccurred?.Invoke(this, e);
         }
         

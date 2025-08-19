@@ -9,7 +9,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
+
 using System.Threading.Tasks;
 using PhoenixVisualizer.Models;
 using PhoenixVisualizer.App.Services;
@@ -195,9 +195,9 @@ namespace PhoenixVisualizer.Views
 
                 FilterPresets();
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error refreshing preset list: {ex.Message}");
+                // Error refreshing preset list silently
             }
         }
 
@@ -250,9 +250,9 @@ namespace PhoenixVisualizer.Views
                     ? content.Substring(0, 500) + "..." 
                     : content;
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error showing preset details: {ex.Message}");
+                // Error showing preset details silently
             }
         }
 
@@ -562,8 +562,7 @@ namespace PhoenixVisualizer.Views
             }
             else
             {
-                // Fallback to console output
-                System.Diagnostics.Debug.WriteLine($"Status: {message}");
+                // Fallback to console output - status message not displayed
             }
         }
     }

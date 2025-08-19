@@ -7,18 +7,28 @@ using PhoenixVisualizer.Core.Config;
 namespace PhoenixVisualizer.Core.Services
 {
     /// <summary>
+    /// Adapter interface for accessibility announcements
+    /// </summary>
+    public interface IAccessibilityAdapter
+    {
+        void Announce(string message);
+    }
+
+    /// <summary>
     /// Service for managing accessibility features and user experience enhancements
     /// </summary>
-    public class AccessibilityService
+    public sealed class AccessibilityService
     {
         private readonly string _configPath;
         private AccessibilitySettings _settings;
         private readonly Dictionary<string, string> _screenReaderTexts;
+        private readonly IAccessibilityAdapter _adapter;
 
         public event Action? OnSettingsChanged;
 
-        public AccessibilityService()
+        public AccessibilityService(IAccessibilityAdapter? adapter = null)
         {
+            _adapter = adapter ?? new NoopAdapter();
             _configPath = Path.Combine(
                 AppContext.BaseDirectory,
                 "config",
@@ -167,8 +177,8 @@ namespace PhoenixVisualizer.Core.Services
             if (ScreenReaderSupport)
             {
                 // This would integrate with the platform's screen reader API
-                // For now, we'll log it for debugging
-                System.Diagnostics.Debug.WriteLine($"[Screen Reader] {text}");
+                // For now, we'll use the adapter
+                _adapter.Announce(text);
             }
         }
 
@@ -243,9 +253,9 @@ namespace PhoenixVisualizer.Core.Services
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load accessibility settings: {ex.Message}");
+                // Failed to load accessibility settings silently
             }
         }
 
@@ -265,9 +275,9 @@ namespace PhoenixVisualizer.Core.Services
                 var json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(_configPath, json);
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to save accessibility settings: {ex.Message}");
+                // Failed to save accessibility settings silently
             }
         }
 
@@ -321,7 +331,7 @@ namespace PhoenixVisualizer.Core.Services
         private void ApplyHighContrastTheme()
         {
             // This would integrate with the theming system
-            System.Diagnostics.Debug.WriteLine("High contrast theme applied");
+            // High contrast theme applied
         }
 
         /// <summary>
@@ -330,7 +340,7 @@ namespace PhoenixVisualizer.Core.Services
         private void ApplyLargeTextMode()
         {
             // This would integrate with the UI scaling system
-            System.Diagnostics.Debug.WriteLine("Large text mode applied");
+            // Large text mode applied
         }
 
         /// <summary>
@@ -339,7 +349,24 @@ namespace PhoenixVisualizer.Core.Services
         private void ApplyReducedMotion()
         {
             // This would integrate with the animation system
-            System.Diagnostics.Debug.WriteLine("Reduced motion applied");
+            // Reduced motion applied
+        }
+
+        /// <summary>
+        /// Announce text using the accessibility adapter
+        /// </summary>
+        public void Announce(string key)
+        {
+            var text = GetScreenReaderText(key);
+            _adapter.Announce(text);
+        }
+
+        /// <summary>
+        /// No-operation adapter for when no accessibility system is available
+        /// </summary>
+        private sealed class NoopAdapter : IAccessibilityAdapter
+        {
+            public void Announce(string message) { /* intentionally noop */ }
         }
     }
 

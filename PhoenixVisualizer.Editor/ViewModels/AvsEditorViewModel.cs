@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Models;
@@ -449,7 +450,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     if (preset != null)
                     {
                         LoadPresetIntoUI(preset);
-                        Debug.WriteLine($"Preset loaded successfully: {preset.Name}");
+                        await ShowInfoAsync($"Preset loaded: {preset.Name}");
                         return;
                     }
                 }
@@ -463,12 +464,12 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 if (avsPreset != null)
                 {
                     LoadPresetIntoUI(avsPreset);
-                    Debug.WriteLine($"AVS preset loaded successfully: {avsPreset.Name}");
+                    await ShowInfoAsync($"Preset loaded: {avsPreset.Name}");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error loading preset: {ex.Message}");
+                await ShowErrorAsync("Failed to load preset", ex);
             }
         }
 
@@ -506,11 +507,11 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     await writer.WriteAsync(avsContent);
                 }
 
-                Debug.WriteLine($"Preset saved successfully: {file.Name}");
+                await ShowInfoAsync($"Preset saved: {file.Name}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error saving preset: {ex.Message}");
+                await ShowErrorAsync("Failed to save preset", ex);
             }
         }
 
@@ -1106,6 +1107,10 @@ namespace PhoenixVisualizer.Editor.ViewModels
         {
             Debug.WriteLine($"Bridge error: {e.Context} - {e.Error.Message}");
         }
+        
+        // Centralized UX helpers
+        private Task ShowInfoAsync(string message) => Task.CompletedTask; // TODO: Implement toast notification
+        private Task ShowErrorAsync(string message, Exception ex) => Task.CompletedTask; // TODO: Implement error dialog
         
         public void Dispose()
         {
