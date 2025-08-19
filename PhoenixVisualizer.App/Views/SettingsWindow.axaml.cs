@@ -508,7 +508,7 @@ public partial class SettingsWindow : Window
 
             PluginListBoxControl?.SetCurrentValue(ListBox.ItemsSourceProperty, pluginInfos);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // TODO: Show error message to user
             // Error logged silently - consider showing user-friendly message
@@ -862,7 +862,7 @@ public partial class SettingsWindow : Window
                 // Plugin testing initiated
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Error testing plugin - consider showing user-friendly message
         }

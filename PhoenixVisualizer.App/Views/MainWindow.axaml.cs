@@ -19,7 +19,6 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core;
 using PhoenixVisualizer.ViewModels;
 using PhoenixVisualizer.Core.Services;
-using Avalonia.Controls; // Canvas type
 
 namespace PhoenixVisualizer.Views;
 
