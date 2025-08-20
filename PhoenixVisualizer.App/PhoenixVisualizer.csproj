@@ -20,6 +20,14 @@
     <Content Include="..\libs\bass.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Copy Winamp visualization plugins to output directory -->
+  <ItemGroup>
+    <Content Include="..\plugins\vis\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>plugins\vis\%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
