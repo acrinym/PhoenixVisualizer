@@ -1,10 +1,10 @@
 # PhoenixVisualizer Development TODO
 
-## 🎯 **Current Status: ✅ WINAMP PLUGIN INFRASTRUCTURE COMPLETE! 🎉 READY FOR AUDIO INTEGRATION!**
+## 🎯 **Current Status: ✅ AVS INTEGRATION PASS 2 COMPLETE! 🎉 READY FOR PASS 3: REAL-TIME RENDERING!**
 
-**✅ WHAT'S DONE**: Complete plugin architecture, audio service, UI, and infrastructure
-**🚫 WHAT'S MISSING**: The actual Winamp visualization engines that users expect
-**🎯 NEXT GOAL**: Transform PhoenixVisualizer into a true Winamp replacement
+**✅ WHAT'S DONE**: Complete plugin architecture, audio service, UI, AVS detection & routing, and native host infrastructure
+**🚫 WHAT'S MISSING**: HWND embedding, AVS module lifecycle (Init/Render/Quit), and real-time output integration
+**🎯 NEXT GOAL**: Complete real-time AVS rendering with native vis_avs.dll integration
 
 ### ✅ **COMPLETED (Phases 1-6)**
 
@@ -96,7 +96,45 @@
   - [x] `presets/milkdrop/` directory for MilkDrop presets
   - [x] BASS extensions and dependencies
 
-### 🚀 **PRODUCTION READY - ALL FEATURES IMPLEMENTED!**
+- [x] **Development Tools & CLI** ✅
+  - [x] Phoenix CLI tool with keyboard-driven menu
+  - [x] Export functionality for ChatGPT analysis
+  - [x] Integrated launcher scripts and utilities
+  - [x] Cross-platform development support
+
+#### **Phase 7: AVS NATIVE INTEGRATION** 🔄 **IN PROGRESS - PASS 2 COMPLETE!**
+- [x] **AVS Preset Detection & Analysis** ✅
+  - [x] `AvsPresetDetector`: Nullsoft AVS 0.2 binary analysis
+  - [x] Component hint extraction (Superscope, Texer, NS-EEL math)
+  - [x] Title/author detection from binary content
+  - [x] Magic number validation ("Nullsoft AVS Preset 0.2")
+
+- [x] **Smart AVS Routing System** ✅
+  - [x] `AvsPresetRouter`: Routes presets to native runtime or fallback
+  - [x] Windows-only native path detection
+  - [x] Graceful fallback to text preset system
+  - [x] Non-crashing error handling with component analysis
+
+- [x] **Native AVS Host Infrastructure** ✅
+  - [x] `NativeAvsHost`: Windows-only vis_avs.dll loader
+  - [x] Module enumeration (Advanced Visualization Studio)
+  - [x] Preset staging to temp files for native runtime
+  - [x] Safe DLL loading with error reporting
+
+- [x] **Enhanced MainWindow with Drag & Drop** ✅
+  - [x] Canvas supports .avs file drops
+  - [x] Import button routes AVS binaries vs text
+  - [x] Clear status messages about missing dependencies
+  - [x] Maintains existing text preset workflow
+
+- [ ] **Real-Time AVS Rendering** 🔄 **PASS 3 - NEXT!**
+  - [ ] HWND embedding for AVS child windows
+  - [ ] AVS module lifecycle (Init/Render/Quit)
+  - [ ] Real-time audio data connection
+  - [ ] Frame output integration with main renderer
+  - [ ] Performance optimization and monitoring
+
+### 🚀 **PRODUCTION READY - AVS DETECTION & ROUTING COMPLETE!**
 
 PhoenixVisualizer is now **fully production ready** with all planned features implemented! You can now:
 
