@@ -23,10 +23,9 @@ internal static class NativeAvsInterop
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate nint GetModuleDelegate(int index); // returns winampVisModule*
 
-    // We don't marshal the full module yet; we just keep a pointer to pass to Init/Render in next pass.
-    // (AVS creates its own child window off hwndParent, so we will embed via HWND next.)
+    // Partial view of winampVisModule (vis.h) sufficient to Init/Render/Quit
     [StructLayout(LayoutKind.Sequential)]
-    internal struct WinampVisModule // partial view for description/hwnd/funcs
+    internal struct WinampVisModule
     {
         public nint description;            // char*
         public nint hwndParent;             // HWND
@@ -42,9 +41,14 @@ internal static class NativeAvsInterop
         public nint spectrumData;           // byte[2][576] (opaque here)
         public nint waveformData;           // byte[2][576] (opaque here)
 
-        public nint Config;                 // void (*Config)(module*)
-        public nint Init;                   // int  (*Init)(module*)
-        public nint Render;                 // int  (*Render)(module*)
-        public nint Quit;                   // void (*Quit)(module*)
-    }
+                 public nint Config;                 // void (*Config)(module*)
+         public nint Init;                   // int  (*Init)(module*)
+         public nint Render;                 // int  (*Render)(module*)
+         public nint Quit;                   // void (*Quit)(module*)
+     }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void ModuleVoidFn(nint module);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate int ModuleIntFn(nint module);
 }

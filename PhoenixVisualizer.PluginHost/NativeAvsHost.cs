@@ -1,11 +1,12 @@
 using System.Runtime.InteropServices;
 using PhoenixVisualizer.Core.Diagnostics;
+using System.Threading;
 
 namespace PhoenixVisualizer.PluginHost;
 
 /// <summary>
 /// Windows-only: load vis_avs.dll, enumerate modules, stage presets.
-/// Pass 3 will embed AVS via HWND + drive Init/Render/Quit.
+/// PASS 3: embed AVS via HWND + drive Init/Render/Quit.
 /// </summary>
 public static class NativeAvsHost
 {
@@ -20,6 +21,11 @@ public static class NativeAvsHost
     private static NativeAvsInterop.WinampVisHeader _hdr;
     private static NativeAvsInterop.GetModuleDelegate? _getModule;
     private static NativeAvsInterop.WinampVisGetHeaderDelegate? _getHeader;
+    private static nint _activeModule;
+    private static NativeAvsInterop.ModuleIntFn? _initFn;
+    private static NativeAvsInterop.ModuleIntFn? _renderFn;
+    private static NativeAvsInterop.ModuleVoidFn? _quitFn;
+    private static Timer? _renderTimer;
 
     /// <summary>Try to load vis_avs.dll (from given path or PATH). Safe, idempotent.</summary>
     public static bool TryLoad(out string message, string? path = null)
@@ -79,6 +85,81 @@ public static class NativeAvsHost
         return list.ToArray();
     }
 
+    /// <summary>
+    /// Initialize the first module and parent its window to the provided HWND. Starts a 60 FPS render loop.
+    /// </summary>
+    public static bool Start(nint hwndParent, string stagedPresetPath, out string message, int sampleRate = 44100, int channels = 2)
+    {
+        message = string.Empty;
+        if (_lib == 0 || _getModule is null)
+        {
+            message = "vis_avs not loaded.";
+            return false;
+        }
+        Stop(); // ensure previous instance is closed
+        try
+        {
+            var modPtr = _getModule(0);
+            if (modPtr == 0) { message = "No AVS module found."; return false; }
+
+            // Marshal module and set fields
+            var mod = Marshal.PtrToStructure<NativeAvsInterop.WinampVisModule>(modPtr);
+            // Set parent HWND / audio params
+            unsafe
+            {
+                var p = (NativeAvsInterop.WinampVisModule*)modPtr;
+                p->hwndParent = hwndParent;
+                p->sRate = sampleRate;
+                p->nCh = channels;
+            }
+
+            // Bind entry points
+            _initFn = Marshal.GetDelegateForFunctionPointer<NativeAvsInterop.ModuleIntFn>(mod.Init);
+            _renderFn = Marshal.GetDelegateForFunctionPointer<NativeAvsInterop.ModuleIntFn>(mod.Render);
+            _quitFn = Marshal.GetDelegateForFunctionPointer<NativeAvsInterop.ModuleVoidFn>(mod.Quit);
+            _activeModule = modPtr;
+
+            // Hint AVS to load preset file: AVS watches its own UI/ini, so simplest path is to set its working dir
+            // and let the user open config. For now we just run the default module; advanced preset injection will follow.
+            var ok = _initFn(_activeModule) != 0;
+            if (!ok) { message = "AVS Init() returned 0."; Stop(); return false; }
+
+            // 60 FPS render loop
+            _renderTimer = new Timer(_ =>
+            {
+                try { _ = _renderFn?.Invoke(_activeModule); }
+                catch { /* swallow frame errors */ }
+            }, null, dueTime: 0, period: 16);
+
+            message = "✅ AVS initialized (HWND embedded).";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            message = $"Failed to start AVS: {ex.Message}";
+            Stop();
+            return false;
+        }
+    }
+
+    public static void Stop()
+    {
+        try
+        {
+            _renderTimer?.Dispose();
+            _renderTimer = null;
+            if (_activeModule != 0 && _quitFn is not null)
+            {
+                try { _quitFn(_activeModule); } catch { /* ignore */ }
+            }
+        }
+        finally
+        {
+            _activeModule = 0;
+            _initFn = null; _renderFn = null; _quitFn = null;
+        }
+    }
+
     /// <summary>Stage preset bytes to a temp file for AVS to load from disk.</summary>
     public static string StagePreset(byte[] presetBytes)
     {
@@ -95,6 +176,7 @@ public static class NativeAvsHost
         {
             _getModule = null;
             _getHeader = null;
+            Stop();
             if (_lib != 0) NativeLibrary.Free(_lib);
         }
         catch { /* ignored */ }

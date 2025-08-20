@@ -254,14 +254,12 @@ public sealed class RenderSurface : Control
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
-        // Use AudioFeaturesImpl.Create() instead of direct constructor
-        var features = AudioFeaturesImpl.Create(
-            _smoothFft,  // fft
-            wave,        // waveform
-            rms,         // rms
-            _bpm,        // bpm
-            beat         // beat
-        );
+        // Create Core AudioFeatures for scheduler
+        var features = new PhoenixVisualizer.Core.Models.AudioFeatures
+        {
+            Rms = rms,
+            Beat = beat
+        };
 
         // Random preset switching via scheduler
         if (_presetScheduler.ShouldSwitch(features, vz))
@@ -280,7 +278,16 @@ public sealed class RenderSurface : Control
             // Start performance monitoring
             _renderStopwatch.Restart();
             
-            _plugin.RenderFrame(features, adapter);
+            // Create PluginHost AudioFeatures for plugin rendering
+            var pluginFeatures = AudioFeaturesImpl.Create(
+                _smoothFft,  // fft
+                wave,        // waveform
+                rms,         // rms
+                _bpm,        // bpm
+                beat         // beat
+            );
+            
+            _plugin.RenderFrame(pluginFeatures, adapter);
             
             // Record performance metrics
             _renderStopwatch.Stop();

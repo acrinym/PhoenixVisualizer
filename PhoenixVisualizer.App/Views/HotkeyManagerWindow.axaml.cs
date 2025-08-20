@@ -12,6 +12,17 @@ public partial class HotkeyManagerWindow : Window
     private readonly ObservableCollection<HotkeyItem> _hotkeyItems;
     private HotkeyItem? _editingItem;
 
+    public HotkeyManagerWindow()
+    {
+        // Default constructor for XAML instantiation
+        _hotkeyService = new WinampHotkeyService(PhoenixVisualizer.Core.Config.VisualizerSettings.Load());
+        _hotkeyItems = new ObservableCollection<HotkeyItem>();
+        
+        AvaloniaXamlLoader.Load(this);
+        WireUpEventHandlers();
+        InitializeHotkeyList();
+    }
+
     public HotkeyManagerWindow(WinampHotkeyService hotkeyService)
     {
         _hotkeyService = hotkeyService;

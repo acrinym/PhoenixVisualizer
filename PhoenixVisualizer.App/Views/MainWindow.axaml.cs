@@ -4,6 +4,10 @@ using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.App.Controls;
+using PhoenixVisualizer.Core.Diagnostics;
+using PhoenixVisualizer.App.Utils;
+using System.Text;
 
 namespace PhoenixVisualizer.Views;
 
@@ -22,6 +26,7 @@ public partial class MainWindow : Window
     private readonly AvsEditorBridge _avsBridge = new();
     private readonly AvsAudioProvider _avsAudio = new();
     private Canvas? _avsCanvas;
+    private AvsHostControl? _avsWin32Host;
 
 
 
@@ -30,7 +35,9 @@ public partial class MainWindow : Window
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
         _renderSurface = this.FindControl<RenderSurface>("RenderHost");
-        _avsCanvas = this.FindControl<Canvas>("AvsCanvasHost");
+        var avsCanvasHost = this.FindControl<Grid>("AvsCanvasHost");
+        _avsCanvas = avsCanvasHost?.FindControl<Canvas>("AvsCanvas");
+        _avsWin32Host = this.FindControl<AvsHostControl>("AvsWin32Host");
         
 
         
@@ -50,6 +57,13 @@ public partial class MainWindow : Window
         catch
         {
             // AVS overlay initialization failed silently
+        }
+
+        // Set up drag and drop for preset files
+        if (avsCanvasHost is not null)
+        {
+            avsCanvasHost.AddHandler(DragDrop.DropEvent, OnPresetDrop, RoutingStrategies.Tunnel);
+            avsCanvasHost.AddHandler(DragDrop.DragOverEvent, OnPresetDragOver, RoutingStrategies.Tunnel);
         }
 
         // Wire runtime UI updates if the render surface is present
@@ -242,7 +256,7 @@ public partial class MainWindow : Window
         
         await Task.Run(() => 
         {
-            var result = surface?.Open(file.Path.LocalPath);
+            var result = surface?.Open(file.RequireLocalPath());
             
             // Show user feedback on the UI thread
             Dispatcher.UIThread.Post(() =>
@@ -280,7 +294,7 @@ public partial class MainWindow : Window
 
                     errorPanel.Children.Add(new TextBlock
                     {
-                        Text = file.Name,
+                        Text = Path.GetFileName(file.RequireLocalPath()),
                         FontSize = 12,
                         TextWrapping = TextWrapping.Wrap
                     });
@@ -354,6 +368,9 @@ public partial class MainWindow : Window
     {
         try
         {
+            // Stop native AVS if running
+            try { NativeAvsHost.Stop(); } catch { /* ignore */ }
+            
             if (RenderSurfaceControl is null)
             {
                 return;
@@ -526,29 +543,38 @@ public partial class MainWindow : Window
             var file = files.Count > 0 ? files[0] : null;
             if (file is null) return;
 
-            await using var stream = await file.OpenReadAsync();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var bytes = ms.ToArray();
+            // Use the extension method to get the local path
+            var filePath = file.RequireLocalPath();
+            var bytes = await File.ReadAllBytesAsync(filePath);
+            await ProcessPresetBytes(bytes, Path.GetFileName(filePath));
+        }
 
+        private async Task ProcessPresetBytes(byte[] bytes, string fileName)
+        {
             // Route AVS binaries vs. our text NS-EEL path
-            var route = AvsPresetRouter.Decide(bytes, file.Name);
+            var route = AvsPresetRouter.Decide(bytes, fileName);
             if (route.Route == AvsRoute.NativeAvs)
             {
-                if (!NativeAvsHost.TryLoad(out var why))
+                if (!NativeAvsHost.TryLoad(out var why, null))
                 {
                     await ShowDialogAsync("PhoenixVisualizer", $"❌ vis_avs.dll not available\n\n{why}");
                     return;
                 }
                 var mods = NativeAvsHost.ListModules();
-                var msg = mods.Length == 0
-                    ? "❌ vis_avs.dll loaded, but provided no modules."
-                    : $"🧩 Using native AVS runtime\n• Modules: {string.Join(", ", mods)}";
                 var stagedPath = NativeAvsHost.StagePreset(bytes);
                 Log.Info($"AVS staged: {stagedPath}");
-                var lbl = this.FindControl<TextBlock>("LblTime");
-                if (lbl != null) lbl.Text = msg;
-                // Pass 3: module Init/Render + HWND embed
+
+                if (_avsWin32Host?.Hwnd is nint hwnd && hwnd != 0)
+                {
+                    if (NativeAvsHost.Start(hwnd, stagedPath, out var msg, 44100, 2))
+                        await ShowToastAsync($"🧩 {msg}");
+                    else
+                        await ShowDialogAsync("PhoenixVisualizer", $"❌ AVS failed to start\n\n{msg}");
+                }
+                else
+                {
+                    await ShowDialogAsync("PhoenixVisualizer", "❌ No native host handle available.");
+                }
                 return;
             }
             if (route.Route == AvsRoute.Unsupported)
@@ -572,7 +598,7 @@ public partial class MainWindow : Window
             if (plug is null) return;
 
             // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
-            if (plug is IVisualizerPlugin visPlugin)
+            if (plug is IVisualizerPlugin visPlugin && RenderSurfaceControl != null)
             {
                 RenderSurfaceControl.SetPlugin(visPlugin);
                 plug.LoadPreset(text);
@@ -740,56 +766,117 @@ public partial class MainWindow : Window
                 statusText.Text = $"❌ Winamp plugin error: {ex.Message}";
             }
         }
-
-        private void OnPresetDragOver(object? sender, DragEventArgs e)
-        {
-            if (e.Data.Contains(DataFormats.Files)) e.DragEffects = DragDropEffects.Copy;
-            else e.DragEffects = DragDropEffects.None;
-        }
-
-        private async void OnPresetDrop(object? sender, DragEventArgs e)
-        {
-            if (!e.Data.Contains(DataFormats.Files)) return;
-            var files = e.Data.GetFiles()?.ToList();
-            if (files is null || files.Count == 0) return;
-
-            await using var stream = await files[0].OpenReadAsync();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var bytes = ms.ToArray();
-
-            var route = AvsPresetRouter.Decide(bytes, files[0].Name);
-            if (route.Route == AvsRoute.NativeAvs)
-            {
-                if (!NativeAvsHost.TryLoad(out var why))
-                {
-                    await ShowDialogAsync("PhoenixVisualizer", $"❌ vis_avs.dll not available\n\n{why}");
-                    return;
-                }
-                var mods = NativeAvsHost.ListModules();
-                var msg = mods.Length == 0
-                    ? "❌ vis_avs.dll loaded, but provided no modules."
-                    : $"🧩 Using native AVS runtime (drop)\n• Modules: {string.Join(", ", mods)}";
-                var stagedPath = NativeAvsHost.StagePreset(bytes);
-                Log.Info($"AVS staged: {stagedPath}");
-                var lbl = this.FindControl<TextBlock>("LblTime");
-                if (lbl != null) lbl.Text = msg;
-                // Pass 3: Init/Render with HWND host
-                return;
-            }
-            if (route.Route == AvsRoute.Unsupported)
-            {
-                await ShowDialogAsync("PhoenixVisualizer", route.Message ?? "❌ AVS preset not supported yet.");
-                return;
-            }
-
-            // Fallback to text path
-            string text;
-            try { text = Encoding.UTF8.GetString(bytes); }
-            catch { text = Encoding.Default.GetString(bytes); }
-            var tb = this.FindControl<TextBox>("TxtPreset");
-            if (tb != null) tb.Text = text;
-            OnExecutePreset(sender, e);
-        }
     }
+
+    private void OnPresetDragOver(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.Files)) e.DragEffects = DragDropEffects.Copy;
+        else e.DragEffects = DragDropEffects.None;
+    }
+
+    private async void OnPresetDrop(object? sender, DragEventArgs e)
+    {
+        if (!e.Data.Contains(DataFormats.Files)) return;
+        var items = e.Data.GetFiles()?.ToList();
+        if (items is null || items.Count == 0) return;
+
+        // Drag-n-drop gives IStorageItem; get local path
+        var item = items[0];
+        var filePath = item.TryGetLocalPath();
+        if (string.IsNullOrEmpty(filePath))
+        {
+            // Skip items without local paths for now
+            return;
+        }
+
+        var bytes = await File.ReadAllBytesAsync(filePath);
+        var displayName = Path.GetFileName(filePath);
+
+        var route = AvsPresetRouter.Decide(bytes, displayName);
+        if (route.Route == AvsRoute.NativeAvs)
+        {
+            if (!NativeAvsHost.TryLoad(out var why, null))
+            {
+                await ShowDialogAsync("PhoenixVisualizer", $"❌ vis_avs.dll not available\n\n{why}");
+                return;
+            }
+            var mods = NativeAvsHost.ListModules();
+            var stagedPath = NativeAvsHost.StagePreset(bytes);
+            Log.Info($"AVS staged: {stagedPath}");
+            if (_avsWin32Host?.Hwnd is nint hwnd && hwnd != 0)
+            {
+                                    if (NativeAvsHost.Start(hwnd, stagedPath, out var msg, 44100, 2))
+                    await ShowToastAsync($"🧩 {msg}");
+                else
+                    await ShowDialogAsync("PhoenixVisualizer", $"❌ AVS failed to start\n\n{msg}");
+            }
+            else
+            {
+                await ShowDialogAsync("PhoenixVisualizer", "❌ No native host handle available.");
+            }
+            return;
+        }
+        if (route.Route == AvsRoute.Unsupported)
+        {
+            await ShowDialogAsync("PhoenixVisualizer", route.Message ?? "❌ AVS preset not supported yet.");
+            return;
+        }
+
+        // Fallback to text path
+        string text;
+        try { text = Encoding.UTF8.GetString(bytes); }
+        catch { text = Encoding.Default.GetString(bytes); }
+        var tb = this.FindControl<TextBox>("TxtPreset");
+        if (tb != null) tb.Text = text;
+        OnExecutePreset(sender, e);
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        // Simple toast implementation - could be enhanced with a proper toast service
+        var lbl = this.FindControl<TextBlock>("LblTime");
+        if (lbl != null) lbl.Text = message;
+        await Task.Delay(3000); // Show for 3 seconds
+    }
+
+    private async Task ShowDialogAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 400,
+            Height = 200,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 10
+        };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 12
+        });
+
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 20, 0, 0)
+            };
+
+        okButton.Click += (_, __) => dialog.Close();
+        panel.Children.Add(okButton);
+        dialog.Content = panel;
+
+        await dialog.ShowDialog(this);
+    }
+
+    private void LogError(string context, Exception ex)
+        => Console.Error.WriteLine($"[PhoenixVisualizer] {context}: {ex.Message}");
 }

@@ -1,10 +1,9 @@
-using PhoenixVisualizer.PluginHost;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace PhoenixVisualizer.Core.Services;
+namespace PhoenixVisualizer.PluginHost.Services;
 
 /// <summary>
 /// Integrates Winamp visualization plugins with the main PhoenixVisualizer system
@@ -99,43 +98,14 @@ public class WinampIntegrationService : IDisposable
             throw new InvalidOperationException("Winamp host not initialized");
         }
 
-        if (plugin == null)
-        {
-            throw new ArgumentNullException(nameof(plugin));
-        }
-
-        if (moduleIndex < 0 || moduleIndex >= plugin.Modules.Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(moduleIndex));
-        }
-
         return await Task.Run(() =>
         {
             try
             {
-                // Deactivate current plugin if any
-                if (_activePlugin != null)
-                {
-                    DeactivateCurrentPlugin();
-                }
-
-                // Initialize the new plugin
-                var plugins = _winampHost.GetAvailablePlugins();
-                var pluginIndex = plugins.ToList().IndexOf(plugin);
-                var success = _winampHost.InitializeModule(pluginIndex, moduleIndex);
-
-                if (success)
-                {
-                    _activePlugin = plugin;
-                    _activeModuleIndex = moduleIndex;
-                    StatusChanged?.Invoke($"✅ Activated plugin: {plugin.FileName} (module {moduleIndex})");
-                    return true;
-                }
-                else
-                {
-                    StatusChanged?.Invoke($"❌ Failed to initialize plugin: {plugin.FileName}");
-                    return false;
-                }
+                _activePlugin = plugin;
+                _activeModuleIndex = moduleIndex;
+                StatusChanged?.Invoke($"✅ Selected plugin: {plugin.FileName} (module {moduleIndex})");
+                return true;
             }
             catch (Exception ex)
             {
@@ -147,105 +117,55 @@ public class WinampIntegrationService : IDisposable
     }
 
     /// <summary>
-    /// Render the active plugin with audio data
+    /// Get the currently active plugin
     /// </summary>
-    public async Task<bool> RenderActivePluginAsync(byte[] spectrumData, byte[] waveformData)
+    public SimpleWinampHost.LoadedPlugin? GetActivePlugin()
     {
-        if (_winampHost == null || _activePlugin == null || !_isInitialized)
-        {
-            return false;
-        }
-
-        return await Task.Run(() =>
-        {
-            try
-            {
-                // Update audio data for the plugin
-                var plugins = _winampHost.GetAvailablePlugins();
-                var pluginIndex = plugins.ToList().IndexOf(_activePlugin);
-                _winampHost.UpdateAudioData(pluginIndex, _activeModuleIndex, spectrumData, waveformData);
-
-                // Render the plugin
-                var success = _winampHost.RenderModule(pluginIndex, _activeModuleIndex);
-                return success;
-            }
-            catch (Exception ex)
-            {
-                ErrorOccurred?.Invoke(ex);
-                return false;
-            }
-        });
+        return _activePlugin;
     }
 
     /// <summary>
-    /// Configure the active plugin
+    /// Get the currently active module index
     /// </summary>
-    public void ConfigureActivePlugin()
+    public int GetActiveModuleIndex()
     {
-        if (_winampHost == null || _activePlugin == null || !_isInitialized)
-        {
-            return;
-        }
-
-        try
-        {
-            var plugins = _winampHost.GetAvailablePlugins();
-            var pluginIndex = plugins.ToList().IndexOf(_activePlugin);
-            _winampHost.ConfigureModule(pluginIndex, _activeModuleIndex);
-            StatusChanged?.Invoke($"⚙️ Configured plugin: {_activePlugin.FileName}");
-        }
-        catch (Exception ex)
-        {
-            ErrorOccurred?.Invoke(ex);
-            StatusChanged?.Invoke($"❌ Error configuring plugin: {ex.Message}");
-        }
+        return _activeModuleIndex;
     }
 
     /// <summary>
-    /// Deactivate the current plugin
+    /// Check if a plugin is currently active
     /// </summary>
-    public void DeactivateCurrentPlugin()
+    public bool IsPluginActive()
     {
-        if (_activePlugin == null || _winampHost == null)
-        {
-            return;
-        }
-
-        try
-        {
-            // Plugin cleanup is handled by SimpleWinampHost.Dispose()
-            _activePlugin = null;
-            _activeModuleIndex = 0;
-            StatusChanged?.Invoke("🔄 Plugin deactivated");
-        }
-        catch (Exception ex)
-        {
-            ErrorOccurred?.Invoke(ex);
-            StatusChanged?.Invoke($"❌ Error deactivating plugin: {ex.Message}");
-        }
+        return _activePlugin != null;
     }
 
     /// <summary>
-    /// Get the plugin directory path
+    /// Get plugin information
     /// </summary>
-    public string GetPluginDirectory()
+    public string? GetPluginInfo()
     {
-        return Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
+        if (_activePlugin == null) return null;
+        return $"{_activePlugin.FileName} - {_activePlugin.Header.Description}";
     }
 
     public void Dispose()
     {
         if (_disposed) return;
-
+        
         try
         {
-            DeactivateCurrentPlugin();
             _winampHost?.Dispose();
-            _disposed = true;
+            _winampHost = null;
+            _activePlugin = null;
         }
-        catch (Exception ex)
+        catch
         {
-            ErrorOccurred?.Invoke(ex);
+            // Ignore disposal errors
+        }
+        finally
+        {
+            _disposed = true;
         }
     }
 }

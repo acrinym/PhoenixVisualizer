@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Core.Services;
+using PhoenixVisualizer.PluginHost.Services;
+using PhoenixVisualizer.App.Utils;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -82,7 +84,7 @@ public partial class WinampPluginManager : Window
         RefreshPluginList();
     }
 
-    private async void OnSelectPluginClick(object? sender, RoutedEventArgs e)
+    private void OnSelectPluginClick(object? sender, RoutedEventArgs e)
     {
         var pluginList = this.FindControl<ListBox>("PluginList");
         if (pluginList?.SelectedItem is string selectedPluginText)

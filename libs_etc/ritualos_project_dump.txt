@@ -1,0 +1,1460 @@
+﻿# Phoenix Visualizer PROJECT STRUCTURE DUMP
+[.\download_bass.ps1]
+# Download BASS Native Libraries for PhoenixVisualizer
+# This script downloads the required native DLLs that ManagedBass depends on
+
+Write-Host "Downloading BASS Native Libraries..." -ForegroundColor Green
+
+$libsDir = "libs"
+if (!(Test-Path $libsDir)) {
+    New-Item -ItemType Directory -Path $libsDir | Out-Null
+}
+
+# BASS Core Library (x64)
+$bassUrl = "https://www.un4seen.com/files/bass24.zip"
+$bassZip = "$libsDir\bass24.zip"
+$bassExtract = "$libsDir\bass24"
+
+Write-Host "Downloading BASS Core..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $bassUrl -OutFile $bassZip
+
+Write-Host "Extracting BASS Core..." -ForegroundColor Yellow
+Expand-Archive -Path $bassZip -DestinationPath $bassExtract -Force
+
+# Copy the x64 DLL to the main libs directory
+$bassDll = "$bassExtract\x64\bass.dll"
+if (Test-Path $bassDll) {
+    Copy-Item $bassDll -Destination "$libsDir\bass.dll" -Force
+    Write-Host "âœ“ BASS Core DLL copied" -ForegroundColor Green
+} else {
+    Write-Host "âœ— BASS Core DLL not found" -ForegroundColor Red
+}
+
+# BASS FX Library (x64)
+$bassFxUrl = "https://www.un4seen.com/files/bass_fx24.zip"
+$bassFxZip = "$libsDir\bass_fx24.zip"
+$bassFxExtract = "$libsDir\bass_fx24"
+
+Write-Host "Downloading BASS FX..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $bassFxUrl -OutFile $bassFxZip
+
+Write-Host "Extracting BASS FX..." -ForegroundColor Yellow
+Expand-Archive -Path $bassFxZip -DestinationPath $bassFxExtract -Force
+
+# Copy the x64 DLL to the main libs directory
+$bassFxDll = "$bassFxExtract\x64\bass_fx.dll"
+if (Test-Path $bassFxDll) {
+    Copy-Item $bassFxDll -Destination "$libsDir\bass_fx.dll" -Force
+    Write-Host "âœ“ BASS FX DLL copied" -ForegroundColor Green
+} else {
+    Write-Host "âœ— BASS FX DLL not found" -ForegroundColor Red
+}
+
+# Clean up temporary files
+Write-Host "Cleaning up..." -ForegroundColor Yellow
+Remove-Item $bassZip -Force -ErrorAction SilentlyContinue
+Remove-Item $bassFxZip -Force -ErrorAction SilentlyContinue
+Remove-Item $bassExtract -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $bassFxExtract -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "`nBASS Libraries downloaded to: $libsDir" -ForegroundColor Green
+Write-Host "Files:" -ForegroundColor Cyan
+Get-ChildItem $libsDir -Name
+
+Write-Host "`nNext steps:" -ForegroundColor Yellow
+Write-Host "1. Copy these DLLs to your output directory" -ForegroundColor White
+Write-Host "2. Or add them to your project as content files" -ForegroundColor White
+Write-Host "3. Build and run PhoenixVisualizer" -ForegroundColor White
+
+
+[.\export_script.ps1]
+$output = "# Phoenix Visualizer PROJECT STRUCTURE DUMP`n`n"
+$files = Get-ChildItem -Recurse -File | Where-Object { 
+    $_.Extension -match "\.(cs|axaml|csproj|json|md|txt|sh|ps1|py|html)$" -and 
+    $_.FullName -notmatch "\\libs\\|\\bin\\|\\obj\\|\\tools\\|\\DreamDictionary\\|\.git\\|\.dotnet\\|\.vscode\\|misc\\|allfiles\.txt|update_.*\.ps1|fix_.*\.ps1|simplify_.*\.ps1|combine_.*\.py|convert_.*\.py|process_.*\.py|capture\.sh|PHASE2_FEATURES\.md|PORTABLE_THEMEBUILDER\.md|project_context\.txt|README_SPRINT.*\.md|RitualOS_TODO\.md|wishlist\.md" 
+} | Sort-Object FullName
+
+foreach ($file in $files) {
+    $relativePath = $file.FullName.Replace((Get-Location).Path + "\", "")
+    $output += "[$relativePath]`n"
+    try {
+        $content = Get-Content $file.FullName -Raw -ErrorAction Stop
+        $output += $content + "`n`n"
+    } catch {
+        $output += "ERROR READING FILE: $($_.Exception.Message)`n`n"
+    }
+}
+
+$output | Out-File -FilePath "ritualos_project_dump.txt" -Encoding UTF8
+Write-Host "Project dump created: Phoenix_Visualizer_project_dump.txt with $($files.Count) files"
+
+
+[.\export_script_fixed.ps1]
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+# Config
+$outputFile = Join-Path (Get-Location) 'ritualos_project_dump.txt'
+
+# Header (here-string avoids backtick/quote escape gotchas)
+$output = @"
+# Phoenix Visualizer PROJECT STRUCTURE DUMP
+
+"@
+
+# Collect files
+$files = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Extension -match '\.(cs|axaml|csproj|json|md|txt|sh|ps1|py|html)$' -and
+        $_.FullName -notmatch '\\(libs|bin|obj|tools|\.git|\.vscode)\\' -and
+        $_.FullName -notmatch 'README_SPRINT.*\.md|RitualOS_TODO\.md|wishlist\.md'
+    } |
+    Sort-Object FullName
+
+# Exclude any prior dump output if present
+$files = $files | Where-Object { $_.FullName -ne $outputFile }
+
+foreach ($file in $files) {
+    $relativePath = try { Resolve-Path -Relative $file.FullName } catch { $file.FullName }
+    $output += "[$relativePath]`r`n"
+    try {
+        $content = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop
+        $output += $content + "`r`n`r`n"
+    } catch {
+        $output += "ERROR READING FILE: $($_.Exception.Message)`r`n`r`n"
+    }
+}
+
+# Write result
+try {
+    $output | Out-File -LiteralPath $outputFile -Encoding utf8
+} catch {
+    Set-Content -LiteralPath $outputFile -Value $output -Encoding utf8
+}
+
+Write-Host "Project dump created: $outputFile with $($files.Count) files"
+
+[.\launch-phoenix.ps1]
+# PhoenixVisualizer Launcher Script
+# This script actually launches PhoenixVisualizer
+
+Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+
+# Change to the project root directory
+$projectRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $projectRoot
+
+# Launch PhoenixVisualizer
+dotnet run --project PhoenixVisualizer.App
+
+
+[.\README.md]
+# PhoenixVisualizer Utility Scripts
+
+This folder contains utility scripts and tools for PhoenixVisualizer development and deployment.
+
+## Scripts
+
+### Export Scripts
+- **`export_script.ps1`** - Basic project structure export script
+- **`export_script_fixed.ps1`** - Enhanced project structure export script with better error handling
+
+### Launcher Scripts
+- **`run-phoenix.ps1`** - PhoenixVisualizer function library (aliases and functions)
+- **`launch-phoenix.ps1`** - Working PhoenixVisualizer launcher script
+
+### Root Directory Launchers
+- **`run.ps1`** - PowerShell launcher (direct dotnet call)
+- **`run.bat`** - Batch launcher (direct dotnet call)
+- **`run-direct.cmd`** - Direct CMD launcher (no PowerShell dependency)
+
+### CLI Tool (Recommended!)
+- **`phoenix`** - Batch launcher for PhoenixVisualizer CLI menu
+- **`phoenix.ps1`** - PowerShell launcher for PhoenixVisualizer CLI menu
+- **`tools/phoenix-cli/`** - CLI tool source code and project
+
+### Library Scripts
+- **`download_bass.ps1`** - Downloads and installs BASS audio library
+
+## Usage
+
+### From Root Directory
+```powershell
+# PhoenixVisualizer CLI Menu (Recommended!)
+.\phoenix
+# or
+.\phoenix.ps1
+
+# Traditional launchers
+.\run.ps1
+.\run.bat
+.\run-direct.cmd
+```
+
+### From libs_etc Directory
+```powershell
+# Export project structure
+.\export_script_fixed.ps1
+
+# Run PhoenixVisualizer (working launcher)
+.\launch-phoenix.ps1
+
+# Load PhoenixVisualizer functions and aliases
+.\run-phoenix.ps1
+
+# Download BASS library
+.\download_bass.ps1
+```
+
+## Organization
+
+All utility scripts are kept in this folder to maintain a clean root directory structure. The root directory contains only:
+- Project files (.sln, .csproj)
+- Documentation (.md files)
+- Source code directories
+- Configuration files
+
+## Notes
+
+- Scripts in the root directory are simple launchers that call the actual scripts in `libs_etc`
+- This keeps the root clean while maintaining easy access to utilities
+- All scripts use relative paths to work from any location
+
+
+[.\run.ps1]
+Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+dotnet run --project PhoenixVisualizer.App
+Read-Host "Press Enter to continue..."
+
+
+[.\run-phoenix.ps1]
+# PhoenixVisualizer PowerShell Launcher
+# Source this file to add convenient aliases
+
+function Start-PhoenixVisualizer {
+    Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+    dotnet run --project PhoenixVisualizer.App
+}
+
+function Start-PhoenixEditor {
+    Write-Host "âœï¸ Starting PhoenixVisualizer Editor..." -ForegroundColor Blue
+    dotnet run --project PhoenixVisualizer.Editor
+}
+
+# Create aliases
+Set-Alias -Name phoenix -Value Start-PhoenixVisualizer
+Set-Alias -Name phoenix-editor -Value Start-PhoenixEditor
+
+Write-Host "âœ… PhoenixVisualizer aliases loaded!" -ForegroundColor Green
+Write-Host "Use 'phoenix' to run the main app" -ForegroundColor Yellow
+Write-Host "Use 'phoenix-editor' to run the editor" -ForegroundColor Yellow
+Write-Host "Use 'Start-PhoenixVisualizer' for the full function name" -ForegroundColor Yellow
+
+
+[.\WAMPSDK\in_raw\README.TXT]
+There are actually two examples here, a tone generator and a RAW
+player. Remove main.c from the project, and add in_raw or in_tone to
+try it out..
+
+-J
+
+
+[.\WAMPSDK\lang_b\TIPS.TXT]
+Note that these keyboard shortcuts are a good starting point, but this list
+is far from complete. :)
+
+******* Keyboard Shortcuts (these can be used in most Winamp windows) *******
+
+Key		Action
+-----------------------------------------------------------------------------
+F1		Open Help
+Ctrl+F1		About Box
+Ctrl+A		Toggle Always on Top (N/A in playlist editor and media library)
+Ctrl+Alt+A		Toggle always on top (playlist editor)
+Ctrl+W		Toggle Windowshade mode (main window, unless in playlist editor)
+Ctrl+D		Toggle Doublesize Mode
+Ctrl+E		Toggle Easymove (only applicable in classic skins)
+Ctrl+T		Toggle Time Display Mode 
+Alt+W		Toggle Main Window
+Alt+E		Toggle Playlist Editor
+Alt+G		Toggle Graphical Equalizer
+Alt+V		Toggle Video Window
+Alt+L		Toggle Media Library
+Ctrl+Tab		Cycle through different Winamp windows
+Alt+S		Go to Skin selection
+Ctrl+P		Go to Preferences
+Alt+F		Open Main Menu
+Alt+K		Configure current visualization plug-in
+Ctrl+Sh+K		Start/stop current visualization plug-In
+Ctrl+K		Open visualization plug-in section of preferences
+Ctrl+J		Jump to time in current track
+J or Keypad .	Open jump-to-file box
+Ctrl+Alt+N		Spawn new Winamp instance
+Alt+M		Minimize Winamp
+Ctrl+H		Show recently played files/streams (History :)
+
+
+******* Main Window Keyboard Shortcuts *******
+
+Key		Action
+-----------------------------------------------------------------------------
+(options/toggles)
+R		Toggle Repeat
+S		Toggle Shuffle
+
+Alt+3		Current file info box/tag editor
+
+(playback controls)
+Z		Previous Track
+X		Play/Restart/Unpause
+C		Pause/Unpause
+V		Stop
+Shift+V		Stop with Fadeout
+Ctrl+V		Stop after current track
+B		Next Track
+L		Open/Play File
+Ctrl+L		Open/Play location
+Shift+L		Open/Play Directory
+
+Left Arrow	Rewind 5 seconds
+Right Arrow	Fast-forward 5 seconds
+Up Arrow		Turn Volume Up
+Down Arrow	Turn Volume Down
+
+Keypad 1		Jump Ten Songs Back
+Keypad 6		Next Track
+Keypad 5		Play/Restart/Unpause
+Keypad 4		Previous Track
+Keypad 3		Jump Ten Songs Forward
+Keypad 7		Rewind 5 seconds
+Keypad 9		Fast-forward 5 seconds
+Keypad 8		Turn Volume Up
+Keypad 2		Turn Volume Down
+Keypad 0		Open/Play File
+Ctrl+Keypad 0	Open/Play location
+Insert		Open/Play Directory
+
+
+******* Playlist Window Keyboard Shortcuts *******
+
+Key		Action
+-----------------------------------------------------------------------------
+R		Toggle Repeat
+S		Toggle Shuffle
+
+(file io)
+L		Add File
+Ctrl+L		Add Location
+Shift+L 	Add Directory
+Ctrl+N		New (Clear) Playlist
+Ctrl+O		Open (Load) Playlist
+Ctrl+S		Save Playlist
+Alt+3		View/Edit Track Info for selected track(s)
+Ctrl+E		Edit Selected Track Filename(s)
+Ctrl+Keypad 0	Add Location
+Insert		Add Directory
+
+(playlist manipulation)		
+Ctrl+A		Select All
+Ctrl+I		Invert Selection
+Delete		Remove Selected Files from Playlist
+Ctrl+Delete	Crop Playlist
+Ctrl+Sh+Del	Clear Playlist (same as Ctrl+N)
+
+Alt+Down Arrow	Move Selected Files Down
+Alt+Up Arrow	Move Selected Files Up
+
+Down Arrow	Move Cursor Down
+Up Arrow		Move Cursor Up
+Enter		Play Selected File
+End		Jump to End of List
+Home		Jump to Start of List
+Page Up		Move up by a fifth of a page
+Page Down	Move down by a fifth of a page
+
+Alt+Delete	Remove missing files from playlist
+
+(playlist sorting)
+Ctrl+Sh+1		Sort Playlist by Title
+Ctrl+Sh+2		Sort Playlist by File Name
+Ctrl+Sh+3		Sort Playlist by File Path and Name
+Ctrl+R		Reverse Playlist
+Ctrl+Sh+R	Randomize Playlist
+
+Most main window playback controls also work in the playlist editor.
+
+
+******* Equalizer Keyboard Shortcuts (Classic skins only) *******
+
+Key		Action
+-----------------------------------------------------------------------------
+1 - 0		Increase EQ bands 1-10
+Q - P		Decrease EQ bands 1-10
+`		Increase EQ Preamp
+TAB		Decrease EQ Preamp
+N		Toggle EQ Enabled
+A		Toggle EQ Auto-Loading
+S		Open Presets Menu
+Ctrl+S		Load Preset
+
+
+
+[.\WAMPSDK\out_raw\readme.txt]
+This mini SDK demonstrates the base structure of an output plug-in for Winamp.
+Much like Disk Writer, RAW Writer takes an input file and converts it to the 
+output format; in this case, the RAW format.  It bypasses playback and writes the 
+output file as quickly as the input file can be decoded.  I hope this has helped.
+
+-Denzil
+
+
+[.\WAMPSDK\readme.txt]
+Winamp 5 SDK
+------------
+
+This ZIP file contains various SDKs for creating new plugins for Winamp 5.
+
+Here's a description of the various folders:
+
+/dsp_test - Sample code for a DSP test plugin
+
+/gen_ml - Headers and IPC calls for accessing/controlling/querying the Media 
+          Library
+
+/gen_ml/ml_ex - Sample code for a Media Library plugin
+
+/gen_tray - Sample code for a General Purpose plugin
+
+/in_raw - Sample code for an Input plugin
+
+/lang_b - Sample code for a Language Pack plugin
+
+/maki - Compiler for building Maki binaries
+
+/out_raw - Sample code for an Output plugin
+
+/vis/vis_avs/apesdk - Sample code for an AVS APE plugin
+
+/vis/vis_avs/ns-eel - Nullsoft Expression Evaluator Library (NS-EEL)
+                      This is what powers AVS's expression evaluators, feel free
+                      to include/modify the code in your own AVS APE plugins
+
+The AVS source tree above (`vis/vis_avs`) is the canonical location in this
+repository. Older copies under `vis/avs` have been removed.
+
+/vis/vis_test - Sample code for a Visualisation plugin
+
+/vis/wa5vis.txt - Describes how to embed your visualisation plugin in the 
+                  Winamp 5 drawer
+
+/winamp - Headers and IPC calls for controlling Winamp
+
+
+[.\WAMPSDK\vis\avs\vis_avs\vis_avs.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Nullsoft Advanced Visualization Studio (AVS) v2.0a4 README
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Nullsoft Advanced Visualization Studio (AVS) is Winamp's visualization
+plugin. It lets you load community presets or create your own to
+generate real-time graphics reacting to your music. AVS is distributed
+under a BSD-style license permitting modification and redistribution as
+outlined above.
+
+Thanks to Paul Holden for the FunkyFX Firewurx APE  
+
+Once you install this baby, fire up Winamp, open up the preferences 
+(CTRL+P), go to the Plugins/Visualization section, and select 
+Nullsoft AVS as the visualization plug-in. Hit start. 
+
+Once the AVS opens, it will probably be showing a nice black output.
+To get AVS to display something more interesting, hit space, or right
+click in the black area and select a preset to load.
+
+If you want to create your own presets, click the left mouse button in 
+the black area of the window to bring up the AVS Editor window.
+
+The editor lets you create new visuals by adding effects from your Effect
+Library (in the upper right) to the Active Effect list (on the left side).
+Once you've added effects, you can configure each effect by selecting them
+from the Active Effect list. You can also clear the list, or load or save
+the list to be loaded later as a preset. 
+
+You can also configure some of AVS's settings by selecting items from the 
+Settings section of the Editor. 
+
+Hotkeys for main window:
+ *  Any winamp key
+ *  R toggles randomswitching
+ *  F toggles fullscreen framerate counter
+ *  Y and U cycle through presets in order
+ *  Space goes to random preset
+ *  Enter toggles fullscreen
+ *  0,1-9, F1-F10 load presets
+ *  Ctrl+above save presets
+
+That's it for now, and enjoy!
+
+
+Version history:
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+and before:
+
+Started out as wVis 5.0. Started out pretty lame.
+
+[.\WAMPSDK\vis\README.md]
+# vis_avs - Advanced Visualization Studio
+
+## Description
+
+Advanced Visualization Studio (AVS), is a music visualization plugin for Winamp. It was designed by Winamp's creator, Justin Frankel. AVS has a customizable design which allows users to create their own visualization effects, or "presets". AVS was made open source software in May 2005, released under a BSD-style license. â€”[Wikipedia](http://en.wikipedia.org/wiki/Advanced_Visualization_Studio)
+
+**Note:** The canonical location of the AVS source code is `vis/vis_avs`. Any
+previous copies under `vis/avs` have been removed.
+
+## Notes
+
+What follows is a reformatted copy from the original `readme.txt` which came with the source code.
+
+> [DrO](http://forums.winamp.com/member.php?s=&action=getinfo&userid=122037) has updated v2.81b to v2.81d by changing a few files, as he posted [here](http://forums.winamp.com/showthread.php?postid=2054764#post2054764)  
+>
+> This file you have here is the sourcecode from [nullsoft.com](http://www.nullsoft.com/free/avs/) (v2.81b), with the few files from [vis_avs_changed.zip](http://www.nunzioweb.com/daz/temp/avs/vis_avs_changed.zip) (2.81d) overwritten over v2.81b  >
+> Since DrO's download location sais that it's temporary, I've put this file up as a backup for his server and to have a complete file.  
+>
+> If you have questions or comments, the AVS forums are over [here](http://forums.winamp.com/forumdisplay.php?s=&forumid=85)  
+>
+> Keep in mind though, that there is currently only little, if any, development going on over there. If you have suggestions, your best chances are to make a start and post your results there with your questions, rather than to ask 'us' to do it, as none of  us are Nullsoft employees.  
+>
+> You'll also need the Winamp SDK. Search the forums for the lastest version.  
+>
+> Greetings,  
+> 'Warrior of the Light'  
+> http://Warrior-of-the-Light.net  
+> [email hidden]
+
+## License
+
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+[.\WAMPSDK\vis\vis_avs\evallib\readme.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+  Expression evaluation library v1.0 - by lone
+  --------------------------------------------
+
+
+    How to use
+    ~~~~~~~~~~
+
+ 
+      ¦ resetVars
+      -----------
+
+      void resetVars(void);
+
+      Resets the variables table. It is necessary to call it prior to evaluate your first
+      expression or variables contents may be random instead of zero
+
+
+      ¦ evaluate
+      ----------
+
+      double evaluate(char *expression, int *col);
+
+      Evaluates an expression and returns the result.
+      If a syntax error was encountered during the parsing of the expression, then col will
+      be non-null and col-1 will be the index of the char which triggered the error.
+
+
+    Limitations
+    ~~~~~~~~~~~
+
+       ¦ you can set only up to 1024 variables.
+       ¦ only decimal and hexadecimal bases available
+       ¦ operators are limited to :
+               + - / * % & | 
+       ¦ functions are limited to :
+               sin, cos, tan,
+               asin, acos, atan,
+               atan2, sqr, sqrt,
+               pow, exp, log, log10
+
+
+    Some examples
+    ~~~~~~~~~~~~~
+
+      - assignments :
+
+               pi=3.1415927
+               a=atan2(cos(pi/4),2)
+
+      - direct evaluations :
+
+               cos(pi/4)
+               sin(45)
+
+      - base notations :
+
+               3bh      (this is 0x3B)
+               17d      (this is 17)   
+               17dh     (this is 0x17D) 
+
+
+    Adding new functions
+    ~~~~~~~~~~~~~~~~~~~~
+
+       The file EVAL.C contains the functions table (fnTable). Just add an entry with the name,
+       the number of parameters, and a pointer to the function body. Implement the body and
+       you're done. If your function ahs more than 2 parameters, you'll need to extend the grammar
+       description file (CAL.Y) to add the FUNCTION3 (and eventually subsequent) token(s) and
+       parsing informations.
+
+    SCAN.L & CAL.Y
+    ~~~~~~~~~~~~~~
+
+       SCAN.L contains description for the lexical analyzer generator (LEX). Use makel.bat to rebuild
+              LEXTAB.C
+       CAL.Y  contains the LALR formal grammar description for the parser generator (BISON). Use makey.bat
+              to rebuild CAL_TAB.C
+
+
+    Compiling
+    ~~~~~~~~~
+
+       Just include all source files to your project, and include EVAL.H into your main source code.
+
+
+[.\WAMPSDK\vis\vis_avs\LICENSE.TXT]
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+[.\WAMPSDK\vis\vis_avs\vis_avs.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Nullsoft Advanced Visualization Studio (AVS) v2.0a4 README
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Nullsoft Advanced Visualization Studio (AVS) is Winamp's visualization
+plugin. It lets you load community presets or create your own to
+generate real-time graphics reacting to your music. AVS is distributed
+under a BSD-style license permitting modification and redistribution as
+outlined above.
+
+Thanks to Paul Holden for the FunkyFX Firewurx APE  
+
+Once you install this baby, fire up Winamp, open up the preferences 
+(CTRL+P), go to the Plugins/Visualization section, and select 
+Nullsoft AVS as the visualization plug-in. Hit start. 
+
+Once the AVS opens, it will probably be showing a nice black output.
+To get AVS to display something more interesting, hit space, or right
+click in the black area and select a preset to load.
+
+If you want to create your own presets, click the left mouse button in 
+the black area of the window to bring up the AVS Editor window.
+
+The editor lets you create new visuals by adding effects from your Effect
+Library (in the upper right) to the Active Effect list (on the left side).
+Once you've added effects, you can configure each effect by selecting them
+from the Active Effect list. You can also clear the list, or load or save
+the list to be loaded later as a preset. 
+
+You can also configure some of AVS's settings by selecting items from the 
+Settings section of the Editor. 
+
+Hotkeys for main window:
+ *  Any winamp key
+ *  R toggles randomswitching
+ *  F toggles fullscreen framerate counter
+ *  Y and U cycle through presets in order
+ *  Space goes to random preset
+ *  Enter toggles fullscreen
+ *  0,1-9, F1-F10 load presets
+ *  Ctrl+above save presets
+
+That's it for now, and enjoy!
+
+
+Version history:
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+and before:
+
+Started out as wVis 5.0. Started out pretty lame.
+
+[.\WAMPSDK\vis\vis_avs\whatsnew.txt]
+-francis:
+added floor(), ceil() and $Phi
+added "cancel fullscreen on deactivation" toggle option
+
+-mig:
+added example infrastructure to dmove.  :)
+now there are 8 examples in dmove.  also tuned up my beat-interpolation algos!  woo!
+
+-justin
+added blend modes to misc / buffer save
+made config expand trees by default
+
+-mig:
+started work on undo/redo system.
+infrastructure seems to work, but I can't figure out the magical
+  incantation to make the UI reflect the newly altered render list
+  although it seems to actually go back to the last values in the renderer.
+"Do you want to save?" dirty flag now contained (mostly) in the undo object.
+(In fact, it saves a dirty bit for every undo state, so you can undo twice,
+  save, then redo and you should have your dirty bit still set.  If you then
+  undo yet again, you're back to what you saved and you have no dirty bit)
+added more examples to SuperScope
+
+-justin:
+fixed memory leak in evallib stuff I made a bit back
+added debug window, moved register watch to it, added error listing
+added option for clear variables on recompile in debug window
+fixed bugs, too.
+
+-justin:
+started adding setting for reinit on edit for evallib stuff
+made config change detection a little more accurate
+made superscope/dmove/shift/etc reinit on edit work right
+made trans / movement only replace usereval with preseteval if editted
+fyi: trans / movement also provides 'sw' and 'sh' for screen width and height,
+  so things like 'd=d*0.93 + (((x*sw/2)&(y*sh/2)&1)*-0.3);' are fun :)
+fixed trans / movement backwards compatible stuff (no crashy at least)
+updated eval documentation stuff, need people to write docs for it, too.. heheh
+lots of ui cleanups (more edit room!)
+fixed some fullscreen new fbresize bugs
+updated fullscreen overlay mode some
+updated maximum local variables to 256 from 64 
+added global registers [reg00,reg01,... reg99] for debug 
+  and effect synchronization (or inter-preset communication) 
+added global register watch in root list window (for debugging) 
+added comments for eval code. // and /* bla */ 
+updated eval documentation 
+added gettime() function to eval 
+made annoying grey rectangle below tree go away when you aren't docked 
+added new color modifier effect, which can be used to replace 
+  (with script) a lot of different effects (and be faster and more flexible). 
+added 'minimum blend' mode for effect lists/line drawing 
+added 'round up' option for Blur. 
+made a generic avs directory scanner routine for subdirs (yay!)
+   made it only generate menus when opened, for speed
+made effects that use evallib reset variables to empty on recompile
+made avs track dirtiness of presets, and (optionally) prompt to save etc
+made avs resize images when resizing (optionally)
+added extended APE interface, that lets you access evallib, global registers,
+  line blend/width modes. (see apesdk.zip)
+
+
+
+
+- mig: made most of the presets in Trans/Movement show their algos in the edit field (so you can tune them yourself)
+       added multiple new algos to the preset list
+
+- mig: removed ability to RMB in fullscreen mode.  Bug 331 from the database.  want make new gui.  want make now.
+- basu: added 'onbeat enabled' option to lists
+- christophe: added thread priority settings (so you can set avs in idle prority while keeping winamp in
+  high prio.)
+2.0a7:
+- made better multimonitor support -- still needs more work (making it able to go fullscreen and you do other things
+2.0a6:
+- added 'skip first' in misc/custom bpm
+- added interferences effect
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+-lone :		added Trans / Invert
+			added Trans / Unique tone
+			added Render / Timescope
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+
+[.\WAMPSDK\vis\wa5vis.txt]
+Winamp 5 VIS Drawer API
+-----------------------
+
+
+Here are the steps to get your visualization plugin in the Winamp 5 drawer :
+
+1) Create an embedded window to serve as a parent for your vis Wnd using the Winamp 5 Embedded Window SDK :
+
+HWND parent = NULL;
+HWND (*e)(embedWindowState *v);
+*(void**)&e = (void *)SendMessage(this_mod->hwndParent,WM_WA_IPC,(LPARAM)0,IPC_GET_EMBEDIF);
+if (e) parent = e(&myWindowState);
+
+2) Create your vis window (say, g_hwnd) for your vis plugin, using the embedded window as a parent.
+
+3) BEFORE showing your parent window, notify Winamp that you are a VIS window :
+
+SendMessage(this_mod->hwndParent, WM_WA_IPC, (int)g_hwnd, IPC_SETVISWND);
+ShowWindow(parent, SW_SHOWNA);
+
+4) When your plugin is asked to terminate, notify winamp that the VIS has gone away :
+
+SendMessage(g_mod->hwndParent, WM_WA_IPC, NULL, IPC_SETVISWND);
+
+5) From now on, your vis is going to be automatically inserted in the drawer, and your window (the one you sent to winamp
+using SETVISWND) is going to receive commands when the user clicks in the vis buttons (ie, next/previous/random, etc). You 
+should implement these commands by trapping WM_COMMAND:
+
+case WM_COMMAND: {
+  int id = LOWORD(wParam);
+  switch (id) {
+
+    // user clicked on 'next' preset button
+    case ID_VIS_NEXT: next_preset(); break;
+
+    // user clicked on 'previous' preset button
+    case ID_VIS_PREV: previous_preset(); break;
+
+    // user clicked on 'random' togglebutton
+    case ID_VIS_RANDOM: {
+      // determine if we're switching random on or off or if Winamp is asking us about the state of our random flag
+      int v = HIWORD(wParam) ? 1 : 0; 
+
+      // are we being asked about the state of our random flag ?
+      if (wParam >> 16 == 0xFFFF) {
+        // tell winamp about our state
+        SendMessage(g_mod->hwndParent,WM_WA_IPC,random_presets_flag,IPC_CB_VISRANDOM);
+        break;
+      }
+      
+      // changes random_preset_flag 
+      set_random(v); 
+
+      // if we are turning random on, we should switch to a new random preset right away
+      if (v) load_random_preset();
+
+      break;
+    }
+    case ID_VIS_FS: go_fullscreen(); break;
+    case ID_VIS_CFG: open_configuration(); break;
+    case ID_VIS_MENU: open_popup_menu(); break;
+  }
+  break;
+}
+
+6) Before turning fullscreen on, you should check wether video is already fullscreen or not :
+
+if (SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_IS_PLAYING_VIDEO)>1) 
+{
+  cant_go_fullscreen_dlg();
+}
+
+7) You're almost done, the last thing to do is to notify Winamp when you go fullscreen :
+
+go_fullscreen() 
+{
+  if (SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_IS_PLAYING_VIDEO)>1) 
+  {
+    cant_go_fullscreen_dlg();
+  }
+  else
+  {
+    SendMessage(g_mod->hwndParent,WM_WA_IPC,1,IPC_SET_VIS_FS_FLAG);
+
+    ... now do the work of actually going fullscreen ...
+
+  }
+}
+
+go_windowed()
+{
+  SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_SET_VIS_FS_FLAG);
+
+  ... now do the work of going back to windowed mode ...
+
+}
+
+
+That should be all. Feel free to send your questions to francis@winamp.com
+
+
+

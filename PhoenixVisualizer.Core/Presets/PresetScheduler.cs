@@ -1,5 +1,5 @@
 using PhoenixVisualizer.Core.Config;
-using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core;
 
