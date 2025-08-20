@@ -1,22 +1,17 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.PluginHost.Services;
-using PhoenixVisualizer.App.Utils;
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace PhoenixVisualizer.Views;
 
 public partial class WinampPluginManager : Window
 {
     private WinampIntegrationService? _integrationService;
-    private List<string> _plugins = new();
+    private readonly List<string> _plugins = new();
     
     public WinampPluginManager()
     {
@@ -89,11 +84,13 @@ public partial class WinampPluginManager : Window
 
     private void OnRefreshClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         RefreshPluginList();
     }
 
     private void OnSelectPluginClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         var pluginList = this.FindControl<ListBox>("PluginList");
         if (pluginList?.SelectedItem is string selectedPluginText)
         {
@@ -120,6 +117,7 @@ public partial class WinampPluginManager : Window
 
     private void OnConfigureClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         var pluginList = this.FindControl<ListBox>("PluginList");
         if (pluginList?.SelectedItem is string selectedPluginText)
         {
@@ -142,6 +140,7 @@ public partial class WinampPluginManager : Window
 
     private void OnTestClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         var pluginList = this.FindControl<ListBox>("PluginList");
         if (pluginList?.SelectedItem is string selectedPluginText)
         {

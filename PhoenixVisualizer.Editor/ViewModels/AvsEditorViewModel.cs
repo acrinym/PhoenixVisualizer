@@ -919,7 +919,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             }
         }
 
-        private async void TestPreset()
+        private void TestPreset()
         {
             _ = TestPresetAsync(); // Fire and forget for backward compatibility
         }
@@ -1088,7 +1088,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             }
         }
 
-        private async void SendToMainWindow()
+        private void SendToMainWindow()
         {
             _ = SendToMainWindowAsync(); // Fire and forget for backward compatibility
         }

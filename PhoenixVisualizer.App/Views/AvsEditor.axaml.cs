@@ -18,15 +18,16 @@ namespace PhoenixVisualizer.Views
 
         private async void OnLoadFile(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var options = new FilePickerOpenOptions
             {
                 Title = "Load AVS File",
                 AllowMultiple = false,
-                FileTypeFilter = new List<FilePickerFileType>
-                {
-                    new FilePickerFileType("AVS Files") { Patterns = new[] { "*.avs", "*.txt" } },
-                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
-                }
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("AVS Files") { Patterns = ["*.avs", "*.txt"] },
+                    new FilePickerFileType("All Files") { Patterns = ["*.*"] }
+                ]
             };
 
             var files = await StorageProvider.OpenFilePickerAsync(options);
@@ -61,6 +62,7 @@ namespace PhoenixVisualizer.Views
 
         private async void OnSaveFile(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var codeEditor = this.FindControl<TextBox>("CodeEditor");
             if (codeEditor == null) return;
 
@@ -68,11 +70,11 @@ namespace PhoenixVisualizer.Views
             {
                 Title = "Save AVS File",
                 DefaultExtension = "avs",
-                FileTypeChoices = new List<FilePickerFileType>
-                {
-                    new FilePickerFileType("AVS Files") { Patterns = new[] { "*.avs" } },
-                    new FilePickerFileType("Text Files") { Patterns = new[] { "*.txt" } }
-                }
+                FileTypeChoices =
+                [
+                    new FilePickerFileType("AVS Files") { Patterns = ["*.avs"] },
+                    new FilePickerFileType("Text Files") { Patterns = ["*.txt"] }
+                ]
             };
 
             var file = await StorageProvider.SaveFilePickerAsync(options);
@@ -98,6 +100,7 @@ namespace PhoenixVisualizer.Views
 
         private void OnClear(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var codeEditor = this.FindControl<TextBox>("CodeEditor");
             if (codeEditor != null)
             {
@@ -116,6 +119,7 @@ namespace PhoenixVisualizer.Views
 
         private void OnTestPreset(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var codeEditor = this.FindControl<TextBox>("CodeEditor");
             if (codeEditor == null) return;
 
@@ -155,6 +159,7 @@ namespace PhoenixVisualizer.Views
 
         private void OnImportToLibrary(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var codeEditor = this.FindControl<TextBox>("CodeEditor");
             if (codeEditor == null) return;
 
@@ -193,6 +198,7 @@ namespace PhoenixVisualizer.Views
 
         private async void OnExportCSharp(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var codeEditor = this.FindControl<TextBox>("CodeEditor");
             if (codeEditor == null) return;
 

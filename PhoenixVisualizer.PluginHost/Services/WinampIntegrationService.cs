@@ -1,3 +1,6 @@
+using System.IO;
+using System.Linq;
+
 namespace PhoenixVisualizer.PluginHost.Services;
 
 /// <summary>
@@ -26,20 +29,9 @@ public class WinampIntegrationService : IDisposable
     {
         try
         {
-            var pluginDir = Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
-            
-            // Check if directory exists
-            if (!Directory.Exists(pluginDir))
-            {
-                throw new DirectoryNotFoundException($"Plugin directory not found: {pluginDir}");
-            }
-            
-            // Check if any DLL files exist
-            var dllFiles = Directory.GetFiles(pluginDir, "*.dll");
-            if (dllFiles.Length == 0)
-            {
-                throw new FileNotFoundException($"No DLL files found in plugin directory: {pluginDir}");
-            }
+            var pluginDir = ResolvePluginDirectory();
+            Directory.CreateDirectory(pluginDir);
+            var dllFiles = Directory.EnumerateFiles(pluginDir, "*.dll").ToArray();
             
             _winampHost = new SimpleWinampHost(pluginDir);
             _isInitialized = true;
@@ -50,6 +42,40 @@ public class WinampIntegrationService : IDisposable
         }
     }
 
+    private static string ResolvePluginDirectory()
+    {
+        // 1) Explicit override via env var
+        var fromEnv = Environment.GetEnvironmentVariable("PHOENIX_WINAMP_VIS_DIR");
+        if (!string.IsNullOrWhiteSpace(fromEnv) &&
+            Directory.Exists(fromEnv) &&
+            Directory.EnumerateFiles(fromEnv, "*.dll").Any())
+        {
+            return fromEnv!;
+        }
+
+        // 2) Known Winamp locations (Windows)
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var candidates = new[]
+                {
+                    Path.Combine(pf86, "Winamp", "Plugins"),
+                    Path.Combine(pf,  "Winamp", "Plugins")
+                };
+                var hit = candidates.FirstOrDefault(d =>
+                    Directory.Exists(d) && Directory.EnumerateFiles(d, "*.dll").Any());
+                if (hit != null) return hit!;
+            }
+        }
+        catch { /* safe fallback */ }
+
+        // 3) Local app folder (default)
+        return Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
+    }
+
     /// <summary>
     /// Scan for available Winamp plugins
     /// </summary>
@@ -57,7 +83,10 @@ public class WinampIntegrationService : IDisposable
     {
         if (_winampHost == null || !_isInitialized)
         {
-            throw new InvalidOperationException("Winamp host not initialized");
+            // Try (re)initialize if a folder becomes available later
+            InitializeWinampHost();
+            if (_winampHost == null || !_isInitialized)
+                return (new List<SimpleWinampHost.LoadedPlugin>(), "Winamp host not initialized", null);
         }
 
         return await Task.Run<(IReadOnlyList<SimpleWinampHost.LoadedPlugin>, string, Exception?)>(() =>
@@ -82,7 +111,7 @@ public class WinampIntegrationService : IDisposable
     {
         if (_winampHost == null || !_isInitialized)
         {
-            throw new InvalidOperationException("Winamp host not initialized");
+            return (false, "Winamp host not initialized", new InvalidOperationException("Winamp host not initialized"));
         }
 
         return await Task.Run<(bool, string, Exception?)>(() =>

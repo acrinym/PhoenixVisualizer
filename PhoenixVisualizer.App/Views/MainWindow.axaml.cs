@@ -2,6 +2,7 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.PluginHost.Services;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.App.Controls;
@@ -13,6 +14,11 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
+    // Plugin mode tracking
+    private enum PluginMode { BuiltIn, Winamp }
+    private PluginMode _currentPluginMode = PluginMode.BuiltIn;
+    private WinampIntegrationService? _winampService;
+    
     // Grab the render surface once on the UI thread so background tasks don't try
     // to traverse the visual tree later (which would throw 🙅‍♂️)
     private readonly RenderSurface? _renderSurface;
@@ -200,6 +206,7 @@ public partial class MainWindow : Window
         var btnExecutePreset = this.FindControl<Button>("BtnExecutePreset");
         var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
         var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
+        var btnPluginSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
         var btnWinampPlugins = this.FindControl<Button>("BtnWinampPlugins");
 
         if (btnOpen != null) btnOpen.Click += OnOpenClick;
@@ -213,6 +220,7 @@ public partial class MainWindow : Window
         if (btnExecutePreset != null) btnExecutePreset.Click += OnExecutePreset;
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
+        if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
         if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
     }
 
@@ -324,6 +332,7 @@ public partial class MainWindow : Window
 
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         try
         {
             if (RenderSurfaceControl is null)
@@ -349,6 +358,7 @@ public partial class MainWindow : Window
     
     private void OnPauseClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         try
         {
             if (RenderSurfaceControl is null)
@@ -366,6 +376,7 @@ public partial class MainWindow : Window
     
     private void OnStopClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         try
         {
             // Stop native AVS if running
@@ -386,6 +397,7 @@ public partial class MainWindow : Window
 
     private async void OnSettingsClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         try
         {
             var dlg = new SettingsWindow();
@@ -399,6 +411,7 @@ public partial class MainWindow : Window
 
     private void OnEditorClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         // The Editor project reference was removed, so this functionality is disabled.
         // var editor = new EditorWindow();
         // await editor.ShowDialog(this);
@@ -406,6 +419,7 @@ public partial class MainWindow : Window
 
     private async void OnTempoPitchClick(object? sender, RoutedEventArgs e)
     {
+        _ = sender; _ = e; // silence unused parameters
         try
         {
             if (RenderSurfaceControl is null) return;
@@ -423,6 +437,7 @@ public partial class MainWindow : Window
 
             private void OnLoadPreset(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var tb = this.FindControl<TextBox>("TxtPreset");
             if (tb is null || RenderSurfaceControl is null) return;
 
@@ -462,6 +477,7 @@ public partial class MainWindow : Window
 
         private void OnExecutePreset(object? sender, RoutedEventArgs e)
         {
+            _ = sender; _ = e; // silence unused parameters
             var tb = this.FindControl<TextBox>("TxtPreset");
             if (tb is null || RenderSurfaceControl is null) return;
 
@@ -742,6 +758,117 @@ public partial class MainWindow : Window
         catch
         {
             // Error opening hotkey manager silently
+        }
+    }
+
+    private async void OnPluginSwitcherClick(object? sender, RoutedEventArgs e)
+    {
+        _ = sender; _ = e; // silence unused parameters
+        try
+        {
+            // Toggle between built-in and Winamp plugins
+            if (_currentPluginMode == PluginMode.BuiltIn)
+            {
+                // Switch to Winamp mode
+                await SwitchToWinampMode();
+            }
+            else
+            {
+                // Switch to built-in mode
+                SwitchToBuiltInMode();
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ Plugin switch failed: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task SwitchToWinampMode()
+    {
+        try
+        {
+            // Initialize Winamp service if not already done
+            if (_winampService == null)
+            {
+                _winampService = new WinampIntegrationService();
+            }
+
+            // Scan for available Winamp plugins
+            var result = await _winampService.ScanForPluginsAsync();
+            
+            if (result.Error != null)
+            {
+                throw new InvalidOperationException($"Winamp scan failed: {result.Error.Message}");
+            }
+
+            if (result.Plugins.Count == 0)
+            {
+                throw new InvalidOperationException("No Winamp plugins found. Please check your plugin directory.");
+            }
+
+            // Switch to Winamp mode
+            _currentPluginMode = PluginMode.Winamp;
+            
+            // Update button text
+            var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
+            if (btnSwitcher != null)
+            {
+                btnSwitcher.Content = "🔄 Switch to Built-in";
+            }
+
+            // Show status
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"✅ Switched to Winamp mode - {result.Plugins.Count} plugins available";
+            }
+
+            // TODO: Set the first available Winamp plugin as active
+            // For now, just indicate the mode change
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to switch to Winamp mode: {ex.Message}");
+        }
+    }
+
+    private void SwitchToBuiltInMode()
+    {
+        try
+        {
+            // Switch back to built-in mode
+            _currentPluginMode = PluginMode.BuiltIn;
+            
+            // Update button text
+            var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
+            if (btnSwitcher != null)
+            {
+                btnSwitcher.Content = "🔄 Switch to Winamp";
+            }
+
+            // Restore built-in plugin
+            if (RenderSurfaceControl != null)
+            {
+                var plugin = new AvsVisualizerPlugin();
+                RenderSurfaceControl.SetPlugin(plugin);
+                RenderSurfaceControl.InvalidateVisual();
+            }
+
+            // Show status
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = "✅ Switched back to built-in visualizers";
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to switch to built-in mode: {ex.Message}");
         }
     }
 
