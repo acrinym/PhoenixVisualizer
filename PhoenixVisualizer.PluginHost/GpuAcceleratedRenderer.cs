@@ -185,7 +185,7 @@ public class GpuAcceleratedRenderer : IDisposable
             
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             // Fallback to CPU rendering
             return await RenderFrameCpuAsync(features, canvas, plugin);
@@ -211,13 +211,13 @@ public class GpuAcceleratedRenderer : IDisposable
                 plugin.RenderFrame(features, canvas);
             });
         }
-        catch (Exception ex)
+        catch
         {
             throw;
         }
     }
     
-    private async Task<bool> RenderFrameCpuAsync(AudioFeatures features, ISkiaCanvas canvas, IVisualizerPlugin plugin)
+    private Task<bool> RenderFrameCpuAsync(AudioFeatures features, ISkiaCanvas canvas, IVisualizerPlugin plugin)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         
@@ -229,11 +229,11 @@ public class GpuAcceleratedRenderer : IDisposable
             stopwatch.Stop();
             UpdateRenderTimeMetrics(stopwatch.Elapsed.TotalMilliseconds);
             
-            return true;
+            return Task.FromResult(true);
         }
-        catch (Exception ex)
+        catch
         {
-            return false;
+            return Task.FromResult(false);
         }
     }
     
@@ -317,7 +317,7 @@ public class GpuAcceleratedRenderer : IDisposable
             
             // Hardware optimization completed successfully
         }
-        catch (Exception ex)
+        catch
         {
             // Hardware optimization failed silently
         }
