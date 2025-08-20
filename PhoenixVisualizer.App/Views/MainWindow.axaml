@@ -44,6 +44,8 @@
         <!-- Render surface with AVS overlay -->
         <Border Grid.Row="2" Margin="8" Background="#111">
             <Grid>
+                <!-- RenderSurface for non-AVS visualization -->
+                <r:RenderSurface x:Name="RenderHost"/>
                 <!-- Top layer: native AVS host (only visible/used on Windows) -->
                 <local:AvsHostControl x:Name="AvsWin32Host"/>
                 <!-- Existing canvas remains (non-AVS rendering) -->

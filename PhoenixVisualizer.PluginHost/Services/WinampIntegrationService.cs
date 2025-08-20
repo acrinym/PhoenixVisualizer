@@ -63,27 +63,24 @@ public class WinampIntegrationService : IDisposable
     /// <summary>
     /// Scan for available Winamp plugins
     /// </summary>
-    public async Task<IReadOnlyList<SimpleWinampHost.LoadedPlugin>> ScanForPluginsAsync()
+    public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync()
     {
         if (_winampHost == null || !_isInitialized)
         {
             throw new InvalidOperationException("Winamp host not initialized");
         }
 
-        return await Task.Run(() =>
+        return await Task.Run<(IReadOnlyList<SimpleWinampHost.LoadedPlugin>, string, Exception?)>(() =>
         {
             try
             {
                 _winampHost.ScanForPlugins();
                 var plugins = _winampHost.GetAvailablePlugins();
-                StatusChanged?.Invoke($"✅ Found {plugins.Count} Winamp plugins");
-                return plugins;
+                return (plugins, $"✅ Found {plugins.Count} Winamp plugins", null);
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke(ex);
-                StatusChanged?.Invoke($"❌ Error scanning plugins: {ex.Message}");
-                return new List<SimpleWinampHost.LoadedPlugin>();
+                return (new List<SimpleWinampHost.LoadedPlugin>(), $"❌ Error scanning plugins: {ex.Message}", ex);
             }
         });
     }
@@ -91,27 +88,24 @@ public class WinampIntegrationService : IDisposable
     /// <summary>
     /// Select and activate a Winamp plugin
     /// </summary>
-    public async Task<bool> SelectPluginAsync(SimpleWinampHost.LoadedPlugin plugin, int moduleIndex = 0)
+    public async Task<(bool Success, string Status, Exception? Error)> SelectPluginAsync(SimpleWinampHost.LoadedPlugin plugin, int moduleIndex = 0)
     {
         if (_winampHost == null || !_isInitialized)
         {
             throw new InvalidOperationException("Winamp host not initialized");
         }
 
-        return await Task.Run(() =>
+        return await Task.Run<(bool, string, Exception?)>(() =>
         {
             try
             {
                 _activePlugin = plugin;
                 _activeModuleIndex = moduleIndex;
-                StatusChanged?.Invoke($"✅ Selected plugin: {plugin.FileName} (module {moduleIndex})");
-                return true;
+                return (true, $"✅ Selected plugin: {plugin.FileName} (module {moduleIndex})", null);
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke(ex);
-                StatusChanged?.Invoke($"❌ Error selecting plugin: {ex.Message}");
-                return false;
+                return (false, $"❌ Error selecting plugin: {ex.Message}", ex);
             }
         });
     }

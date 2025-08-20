@@ -56,26 +56,36 @@ public partial class WinampPluginManager : Window
             }
 
             // Scan for plugins
-            var loadedPlugins = await _integrationService.ScanForPluginsAsync();
-
-            _plugins.Clear();
-            foreach (var plugin in loadedPlugins)
+            var result = await _integrationService.ScanForPluginsAsync();
+            
+            // Update UI on UI thread
+            Dispatcher.UIThread.Post(() =>
             {
-                _plugins.Add($"{plugin.FileName} - {plugin.Header.Description} ({plugin.Modules.Count} modules)");
-            }
+                if (result.Error != null)
+                {
+                    SetStatus($"❌ Error refreshing plugins: {result.Error.Message}");
+                    return;
+                }
 
-            // Update UI
-            var pluginList = this.FindControl<ListBox>("PluginList");
-            if (pluginList != null)
-            {
-                pluginList.ItemsSource = _plugins;
-            }
+                _plugins.Clear();
+                foreach (var plugin in result.Plugins)
+                {
+                    _plugins.Add($"{plugin.FileName} - {plugin.Header.Description} ({plugin.Modules.Count} modules)");
+                }
 
-            SetStatus($"✅ Found {_plugins.Count} Winamp plugins");
+                // Update UI
+                var pluginList = this.FindControl<ListBox>("PluginList");
+                if (pluginList != null)
+                {
+                    pluginList.ItemsSource = _plugins;
+                }
+
+                SetStatus(result.Status);
+            });
         }
         catch (Exception ex)
         {
-            SetStatus($"❌ Error refreshing plugins: {ex.Message}");
+            Dispatcher.UIThread.Post(() => SetStatus($"❌ Error refreshing plugins: {ex.Message}"));
         }
     }
 
@@ -91,6 +101,7 @@ public partial class WinampPluginManager : Window
         {
             try
             {
+                // TODO: Get the actual plugin object and call SelectPluginAsync
                 // For now, just show success message
                 SetStatus($"✅ Selected plugin: {selectedPluginText}");
                 
