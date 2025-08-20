@@ -4,7 +4,7 @@
         x:Class="PhoenixVisualizer.Views.WinampPluginManager"
         Title="Winamp Plugin Manager"
         Width="600" Height="500"
-        Icon="avares://PhoenixVisualizer/Assets/icon.ico">
+        Icon="avares://PhoenixVisualizer/Assets/avalonia-logo.ico">
     
     <Grid Margin="20">
         <Grid.RowDefinitions>
