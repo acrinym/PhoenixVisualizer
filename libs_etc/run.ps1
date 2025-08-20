@@ -1,4 +1,3 @@
-# PhoenixVisualizer PowerShell Launcher
 Write-Host "🚀 Starting PhoenixVisualizer..." -ForegroundColor Green
-Set-Location $PSScriptRoot
 dotnet run --project PhoenixVisualizer.App
+Read-Host "Press Enter to continue..."

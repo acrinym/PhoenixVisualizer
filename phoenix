@@ -1,0 +1,5 @@
+@echo off
+REM PhoenixVisualizer CLI Launcher
+echo Starting PhoenixVisualizer CLI...
+dotnet run --project tools/phoenix-cli
+pause

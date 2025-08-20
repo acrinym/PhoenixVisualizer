@@ -1,5 +1,6 @@
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
+using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Rendering;
@@ -124,9 +125,35 @@ public partial class MainWindow : Window
                         int selected = combo.SelectedIndex;
                         if (selected >= 0 && selected < plugins.Count)
                         {
-                            var plug = PluginRegistry.Create(plugins[selected].Id)
-                                       ?? new AvsVisualizerPlugin();
-                            RenderSurfaceControl.SetPlugin(plug);
+                            var selectedPlugin = plugins[selected];
+                            var plug = PluginRegistry.Create(selectedPlugin.Id);
+                            
+                            if (plug != null)
+                            {
+                                RenderSurfaceControl.SetPlugin(plug);
+                                
+                                // Show status message
+                                var statusText = this.FindControl<TextBlock>("LblTime");
+                                if (statusText != null)
+                                {
+                                    statusText.Text = $"✅ Plugin changed to: {selectedPlugin.DisplayName}";
+                                }
+                                
+                                // Force refresh
+                                RenderSurfaceControl.InvalidateVisual();
+                            }
+                            else
+                            {
+                                // Fallback to AVS
+                                var fallbackPlugin = new AvsVisualizerPlugin();
+                                RenderSurfaceControl.SetPlugin(fallbackPlugin);
+                                
+                                var statusText = this.FindControl<TextBlock>("LblTime");
+                                if (statusText != null)
+                                {
+                                    statusText.Text = $"⚠️ Failed to load {selectedPlugin.DisplayName}, using AVS fallback";
+                                }
+                            }
                         }
                     };
                 }
@@ -159,6 +186,7 @@ public partial class MainWindow : Window
         var btnExecutePreset = this.FindControl<Button>("BtnExecutePreset");
         var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
         var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
+        var btnWinampPlugins = this.FindControl<Button>("BtnWinampPlugins");
 
         if (btnOpen != null) btnOpen.Click += OnOpenClick;
         if (btnPlay != null) btnPlay.Click += OnPlayClick;
@@ -171,6 +199,7 @@ public partial class MainWindow : Window
         if (btnExecutePreset != null) btnExecutePreset.Click += OnExecutePreset;
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
+        if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
     }
 
     private void InitializePlugin()
@@ -380,14 +409,37 @@ public partial class MainWindow : Window
             var tb = this.FindControl<TextBox>("TxtPreset");
             if (tb is null || RenderSurfaceControl is null) return;
 
-            var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
-            if (plug is null) return;
-
-            // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
-            if (plug is IVisualizerPlugin visPlugin)
+            var presetText = tb.Text ?? string.Empty;
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            
+            try
             {
-                RenderSurfaceControl.SetPlugin(visPlugin);
-                plug.LoadPreset(tb.Text ?? string.Empty);
+                var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
+                if (plug is null)
+                {
+                    if (statusText != null) statusText.Text = "❌ Failed to create AVS plugin";
+                    return;
+                }
+
+                // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
+                if (plug is IVisualizerPlugin visPlugin)
+                {
+                    RenderSurfaceControl.SetPlugin(visPlugin);
+                    plug.LoadPreset(presetText);
+                    
+                    if (statusText != null) statusText.Text = $"✅ Preset loaded: {presetText}";
+                    
+                    // Force refresh
+                    RenderSurfaceControl.InvalidateVisual();
+                }
+                else
+                {
+                    if (statusText != null) statusText.Text = "❌ Plugin is not IVisualizerPlugin";
+                }
+            }
+            catch (Exception ex)
+            {
+                if (statusText != null) statusText.Text = $"❌ Load preset error: {ex.Message}";
             }
         }
 
@@ -403,19 +455,21 @@ public partial class MainWindow : Window
                 var statusText = this.FindControl<TextBlock>("LblTime");
                 if (statusText != null)
                 {
-                    statusText.Text = "No preset to execute!";
+                    statusText.Text = "❌ No preset to execute!";
                 }
                 return;
             }
 
             try
             {
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                
                 // Create and set AVS plugin
                 var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
                 if (plug is null)
                 {
-                    // Fallback to direct AVS plugin creation
-                    plug = new AvsVisualizerPlugin();
+                    if (statusText != null) statusText.Text = "❌ Failed to create AVS plugin from registry";
+                    return;
                 }
 
                 // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
@@ -431,17 +485,16 @@ public partial class MainWindow : Window
                     RenderSurfaceControl.InvalidateVisual();
                     
                     // Show success message
-                    var statusText = this.FindControl<TextBlock>("LblTime");
                     if (statusText != null)
                     {
-                        statusText.Text = $"Preset executed: {presetText}";
+                        statusText.Text = $"✅ Preset executed: {presetText}";
                     }
                     
                     // Preset executed successfully
                 }
                 else
                 {
-                    // Failed to cast plugin to IVisualizerPlugin
+                    if (statusText != null) statusText.Text = "❌ Plugin is not IVisualizerPlugin";
                 }
             }
             catch (Exception ex)
@@ -450,7 +503,7 @@ public partial class MainWindow : Window
                 var statusText = this.FindControl<TextBlock>("LblTime");
                 if (statusText != null)
                 {
-                    statusText.Text = $"Preset execution failed: {ex.Message}";
+                    statusText.Text = $"❌ Preset execution failed: {ex.Message}";
                 }
             }
         }
@@ -473,12 +526,50 @@ public partial class MainWindow : Window
             var file = files.Count > 0 ? files[0] : null;
             if (file is null) return;
 
+            await using var stream = await file.OpenReadAsync();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            // Route AVS binaries vs. our text NS-EEL path
+            var route = AvsPresetRouter.Decide(bytes, file.Name);
+            if (route.Route == AvsRoute.NativeAvs)
+            {
+                if (!NativeAvsHost.TryLoad(out var why))
+                {
+                    await ShowDialogAsync("PhoenixVisualizer", $"❌ vis_avs.dll not available\n\n{why}");
+                    return;
+                }
+                var mods = NativeAvsHost.ListModules();
+                var msg = mods.Length == 0
+                    ? "❌ vis_avs.dll loaded, but provided no modules."
+                    : $"🧩 Using native AVS runtime\n• Modules: {string.Join(", ", mods)}";
+                var stagedPath = NativeAvsHost.StagePreset(bytes);
+                Log.Info($"AVS staged: {stagedPath}");
+                var lbl = this.FindControl<TextBlock>("LblTime");
+                if (lbl != null) lbl.Text = msg;
+                // Pass 3: module Init/Render + HWND embed
+                return;
+            }
+            if (route.Route == AvsRoute.Unsupported)
+            {
+                await ShowDialogAsync("PhoenixVisualizer", route.Message ?? "❌ AVS preset not supported yet.");
+                return;
+            }
+
+            // Not an AVS binary → treat as text preset (NS-EEL / Phoenix format)
+            string text;
+            try
+            {
+                text = Encoding.UTF8.GetString(bytes);
+            }
+            catch
+            {
+                text = Encoding.Default.GetString(bytes);
+            }
+
             var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
             if (plug is null) return;
-
-            using var stream = await file.OpenReadAsync();
-            using var reader = new StreamReader(stream);
-            var text = await reader.ReadToEndAsync();
 
             // Cast to IVisualizerPlugin since AvsVisualizerPlugin implements both interfaces
             if (plug is IVisualizerPlugin visPlugin)
@@ -625,6 +716,80 @@ public partial class MainWindow : Window
         catch
         {
             // Error opening hotkey manager silently
+        }
+    }
+
+    private void OnWinampPluginsClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null) statusText.Text = "🔄 Opening Winamp Plugin Manager...";
+            
+            var winampWindow = new PhoenixVisualizer.Views.WinampPluginManager();
+            winampWindow.Show();
+            
+            if (statusText != null) statusText.Text = "✅ Winamp Plugin Manager opened";
+        }
+        catch (Exception ex)
+        {
+            // Show error in status bar
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ Winamp plugin error: {ex.Message}";
+            }
+        }
+
+        private void OnPresetDragOver(object? sender, DragEventArgs e)
+        {
+            if (e.Data.Contains(DataFormats.Files)) e.DragEffects = DragDropEffects.Copy;
+            else e.DragEffects = DragDropEffects.None;
+        }
+
+        private async void OnPresetDrop(object? sender, DragEventArgs e)
+        {
+            if (!e.Data.Contains(DataFormats.Files)) return;
+            var files = e.Data.GetFiles()?.ToList();
+            if (files is null || files.Count == 0) return;
+
+            await using var stream = await files[0].OpenReadAsync();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            var route = AvsPresetRouter.Decide(bytes, files[0].Name);
+            if (route.Route == AvsRoute.NativeAvs)
+            {
+                if (!NativeAvsHost.TryLoad(out var why))
+                {
+                    await ShowDialogAsync("PhoenixVisualizer", $"❌ vis_avs.dll not available\n\n{why}");
+                    return;
+                }
+                var mods = NativeAvsHost.ListModules();
+                var msg = mods.Length == 0
+                    ? "❌ vis_avs.dll loaded, but provided no modules."
+                    : $"🧩 Using native AVS runtime (drop)\n• Modules: {string.Join(", ", mods)}";
+                var stagedPath = NativeAvsHost.StagePreset(bytes);
+                Log.Info($"AVS staged: {stagedPath}");
+                var lbl = this.FindControl<TextBlock>("LblTime");
+                if (lbl != null) lbl.Text = msg;
+                // Pass 3: Init/Render with HWND host
+                return;
+            }
+            if (route.Route == AvsRoute.Unsupported)
+            {
+                await ShowDialogAsync("PhoenixVisualizer", route.Message ?? "❌ AVS preset not supported yet.");
+                return;
+            }
+
+            // Fallback to text path
+            string text;
+            try { text = Encoding.UTF8.GetString(bytes); }
+            catch { text = Encoding.Default.GetString(bytes); }
+            var tb = this.FindControl<TextBox>("TxtPreset");
+            if (tb != null) tb.Text = text;
+            OnExecutePreset(sender, e);
         }
     }
 }

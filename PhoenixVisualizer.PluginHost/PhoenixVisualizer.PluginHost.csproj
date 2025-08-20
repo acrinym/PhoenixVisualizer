@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
+  </ItemGroup>
+
 </Project>

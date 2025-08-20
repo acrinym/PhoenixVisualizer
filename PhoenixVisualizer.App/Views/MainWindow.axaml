@@ -30,6 +30,7 @@
             <Button x:Name="BtnExecutePreset" Content="Execute Preset" Background="Green" Foreground="White" ToolTip.Tip="Execute the AVS preset in the text box (or press E key)"/>
             <Button x:Name="BtnImportPreset" Content="Import Preset"/>
             <Button x:Name="BtnHotkeyManager" Content="⌨️ Hotkeys" ToolTip.Tip="Manage keyboard shortcuts"/>
+            <Button x:Name="BtnWinampPlugins" Content="🎵 Winamp" ToolTip.Tip="Manage Winamp visualization plugins"/>
         </StackPanel>
 
         <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->
@@ -44,7 +45,11 @@
             <Grid>
                 <r:RenderSurface x:Name="RenderHost"/>
                 <!-- Overlay canvas for AVS engine rendering -->
-                <Canvas x:Name="AvsCanvasHost" Background="Transparent"/>
+                <Canvas x:Name="AvsCanvasHost" 
+                        Background="Transparent"
+                        AllowDrop="True"
+                        DragOver="OnPresetDragOver"
+                        Drop="OnPresetDrop"/>
             </Grid>
         </Border>
     </Grid>
