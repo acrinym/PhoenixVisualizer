@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using PhoenixVisualizer.Core.Diagnostics;
 using System.Threading;
 
 namespace PhoenixVisualizer.PluginHost;

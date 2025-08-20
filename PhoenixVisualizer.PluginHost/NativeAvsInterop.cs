@@ -12,7 +12,7 @@ internal static class NativeAvsInterop
     internal delegate nint WinampVisGetHeaderDelegate();
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct WinampVisHeader
+    internal struct WinampVisHeader
     {
         public int version;                 // version == 0x00010001 for classic SDK
         public nint description;            // char*

@@ -35,8 +35,6 @@ public partial class WinampPluginManager : Window
         try
         {
             _integrationService = new WinampIntegrationService();
-            _integrationService.StatusChanged += OnStatusChanged;
-            _integrationService.ErrorOccurred += OnErrorOccurred;
             SetStatus("✅ Winamp integration service initialized");
         }
         catch (Exception ex)
@@ -173,15 +171,7 @@ public partial class WinampPluginManager : Window
         }
     }
 
-    private void OnStatusChanged(string message)
-    {
-        SetStatus(message);
-    }
 
-    private void OnErrorOccurred(Exception ex)
-    {
-        SetStatus($"❌ Error: {ex.Message}");
-    }
 
     protected override void OnClosed(EventArgs e)
     {

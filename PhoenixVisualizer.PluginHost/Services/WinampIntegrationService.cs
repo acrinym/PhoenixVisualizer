@@ -1,8 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-
 namespace PhoenixVisualizer.PluginHost.Services;
 
 /// <summary>
@@ -16,8 +11,7 @@ public class WinampIntegrationService : IDisposable
     private bool _isInitialized = false;
     private bool _disposed = false;
 
-    public event Action<string>? StatusChanged;
-    public event Action<Exception>? ErrorOccurred;
+
 
     public bool IsInitialized => _isInitialized;
     public SimpleWinampHost.LoadedPlugin? ActivePlugin => _activePlugin;
@@ -47,16 +41,12 @@ public class WinampIntegrationService : IDisposable
                 throw new FileNotFoundException($"No DLL files found in plugin directory: {pluginDir}");
             }
             
-            StatusChanged?.Invoke($"🔍 Found {dllFiles.Length} DLL files in {pluginDir}");
-            
             _winampHost = new SimpleWinampHost(pluginDir);
             _isInitialized = true;
-            StatusChanged?.Invoke("✅ Winamp host initialized");
         }
-        catch (Exception ex)
+        catch
         {
-            ErrorOccurred?.Invoke(ex);
-            StatusChanged?.Invoke($"❌ Failed to initialize Winamp host: {ex.Message}");
+            // Initialization failed - error will be handled by IsInitialized property
         }
     }
 
