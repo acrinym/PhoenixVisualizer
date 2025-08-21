@@ -38,9 +38,9 @@ public partial class MainWindow : Window
     // AVS engine overlay
     private readonly AvsEditorBridge _avsBridge = new();
     private readonly AvsAudioProvider _avsAudio = new();
-    private Canvas? _avsCanvas;
-    private AvsHostControl? _avsWin32Host;
-    private Control? _avsWin32HostControl;
+    private readonly Canvas? _avsCanvas;
+    private readonly AvsHostControl? _avsWin32Host;
+    private readonly Control? _avsWin32HostControl;
 
 
 
@@ -925,8 +925,19 @@ public partial class MainWindow : Window
             // Update UI visibility
             UpdatePluginModeUI();
 
-            // TODO: Set the first available Winamp plugin as active
-            // For now, just indicate the mode change
+            // Set the first available Winamp plugin as active
+            if (result.Plugins.Count > 0 && RenderSurfaceControl != null)
+            {
+                var firstPlugin = result.Plugins[0];
+                var winampWrapper = new WinampPluginWrapper(_winampService, firstPlugin);
+                RenderSurfaceControl.SetPlugin(winampWrapper);
+                
+                var statusLabel = this.FindControl<TextBlock>("LblTime");
+                if (statusLabel != null)
+                {
+                    statusLabel.Text = $"✅ Active Winamp plugin: {winampWrapper.DisplayName}";
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -990,7 +1001,40 @@ public partial class MainWindow : Window
         }
         _pluginManager = new WinampPluginManager();
         _pluginManager.Closed += (_, __) => _pluginManager = null;
+        _pluginManager.PluginSelected += OnWinampPluginSelected;
         _pluginManager.Show(this);
+    }
+
+    private void OnWinampPluginSelected(SimpleWinampHost.LoadedPlugin plugin, int moduleIndex)
+    {
+        try
+        {
+            // Initialize Winamp service if not already done
+            _winampService ??= new WinampIntegrationService();
+            
+            // Create wrapper and set it as the active plugin
+            var winampWrapper = new WinampPluginWrapper(_winampService, plugin, moduleIndex);
+            RenderSurfaceControl?.SetPlugin(winampWrapper);
+            
+            // Switch to Winamp mode
+            _currentPluginMode = PluginMode.Winamp;
+            UpdatePluginModeUI();
+            
+            // Update status
+            var statusLabel = this.FindControl<TextBlock>("LblTime");
+            if (statusLabel != null)
+            {
+                statusLabel.Text = $"✅ Active Winamp plugin: {winampWrapper.DisplayName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusLabel = this.FindControl<TextBlock>("LblTime");
+            if (statusLabel != null)
+            {
+                statusLabel.Text = $"❌ Failed to load Winamp plugin: {ex.Message}";
+            }
+        }
     }
 
     private void OnPresetDragOver(object? sender, DragEventArgs e)

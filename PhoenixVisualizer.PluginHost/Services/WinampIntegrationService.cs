@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace PhoenixVisualizer.PluginHost.Services;
 
 /// <summary>
@@ -169,6 +167,30 @@ public class WinampIntegrationService : IDisposable
     {
         if (_activePlugin == null) return null;
         return $"{_activePlugin.FileName} - {_activePlugin.Header.Description}";
+    }
+
+    /// <summary>
+    /// Get available plugins from the host
+    /// </summary>
+    public IReadOnlyList<SimpleWinampHost.LoadedPlugin> GetAvailablePlugins()
+    {
+        return _winampHost?.GetAvailablePlugins() ?? new List<SimpleWinampHost.LoadedPlugin>();
+    }
+
+    /// <summary>
+    /// Update audio data for a specific plugin
+    /// </summary>
+    public void UpdateAudioData(int pluginIndex, int moduleIndex, byte[] spectrumData, byte[] waveformData)
+    {
+        _winampHost?.UpdateAudioData(pluginIndex, moduleIndex, spectrumData, waveformData);
+    }
+
+    /// <summary>
+    /// Render a specific plugin module
+    /// </summary>
+    public bool RenderPlugin(int pluginIndex, int moduleIndex)
+    {
+        return _winampHost?.RenderModule(pluginIndex, moduleIndex) ?? false;
     }
 
     public void Dispose()

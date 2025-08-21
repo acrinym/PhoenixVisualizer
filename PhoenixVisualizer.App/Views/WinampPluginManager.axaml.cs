@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.PluginHost.Services;
 
 using System;
@@ -12,6 +13,10 @@ public partial class WinampPluginManager : Window
 {
     private WinampIntegrationService? _integrationService;
     private readonly List<string> _plugins = new();
+    private readonly List<SimpleWinampHost.LoadedPlugin> _loadedPlugins = new();
+    
+    // Event to notify main window when a plugin is selected
+    public event Action<SimpleWinampHost.LoadedPlugin, int>? PluginSelected;
     
     public WinampPluginManager()
     {
@@ -69,9 +74,11 @@ public partial class WinampPluginManager : Window
                 }
 
                 _plugins.Clear();
+                _loadedPlugins.Clear();
                 foreach (var plugin in result.Plugins)
                 {
                     _plugins.Add($"{plugin.FileName} - {plugin.Header.Description} ({plugin.Modules.Count} modules)");
+                    _loadedPlugins.Add(plugin);
                 }
 
                 // Update UI
@@ -100,16 +107,17 @@ public partial class WinampPluginManager : Window
     {
         _ = sender; _ = e; // silence unused parameters
         var pluginList = this.FindControl<ListBox>("PluginList");
-        if (pluginList?.SelectedItem is string selectedPluginText)
+        if (pluginList?.SelectedIndex >= 0 && pluginList.SelectedIndex < _loadedPlugins.Count)
         {
             try
             {
-                // TODO: Get the actual plugin object and call SelectPluginAsync
-                // For now, just show success message
-                SetStatus($"✅ Selected plugin: {selectedPluginText}");
+                var selectedPlugin = _loadedPlugins[pluginList.SelectedIndex];
+                SetStatus($"✅ Selected plugin: {selectedPlugin.FileName}");
                 
-                // TODO: Integrate with main visualization system
-                // For now, just close the window
+                // Fire event to notify main window
+                PluginSelected?.Invoke(selectedPlugin, 0); // Use first module by default
+                
+                // Close the window
                 this.Close();
             }
             catch (Exception ex)
