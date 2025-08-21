@@ -26,21 +26,33 @@ public class WinampIntegrationService : IDisposable
     {
         try
         {
+            Console.WriteLine($"🔍 InitializeWinampHost called");
             var pluginDir = ResolvePluginDirectory();
+            Console.WriteLine($"🔍 Resolved plugin directory: {pluginDir}");
+            
             if (string.IsNullOrWhiteSpace(pluginDir))
             {
-                // No plugin directory found - this is not an error, just no plugins available
+                Console.WriteLine($"❌ No plugin directory found - this is not an error, just no plugins available");
                 return;
             }
             
             Directory.CreateDirectory(pluginDir);
             var dllFiles = Directory.EnumerateFiles(pluginDir, "*.dll").ToArray();
+            Console.WriteLine($"🔍 Found {dllFiles.Length} DLL files in plugin directory:");
+            foreach (var dll in dllFiles)
+            {
+                Console.WriteLine($"  - {Path.GetFileName(dll)}");
+            }
             
+            Console.WriteLine($"🔍 Creating SimpleWinampHost with directory: {pluginDir}");
             _winampHost = new SimpleWinampHost(pluginDir);
             _isInitialized = true;
+            Console.WriteLine($"✅ Winamp host initialized successfully");
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"❌ Initialization failed: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             // Initialization failed - error will be handled by IsInitialized property
         }
     }
@@ -59,28 +71,60 @@ public class WinampIntegrationService : IDisposable
             for (int i = 0; i < MaxDepth && d != null; i++, d = d.Parent)
             {
                 var candidate = Path.Combine(d.FullName, "plugins", "vis");
-                if (Directory.Exists(candidate)) return candidate;
+                if (Directory.Exists(candidate)) 
+                {
+                    Console.WriteLine($"🔍 Found plugin directory: {candidate}");
+                    return candidate;
+                }
             }
             return null;
         }
 
+        Console.WriteLine($"🔍 Resolving plugin directory...");
+        Console.WriteLine($"🔍 AppContext.BaseDirectory: {AppContext.BaseDirectory}");
+        Console.WriteLine($"🔍 Current Directory: {Directory.GetCurrentDirectory()}");
+
         var env = Environment.GetEnvironmentVariable("PHOENIX_WINAMP_VIS_DIR");
-        if (!string.IsNullOrWhiteSpace(env) && Directory.Exists(env!)) return env!;
+        if (!string.IsNullOrWhiteSpace(env) && Directory.Exists(env!)) 
+        {
+            Console.WriteLine($"🔍 Using environment variable: {env}");
+            return env!;
+        }
 
         // 1) Common dev-layout: repoRoot\plugins\vis (search upward from bin and CWD)
         var fromBase = SearchUp(AppContext.BaseDirectory);
-        if (fromBase != null) return fromBase;
+        if (fromBase != null) 
+        {
+            Console.WriteLine($"🔍 Using base directory search result: {fromBase}");
+            return fromBase;
+        }
+        
         var fromCwd = SearchUp(Directory.GetCurrentDirectory());
-        if (fromCwd != null) return fromCwd;
+        if (fromCwd != null) 
+        {
+            Console.WriteLine($"🔍 Using current directory search result: {fromCwd}");
+            return fromCwd;
+        }
 
         // 2) Traditional Winamp install
         var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var winampVis = Path.Combine(programFiles, "Winamp", "Plugins");
-        if (Directory.Exists(winampVis)) return winampVis;
+        if (Directory.Exists(winampVis)) 
+        {
+            Console.WriteLine($"🔍 Using traditional Winamp install: {winampVis}");
+            return winampVis;
+        }
 
         // 3) Last-ditch: bin\plugins\vis under the app
         var defaultUnderBin = Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
-        return Directory.Exists(defaultUnderBin) ? defaultUnderBin : null;
+        if (Directory.Exists(defaultUnderBin))
+        {
+            Console.WriteLine($"🔍 Using default under bin: {defaultUnderBin}");
+            return defaultUnderBin;
+        }
+        
+        Console.WriteLine($"❌ No plugin directory found!");
+        return null;
     }
 
     /// <summary>
@@ -88,24 +132,40 @@ public class WinampIntegrationService : IDisposable
     /// </summary>
     public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync()
     {
+        Console.WriteLine($"🔍 ScanForPluginsAsync called");
+        Console.WriteLine($"🔍 _winampHost: {_winampHost != null}");
+        Console.WriteLine($"🔍 _isInitialized: {_isInitialized}");
+        
         if (_winampHost == null || !_isInitialized)
         {
+            Console.WriteLine($"🔍 Attempting to reinitialize Winamp host...");
             // Try (re)initialize if a folder becomes available later
             InitializeWinampHost();
             if (_winampHost == null || !_isInitialized)
+            {
+                Console.WriteLine($"❌ Winamp host still not initialized after reinit attempt");
                 return (new List<SimpleWinampHost.LoadedPlugin>(), "Winamp host not initialized", null);
+            }
         }
 
         return await Task.Run<(IReadOnlyList<SimpleWinampHost.LoadedPlugin>, string, Exception?)>(() =>
         {
             try
             {
+                Console.WriteLine($"🔍 Scanning for plugins in Winamp host...");
                 _winampHost.ScanForPlugins();
                 var plugins = _winampHost.GetAvailablePlugins();
+                Console.WriteLine($"🔍 Found {plugins.Count} plugins");
+                foreach (var plugin in plugins)
+                {
+                    Console.WriteLine($"  - {plugin.FileName}: {plugin.Header.Description}");
+                }
                 return (plugins, $"✅ Found {plugins.Count} Winamp plugins", null);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error scanning plugins: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 return (new List<SimpleWinampHost.LoadedPlugin>(), $"❌ Error scanning plugins: {ex.Message}", ex);
             }
         });

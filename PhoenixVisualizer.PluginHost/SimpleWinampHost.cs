@@ -95,8 +95,10 @@ public sealed class SimpleWinampHost : IDisposable
                 return;
             }
 
-            var pluginFiles = Directory.GetFiles(_pluginDirectory, "*.dll", SearchOption.TopDirectoryOnly);
-            Console.WriteLine($"[SimpleWinampHost] Found {pluginFiles.Length} potential plugin files");
+            var pluginFiles = Directory.GetFiles(_pluginDirectory, "*.dll", SearchOption.TopDirectoryOnly)
+                .Where(f => !Path.GetFileName(f).Equals("vis_avs.dll", StringComparison.OrdinalIgnoreCase)) // Skip AVS engine
+                .ToArray();
+            Console.WriteLine($"[SimpleWinampHost] Found {pluginFiles.Length} potential Winamp plugin files (excluding vis_avs.dll)");
 
             foreach (var pluginFile in pluginFiles)
             {
@@ -109,7 +111,8 @@ public sealed class SimpleWinampHost : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[SimpleWinampHost] Failed to load plugin {pluginFile}: {ex.Message}");
+                    Console.WriteLine($"[SimpleWinampHost] Failed to load plugin {Path.GetFileName(pluginFile)}: {ex.Message}");
+                    Console.WriteLine($"[SimpleWinampHost] Stack trace: {ex.StackTrace}");
                 }
             }
         }

@@ -71,10 +71,10 @@ public partial class MainWindow : Window
             }
         }
 
-        // ✅ Wire Winamp UI buttons if present
+        // ✅ Wire Winamp UI buttons if present (only wire once!)
         var btnWinamp = this.FindControl<Button>("BtnWinampPlugins");
-        if (btnWinamp != null) btnWinamp.Click += (_, __) => OpenWinampManager();
         var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
+        if (btnWinamp != null) btnWinamp.Click += OnWinampPluginsClick;
         if (btnSwitcher != null) btnSwitcher.Click += OnPluginSwitcherClick;
 
         // Initialize AVS overlay renderer
@@ -255,7 +255,7 @@ public partial class MainWindow : Window
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
         if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
-        if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
+        // Winamp button is already wired in constructor to avoid duplicates
     }
 
     private void SetVisualMode(VisualMode mode)
