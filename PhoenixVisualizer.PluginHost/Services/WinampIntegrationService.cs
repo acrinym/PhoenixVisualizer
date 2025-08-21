@@ -45,7 +45,7 @@ public class WinampIntegrationService : IDisposable
         }
     }
 
-    public async Task<string?> ResolvePluginDirectoryAsync()
+    public static async Task<string?> ResolvePluginDirectoryAsync()
     {
         return await Task.FromResult(ResolvePluginDirectory());
     }

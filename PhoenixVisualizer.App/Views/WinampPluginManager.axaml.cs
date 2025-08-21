@@ -54,7 +54,7 @@ public partial class WinampPluginManager : Window
             }
 
             // Resolve plugin directory and show it to user
-            var resolved = await _integrationService.ResolvePluginDirectoryAsync();
+            var resolved = await WinampIntegrationService.ResolvePluginDirectoryAsync();
             var pathText = this.FindControl<TextBlock>("PluginPathTextBlock");
             if (pathText != null)
             {

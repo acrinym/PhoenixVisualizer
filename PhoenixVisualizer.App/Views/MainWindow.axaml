@@ -9,7 +9,7 @@
         x:Class="PhoenixVisualizer.Views.MainWindow"
         Title="PhoenixVisualizer - Advanced Audio Visualization"
         Width="1200" Height="800"
-        Icon="/Assets/icon.ico">
+        Icon="/Assets/avalonia-logo.ico">
 
 
 
