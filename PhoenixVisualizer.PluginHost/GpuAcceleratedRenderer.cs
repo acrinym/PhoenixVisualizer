@@ -167,7 +167,7 @@ public class GpuAcceleratedRenderer : IDisposable
                     var batchEnd = Math.Min(i + batchSize, totalPoints);
                     var batchStart = i;
                     
-                    var task = Task.Run(() => RenderBatch(features, canvas, plugin, batchStart, batchEnd));
+                    var task = Task.Run(() => RenderBatch(features, canvas, plugin));
                     renderTasks.Add(task);
                 }
                 
@@ -177,7 +177,7 @@ public class GpuAcceleratedRenderer : IDisposable
             else
             {
                 // Single-threaded GPU rendering
-                await RenderBatch(features, canvas, plugin, 0, features.Fft.Length);
+                await RenderBatch(features, canvas, plugin);
             }
             
             stopwatch.Stop();
@@ -192,7 +192,7 @@ public class GpuAcceleratedRenderer : IDisposable
         }
     }
     
-    private async Task RenderBatch(AudioFeatures features, ISkiaCanvas canvas, IVisualizerPlugin plugin, int start, int end)
+    private async Task RenderBatch(AudioFeatures features, ISkiaCanvas canvas, IVisualizerPlugin plugin)
     {
         try
         {

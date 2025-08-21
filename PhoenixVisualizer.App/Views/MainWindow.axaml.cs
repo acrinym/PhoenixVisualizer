@@ -1,4 +1,3 @@
-using Avalonia;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;

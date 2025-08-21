@@ -9,5 +9,4 @@ global using Avalonia.Interactivity;
 global using Avalonia.Threading;
 global using PhoenixVisualizer.Core.Commands;
 global using PhoenixVisualizer.Core.Diagnostics;
-global using PhoenixVisualizer.Core;
 global using PhoenixVisualizer.Core.Services;

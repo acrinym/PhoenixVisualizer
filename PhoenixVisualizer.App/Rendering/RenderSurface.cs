@@ -279,12 +279,13 @@ public sealed class RenderSurface : Control
             _renderStopwatch.Restart();
             
             // Create PluginHost AudioFeatures for plugin rendering
-            var pluginFeatures = AudioFeaturesImpl.Create(
+            var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
                 _smoothFft,  // fft
                 wave,        // waveform
                 rms,         // rms
                 _bpm,        // bpm
-                beat         // beat
+                beat,        // beat
+                t            // timeSeconds
             );
             
             _plugin.RenderFrame(pluginFeatures, adapter);

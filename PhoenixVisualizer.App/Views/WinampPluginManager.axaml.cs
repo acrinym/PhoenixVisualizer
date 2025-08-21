@@ -57,7 +57,7 @@ public partial class WinampPluginManager : Window
             }
 
             // Scan for plugins
-            var result = await _integrationService.ScanForPluginsAsync(resolved);
+            var result = await _integrationService.ScanForPluginsAsync();
             
             // Update UI on UI thread
             Dispatcher.UIThread.Post(() =>

@@ -104,13 +104,9 @@ public static class NativeAvsHost
             // Marshal module and set fields
             var mod = Marshal.PtrToStructure<NativeAvsInterop.WinampVisModule>(modPtr);
             // Set parent HWND / audio params
-            unsafe
-            {
-                var p = (NativeAvsInterop.WinampVisModule*)modPtr;
-                p->hwndParent = hwndParent;
-                p->sRate = sampleRate;
-                p->nCh = channels;
-            }
+            mod.hwndParent = hwndParent;
+            mod.sRate = sampleRate;
+            mod.nCh = channels;
 
             // Bind entry points
             _initFn = Marshal.GetDelegateForFunctionPointer<NativeAvsInterop.ModuleIntFn>(mod.Init);

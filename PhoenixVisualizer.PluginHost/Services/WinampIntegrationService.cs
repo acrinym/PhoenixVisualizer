@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 
 namespace PhoenixVisualizer.PluginHost.Services;
@@ -89,7 +88,7 @@ public class WinampIntegrationService : IDisposable
     /// <summary>
     /// Scan for available Winamp plugins
     /// </summary>
-    public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync(string? directory = null)
+    public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync()
     {
         if (_winampHost == null || !_isInitialized)
         {

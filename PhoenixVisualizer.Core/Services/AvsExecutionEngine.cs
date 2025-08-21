@@ -230,7 +230,7 @@ namespace PhoenixVisualizer.Core.Services
                 
                 try
                 {
-                    await ExecuteEffectAsync(effect, section);
+                    await ExecuteEffectAsync(effect);
                 }
                 catch (Exception ex)
                 {
@@ -242,7 +242,7 @@ namespace PhoenixVisualizer.Core.Services
         /// <summary>
         /// Executes a single AVS effect
         /// </summary>
-        private async Task ExecuteEffectAsync(AvsEffect effect, AvsSection section)
+        private async Task ExecuteEffectAsync(AvsEffect effect)
         {
             // Clear frame if requested
             if (effect.ClearEveryFrame)

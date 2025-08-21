@@ -19,6 +19,10 @@ public interface AudioFeatures
     float Volume { get; }
     float Peak { get; }
     double TimeSeconds { get; }
+    
+    // Enhanced frequency analysis
+    float[] FrequencyBands { get; }
+    float[] SmoothedFft { get; }
 }
 
 /// <summary>

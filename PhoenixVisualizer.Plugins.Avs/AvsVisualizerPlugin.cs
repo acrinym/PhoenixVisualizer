@@ -13,7 +13,7 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
 
     // Mini-preset state
     private int _points = 512;
-    private Mode _mode = Mode.Line;
+    private Mode _mode = Mode.Spectrum; // Changed default to spectrum
     private Source _source = Source.Fft;
 
     public void Initialize() { }
@@ -27,7 +27,7 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
     public void LoadPreset(string presetText)
     {
         // default values
-        _points = 512; _mode = Mode.Line; _source = Source.Fft;
+        _points = 512; _mode = Mode.Spectrum; _source = Source.Fft;
         if (string.IsNullOrWhiteSpace(presetText)) return;
         var parts = presetText.Split(new[] { ';', '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var raw in parts)
@@ -42,7 +42,7 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
                     if (int.TryParse(val, out var p) && p > 1) _points = Math.Clamp(p, 2, 4096);
                     break;
                 case "mode":
-                    _mode = val switch { "bars" => Mode.Bars, "line" => Mode.Line, _ => _mode };
+                    _mode = val switch { "bars" => Mode.Bars, "line" => Mode.Line, "spectrum" => Mode.Spectrum, _ => _mode };
                     break;
                 case "source":
                     _source = val switch { "fft" => Source.Fft, "wave" => Source.Wave, "sin" => Source.Sin, _ => _source };
@@ -65,6 +65,9 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
                 break;
             case Mode.Bars:
                 RenderBars(features, canvas);
+                break;
+            case Mode.Spectrum:
+                RenderSpectrum(features, canvas);
                 break;
         }
     }
@@ -115,6 +118,85 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
         }
     }
 
+    private void RenderSpectrum(AudioFeatures f, ISkiaCanvas canvas)
+    {
+        // Use enhanced frequency bands if available
+        var bands = f.FrequencyBands;
+        if (bands.Length == 0)
+        {
+            // Fallback to basic FFT if frequency bands aren't available
+            bands = f.Fft ?? Array.Empty<float>();
+        }
+        
+        if (bands.Length == 0) return;
+        
+        var barWidth = Math.Max(1f, (float)_w / bands.Length);
+        var maxHeight = _h - 20;
+        
+        for (int i = 0; i < bands.Length; i++)
+        {
+            var amplitude = MathF.Min(1f, bands[i]);
+            var height = amplitude * maxHeight;
+            
+            // Color based on frequency band
+            var color = GetFrequencyColor(i, bands.Length);
+            
+            var x = i * barWidth;
+            var y = _h - 10 - height;
+            
+            canvas.FillRect(x, y, barWidth - 1, height, color);
+            
+            // Add a subtle glow effect for active bars
+            if (amplitude > 0.1f)
+            {
+                var glowColor = (color & 0x00FFFFFF) | 0x40000000; // Semi-transparent glow
+                canvas.FillRect(x - 1, y - 1, barWidth + 1, height + 2, glowColor);
+            }
+        }
+        
+        // Draw frequency labels
+        if (bands.Length >= 8)
+        {
+            var labels = new[] { "60Hz", "250Hz", "500Hz", "1kHz", "2kHz", "4kHz", "8kHz", "16kHz" };
+            for (int i = 0; i < Math.Min(labels.Length, bands.Length); i++)
+            {
+                var x = i * barWidth + barWidth / 2;
+                canvas.DrawText(labels[i], x, _h - 5, 0xFFFFFFFF, 10);
+            }
+        }
+    }
+
+    private uint GetFrequencyColor(int bandIndex, int totalBands)
+    {
+        // Color gradient from red (low) to blue (high)
+        var ratio = (float)bandIndex / Math.Max(1, totalBands - 1);
+        
+        if (ratio < 0.33f)
+        {
+            // Red to yellow (low frequencies)
+            var r = 255;
+            var g = (int)(255 * (ratio * 3));
+            var b = 0;
+            return (uint)((r << 16) | (g << 8) | b);
+        }
+        else if (ratio < 0.66f)
+        {
+            // Yellow to green (mid frequencies)
+            var r = (int)(255 * (1 - (ratio - 0.33f) * 3));
+            var g = 255;
+            var b = 0;
+            return (uint)((r << 16) | (g << 8) | b);
+        }
+        else
+        {
+            // Green to blue (high frequencies)
+            var r = 0;
+            var g = (int)(255 * (1 - (ratio - 0.66f) * 3));
+            var b = (int)(255 * (ratio - 0.66f) * 3);
+            return (uint)((r << 16) | (g << 8) | b);
+        }
+    }
+
     private float SampleSource(AudioFeatures f, float t, int i)
     {
         switch (_source)
@@ -143,6 +225,6 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
         return 0f;
     }
 
-    private enum Mode { Line, Bars }
+    private enum Mode { Line, Bars, Spectrum }
     private enum Source { Fft, Wave, Sin }
 }

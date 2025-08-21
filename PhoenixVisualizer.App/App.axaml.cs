@@ -30,6 +30,7 @@ public partial class App : Application
             PluginRegistry.Register("energy", "Energy Ring", () => new EnergyVisualizer());
             PluginRegistry.Register("sanity", "Sanity Check", () => new SanityVisualizer());
             PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
+            PluginRegistry.Register("spectrum_analyzer", "🎵 Spectrum Analyzer", () => new SpectrumAnalyzerPlugin());
             
             // --- Register Phoenix Waterfall (Classic Winamp DNA) ---
             PluginRegistry.Register("phoenix_waterfall", "🔥 Phoenix Waterfall", () => new PhoenixWaterfallPlugin());
