@@ -5,7 +5,7 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 
-namespace PhoenixVisualizer.Rendering;
+namespace PhoenixVisualizer.App.Rendering;
 
 public sealed class RenderSurface : Control
 {

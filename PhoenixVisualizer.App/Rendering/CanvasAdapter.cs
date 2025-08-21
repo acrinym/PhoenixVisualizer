@@ -1,12 +1,12 @@
 using PhoenixVisualizer.PluginHost;
 
-namespace PhoenixVisualizer.Rendering;
+namespace PhoenixVisualizer.App.Rendering;
 
-public sealed class CanvasAdapter : ISkiaCanvas
+public sealed class CanvasAdapter(DrawingContext context, double width, double height) : ISkiaCanvas
 {
-    private readonly DrawingContext _context;
-    private readonly double _width;
-    private readonly double _height;
+    private readonly DrawingContext _context = context;
+    private readonly double _width = width;
+    private readonly double _height = height;
 
     // 🤝 blending hint for visuals
     public float FrameBlend { get; set; }
@@ -14,13 +14,6 @@ public sealed class CanvasAdapter : ISkiaCanvas
     // Implement required interface properties
     public int Width => (int)_width;
     public int Height => (int)_height;
-
-    public CanvasAdapter(DrawingContext context, double width, double height)
-    {
-        _context = context;
-        _width = width;
-        _height = height;
-    }
 
     public void Clear(uint argb)
     {
@@ -69,21 +62,20 @@ public sealed class CanvasAdapter : ISkiaCanvas
     public void FillRect(float x, float y, float width, float height, uint color)
     {
         var brush = new SolidColorBrush(Color.FromUInt32(color));
-        _context.FillRectangle(brush, new Rect(x, y, width, height));
+        _context.FillRectangle(new SolidColorBrush(color), new Rect(x, y, width, height));
     }
 
     public void DrawCircle(float x, float y, float radius, uint color, bool filled = false)
     {
-        var center = new Point(x, y);
         if (filled)
         {
             var brush = new SolidColorBrush(Color.FromUInt32(color));
-            _context.DrawEllipse(brush, null, center, radius, radius);
+            _context.DrawEllipse(brush, null, new Point(x, y), radius, radius);
         }
         else
         {
             var pen = new Pen(new SolidColorBrush(Color.FromUInt32(color)), 1.0f);
-            _context.DrawEllipse(null, pen, center, radius, radius);
+            _context.DrawEllipse(null, pen, new Point(x, y), radius, radius);
         }
     }
 

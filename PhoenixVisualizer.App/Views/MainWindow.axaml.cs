@@ -4,7 +4,7 @@ using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.PluginHost.Services;
 using PhoenixVisualizer.Plugins.Avs;
-using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.App.Rendering;
 using PhoenixVisualizer.App.Controls;
 using PhoenixVisualizer.Core.Diagnostics;
 using PhoenixVisualizer.App.Utils;
@@ -82,7 +82,7 @@ public partial class MainWindow : Window
         {
             if (_avsCanvas is not null)
             {
-                var renderer = new PhoenixVisualizer.Rendering.AvaloniaAvsRenderer();
+                var renderer = new PhoenixVisualizer.App.Rendering.AvaloniaAvsRenderer();
                 renderer.SetRenderCanvas(_avsCanvas);
                 _avsBridge.SetRenderer(renderer);
                 _avsBridge.SetAudioProvider(_avsAudio);
@@ -676,7 +676,7 @@ public partial class MainWindow : Window
 
                 if (_avsWin32Host?.Hwnd is nint hwnd && hwnd != 0)
                 {
-                    if (NativeAvsHost.Start(hwnd, stagedPath, out var msg, 44100, 2))
+                    if (NativeAvsHost.Start(hwnd, out var msg, 44100, 2))
                         await ShowToastAsync($"🧩 {msg}");
                     else
                         await ShowDialogAsync("PhoenixVisualizer", $"❌ AVS failed to start\n\n{msg}");
@@ -1030,7 +1030,7 @@ public partial class MainWindow : Window
             Log.Info($"AVS staged: {stagedPath}");
             if (_avsWin32Host?.Hwnd is nint hwnd && hwnd != 0)
             {
-                                    if (NativeAvsHost.Start(hwnd, stagedPath, out var msg, 44100, 2))
+                                    if (NativeAvsHost.Start(hwnd, out var msg, 44100, 2))
                     await ShowToastAsync($"🧩 {msg}");
                 else
                     await ShowDialogAsync("PhoenixVisualizer", $"❌ AVS failed to start\n\n{msg}");

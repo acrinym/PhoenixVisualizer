@@ -1,16 +1,15 @@
 <!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/MainWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:PhoenixVisualizer.ViewModels"
-        xmlns:r="using:PhoenixVisualizer.Rendering"
-        xmlns:local="clr-namespace:PhoenixVisualizer.App.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:r="using:PhoenixVisualizer.App.Rendering"
+        xmlns:controls="using:PhoenixVisualizer.App.Controls"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="PhoenixVisualizer.Views.MainWindow"
-
-        Icon="/Assets/avalonia-logo.ico"
-        Title="PhoenixVisualizer">
+        Title="PhoenixVisualizer - Advanced Audio Visualization"
+        Width="1200" Height="800"
+        Icon="/Assets/icon.ico">
 
 
 
@@ -49,7 +48,7 @@
                 <r:RenderSurface x:Name="RenderHost" />
                 
                 <!-- Native Winamp/AVS host (HWND). Start collapsed so built-ins are visible by default. -->
-                <local:AvsHostControl x:Name="AvsWin32Host"
+                <controls:AvsHostControl x:Name="AvsWin32Host"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
                                       IsHitTestVisible="False" />

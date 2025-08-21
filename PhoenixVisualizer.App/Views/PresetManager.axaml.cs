@@ -174,7 +174,7 @@ namespace PhoenixVisualizer.Views
                 }
 
                 // Add imported superscopes
-                var importedSuperscopes = _avsImportService.GetImportedSuperscopes();
+                var importedSuperscopes = AvsImportService.GetImportedSuperscopes();
                 foreach (var scope in importedSuperscopes)
                 {
                     _allPresets.Add(new PresetInfo(scope.FilePath, "Imported Superscope"));

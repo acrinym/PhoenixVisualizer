@@ -1,6 +1,6 @@
 using PhoenixVisualizer.Models;
 
-namespace PhoenixVisualizer.Services
+namespace PhoenixVisualizer.App.Services
 {
     /// <summary>
     /// Service for loading and managing MilkDrop presets
@@ -17,7 +17,7 @@ namespace PhoenixVisualizer.Services
         public MilkDropPresetLoader(string presetDirectory = "presets/milkdrop")
         {
             _presetDirectory = presetDirectory;
-            _loadedPresets = new List<PresetInfo>();
+            _loadedPresets = [];
             LoadPresets();
         }
 
@@ -108,7 +108,7 @@ namespace PhoenixVisualizer.Services
         /// <summary>
         /// Validate MilkDrop preset file
         /// </summary>
-        public bool ValidatePreset(PresetInfo preset)
+        public static bool ValidatePreset(PresetInfo preset)
         {
             try
             {

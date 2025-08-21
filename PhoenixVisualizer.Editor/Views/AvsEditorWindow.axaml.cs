@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 
 using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.Editor.ViewModels;

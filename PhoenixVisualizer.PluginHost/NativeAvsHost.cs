@@ -87,7 +87,7 @@ public static class NativeAvsHost
     /// <summary>
     /// Initialize the first module and parent its window to the provided HWND. Starts a 60 FPS render loop.
     /// </summary>
-    public static bool Start(nint hwndParent, string stagedPresetPath, out string message, int sampleRate = 44100, int channels = 2)
+    public static bool Start(nint hwndParent, out string message, int sampleRate = 44100, int channels = 2)
     {
         message = string.Empty;
         if (_lib == 0 || _getModule is null)

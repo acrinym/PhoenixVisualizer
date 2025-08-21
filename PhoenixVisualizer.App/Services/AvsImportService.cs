@@ -18,7 +18,7 @@ namespace PhoenixVisualizer.App.Services
         {
             public string FilePath { get; set; } = string.Empty;
             public string FileName { get; set; } = string.Empty;
-            public List<AvsSuperscope> Superscopes { get; set; } = new();
+            public List<AvsSuperscope> Superscopes { get; set; } = [];
             public bool HasSuperscopes => Superscopes.Count > 0;
             public string RawContent { get; set; } = string.Empty;
             public DateTime LastModified { get; set; }
@@ -39,10 +39,10 @@ namespace PhoenixVisualizer.App.Services
                 FileName = fileInfo.Name,
                 RawContent = content,
                 LastModified = fileInfo.LastWriteTime,
-                FileSize = fileInfo.Length
+                FileSize = fileInfo.Length,
+                Superscopes = ExtractSuperscopes(content)
             };
 
-            avsFile.Superscopes = ExtractSuperscopes(content);
             return avsFile;
         }
 
@@ -154,7 +154,7 @@ namespace PhoenixVisualizer.App.Services
         /// <summary>
         /// Check if a line contains mathematical functions commonly used in superscopes
         /// </summary>
-        private bool ContainsMathFunctions(string line)
+        private static bool ContainsMathFunctions(string line)
         {
             var mathFunctions = new[] { "sin", "cos", "tan", "sqrt", "pow", "abs", "log", "exp" };
             return mathFunctions.Any(func => line.Contains(func + "("));
@@ -287,7 +287,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Convert AVS code to C# code with basic transformations
         /// </summary>
-        private string ConvertAvsCodeToCSharp(string avsCode)
+        private static string ConvertAvsCodeToCSharp(string avsCode)
         {
             var csharpCode = avsCode;
             
@@ -324,7 +324,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Sanitize a filename for safe file creation
         /// </summary>
-        private string SanitizeFileName(string name)
+        private static string SanitizeFileName(string name)
         {
             var invalidChars = Path.GetInvalidFileNameChars();
             return invalidChars.Aggregate(name, (current, c) => current.Replace(c, '_'));
@@ -333,7 +333,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Sanitize a class name for C# compilation
         /// </summary>
-        private string SanitizeClassName(string name)
+        private static string SanitizeClassName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "ImportedSuperscope";
             
@@ -348,7 +348,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Sanitize an ID for safe use
         /// </summary>
-        private string SanitizeId(string name)
+        private static string SanitizeId(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "imported_scope";
             
@@ -362,7 +362,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Get all imported superscopes
         /// </summary>
-        public List<AvsSuperscope> GetImportedSuperscopes()
+        public static List<AvsSuperscope> GetImportedSuperscopes()
         {
             var superscopes = new List<AvsSuperscope>();
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -407,7 +407,7 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         /// <summary>
         /// Delete an imported superscope
         /// </summary>
-        public bool DeleteImportedSuperscope(string name)
+        public static bool DeleteImportedSuperscope(string name)
         {
             try
             {

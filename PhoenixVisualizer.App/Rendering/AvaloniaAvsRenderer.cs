@@ -2,7 +2,7 @@ using Avalonia.Media.Imaging;
 
 using PhoenixVisualizer.Core.Services;
 
-namespace PhoenixVisualizer.Rendering
+namespace PhoenixVisualizer.App.Rendering
 {
     public sealed class AvaloniaAvsRenderer : IAvsRenderer
     {

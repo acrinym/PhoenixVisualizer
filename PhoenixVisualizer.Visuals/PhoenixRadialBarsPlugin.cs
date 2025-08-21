@@ -61,41 +61,44 @@ public sealed class PhoenixRadialBarsPlugin : IVisualizerPlugin
             var angle = (i / (float)_numBars) * Math.PI * 2f + _rotation;
             
             // Get FFT data for this bar (map circular to linear)
-            var fftIndex = (int)((i / (float)_numBars) * features.Fft.Length);
-            if (fftIndex >= features.Fft.Length) fftIndex = features.Fft.Length - 1;
-            
-            var magnitude = MathF.Min(1f, features.Fft[fftIndex] * 3f); // Boost sensitivity
-            
-            // Bass boost for lower frequencies
-            var bassBoost = i < _numBars / 4 ? 1.5f : 1.0f;
-            magnitude *= bassBoost;
-            
-            // Calculate bar length and position
-            var barLength = magnitude * radius * _maxRadius;
-            var startRadius = 30f; // Start from inner glow
-            
-            var startX = centerX + (float)Math.Cos(angle) * startRadius;
-            var startY = centerY + (float)Math.Sin(angle) * startRadius;
-            var endX = centerX + (float)Math.Cos(angle) * (startRadius + barLength);
-            var endY = centerY + (float)Math.Sin(angle) * (startRadius + barLength);
-
-            // Get color based on frequency and intensity
-            var color = GetPhoenixColor(magnitude, i, _numBars);
-            
-            // Add alpha based on magnitude
-            var alpha = (byte)(magnitude * 255);
-            color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
-
-            // Draw the bar with thickness
-            canvas.SetLineWidth(_barWidth);
-            canvas.DrawLine(startX, startY, endX, endY, color, _barWidth);
-
-            // Add sparkle effect on strong hits
-            if (magnitude > 0.8f)
+            if (features.Fft?.Length > 0)
             {
-                var sparkleRadius = 3f + magnitude * 5f;
-                var sparkleColor = (color & 0x00FFFFFF) | 0xFF000000; // Full alpha
-                canvas.FillCircle(endX, endY, sparkleRadius, sparkleColor);
+                var fftIndex = (int)((i / (float)_numBars) * features.Fft.Length);
+                if (fftIndex >= features.Fft.Length) fftIndex = features.Fft.Length - 1;
+                
+                var magnitude = MathF.Min(1f, features.Fft[fftIndex] * 3f); // Boost sensitivity
+                
+                // Bass boost for lower frequencies
+                var bassBoost = i < _numBars / 4 ? 1.5f : 1.0f;
+                magnitude *= bassBoost;
+                
+                // Calculate bar length and position
+                var barLength = magnitude * radius * _maxRadius;
+                var startRadius = 30f; // Start from inner glow
+                
+                var startX = centerX + (float)Math.Cos(angle) * startRadius;
+                var startY = centerY + (float)Math.Sin(angle) * startRadius;
+                var endX = centerX + (float)Math.Cos(angle) * (startRadius + barLength);
+                var endY = centerY + (float)Math.Sin(angle) * (startRadius + barLength);
+
+                // Get color based on frequency and intensity
+                var color = GetPhoenixColor(magnitude, i, _numBars);
+                
+                // Add alpha based on magnitude
+                var alpha = (byte)(magnitude * 255);
+                color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
+
+                // Draw the bar with thickness
+                canvas.SetLineWidth(_barWidth);
+                canvas.DrawLine(startX, startY, endX, endY, color, _barWidth);
+
+                // Add sparkle effect on strong hits
+                if (magnitude > 0.8f)
+                {
+                    var sparkleRadius = 3f + magnitude * 5f;
+                    var sparkleColor = (color & 0x00FFFFFF) | 0xFF000000; // Full alpha
+                    canvas.FillCircle(endX, endY, sparkleRadius, sparkleColor);
+                }
             }
         }
 

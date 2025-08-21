@@ -1,8 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.App.Rendering;
 
 namespace PhoenixVisualizer.Views;
 
