@@ -58,6 +58,10 @@ public partial class App : Application
             PluginRegistry.Register("butterfly_superscope", "🎭 Butterfly", () => new ButterflySuperscope());
             PluginRegistry.Register("rainbow_sphere_grid_superscope", "🎭 Rainbow Sphere Grid", () => new RainbowSphereGridSuperscope());
 
+            // --- Register Advanced AVS Effects ---
+            PluginRegistry.Register("advanced_avs", "🌟 Advanced AVS", () => new AdvancedAvsPlugin(), "Advanced AVS effects with transitions, SuperScope, and awesome visuals", "1.0", "PhoenixVisualizer");
+            PluginRegistry.Register("superscope_pro", "🎯 SuperScope Pro", () => new SuperScopePlugin(), "Professional SuperScope visualizations with multiple rendering modes", "1.0", "PhoenixVisualizer");
+
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
 
