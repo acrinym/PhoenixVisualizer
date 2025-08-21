@@ -1,3 +1,4 @@
+using Avalonia;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;
@@ -14,10 +15,17 @@ namespace PhoenixVisualizer.Views;
 
 public partial class MainWindow : Window
 {
+    private bool _handlersWired;
+    private WinampPluginManager? _pluginManager;
+    private enum VisualMode { BuiltIn, Winamp }
+    private VisualMode _visualMode = VisualMode.BuiltIn;
+    
     // Plugin mode tracking
     private enum PluginMode { BuiltIn, Winamp }
     private PluginMode _currentPluginMode = PluginMode.BuiltIn;
     private WinampIntegrationService? _winampService;
+    
+
     
     // Grab the render surface once on the UI thread so background tasks don't try
     // to traverse the visual tree later (which would throw 🙅‍♂️)
@@ -33,6 +41,7 @@ public partial class MainWindow : Window
     private readonly AvsAudioProvider _avsAudio = new();
     private Canvas? _avsCanvas;
     private AvsHostControl? _avsWin32Host;
+    private Control? _avsWin32HostControl;
 
 
 
@@ -44,10 +53,30 @@ public partial class MainWindow : Window
         var avsCanvasHost = this.FindControl<Grid>("AvsCanvasHost");
         _avsCanvas = avsCanvasHost?.FindControl<Canvas>("AvsCanvas");
         _avsWin32Host = this.FindControl<AvsHostControl>("AvsWin32Host");
+        _avsWin32HostControl = this.FindControl<Control>("AvsWin32Host");
         
 
         
         Presets.Initialize(_renderSurface);
+
+        // ✅ Populate built-in plugins and select one immediately
+        var cmb = this.FindControl<ComboBox>("CmbPlugin");
+        if (cmb != null)
+        {
+            var items = PluginRegistry.AvailablePlugins?.ToList() ?? new List<PluginMetadata>();
+            if (items.Count > 0)
+            {
+                cmb.ItemsSource = items;
+                cmb.SelectionChanged += OnPluginSelectionChanged;
+                cmb.SelectedIndex = 0; // trigger selection -> SetPlugin
+            }
+        }
+
+        // ✅ Wire Winamp UI buttons if present
+        var btnWinamp = this.FindControl<Button>("BtnWinampPlugins");
+        if (btnWinamp != null) btnWinamp.Click += (_, __) => OpenWinampManager();
+        var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
+        if (btnSwitcher != null) btnSwitcher.Click += OnPluginSwitcherClick;
 
         // Initialize AVS overlay renderer
         try
@@ -190,10 +219,16 @@ public partial class MainWindow : Window
         
         // Wire up button event handlers
         WireUpEventHandlers();
+        
+        // Ensure we start in built-in mode so Skia host paints
+        SetVisualMode(VisualMode.BuiltIn);
     }
 
     private void WireUpEventHandlers()
     {
+        if (_handlersWired) return;
+        _handlersWired = true;
+
         // Wire up button click events
         var btnOpen = this.FindControl<Button>("BtnOpen");
         var btnPlay = this.FindControl<Button>("BtnPlay");
@@ -222,6 +257,66 @@ public partial class MainWindow : Window
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
         if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
         if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
+    }
+
+    private void SetVisualMode(VisualMode mode)
+    {
+        _visualMode = mode;
+        var winamp = this.FindControl<Control>("AvsWin32Host");
+        var skia = this.FindControl<RenderSurface>("RenderHost");
+        
+        if (mode == VisualMode.BuiltIn)
+        {
+            if (winamp != null)
+            {
+                winamp.IsEnabled = false;
+                winamp.IsVisible = false;
+            }
+            if (skia != null)
+            {
+                skia.IsVisible = true;
+            }
+        }
+        else
+        {
+            if (skia != null)
+            {
+                skia.IsVisible = false;
+            }
+            if (winamp != null)
+            {
+                winamp.IsEnabled = true;
+                winamp.IsVisible = true;
+            }
+        }
+    }
+
+    private void OnPluginSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_currentPluginMode != PluginMode.BuiltIn) return;
+        if (sender is ComboBox cb && cb.SelectedItem is PluginMetadata meta)
+        {
+            var plugin = PluginRegistry.Create(meta.Id);
+            if (plugin != null && RenderSurfaceControl != null)
+            {
+                RenderSurfaceControl.SetPlugin(plugin);
+                RenderSurfaceControl.InvalidateVisual();
+            }
+        }
+    }
+
+    private void OpenWinampManager()
+    {
+        try
+        {
+            var mgr = new Views.WinampPluginManager();
+            mgr.Show(this);
+        }
+        catch (Exception ex)
+        {
+            // emoji-friendly status already in the manager; just log
+            Console.WriteLine($"Winamp manager error: {ex.Message}");
+        }
     }
 
     private void InitializePlugin()
@@ -828,6 +923,9 @@ public partial class MainWindow : Window
                 statusText.Text = $"✅ Switched to Winamp mode - {result.Plugins.Count} plugins available";
             }
 
+            // Update UI visibility
+            UpdatePluginModeUI();
+
             // TODO: Set the first available Winamp plugin as active
             // For now, just indicate the mode change
         }
@@ -865,6 +963,9 @@ public partial class MainWindow : Window
             {
                 statusText.Text = "✅ Switched back to built-in visualizers";
             }
+
+            // Update UI visibility
+            UpdatePluginModeUI();
         }
         catch (Exception ex)
         {
@@ -872,27 +973,25 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UpdatePluginModeUI()
+    {
+        var isWinamp = _currentPluginMode == PluginMode.Winamp;
+        // Show/hide Winamp host if present; always show RenderSurface for built-ins
+        if (_avsWin32HostControl != null) _avsWin32HostControl.IsVisible = isWinamp;
+        if (_renderSurface != null) _renderSurface.IsVisible = !isWinamp;
+    }
+
+    // Single-instance window open; avoid double Show() if handler is wired twice, etc.
     private void OnWinampPluginsClick(object? sender, RoutedEventArgs e)
     {
-        try
+        if (_pluginManager is { } existing && existing.IsVisible)
         {
-            var statusText = this.FindControl<TextBlock>("LblTime");
-            if (statusText != null) statusText.Text = "🔄 Opening Winamp Plugin Manager...";
-            
-            var winampWindow = new PhoenixVisualizer.Views.WinampPluginManager();
-            winampWindow.Show();
-            
-            if (statusText != null) statusText.Text = "✅ Winamp Plugin Manager opened";
+            existing.Activate();
+            return;
         }
-        catch (Exception ex)
-        {
-            // Show error in status bar
-            var statusText = this.FindControl<TextBlock>("LblTime");
-            if (statusText != null)
-            {
-                statusText.Text = $"❌ Winamp plugin error: {ex.Message}";
-            }
-        }
+        _pluginManager = new WinampPluginManager();
+        _pluginManager.Closed += (_, __) => _pluginManager = null;
+        _pluginManager.Show(this);
     }
 
     private void OnPresetDragOver(object? sender, DragEventArgs e)

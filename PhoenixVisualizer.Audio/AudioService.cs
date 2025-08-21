@@ -38,6 +38,13 @@ public sealed class AudioService : IAsyncDisposable
 
     static float Clamp(float v, float min, float max) => v < min ? min : (v > max ? max : v);
 
+    public AudioService()
+    {
+        // Ensure codec plugins (FLAC/AAC/OPUS etc.) are loaded before opening any files.
+        // This also stabilizes OGG/edge MP3 behavior on some systems.
+        LoadBassCodecPlugins();
+    }
+
     // Load additional BASS codec plugins for better format support
     private static void LoadBassCodecPlugins()
     {

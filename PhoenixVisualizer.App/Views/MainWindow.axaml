@@ -45,11 +45,16 @@
         <!-- Render surface with AVS overlay -->
         <Border Grid.Row="2" Margin="8" Background="#111">
             <Grid>
-                <!-- RenderSurface for non-AVS visualization -->
-                <r:RenderSurface x:Name="RenderHost"/>
-                <!-- Top layer: native AVS host (only visible/used on Windows) -->
-                <local:AvsHostControl x:Name="AvsWin32Host"/>
-                <!-- Existing canvas remains (non-AVS rendering) -->
+                <!-- Built-in visualizer surface (Skia) -->
+                <r:RenderSurface x:Name="RenderHost" />
+                
+                <!-- Native Winamp/AVS host (HWND). Start collapsed so built-ins are visible by default. -->
+                <local:AvsHostControl x:Name="AvsWin32Host"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      IsHitTestVisible="False" />
+                
+                <!-- Optional AVS canvas overlay -->
                 <Grid x:Name="AvsCanvasHost" Background="Transparent">
                     <Canvas x:Name="AvsCanvas" Background="Transparent"/>
                 </Grid>

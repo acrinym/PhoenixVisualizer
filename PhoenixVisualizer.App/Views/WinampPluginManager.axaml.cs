@@ -48,8 +48,16 @@ public partial class WinampPluginManager : Window
                 return;
             }
 
+            // Resolve plugin directory and show it to user
+            var resolved = await _integrationService.ResolvePluginDirectoryAsync();
+            var pathText = this.FindControl<TextBlock>("PluginPathTextBlock");
+            if (pathText != null)
+            {
+                pathText.Text = resolved ?? "(none)";
+            }
+
             // Scan for plugins
-            var result = await _integrationService.ScanForPluginsAsync();
+            var result = await _integrationService.ScanForPluginsAsync(resolved);
             
             // Update UI on UI thread
             Dispatcher.UIThread.Post(() =>

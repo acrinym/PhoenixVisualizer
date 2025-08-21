@@ -30,6 +30,12 @@ public class WinampIntegrationService : IDisposable
         try
         {
             var pluginDir = ResolvePluginDirectory();
+            if (string.IsNullOrWhiteSpace(pluginDir))
+            {
+                // No plugin directory found - this is not an error, just no plugins available
+                return;
+            }
+            
             Directory.CreateDirectory(pluginDir);
             var dllFiles = Directory.EnumerateFiles(pluginDir, "*.dll").ToArray();
             
@@ -42,44 +48,48 @@ public class WinampIntegrationService : IDisposable
         }
     }
 
-    private static string ResolvePluginDirectory()
+    public async Task<string?> ResolvePluginDirectoryAsync()
     {
-        // 1) Explicit override via env var
-        var fromEnv = Environment.GetEnvironmentVariable("PHOENIX_WINAMP_VIS_DIR");
-        if (!string.IsNullOrWhiteSpace(fromEnv) &&
-            Directory.Exists(fromEnv) &&
-            Directory.EnumerateFiles(fromEnv, "*.dll").Any())
-        {
-            return fromEnv!;
-        }
+        return await Task.FromResult(ResolvePluginDirectory());
+    }
 
-        // 2) Known Winamp locations (Windows)
-        try
+    private static string? ResolvePluginDirectory()
+    {
+        static string? SearchUp(string start)
         {
-            if (OperatingSystem.IsWindows())
+            const int MaxDepth = 6;
+            var d = new DirectoryInfo(start);
+            for (int i = 0; i < MaxDepth && d != null; i++, d = d.Parent)
             {
-                var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                var candidates = new[]
-                {
-                    Path.Combine(pf86, "Winamp", "Plugins"),
-                    Path.Combine(pf,  "Winamp", "Plugins")
-                };
-                var hit = candidates.FirstOrDefault(d =>
-                    Directory.Exists(d) && Directory.EnumerateFiles(d, "*.dll").Any());
-                if (hit != null) return hit!;
+                var candidate = Path.Combine(d.FullName, "plugins", "vis");
+                if (Directory.Exists(candidate)) return candidate;
             }
+            return null;
         }
-        catch { /* safe fallback */ }
 
-        // 3) Local app folder (default)
-        return Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
+        var env = Environment.GetEnvironmentVariable("PHOENIX_WINAMP_VIS_DIR");
+        if (!string.IsNullOrWhiteSpace(env) && Directory.Exists(env!)) return env!;
+
+        // 1) Common dev-layout: repoRoot\plugins\vis (search upward from bin and CWD)
+        var fromBase = SearchUp(AppContext.BaseDirectory);
+        if (fromBase != null) return fromBase;
+        var fromCwd = SearchUp(Directory.GetCurrentDirectory());
+        if (fromCwd != null) return fromCwd;
+
+        // 2) Traditional Winamp install
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var winampVis = Path.Combine(programFiles, "Winamp", "Plugins");
+        if (Directory.Exists(winampVis)) return winampVis;
+
+        // 3) Last-ditch: bin\plugins\vis under the app
+        var defaultUnderBin = Path.Combine(AppContext.BaseDirectory, "plugins", "vis");
+        return Directory.Exists(defaultUnderBin) ? defaultUnderBin : null;
     }
 
     /// <summary>
     /// Scan for available Winamp plugins
     /// </summary>
-    public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync()
+    public async Task<(IReadOnlyList<SimpleWinampHost.LoadedPlugin> Plugins, string Status, Exception? Error)> ScanForPluginsAsync(string? directory = null)
     {
         if (_winampHost == null || !_isInitialized)
         {
