@@ -1,13 +1,13 @@
 # 🚀 Phoenix Visualizer
 
-**Cross-platform Avalonia visualizer studio** with full Winamp plugin compatibility and an AVS-compatible runtime at its core. Features a Phoenix visualizer plugin, comprehensive plugin management UI, and support for AVS-style presets, APE-style effects, and managed plugins. Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands, with real-world frequency-to-visible-color fallback when genre is missing.
+**Cross-platform Avalonia visualizer studio** with a native C# AVS-compatible runtime at its core. Features a Phoenix visualizer plugin, comprehensive plugin management UI, and support for AVS-style presets, APE-style effects, and managed plugins. Each track gets one primary vibe (genre-driven), nuanced by BPM, energy, and frequency bands, with real-world frequency-to-visible-color fallback when genre is missing.
 
 ## ✨ Latest Features (v2.0)
 
 - **🎭 Superscopes System**: 11 AVS-based mathematical visualizations with audio response
 - **✏️ AVS Editor**: Full-featured editor for creating and editing AVS presets with real-time preview
 - **🎯 Plugin Management UI**: Complete plugin manager in Settings window
-- **🔌 Winamp Plugin Support**: Direct loading of Winamp visualizer DLLs
+- **🎨 Native AVS Engine**: Pure C# implementation of Advanced Visualization Studio
 - **⚡ Enhanced Audio System**: Fixed freezing visualizers and audio corruption
 - **🎨 Advanced Visualizations**: Waveform, FFT, Bars, Energy with fallback patterns
 - **🚀 Easy Launcher System**: Double-click `run.bat` or use `phoenix` alias
@@ -167,7 +167,7 @@ dotnet build PhoenixVisualizer.sln
 ## 📚 Documentation
 
 - **🚀 RUNNING.md** - Complete guide to running PhoenixVisualizer
-- **🔌 WINAMP_PLUGIN_SETUP.md** - Winamp plugin integration guide
+- **📚 PROJECT_PHOENIX_PLAN.md** - Project architecture and roadmap
 - **🎭 SUPERSCOPES_IMPLEMENTATION.md** - Complete superscopes guide and reference
 - **📋 TODO.md** - Development roadmap and progress tracking
 - **📊 PHOENIX_VISUALIZER_STATUS.md** - Comprehensive project status report
@@ -184,7 +184,7 @@ dotnet build PhoenixVisualizer.sln
 - **🎭 Superscopes**: 11 AVS-based mathematical visualizations with audio response
 - **✏️ AVS Editor**: Full-featured editor with real-time preview and seamless integration
 - **🔌 Plugin Infrastructure**: Comprehensive plugin interfaces and registry system
-- **⚡ Winamp Integration**: Direct Winamp plugin loading and NS-EEL evaluator
+- **⚡ Phoenix Integration**: Native C# AVS engine and Phoenix scripting
 - **🎯 Plugin Management UI**: Complete settings-based plugin manager
 - **🚀 Launcher System**: Easy-to-use batch files and PowerShell aliases
 
@@ -209,7 +209,7 @@ dotnet build PhoenixVisualizer.sln
 
 ### Getting Help
 - Check `RUNNING.md` for launcher issues
-- Review `WINAMP_PLUGIN_SETUP.md` for plugin problems
+- Review `PROJECT_PHOENIX_PLAN.md` for project status
 - Consult `TODO.md` for development status
 - Check `PHOENIX_VISUALIZER_STATUS.md` for comprehensive project info
 
