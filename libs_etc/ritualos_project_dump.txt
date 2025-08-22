@@ -1,4 +1,3417 @@
 ﻿# Phoenix Visualizer PROJECT STRUCTURE DUMP
+
+[CSWinampSDK\TestProg\Form1.cs]
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using WinAmpSDK;
+
+namespace TestProg
+{
+    public partial class Form1 : Form
+    {
+        private Winamp wa;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            //Winamp wa = new Winamp();
+            wa = new Winamp(true);
+
+            //TODO : Put valid mp3 filename here
+            string filename = @"E:\New Music 7\B.U.G. Mafia feat. Adriana - Viata Noastra www.flor.cc.mp3";
+
+            //wa.AppendToPlayList(filename);
+            //Process.Start(wa.WA_Path, "/ADD \"" + filename + '"');
+            //  THIS IS A HACK THAT WILL WORK ONLY IF "Alllow multiple instances" is NOT SELECTED IN WinAmp
+ 
+            wa.AppendToPlayList(filename);
+
+            //int length = Win32.SendMessage(wa.Handle, (int)WA_IPC.WM_WA_IPC, 0, (int)WA_IPC.IPC_GETLISTLENGTH);
+            //wa.SendToWinamp(WA_MsgTypes.WM_USER, length-1, (int)WA_IPC.IPC_SETPLAYLISTPOS);
+            wa.SendToWinamp(WA_MsgTypes.WM_COMMAND, (int)WinAmpSDK.WM_COMMAND_MSGS.WINAMP_BUTTON2, 0);
+            
+
+            //wa.ToggleShuffle();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd1 = new OpenFileDialog();
+            ofd1.ShowDialog(this);
+            wa.AppendToPlayList(ofd1.FileName);
+        }
+    }
+}
+
+[CSWinampSDK\TestProg\Form1.Designer.cs]
+namespace TestProg
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.button1 = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(30, 238);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(233, 23);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "Enque File In WinAmp";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(292, 273);
+            this.Controls.Add(this.button1);
+            this.Name = "Form1";
+            this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button button1;
+    }
+}
+
+
+
+[CSWinampSDK\TestProg\Program.cs]
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace TestProg
+{
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());
+        }
+    }
+}
+
+[CSWinampSDK\TestProg\Properties\AssemblyInfo.cs]
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+[assembly: AssemblyTitle("TestProg")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("TestProg")]
+[assembly: AssemblyCopyright("Copyright ©  2005")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+[assembly: Guid("cdf79923-7547-41df-898b-15c0a356f8fc")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+
+
+[CSWinampSDK\TestProg\Properties\Resources.Designer.cs]
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:2.0.50727.42
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+namespace TestProg.Properties
+{
+
+
+    /// <summary>
+    ///   A strongly-typed resource class, for looking up localized strings, etc.
+    /// </summary>
+    // This class was auto-generated by the StronglyTypedResourceBuilder
+    // class via a tool like ResGen or Visual Studio.
+    // To add or remove a member, edit your .ResX file then rerun ResGen
+    // with the /str option, or rebuild your VS project.
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "2.0.0.0")]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    internal class Resources
+    {
+
+        private static global::System.Resources.ResourceManager resourceMan;
+
+        private static global::System.Globalization.CultureInfo resourceCulture;
+
+        [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
+        internal Resources()
+        {
+        }
+
+        /// <summary>
+        ///   Returns the cached ResourceManager instance used by this class.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if ((resourceMan == null))
+                {
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TestProg.Properties.Resources", typeof(Resources).Assembly);
+                    resourceMan = temp;
+                }
+                return resourceMan;
+            }
+        }
+
+        /// <summary>
+        ///   Overrides the current thread's CurrentUICulture property for all
+        ///   resource lookups using this strongly typed resource class.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
+                return resourceCulture;
+            }
+            set
+            {
+                resourceCulture = value;
+            }
+        }
+    }
+}
+
+
+[CSWinampSDK\TestProg\Properties\Settings.Designer.cs]
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:2.0.50727.42
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+namespace TestProg.Properties
+{
+
+
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "8.0.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+
+        public static Settings Default
+        {
+            get
+            {
+                return defaultInstance;
+            }
+        }
+    }
+}
+
+
+[CSWinampSDK\TestProg\TestProg.csproj]
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{EB30D4EB-B85A-4353-BCB6-9E47BEF1B140}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TestProg</RootNamespace>
+    <AssemblyName>TestProg</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Winamp SDK\WinAmpSDK.csproj">
+      <Project>{70E44987-DBB8-4455-87E0-33CD6F6C55DD}</Project>
+      <Name>WinAmpSDK</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
+
+[CSWinampSDK\Winamp SDK\Properties\AssemblyInfo.cs]
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+[assembly: AssemblyTitle("WinAmpSDK")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Myself")]
+[assembly: AssemblyProduct("WinAmpSDK")]
+[assembly: AssemblyCopyright("Copyright © Myself 2005")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM componenets.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+[assembly: Guid("80043acc-c52b-4f38-a20f-105387688d20")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers 
+// by using the '*' as shown below:
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+
+
+[CSWinampSDK\Winamp SDK\README.txt]
+This software is prerelease and all aspects regarding features and/or implementation are subject to change.
+
+The license of this release is LGPL.
+For further documentation and SDK help you may want to get the official Winamp SDK release at www.Winamp.com
+
+WEB :  http://www.sourceforge.net/projects/cswinampsdk
+MAIL : bursucel88@yahoo.com
+
+The mail is the fastest are safest way to get in touch with me.
+
+Thanks
+
+Florin Bejinaru (FBKK) 2005
+
+[CSWinampSDK\Winamp SDK\wa_ipc.cs]
+/*
+** Copyright (C) 2003 Nullsoft, Inc.
+**
+** This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held 
+** liable for any damages arising from the use of this software. 
+**
+** Permission is granted to anyone to use this software for any purpose, including commercial applications, and to 
+** alter it and redistribute it freely, subject to the following restrictions:
+**
+**   1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. 
+**      If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+**
+**   2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+**
+**   3. This notice may not be removed or altered from any source distribution.
+**
+*/
+
+#define _WA_IPC_H_ 
+
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+
+
+//#include "wa_msgids.h"  // part of the original SDK
+
+/*
+** This is the modern replacement for the classic 'frontend.h'. Most of these 
+** updates are designed for in-process use, i.e. from a plugin.
+*/
+
+namespace WinAmpSDK
+{
+#if _WA_IPC_H_
+
+
+    public enum WA_IPC
+    {
+    /* message used to sent many messages to winamp's main window. 
+    ** most all of the IPC_* messages involve sending the message in the form of:
+    **   result = SendMessage(hwnd_winamp,WM_WA_IPC,(parameter),IPC_*);
+    */
+     WM_WA_IPC = Win32.WM_USER, 
+
+    /* but some of them use WM_COPYDATA. be afraid.
+    */
+
+     IPC_GETVERSION = 0, 
+
+    /* int version = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETVERSION);
+    **
+    ** Version will be 0x20yx for winamp 2.yx. versions previous to Winamp 2.0
+    ** typically (but not always) use 0x1zyx for 1.zx versions. Weird, I know.
+    **
+    ** For Winamp 5.x it uses 0x50yx for winamp 5.yx
+    ** e.g.	5.01 -> 0x5001
+    **
+    ** note: in 5.02 this will return the same value as for 5.01.
+    */
+
+     IPC_GETREGISTEREDVERSION = 770, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETREGISTEREDVERSION);
+    **
+    ** This will open the preferences dialog and show the Winamp Pro option.
+    */
+
+
+
+    /// <summary>
+    /// dont be fooled, this is really the same as enqueufile 
+    /// </summary>
+     IPC_PLAYFILE = 100,  
+
+     IPC_ENQUEUEFILE = 100,  
+
+    /* sent as a WM_COPYDATA, with IPC_PLAYFILE as the dwData, and the string to play
+    ** as the lpData. Just enqueues, does not clear the playlist or change the playback
+    ** state.
+    */
+
+
+     IPC_DELETE = 101, 
+
+    /// <summary>
+    /// don't use this, it's used internally by winamp when  
+    /// </summary>
+     IPC_DELETE_INT = 1101, 
+
+                                // dealing with some lame explorer issues.
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_DELETE);
+    ** Use IPC_DELETE to clear Winamp's internal playlist.
+    */
+
+
+    /// <summary>
+    /// starts playback. almost like hitting play in Winamp. 
+    /// </summary>
+     IPC_STARTPLAY = 102,   
+
+    /// <summary>
+    /// used internally, don't bother using it (won't be any fun) 
+    /// </summary>
+     IPC_STARTPLAY_INT = 1102, 
+
+
+
+     IPC_CHDIR = 103, 
+
+    /* sent as a WM_COPYDATA, with IPC_CHDIR as the dwData, and the directory to change to
+    ** as the lpData. 
+    **
+    ** COPYDATASTRUCT cds;
+    ** cds.dwData = IPC_CHDIR;
+    ** cds.lpData = (void *) "c:\\download";
+    ** cds.cbData = lstrlen((char *) cds.lpData)+1; // include space for null char
+    ** SendMessage(hwnd_winamp,WM_COPYDATA,0,(LPARAM)&cds);
+    **
+    ** This will make Winamp change to the directory 'C:\download'
+    **
+    */
+
+
+     IPC_ISPLAYING = 104, 
+
+    /* int res = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_ISPLAYING);
+    ** If it returns 1, it is playing.
+    ** If it returns 3, it is paused.
+    ** If it returns 0, it is not playing.
+    */
+
+
+     IPC_GETOUTPUTTIME = 105, 
+
+    /* int res = SendMessage(hwnd_winamp,WM_WA_IPC,mode,IPC_GETOUTPUTTIME);
+    ** returns the position in milliseconds of the current track (mode = 0), 
+    ** or the track length, in seconds (mode = 1). Returns -1 if not playing or error.
+    */
+
+
+     IPC_JUMPTOTIME = 106, 
+
+    /* (requires Winamp 1.60+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,ms,IPC_JUMPTOTIME);
+    ** IPC_JUMPTOTIME sets the position in milliseconds of the 
+    ** current song (approximately).
+    ** Returns -1 if not playing, 1 on eof, or 0 if successful
+    */
+
+     IPC_GETMODULENAME = 109, 
+
+     IPC_EX_ISRIGHTEXE = 666, 
+
+    /* usually shouldnt bother using these, but here goes:
+    ** send a WM_COPYDATA with IPC_GETMODULENAME, and an internal
+    ** flag gets set, which if you send a normal WM_WA_IPC message with
+    ** IPC_EX_ISRIGHTEXE, it returns whether or not that filename
+    ** matches. lame, I know.
+    */
+
+     IPC_WRITEPLAYLIST = 120, 
+
+    /* (requires Winamp 1.666+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_WRITEPLAYLIST);
+    **
+    ** IPC_WRITEPLAYLIST writes the current playlist to <winampdir>\\Winamp.m3u,
+    ** and returns the current playlist position.
+    ** Kinda obsoleted by some of the 2.x new stuff, but still good for when
+    ** using a front-end (instead of a plug-in)
+    */
+
+
+     IPC_SETPLAYLISTPOS = 121, 
+
+    /* (requires Winamp 2.0+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,position,IPC_SETPLAYLISTPOS)
+    ** IPC_SETPLAYLISTPOS sets the playlist position to 'position'. It
+    ** does not change playback or anything, it just sets position, and
+    ** updates the view if necessary
+    **
+    ** If you use SendMessage(hwnd_winamp,WM_COMMAND,WINAMP_BUTTON2,0)
+    ** after using IPC_SETPLAYLISTPOS, winamp will start playing the file.
+    */
+
+
+     IPC_SETVOLUME = 122, 
+
+    /* (requires Winamp 2.0+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,volume,IPC_SETVOLUME);
+    ** IPC_SETVOLUME sets the volume of Winamp (from 0-255).
+    **
+    ** If you pass volume as -666 then it will return the current volume.
+    */
+
+
+     IPC_SETPANNING = 123, 
+
+    /* (requires Winamp 2.0+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,panning,IPC_SETPANNING);
+    ** IPC_SETPANNING sets the panning of Winamp (from 0 (left) to 255 (right)).
+    **
+    ** This now appears to work from -127 (left) to 127 (right)
+    **
+    ** If you pass panning as -666 then it will return the current position.
+    */
+
+
+     IPC_GETLISTLENGTH = 124, 
+
+    /* (requires Winamp 2.0+)
+    ** int length = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETLISTLENGTH);
+    ** IPC_GETLISTLENGTH returns the length of the current playlist, in
+    ** tracks.
+    */
+
+
+     IPC_GETLISTPOS = 125, 
+
+    /* (requires Winamp 2.05+)
+    ** int pos=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETLISTPOS);
+    ** IPC_GETLISTPOS returns the playlist position. A lot like IPC_WRITEPLAYLIST
+    ** only faster since it doesn't have to write out the list. Heh, silly me.
+    */
+
+
+     IPC_GETINFO = 126, 
+
+    /* (requires Winamp 2.05+)
+    ** int inf=SendMessage(hwnd_winamp,WM_WA_IPC,mode,IPC_GETINFO);
+    ** IPC_GETINFO returns info about the current playing song. The value
+    ** it returns depends on the value of 'mode'.
+    ** Mode      Meaning
+    ** ------------------
+    ** 0         Samplerate (i.e. 44100)
+    ** 1         Bitrate  (i.e. 128)
+    ** 2         Channels (i.e. 2)
+    ** 3 (5+)    Video LOWORD=w HIWORD=h
+    ** 4 (5+)    > 65536, string (video description)
+    */
+
+
+     IPC_GETEQDATA = 127, 
+
+    /* (requires Winamp 2.05+)
+    ** int data=SendMessage(hwnd_winamp,WM_WA_IPC,pos,IPC_GETEQDATA);
+    ** IPC_GETEQDATA queries the status of the EQ. 
+    ** The value returned depends on what 'pos' is set to:
+    ** Value      Meaning
+    ** ------------------
+    ** 0-9        The 10 bands of EQ data. 0-63 (+20db - -20db)
+    ** 10         The preamp value. 0-63 (+20db - -20db)
+    ** 11         Enabled. zero if disabled, nonzero if enabled.
+    ** 12         Autoload. zero if disabled, nonzero if enabled.
+    */
+
+
+     IPC_SETEQDATA = 128, 
+
+    /* (requires Winamp 2.05+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,pos,IPC_GETEQDATA);
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,value,IPC_SETEQDATA);
+    ** IPC_SETEQDATA sets the value of the last position retrieved
+    ** by IPC_GETEQDATA. This is pretty lame, and we should provide
+    ** an extended version that lets you do a MAKELPARAM(pos,value).
+    ** someday...
+
+      new (2.92+): 
+        if the high byte is set to 0xDB, then the third byte specifies
+        which band, and the bottom word specifies the value.
+    */
+
+     IPC_ADDBOOKMARK = 129, 
+
+    /* (requires Winamp 2.4+)
+    ** Sent as a WM_COPYDATA, using IPC_ADDBOOKMARK, adds the specified
+    ** file/url to the Winamp bookmark list.
+    */
+    /*
+    In winamp 5+, we use this as a normal WM_WA_IPC and the string:
+
+      "filename\0title\0"
+
+      to notify the library/bookmark editor that a bookmark
+    was added. Note that using this message in this context does not
+    actually add the bookmark.
+    do not use :)
+    */
+
+
+     IPC_INSTALLPLUGIN = 130, 
+
+    /* not implemented, but if it was you could do a WM_COPYDATA with 
+    ** a path to a .wpz, and it would install it.
+    */
+
+
+     IPC_RESTARTWINAMP = 135, 
+
+    /* (requires Winamp 2.2+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_RESTARTWINAMP);
+    ** IPC_RESTARTWINAMP will restart Winamp (isn't that obvious ? :)
+    */
+
+
+     IPC_ISFULLSTOP = 400, 
+
+    /* (requires winamp 2.7+ I think)
+    ** ret=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_ISFULLSTOP);
+    ** useful for when you're an output plugin, and you want to see
+    ** if the stop/close is a full stop, or just between tracks.
+    ** returns nonzero if it's full, zero if it's just a new track.
+    */
+
+
+     IPC_INETAVAILABLE = 242, 
+
+    /* (requires Winamp 2.05+)
+    ** val=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_INETAVAILABLE);
+    ** IPC_INETAVAILABLE will return 1 if the Internet connection is available for Winamp.
+    */
+
+
+     IPC_UPDTITLE = 243, 
+
+    /* (requires Winamp 2.2+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_UPDTITLE);
+    ** IPC_UPDTITLE will ask Winamp to update the informations about the current title.
+    */
+
+
+     IPC_REFRESHPLCACHE = 247, 
+
+    /* (requires Winamp 2.2+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_REFRESHPLCACHE);
+    ** IPC_REFRESHPLCACHE will flush the playlist cache buffer.
+    ** (send this if you want it to go refetch titles for tracks)
+    */
+
+
+     IPC_GET_SHUFFLE = 250, 
+
+    /* (requires Winamp 2.4+)
+    ** val=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GET_SHUFFLE);
+    **
+    ** IPC_GET_SHUFFLE returns the status of the Shuffle option (1 if set)
+    */
+
+
+     IPC_GET_REPEAT = 251, 
+
+    /* (requires Winamp 2.4+)
+    ** val=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GET_REPEAT);
+    **
+    ** IPC_GET_REPEAT returns the status of the Repeat option (1 if set)
+    */
+
+
+     IPC_SET_SHUFFLE = 252, 
+
+    /* (requires Winamp 2.4+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,value,IPC_SET_SHUFFLE);
+    **
+    ** IPC_SET_SHUFFLE sets the status of the Shuffle option (1 to turn it on)
+    */
+
+
+     IPC_SET_REPEAT = 253, 
+
+    /* (requires Winamp 2.4+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,value,IPC_SET_REPEAT);
+    **
+    ** IPC_SET_REPEAT sets the status of the Repeat option (1 to turn it on)
+    */
+
+
+    /// <summary>
+    /// 0xdeadbeef to disable 
+    /// </summary>
+     IPC_ENABLEDISABLE_ALL_WINDOWS = 259,
+
+    /* (requires Winamp 2.9+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,enable?0:0xdeadbeef,IPC_ENABLEDISABLE_ALL_WINDOWS);
+    ** sending with 0xdeadbeef as the param disables all winamp windows, 
+    ** any other values will enable all winamp windows.
+    */
+
+
+     IPC_GETWND = 260, 
+
+    /* (requires Winamp 2.9+)
+    ** HWND h=SendMessage(hwnd_winamp,WM_WA_IPC,IPC_GETWND_xxx,IPC_GETWND);
+    ** returns the HWND of the window specified.
+    */
+      //#define IPC_GETWND_EQ 0 // use one of these for the param
+      //#define IPC_GETWND_PE 1
+      //#define IPC_GETWND_MB 2
+      //#define IPC_GETWND_VIDEO 3
+    /// <summary>
+    /// same param as IPC_GETWND 
+    /// </summary>
+     IPC_ISWNDVISIBLE = 261, 
+
+
+
+
+
+    /************************************************************************
+    ***************** in-process only (WE LOVE PLUGINS)
+    ************************************************************************/
+
+
+     IPC_SETSKIN = 200, 
+
+    /* (requires Winamp 2.04+, only usable from plug-ins (not external apps))
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)"skinname",IPC_SETSKIN);
+    ** IPC_SETSKIN sets the current skin to "skinname". Note that skinname 
+    ** can be the name of a skin, a skin .zip file, with or without path. 
+    ** If path isn't specified, the default search path is the winamp skins 
+    ** directory.
+    */
+
+
+     IPC_GETSKIN = 201, 
+
+    /* (requires Winamp 2.04+, only usable from plug-ins (not external apps))
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)skinname_buffer,IPC_GETSKIN);
+    ** IPC_GETSKIN puts the directory where skin bitmaps can be found 
+    ** into  skinname_buffer.
+    ** skinname_buffer must be MAX_PATH characters in length.
+    ** When using a .zip'd skin file, it'll return a temporary directory
+    ** where the ZIP was decompressed.
+    */
+
+
+     IPC_EXECPLUG = 202, 
+
+    /* (requires Winamp 2.04+, only usable from plug-ins (not external apps))
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)"vis_file.dll",IPC_EXECPLUG);
+    ** IPC_EXECPLUG executes a visualization plug-in pointed to by WPARAM.
+    ** the format of this string can be:
+    ** "vis_whatever.dll"
+    ** "vis_whatever.dll,0" // (first mod, file in winamp plug-in dir)
+    ** "C:\\dir\\vis_whatever.dll,1" 
+    */
+
+
+     IPC_GETPLAYLISTFILE = 211, 
+
+    /* (requires Winamp 2.04+, only usable from plug-ins (not external apps))
+    ** char *name=SendMessage(hwnd_winamp,WM_WA_IPC,index,IPC_GETPLAYLISTFILE);
+    ** IPC_GETPLAYLISTFILE gets the filename of the playlist entry [index].
+    ** returns a pointer to it. returns NULL on error.
+    */
+
+
+     IPC_GETPLAYLISTTITLE = 212, 
+
+    /* (requires Winamp 2.04+, only usable from plug-ins (not external apps))
+    ** char *name=SendMessage(hwnd_winamp,WM_WA_IPC,index,IPC_GETPLAYLISTTITLE);
+    **
+    ** IPC_GETPLAYLISTTITLE gets the title of the playlist entry [index].
+    ** returns a pointer to it. returns NULL on error.
+    */
+
+
+     IPC_GETHTTPGETTER = 240, 
+
+    /* retrieves a function pointer to a HTTP retrieval function.
+    ** if this is unsupported, returns 1 or 0.
+    ** the function should be:
+    ** int (*httpRetrieveFile)(HWND hwnd, char *url, char *file, char *dlgtitle);
+    ** if you call this function, with a parent window, a URL, an output file, and a dialog title,
+    ** it will return 0 on successful download, 1 on error.
+    */
+
+
+     IPC_MBOPEN = 241, 
+
+    /* (requires Winamp 2.05+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_MBOPEN);
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)url,IPC_MBOPEN);
+    ** IPC_MBOPEN will open a new URL in the minibrowser. if url is NULL, it will open the Minibrowser window.
+    */
+
+
+
+     IPC_CHANGECURRENTFILE = 245, 
+
+    /* (requires Winamp 2.05+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)file,IPC_CHANGECURRENTFILE);
+    ** IPC_CHANGECURRENTFILE will set the current playlist item.
+    */
+
+
+     IPC_GETMBURL = 246, 
+
+    /* (requires Winamp 2.2+)
+    ** char buffer[4096]; // Urls can be VERY long
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)buffer,IPC_GETMBURL);
+    ** IPC_GETMBURL will retrieve the current Minibrowser URL into buffer.
+    ** buffer must be at least 4096 bytes long.
+    */
+
+
+     IPC_MBBLOCK = 248, 
+
+    /* (requires Winamp 2.4+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,value,IPC_MBBLOCK);
+    **
+    ** IPC_MBBLOCK will block the Minibrowser from updates if value is set to 1
+    */
+
+     IPC_MBOPENREAL = 249, 
+
+    /* (requires Winamp 2.4+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)url,IPC_MBOPENREAL);
+    **
+    ** IPC_MBOPENREAL works the same as IPC_MBOPEN except that it will works even if 
+    ** IPC_MBBLOCK has been set to 1
+    */
+
+     IPC_ADJUST_OPTIONSMENUPOS = 280, 
+
+    /* (requires Winamp 2.9+)
+    ** int newpos=SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)adjust_offset,IPC_ADJUST_OPTIONSMENUPOS);
+    ** moves where winamp expects the Options menu in the main menu. Useful if you wish to insert a
+    ** menu item above the options/skins/vis menus.
+    */
+
+     IPC_GET_HMENU = 281, 
+
+    /* (requires Winamp 2.9+)
+    ** HMENU hMenu=SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)0,IPC_GET_HMENU);
+    ** values for data:
+    ** 0 : main popup menu 
+    ** 1 : main menubar file menu
+    ** 2 : main menubar options menu
+    ** 3 : main menubar windows menu
+    ** 4 : main menubar help menu
+    ** other values will return NULL.
+    */
+
+     IPC_GET_EXTENDED_FILE_INFO = 290, //pass,a,pointer,to,the,following,struct,in,wParam,
+
+     IPC_GET_EXTENDED_FILE_INFO_HOOKABLE = 296, 
+
+    /* (requires Winamp 2.9+)
+    ** to use, create an extendedFileInfoStruct, point the values filename and metadata to the
+    ** filename and metadata field you wish to query, and ret to a buffer, with retlen to the
+    ** length of that buffer, and then SendMessage(hwnd_winamp,WM_WA_IPC,&struct,IPC_GET_EXTENDED_FILE_INFO);
+    ** the results should be in the buffer pointed to by ret.
+    ** returns 1 if the decoder supports a getExtendedFileInfo method
+    */
+
+
+    /*
+
+    {
+    /*basicFileInfoStruct file;
+    char buf[MAX_PATH];
+	    lstrcpyn(buf,"D:\\CDex Ripped\\Underworld\\Underworld 1992 - 2002 CD2\\a.mp3",sizeof(buf));
+	    file.filename = buf;
+	    file.quickCheck = 0;
+	    SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)&file,IPC_GET_BASIC_FILE_INFO);*/
+
+    // Get the file info
+    /*char title[1096], buf[MAX_PATH];
+    basicFileInfoStruct fileInfo;
+
+    lstrcpyn(buf,"D:\\CDex Ripped\\Underworld\\Underworld 1992 - 2002 CD2\\a.mp3",sizeof(buf));
+    fileInfo.filename = buf;
+    fileInfo.title = title;
+    fileInfo.titlelen = sizeof(title);
+    fileInfo.quickCheck = 0;
+    SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)&fileInfo, IPC_GET_BASIC_FILE_INFO);
+
+	    MessageBox(0,fileInfo.title,0,0);
+    }
+
+    */
+
+     IPC_GET_EXTLIST = 292, //returns,doublenull,delimited.,GlobalFree(),it,when,done.,if,data,is,0,,returns,raw,extlist,,if,1,,returns,something,suitable,for,getopenfilename,
+
+
+     IPC_INFOBOX = 293, 
+
+
+     IPC_SET_EXTENDED_FILE_INFO = 294, //pass,a,pointer,to,the,a,extendedFileInfoStruct,in,wParam,
+
+    /* (requires Winamp 2.9+)
+    ** to use, create an extendedFileInfoStruct, point the values filename and metadata to the
+    ** filename and metadata field you wish to write in ret. (retlen is not used). and then 
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,&struct,IPC_SET_EXTENDED_FILE_INFO);
+    ** returns 1 if the metadata is supported
+    ** Call IPC_WRITE_EXTENDED_FILE_INFO once you're done setting all the metadata you want to update
+    */
+
+     IPC_WRITE_EXTENDED_FILE_INFO = 295,  
+
+    /* (requires Winamp 2.9+)
+    ** writes all the metadata set thru IPC_SET_EXTENDED_FILE_INFO to the file
+    ** returns 1 if the file has been successfully updated, 0 if error
+    */
+
+     IPC_FORMAT_TITLE = 297, 
+
+
+     IPC_GETUNCOMPRESSINTERFACE = 331, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,param,IPC_GETUNCOMPRESSINTERFACE)
+    **
+    ** This returns a function pointer to uncompress() when param = 0.
+    ** int (*uncompress)(unsigned char *dest, unsigned long *destLen,
+    **                   const unsigned char *source, unsigned long sourceLen);
+    ** which is taken right out of zlib and is useful for decompressing zlibbed data.
+    **
+    ** If you pass param = 0x10100000 the function will return a wa_inflate_struct*
+    ** to an inflate API which gives you more control over what you can do.
+    ** e.g.
+    ** wa_inflate_struct* uncompiface = (wa_inflate_struct*)SendMessage(hwnd_winamp,WM_WA_IPC,0x10100000,IPC_GETUNCOMPRESSINTERFACE);
+    */
+
+
+     IPC_GET_BASIC_FILE_INFO = 291, //pass,a,pointer,to,the,Basic File Info struct,in,wParam,
+
+     IPC_ADD_PREFS_DLG = 332, 
+
+     IPC_REMOVE_PREFS_DLG = 333, 
+
+    /* (requires Winamp 2.9+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,&prefsRec,IPC_ADD_PREFS_DLG);
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,&prefsRec,IPC_REMOVE_PREFS_DLG);
+    **
+    ** IPC_ADD_PREFS_DLG:
+    ** To use you need to allocate a prefsDlgRec structure (either on the heap or 
+    ** with some global data but NOT on the stack) and then initialise the members
+    ** of the structure (see the definition of the prefsDlgRec structure).
+    **    hInst to the DLL instance where the resource is located
+    **    dlgID to the ID of the dialog,
+    **    proc to the window procedure for the dialog
+    **    name to the name of the prefs page in the prefs.
+    **    where to 0 (eventually we may add more options)
+    ** then, SendMessage(hwnd_winamp,WM_WA_IPC,&prefsRec,IPC_ADD_PREFS_DLG);
+    **
+    ** example:
+    **
+    ** prefsDlgRec* prefsRec = 0;
+    **   prefsRec = GlobalAlloc(GPTR,sizeof(prefsDlgRec));
+    **   prefsRec->hInst = hInst;
+    **   prefsRec->dlgID = IDD_PREFDIALOG;
+    **   prefsRec->name = "Pref Page";
+    **   prefsRec->where = 0;
+    **   prefsRec->proc = PrefsPage;
+    **   SendMessage(hwnd_winamp,WM_WA_IPC,&prefsRec,IPC_ADD_PREFS_DLG);
+    **
+    **
+    ** IPC_REMOVE_PREFS_DLG:
+    ** To use you pass the address of the same prefsRec you used when adding the
+    ** prefs page though you shouldn't really ever have to do this.
+    */
+
+     IPC_OPENPREFSTOPAGE = 380, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,&prefsRec,IPC_OPENPREFSTOPAGE);
+    **
+    ** There are two ways of opening a preferences page.
+    ** The first is to pass an id of a builtin preferences page (see below for ids)
+    ** or a &prefsDlgRec of the preferences page to open and this is normally done
+    ** if you are opening a prefs page you added yourself
+    **
+    ** If the page id does not or the &prefsRec is not valid then the prefs dialog
+    ** will be opened to the first page available (usually the Winamp Pro page).
+    **
+    ** (requires Winamp 5.04+)
+    ** Passing -1 will open open the prefs dialog to the last page viewed
+    **
+    ** Note: v5.0 to 5.03 had a bug in this api
+    **       
+    ** On the first call then the correct prefs page would be opened to but on the
+    ** next call the prefs dialog would be brought to the front but the page would
+    ** not be changed to the specified.
+    ** In 5.04+ it will change to the prefs page specified if the prefs dialog is
+    ** already open.
+    */
+
+    /* Builtin Preference page ids (valid for 5.0+)
+    ** (stored in the lParam member of the TVITEM structure from the tree item)
+    **
+    ** These can be useful if you want to detect a specific prefs page and add
+    ** things to it yourself or something like that ;)
+    **
+    ** Winamp Pro           20
+    ** General Preferences  0
+    ** File Types           1
+    ** Playlist             23
+    ** Titles               21
+    ** Video                24
+    ** Skins                40
+    ** Classic Skins        22
+    ** Plugins              30
+    ** Input                31
+    ** Output               32
+    ** Visualisation        33
+    ** DSP/Effect           34
+    ** General Purpose      35
+    **
+    ** Note:
+    ** Custom page ids begin from 60
+    ** The value of the normal custom pages (Global Hotkeys, Jump To File, etc) is
+    ** not guaranteed since it depends on the order in which the plugins are loaded
+    ** which can change on different systems.
+    **
+    ** Global Hotkeys, Jump To File, Media Library (under General Preferences),
+    ** Media Library (under Plugins), CD Ripping and Modern Skins are custom pages
+    ** created by the plugins shipped with Winamp
+    */
+
+
+     IPC_GETINIFILE = 334, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETINIFILE);
+    **
+    ** This returns a pointer to the full file path of winamp.ini.
+    */
+
+     IPC_GETINIDIRECTORY = 335, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETINIDIRECTORY);
+    **
+    ** This returns a pointer to the directory where winamp.ini can be found and is
+    ** useful if you want store config files but you don't want to use winamp.ini.
+    */
+
+     IPC_SPAWNBUTTONPOPUP = 361, 
+
+    /* SendMessage(hwnd_winamp,WM_WA_IPC,param,IPC_SPAWNBUTTONPOPUP);
+    **
+    ** This will show the specified menu at the current mouse position.
+    ** param = 0  ::  eject
+    **         1  ::  previous
+    **         2  ::  next
+    **         3  ::  pause
+    **         4  ::  play
+    **         5  ::  stop
+    */
+
+
+    /// <summary>
+    /// pass a HWND to a parent, returns a HGLOBAL that needs to be freed with GlobalFree(), if successful 
+    /// </summary>
+     IPC_OPENURLBOX = 360, 
+
+    /// <summary>
+    /// pass a HWND to a parent 
+    /// </summary>
+     IPC_OPENFILEBOX = 362, 
+
+    /// <summary>
+    /// pass a HWND to a parent 
+    /// </summary>
+     IPC_OPENDIRBOX = 363, 
+
+
+    // pass an HWND to a parent. call this if you take over the whole UI so that the dialogs are not appearing on the
+    // bottom right of the screen since the main winamp window is at 3000x3000, call again with NULL to reset
+     IPC_SETDIALOGBOXPARENT = 364,  
+
+
+
+
+    // pass 0 for a copy of the skin HBITMAP
+    // pass 1 for name of font to use for playlist editor likeness
+    // pass 2 for font charset
+    // pass 3 for font size
+     IPC_GET_GENSKINBITMAP = 503, 
+
+
+
+    /// <summary>
+    /// pass an embedWindowState 
+    /// </summary>
+     IPC_GET_EMBEDIF = 505, 
+
+    // returns an HWND embedWindow(embedWindowState *); if the data is NULL, otherwise returns the HWND directly
+
+    /// <summary>
+    /// set this bit in embedWindowState.flags to keep window from being resizable 
+    /// </summary>
+     EMBED_FLAGS_NORESIZE = 1, 
+
+    /// <summary>
+    /// set this bit in embedWindowState.flags to make gen_ff turn transparency off for this wnd 
+    /// </summary>
+     EMBED_FLAGS_NOTRANSPARENCY = 2, 
+
+
+
+     IPC_EMBED_ENUM = 532, 
+
+
+
+     IPC_EMBED_ISVALID = 533, 
+
+
+     IPC_CONVERTFILE = 506, 
+
+    /* (requires Winamp 2.92+)
+    ** Converts a given file to a different format (PCM, MP3, etc...)
+    ** To use, pass a pointer to a waFileConvertStruct struct
+    ** This struct can be either on the heap or some global
+    ** data, but NOT on the stack. At least, until the conversion is done.
+    **
+    ** eg: SendMessage(hwnd_winamp,WM_WA_IPC,&myConvertStruct,IPC_CONVERTFILE);
+    **
+    ** Return value:
+    ** 0: Can't start the conversion. Look at myConvertStruct->error for details.
+    ** 1: Conversion started. Status messages will be sent to the specified callbackhwnd.
+    **    Be sure to call IPC_CONVERTFILE_END when your callback window receives the
+    **    IPC_CB_CONVERT_DONE message.
+    */
+
+
+     IPC_CONVERTFILE_END = 507, 
+
+    /* (requires Winamp 2.92+)
+    ** Stop/ends a convert process started from IPC_CONVERTFILE
+    ** You need to call this when you receive the IPC_CB_CONVERTDONE message or when you
+    ** want to abort a conversion process
+    **
+    ** eg: SendMessage(hwnd_winamp,WM_WA_IPC,&myConvertStruct,IPC_CONVERTFILE_END);
+    **
+    ** No return value
+    */
+
+     IPC_CONVERT_CONFIG = 508, 
+
+     IPC_CONVERT_CONFIG_END = 509, 
+
+     IPC_BURN_CD = 511, 
+
+    // return TRUE if you hook this
+     IPC_HOOK_TITLES = 850, 
+
+
+     IPC_GETSADATAFUNC = 800,  
+
+    // 0: returns a char *export_sa_get() that returns 150 bytes of data
+    // 1: returns a export_sa_setreq(int want);
+
+     IPC_ISMAINWNDVISIBLE = 900, 
+
+
+
+     IPC_SETPLEDITCOLORS = 920, 
+
+
+
+    // the following IPC use waSpawnMenuParms as parameter
+     IPC_SPAWNEQPRESETMENU = 933, 
+
+     IPC_SPAWNFILEMENU = 934, //menubar,
+
+     IPC_SPAWNOPTIONSMENU = 935,//menubar,
+
+     IPC_SPAWNWINDOWSMENU = 936, //menubar,
+
+     IPC_SPAWNHELPMENU = 937, //menubar,
+
+     IPC_SPAWNPLAYMENU = 938, //menubar,
+
+     IPC_SPAWNPEFILEMENU = 939, //menubar,
+
+     IPC_SPAWNPEPLAYLISTMENU = 940, //menubar,
+
+     IPC_SPAWNPESORTMENU = 941, //menubar,
+
+     IPC_SPAWNPEHELPMENU = 942, //menubar,
+
+     IPC_SPAWNMLFILEMENU = 943, //menubar,
+
+     IPC_SPAWNMLVIEWMENU = 944, //menubar,
+
+     IPC_SPAWNMLHELPMENU = 945, //menubar,
+
+     IPC_SPAWNPELISTOFPLAYLISTS = 946,
+
+
+    // system tray sends this (you might want to simulate it)
+     WM_WA_SYSTRAY = Win32.WM_USER+1, 
+
+
+    // input plugins send this when they are done playing back
+     WM_WA_MPEG_EOF = Win32.WM_USER+2, 
+
+
+    IPC_CONVERT_CONFIG_ENUMFMTS = 510,
+
+    IPC_CONVERT_SET_PRIORITY = 512,
+
+    //// video stuff
+
+    /// <summary>
+    /// returns >1 if playing, 0 if not, 1 if old version (so who knows):) 
+    /// </summary>
+     IPC_IS_PLAYING_VIDEO = 501, 
+
+    /// <summary>
+    /// see below for IVideoOutput interface 
+    /// </summary>
+     IPC_GET_IVIDEOOUTPUT = 500, 
+
+     //VIDEO_MAKETYPE(A,B,C,D) = ((A) |,((B)<<8),|,((C)<<16),|,((D)<<24)),// this i'm not sure how to convert
+
+     VIDUSER_SET_INFOSTRING = 0x1000, 
+
+     VIDUSER_GET_VIDEOHWND =  0x1001,
+
+     VIDUSER_SET_VFLIP =      0x1002,
+
+    /// <summary>
+    /// give your ITrackSelector interface as param2 
+    /// </summary>
+     VIDUSER_SET_TRACKSELINTERFACE = 0x1003, 
+
+    // these messages are callbacks that you can grab by subclassing the winamp window
+
+    // wParam = 
+    /// <summary>
+    /// use one of these for the param 
+    /// </summary>
+     IPC_CB_WND_EQ = 0, 
+
+     IPC_CB_WND_PE = 1, 
+
+     IPC_CB_WND_MB = 2, 
+
+     IPC_CB_WND_VIDEO = 3, 
+
+     IPC_CB_WND_MAIN = 4, 
+
+
+     IPC_CB_ONSHOWWND = 600,  
+
+     IPC_CB_ONHIDEWND = 601,  
+
+
+     IPC_CB_GETTOOLTIP = 602, 
+
+
+     IPC_CB_MISC = 603, 
+
+        //#define IPC_CB_MISC_TITLE 0
+        //#define IPC_CB_MISC_VOLUME 1 // volume/pan
+        //#define IPC_CB_MISC_STATUS 2
+        //#define IPC_CB_MISC_EQ 3
+        //#define IPC_CB_MISC_INFO 4
+        //#define IPC_CB_MISC_VIDEOINFO 5
+
+    /// <summary>
+    /// param value goes from 0 to 100 (percent) 
+    /// </summary>
+     IPC_CB_CONVERT_STATUS = 604, 
+
+     IPC_CB_CONVERT_DONE =   605,
+
+
+     IPC_ADJUST_FFWINDOWSMENUPOS = 606, 
+
+    /* (requires Winamp 2.9+)
+    ** int newpos=SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)adjust_offset,IPC_ADJUST_FFWINDOWSMENUPOS);
+    ** moves where winamp expects the freeform windows in the menubar windows main menu. Useful if you wish to insert a
+    ** menu item above extra freeform windows.
+    */
+
+     IPC_ISDOUBLESIZE = 608, 
+
+
+     IPC_ADJUST_FFOPTIONSMENUPOS = 609, 
+
+    /* (requires Winamp 2.9+)
+    ** int newpos=SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)adjust_offset,IPC_ADJUST_FFOPTIONSMENUPOS);
+    ** moves where winamp expects the freeform preferences item in the menubar windows main menu. Useful if you wish to insert a
+    ** menu item above preferences item.
+    */
+
+    /// <summary>
+    /// returns 0 if displaying elapsed time or 1 if displaying remaining time 
+    /// </summary>
+     IPC_GETTIMEDISPLAYMODE = 610, 
+
+
+    /// <summary>
+    /// param is hwnd, setting this allows you to receive ID_VIS_NEXT/PREVOUS/RANDOM/FS wm_commands 
+    /// </summary>
+     IPC_SETVISWND = 611, 
+
+     ID_VIS_NEXT =                     40382,
+
+     ID_VIS_PREV =                     40383,
+
+     ID_VIS_RANDOM =                   40384,
+
+     ID_VIS_FS =                       40389,
+
+     ID_VIS_CFG =                      40390,
+
+     ID_VIS_MENU =                     40391,
+
+
+    /// <summary>
+    /// returns the vis cmd handler hwnd 
+    /// </summary>
+     IPC_GETVISWND = 612, 
+
+     IPC_ISVISRUNNING = 613, 
+
+    /// <summary>
+    /// param is status of random 
+    /// </summary>
+     IPC_CB_VISRANDOM = 628, 
+
+
+    /// <summary>
+    /// sent by winamp to winamp, trap it if you need it. width=HIWORD(param), height=LOWORD(param) 
+    /// </summary>
+     IPC_SETIDEALVIDEOSIZE = 614,
+
+
+     IPC_GETSTOPONVIDEOCLOSE = 615, 
+
+     IPC_SETSTOPONVIDEOCLOSE = 616, 
+
+     IPC_TRANSLATEACCELERATOR = 617, 
+
+     IPC_CB_ONTOGGLEAOT = 618, 
+
+
+     IPC_GETPREFSWND = 619, 
+
+
+    /// <summary>
+    /// data is a pointer to a POINT structure that holds width & height 
+    /// </summary>
+     IPC_SET_PE_WIDTHHEIGHT = 620, 
+
+
+     IPC_GETLANGUAGEPACKINSTANCE = 621,
+
+
+    /// <summary>
+    /// data is a string, ie: "04:21/45:02" 
+    /// </summary>
+     IPC_CB_PEINFOTEXT = 622, 
+
+
+    /// <summary>
+    /// output plugin was changed in config 
+    /// </summary>
+     IPC_CB_OUTPUTCHANGED = 623, 
+
+
+     IPC_GETOUTPUTPLUGIN = 625, 
+
+
+     IPC_SETDRAWBORDERS = 626, 
+
+     IPC_DISABLESKINCURSORS = 627, 
+
+     IPC_CB_RESETFONT = 629, 
+
+
+    /// <summary>
+    /// returns 1 if video or vis is in fullscreen mode 
+    /// </summary>
+     IPC_IS_FULLSCREEN = 630, 
+
+    /// <summary>
+    /// a vis should send this message with 1/as param to notify winamp that it has gone to or has come back from fullscreen mode 
+    /// </summary>
+     IPC_SET_VIS_FS_FLAG = 631, 
+
+
+     IPC_SHOW_NOTIFICATION = 632, 
+
+
+     IPC_GETSKININFO = 633, 
+
+
+     IPC_GET_MANUALPLADVANCE = 634, 
+
+    /* (requires Winamp 5.03+)
+    ** val=SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GET_MANUALPLADVANCE);
+    **
+    ** IPC_GET_MANUALPLADVANCE returns the status of the Manual Playlist Advance (1 if set)
+    */
+
+     IPC_SET_MANUALPLADVANCE = 635, 
+
+    /* (requires Winamp 5.03+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,value,IPC_SET_MANUALPLADVANCE);
+    **
+    ** IPC_SET_MANUALPLADVANCE sets the status of the Manual Playlist Advance option (1 to turn it on)
+    */
+
+     IPC_GET_NEXT_PLITEM = 636, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_EOF_GET_NEXT_PLITEM);
+    **
+    ** Sent to Winamp's main window when an item has just finished playback or the next button has been pressed and 
+    ** requesting the new playlist item number to go to.
+    ** Mainly used by gen_jumpex. Subclass this message in your application to return the new item number. 
+    ** -1 for normal winamp operation (default) or the new item number in the playlist to play.
+    */
+
+     IPC_GET_PREVIOUS_PLITEM = 637, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_EOF_GET_PREVIOUS_PLITEM);
+    **
+    ** Sent to Winamp's main window when the previous button has been pressed and Winamp is requesting the new playlist item number to go to.
+    ** Mainly used by gen_jumpex. Subclass this message in your application to return the new item number. 
+    ** -1 for normal winamp operation (default) or the new item number in the playlist to play.
+    */
+
+     IPC_IS_WNDSHADE = 638,  
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,wnd,IPC_IS_WNDSHADE);
+    **
+    ** 'wnd' is window id as defined for IPC_GETWND, or -1 for main window
+    ** Returns 1 if wnd is set to winshade mode, or 0 if it is not
+    */
+
+     IPC_SETRATING = 639,  
+
+    /* (requires Winamp 5.04+ with ML)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,rating,IPC_SETRATING);
+    ** 'rating' is an int value from 0 (no rating) to 5 
+    */
+
+     IPC_GETRATING = 640,  
+
+    /* (requires Winamp 5.04+ with ML)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETRATING);
+    ** returns the current item's rating
+    */
+
+     IPC_GETNUMAUDIOTRACKS = 641, 
+
+    /* (requires Winamp 5.04+)
+    ** int n = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETNUMAUDIOTRACKS);
+    ** returns the number of audio tracks for the currently playing item
+    */
+
+     IPC_GETNUMVIDEOTRACKS = 642, 
+
+    /* (requires Winamp 5.04+)
+    ** int n = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETNUMVIDEOTRACKS);
+    ** returns the number of video tracks for the currently playing item
+    */
+
+     IPC_GETAUDIOTRACK = 643, 
+
+    /* (requires Winamp 5.04+)
+    ** int cur = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETAUDIOTRACK);
+    ** returns the id of the current audio track for the currently playing item
+    */
+
+     IPC_GETVIDEOTRACK = 644, 
+
+    /* (requires Winamp 5.04+)
+    ** int cur = SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_GETVIDEOTRACK);
+    ** returns the id of the current video track for the currently playing item
+    */
+
+     IPC_SETAUDIOTRACK = 645, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,track,IPC_SETAUDIOTRACK);
+    ** switch the currently playing item to a new audio track 
+    */
+
+     IPC_SETVIDEOTRACK = 646, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,track,IPC_SETVIDEOTRACK);
+    ** switch the currently playing item to a new video track 
+    */
+
+     IPC_PUSH_DISABLE_EXIT = 647, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_PUSH_DISABLE_EXIT );
+    ** lets you disable or re-enable the UI exit functions (close button, 
+    ** context menu, alt-f4).
+    ** call IPC_POP_DISABLE_EXIT when you are done doing whatever required 
+    ** preventing exit
+    */
+
+     IPC_POP_DISABLE_EXIT =  648,
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_POP_DISABLE_EXIT );
+    ** see IPC_PUSH_DISABLE_EXIT
+    */
+
+     IPC_IS_EXIT_ENABLED = 649, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_IS_EXIT_ENABLED);
+    ** returns 0 if exit is disabled, 1 otherwise
+    */
+
+     IPC_IS_AOT = 650, 
+
+    /* (requires Winamp 5.04+)
+    ** SendMessage(hwnd_winamp,WM_WA_IPC,0,IPC_IS_AOT);
+    ** returns status of always on top flag. note: this may not match the actual
+    ** TOPMOST window flag while another fullscreen application is focused
+    */
+
+    // >>>>>>>>>>> Next is 651
+
+     IPC_PLCMD =  1000, 
+
+
+     PLCMD_ADD =  0,
+
+     PLCMD_REM =  1,
+
+     PLCMD_SEL =  2,
+
+     PLCMD_MISC = 3, 
+
+     PLCMD_LIST = 4, 
+
+
+     IPC_MBCMD =  1001, 
+
+
+     MBCMD_BACK =    0,
+
+     MBCMD_FORWARD = 1,
+
+     MBCMD_STOP =    2,
+
+     MBCMD_RELOAD =  3,
+
+     MBCMD_MISC =  4,
+
+
+     IPC_VIDCMD = 1002,  
+
+
+     VIDCMD_FULLSCREEN = 0, 
+
+     VIDCMD_1X =         1,
+
+     VIDCMD_2X =         2,
+
+     VIDCMD_LIB =        3,
+
+     VIDPOPUP_MISC =     4,
+
+
+     IPC_MBURL =       1003,//sets,the,URL,
+
+     IPC_MBGETCURURL = 1004, //copies,the,current,URL,into,wParam,(have,a,4096,buffer,ready),
+
+     IPC_MBGETDESC =   1005,//copies,the,current,URL,description,into,wParam,(have,a,4096,buffer,ready),
+
+     IPC_MBCHECKLOCFILE = 1006, //checks,that,the,link,file,is,up,to,date,(otherwise,updates,it).,wParam=parent,HWND,
+
+     IPC_MBREFRESH =   1007,//refreshes,the,"now,playing",view,in,the,library,
+
+     IPC_MBGETDEFURL = 1008, //copies,the,default,URL,into,wParam,(have,a,4096,buffer,ready),
+
+
+    /// <summary>
+    /// updates library count status 
+    /// </summary>
+     IPC_STATS_LIBRARY_ITEMCNT = 1300, 
+
+
+    // IPC 2000-3000 reserved for freeform messages, see gen_ff/ff_ipc.h
+     IPC_FF_FIRST = 2000, 
+
+     IPC_FF_LAST =  3000,
+
+
+     IPC_GETDROPTARGET = 3001, 
+
+
+    /// <summary>
+    /// sent to main wnd whenever the playlist is modified 
+    /// </summary>
+     IPC_PLAYLIST_MODIFIED = 3002, 
+
+
+    /// <summary>
+    /// sent to main wnd with the file as parm whenever a file is played 
+    /// </summary>
+     IPC_PLAYING_FILE = 3003, 
+
+    /// <summary>
+    /// sent to main wnd with the file as parm whenever a file tag might be updated 
+    /// </summary>
+     IPC_FILE_TAG_MAY_HAVE_UPDATED = 3004, 
+
+
+
+     IPC_ALLOW_PLAYTRACKING = 3007, 
+
+    // send nonzero to allow, zero to disallow
+
+     IPC_HOOK_OKTOQUIT = 3010, 
+
+
+    /* 
+    ** This is sent by Winamp asking if it's okay to close or not.
+    **
+    **   return 0 (zero) to prevent Winamp closing
+    **   return anything else (ie 1) to allow Winamp to close
+    **
+    ** The better option is to let the message pass through to the
+    ** original window proceedure since another plugin may want to
+    ** have a say in the matter with regards to Winamp closing
+    */
+
+
+    /// <summary>
+    /// pass 2 to write all, 1 to write playlist + common, 0 to write common+less common 
+    /// </summary>
+     IPC_WRITECONFIG = 3011, 
+
+
+    // pass a string to be the name to register, and returns a value > 65536, which is a unique value you can use
+    // for custom WM_WA_IPC messages. 
+     IPC_REGISTER_WINAMP_IPCMESSAGE = 65536  
+    }
+
+
+    /**************************************************************************/
+
+    /*
+    ** Finally there are some WM_COMMAND messages that you can use to send 
+    ** Winamp misc commands.
+    ** 
+    ** To send these, use:
+    **
+    ** SendMessage(hwnd_winamp, WM_COMMAND,command_name,0);
+    **
+    ** Edit: see wa_msgids.h for these now (DrO)
+    */
+
+#endif//_WA_IPC_H_
+
+/*
+** EOF.. Enjoy.
+*/
+
+    #region Winamp IPC structs (they might not work at this time)        
+
+    public struct windowCommand{
+      int cmd;
+      int x;
+      int y;
+      int align;
+    }; // send this as param to an IPC_PLCMD, IPC_MBCMD, IPC_VIDCMD
+
+
+        
+    public struct transAccelStruct{
+      IntPtr hwnd;
+      int uMsg;
+      int wParam;
+      int lParam;
+    } ;
+
+    //#if !NO_IVIDEO_DECLARE
+    ////#ifdef __cplusplus //this is obviously  obsolete
+
+    //class VideoOutput;
+    //class SubsItem;
+
+    //[MarshalAs(UnmanagedType.LPStruct)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct YV12_PLANE{
+        byte/*unsigned char* */	baseAddr;
+        long			rowBytes;
+    };
+
+    public	struct YV12_PLANES{
+	    YV12_PLANE	y;
+	    YV12_PLANE	u;
+	    YV12_PLANE	v;
+    };
+
+    //class IVideoOutput
+    //{
+    //  public:
+    //    virtual ~IVideoOutput() { }
+    //    virtual int open(int w, int h, int vflip, double aspectratio, unsigned int fmt)=0;
+    //    virtual void setcallback(LRESULT (*msgcallback)(void *token, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam), void *token) { }
+    //    virtual void close()=0;
+    //    virtual void draw(void *frame)=0;
+    //    virtual void drawSubtitle(SubsItem *item) { }
+    //    virtual void showStatusMsg(const char *text) { }
+    //    virtual int get_latency() { return 0; }
+    //    virtual void notifyBufferState(int bufferstate) { } /* 0-255*/
+
+    //    virtual int extended(int param1, int param2, int param3) { return 0; } // Dispatchable, eat this!
+    //};
+
+    //class ITrackSelector 
+    //{
+    //  public:
+    //    virtual int getNumAudioTracks()=0;
+    //    virtual void enumAudioTrackName(int n, const char *buf, int size)=0;
+    //    virtual int getCurAudioTrack()=0;
+    //    virtual int getNumVideoTracks()=0;
+    //    virtual void enumVideoTrackName(int n, const char *buf, int size)=0;
+    //    virtual int getCurVideoTrack()=0;
+
+    //    virtual void setAudioTrack(int n)=0;
+    //    virtual void setVideoTrack(int n)=0;
+    //};
+
+    ////#endif //cplusplus
+    //#endif//NO_IVIDEO_DECLARE
+
+    public struct waSpawnMenuParms
+    {
+      IntPtr wnd;
+      int xpos; // in screen coordinates
+      int ypos;
+    };
+
+    // waSpawnMenuParms2 is used by the menubar submenus
+    public struct waSpawnMenuParms2
+    {
+      IntPtr wnd;
+      int xpos; // in screen coordinates
+      int ypos;
+      int width;
+      int height;
+    } ;
+
+    [StructLayout(LayoutKind.Sequential)]
+    /*[MarshalAs(UnmanagedType.Struct)]*/
+    public struct waSetPlColorsStruct
+    {
+      int numElems;
+      /*int *elems;*//*IntPtr elems;*/
+      [MarshalAs(UnmanagedType.LPArray)]
+      int [] elems;
+      /*HBITMAP bm; // set if you want to override*/
+
+      /// <summary>
+      /// Use Bitmap.GetHBitmap()
+      /// </summary>
+      IntPtr bitmap; 
+    
+    } ;
+
+    //public struct converterEnumFmtStruct
+    //{
+    //  void (*enumProc)(int user_data, const char *desc, int fourcc);
+    //  int user_data;
+    //} ;
+     
+
+    /* (requires Winamp 2.92+)
+    */
+
+
+    public struct burnCDStruct
+    {
+      char cdletter;
+      [MarshalAs(UnmanagedType.LPStr)]
+      string playlist_file;
+      IntPtr callback_hwnd;
+
+      /// <summary>
+      /// filled in by winamp.exe
+      /// </summary>
+      [MarshalAs(UnmanagedType.LPStr)]
+      string error;
+    } ;
+     
+    /* (requires Winamp 5.0+)
+    */
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct convertSetPriority
+    {
+      [MarshalAs(UnmanagedType.LPStruct)]
+      convertFileStruct cfs;
+      int priority;
+    } ;
+      
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct waHookTitleStruct
+    {
+      [MarshalAs(UnmanagedType.LPStr)]
+      string filename;
+      [MarshalAs(UnmanagedType.LPStr)]
+      string title; // 2048 bytes
+      int length;
+      int force_useformatting; // can set this to 1 if you want to force a url to use title formatting shit
+    } ;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct convertConfigStruct
+    {
+      IntPtr hwndParent;
+      int format;
+
+      //filled in by winamp.exe
+      IntPtr hwndConfig;
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+      int [] extra_data;
+    } ;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct convertFileStruct
+    {
+      [MarshalAs(UnmanagedType.LPStr)]
+      string sourcefile;  // "c:\\source.mp3"
+      [MarshalAs(UnmanagedType.LPStr)]
+      string destfile;    // "c:\\dest.pcm"
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+      int [] destformat; // like 'PCM ',srate,nch,bps
+      IntPtr callbackhwnd; // window that will receive the IPC_CB_CONVERT notification messages
+      
+      /// <summary>
+      /// filled in by winamp.exe
+      /// </summary>\
+      [MarshalAs(UnmanagedType.LPStr)]
+      string error;        //if IPC_CONVERTFILE returns 0, the reason will be here
+
+      int bytes_done;     //you can look at both of these values for speed statistics
+      int bytes_total;
+      int bytes_out;
+
+      int killswitch;     // don't set it manually, use IPC_CONVERTFILE_END
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+      int [] extra_data; // for internal winamp use
+    };
+
+    //[StructLayout(LayoutKind.Sequential)]
+    //public struct embedEnumStruct
+    //{
+    //  [MarshalAs(UnmanagedType.FunctionPtr)]
+    //  delegate enumProc ?? 
+    //  /*int (*enumProc)(embedWindowState *ws, struct embedEnumStruct *param); // return 1 to abort*/
+    //  int user_data; // or more :)
+    //} ;
+    //  // pass 
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct embedWindowState
+    {
+      IntPtr me; //hwnd of the window
+
+      int flags;
+
+      /// <summary>
+      /// WinAmpSDK.Win32.RECT , or just cast from SystemDrawingRectangle
+      /// </summary>
+      Win32.RECT r;
+
+      //void *user_ptr; // for application use
+
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)] 
+      int [] extra_data; // for internal winamp use
+    };
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct _prefsDlgRec //prefsDlgRec
+    {
+      /// <summary>
+      /// dll instance containing the dialog resource
+      /// </summary>
+      IntPtr hInst;   
+      int dlgID;        // resource identifier of the dialog
+
+      [UnmanagedFunctionPointerAttribute(CallingConvention.StdCall)]
+      delegate void proc();
+      //void *proc;       // window proceedure for handling the dialog defined as
+                        // LRESULT CALLBACK PrefsPage(HWND,UINT,WPARAM,LPARAM)
+
+      //char *name;       // name shown for the prefs page in the treelist
+      [MarshalAs(UnmanagedType.LPStr)]
+      string name;
+
+      int where;        // section in the treelist the prefs page is to be added to
+                        // 0 for General Preferences
+                        // 1 for Plugins
+                        // 2 for Skins
+                        // 3 for Bookmarks (no longer in the 5.0+ prefs)
+                        // 4 for Prefs     (appears to be the old 'Setup' section)
+
+      int _id;          // for internal usage ??
+      [MarshalAs(UnmanagedType.LPStruct)]
+      IntPtr /*_prefsDlgRec*/ next;
+    };
+
+    //public struct waFormatTitle
+    //{
+    //  char *spec; // NULL=default winamp spec
+    //  void *p;
+
+    //  char *out;
+    //  int out_len;
+
+    //  char * (*TAGFUNC)(char * tag, void * p); //return 0 if not found
+    //  void (*TAGFREEFUNC)(char * tag,void * p);
+    //} ;
+
+
+    //public struct wa_inflate_struct{
+    //  int (*inflateReset)(void *strm);
+    //  int (*inflateInit_)(void *strm,const char *version, int stream_size);
+    //  int (*inflate)(void *strm, int flush);
+    //  int (*inflateEnd)(void *strm);
+    //  unsigned long (*crc32)(unsigned long crc, const unsigned  char *buf, unsigned int len);
+    //};
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct infoBoxParam{
+        IntPtr/*HWND*/ parent;
+        [MarshalAs(UnmanagedType.LPStr)]
+        string filename;
+        //char *filename;
+    } ;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct extendedFileInfoStruct{
+        [MarshalAs(UnmanagedType.LPStr)]
+        string filename;
+        //char *filename;
+        [MarshalAs(UnmanagedType.LPStr)]
+        string metadata;
+        //char *metadata;
+        [MarshalAs(UnmanagedType.LPStr)]
+        string ret;
+        //char *ret;
+        int retlen;
+    } ;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct basicFileInfoStruct
+    {
+        [MarshalAs(UnmanagedType.LPStr)]
+        string filename;
+      //char *filename;
+
+      int quickCheck; // set to 0 to always get, 1 for quick, 2 for default (if 2, quickCheck will be set to 0 if quick wasnot used)
+
+      // filled in by winamp
+      int length;
+        [MarshalAs(UnmanagedType.LPStr)]
+        string title;      
+      //char *title;
+      int titlelen;
+    };
+
+    public struct enqueueFileWithMetaStruct
+    {
+        [MarshalAs(UnmanagedType.LPStr)]
+        string filename;
+      //char *filename;
+        [MarshalAs(UnmanagedType.LPStr)]
+        string title;
+      //char *title;
+      int length;
+    }; // send this to a IPC_PLAYFILE in a non WM_COPYDATA, 
+    // and you get the nice desired result. if title is NULL, it is treated as a "thing",
+    // otherwise it's assumed to be a file (for speed)
+
+    #endregion
+
+
+}
+
+[CSWinampSDK\Winamp SDK\wa_msgids.cs]
+/*
+** wa_msgids.h (created 14/04/2004 12:23:19 PM)
+** Created from wa_ipc.h and resource.h from the language sdk
+** by Darren Owen aka DrO
+**
+** This a simple header file which defines the message ids to allow you to control
+** Winamp in keeping with the old frontend.h (R.I.P.)
+**
+**
+** Version History:
+**
+** v1.0  ::  intial version with ids for Winamp 5.02+
+** v1.0a ::  fixed the file to work on compile
+** v1.1  ::  added the msg id for 'Manual Playlist Advance'
+** v1.2  ::  added in song rating menu items
+**
+**
+** How to use:
+**
+** To send these, use the format:
+**
+** SendMessage(hwnd_winamp, WM_COMMAND,command_name,0);
+**
+** For other languages such as Visual Basic, Pascal, etc you will need to use
+** the equivalent calling SendMessage(..) calling convention
+**
+**
+** Notes:
+**
+** IDs 42000 to 45000 are reserved for gen_ff
+** IDs from 45000 to 57000 are reserved for library 
+**
+*/
+
+#if !_WA_MSGIDS_H_  // this is here just to keep in line with the original WinAmp C++ SDK ;)
+#define _WA_MSGIDS_H_ 
+namespace WinAmpSDK
+{
+
+    public enum WA_MsgTypes
+    {
+        WM_COMMAND = WinAmpSDK.Win32.WM_COMMAND,
+        WM_USER = WinAmpSDK.Win32.WM_USER,
+        WM_COPYDATA = WinAmpSDK.Win32.WM_COPYDATA,
+    }
+
+    public enum WM_COMMAND_MSGS
+    {
+
+        WINAMP_FILE_QUIT =                40001,
+
+        /// <summary>
+        /// pops up the preferences 
+        /// </summary>
+        WINAMP_OPTIONS_PREFS =            40012,
+
+        /// <summary>
+        /// toggles always on top 
+        /// </summary>
+        WINAMP_OPTIONS_AOT =              40019,
+
+        WINAMP_FILE_REPEAT =              40022,
+
+        WINAMP_FILE_SHUFFLE =             40023,
+
+        WINAMP_HIGH_PRIORITY =            40025,
+
+        /// <summary>
+        /// pops up the load file(s) box 
+        /// </summary>
+        WINAMP_FILE_PLAY =                40029,
+
+        /// <summary>
+        /// toggles the EQ window 
+        /// </summary>
+        WINAMP_OPTIONS_EQ =               40036,
+
+        WINAMP_OPTIONS_ELAPSED =          40037,
+
+        WINAMP_OPTIONS_REMAINING =        40038,
+
+        /// <summary>
+        /// toggles the playlist window 
+        /// </summary>
+        WINAMP_OPTIONS_PLEDIT =           40040,
+
+        /// <summary>
+        /// pops up the about box :) 
+        /// </summary>
+        WINAMP_HELP_ABOUT =               40041,
+
+        WINAMP_MAINMENU =                 40043,
+
+
+
+        /* the following are the five main control buttons, with optionally shift 
+        ** or control pressed
+        ** (for the exact functions of each, just try it out)
+        */
+        WINAMP_BUTTON1 =                  40044,
+
+        WINAMP_BUTTON2 =                  40045,
+
+        WINAMP_BUTTON3 =                  40046,
+
+        WINAMP_BUTTON4 =                  40047,
+
+        WINAMP_BUTTON5 =                  40048,
+
+        WINAMP_BUTTON1_SHIFT =            40144,
+
+        WINAMP_BUTTON2_SHIFT =            40145,
+
+        WINAMP_BUTTON3_SHIFT =            40146,
+
+        WINAMP_BUTTON4_SHIFT =            40147,
+
+        WINAMP_BUTTON5_SHIFT =            40148,
+
+        WINAMP_BUTTON1_CTRL =             40154,
+
+        WINAMP_BUTTON2_CTRL =             40155,
+
+        WINAMP_BUTTON3_CTRL =             40156,
+
+        WINAMP_BUTTON4_CTRL =             40157,
+
+        WINAMP_BUTTON5_CTRL =             40158,
+
+
+        /// <summary>
+        /// turns the volume up a little 
+        /// </summary>
+        WINAMP_VOLUMEUP =                 40058,
+
+        /// <summary>
+        /// turns the volume down a little 
+        /// </summary>
+        WINAMP_VOLUMEDOWN =               40059,
+
+        /// <summary>
+        /// fast forwards 5 seconds 
+        /// </summary>
+        WINAMP_FFWD5S =                   40060,
+
+        /// <summary>
+        /// rewinds 5 seconds 
+        /// </summary>
+        WINAMP_REW5S =                    40061,
+
+        WINAMP_NEXT_WINDOW =              40063,
+
+        WINAMP_OPTIONS_WINDOWSHADE =      40064,
+
+        WINAMP_OPTIONS_DSIZE =            40165,
+
+        IDC_SORT_FILENAME =               40166,
+
+        IDC_SORT_FILETITLE =              40167,
+
+        IDC_SORT_ENTIREFILENAME =         40168,
+
+        IDC_SELECTALL =                   40169,
+
+        IDC_SELECTNONE =                  40170,
+
+        IDC_SELECTINV =                   40171,
+
+        IDM_EQ_LOADPRE =                  40172,
+
+        IDM_EQ_LOADMP3 =                  40173,
+
+        IDM_EQ_LOADDEFAULT =              40174,
+
+        IDM_EQ_SAVEPRE =                  40175,
+
+        IDM_EQ_SAVEMP3 =                  40176,
+
+        IDM_EQ_SAVEDEFAULT =              40177,
+
+        IDM_EQ_DELPRE =                   40178,
+
+        IDM_EQ_DELMP3 =                   40180,
+
+        IDC_PLAYLIST_PLAY =               40184,
+
+        WINAMP_FILE_LOC =                 40185,
+
+        WINAMP_OPTIONS_EASYMOVE =         40186,
+
+        /// <summary>
+        /// pops up the load directory box 
+        /// </summary>
+        WINAMP_FILE_DIR =                 40187,
+
+        WINAMP_EDIT_ID3 =                 40188,
+
+        WINAMP_TOGGLE_AUTOSCROLL =        40189,
+
+        WINAMP_VISSETUP =                 40190,
+
+        WINAMP_PLGSETUP =                 40191,
+
+        WINAMP_VISPLUGIN =                40192,
+
+        WINAMP_JUMP =                     40193,
+
+        WINAMP_JUMPFILE =                 40194,
+
+        WINAMP_JUMP10FWD =                40195,
+
+        WINAMP_JUMP10BACK =               40197,
+
+        WINAMP_PREVSONG =                 40198,
+
+        WINAMP_OPTIONS_EXTRAHQ =          40200,
+
+        ID_PE_NEW =                       40201,
+
+        ID_PE_OPEN =                      40202,
+
+        ID_PE_SAVE =                      40203,
+
+        ID_PE_SAVEAS =                    40204,
+
+        ID_PE_SELECTALL =                 40205,
+
+        ID_PE_INVERT =                    40206,
+
+        ID_PE_NONE =                      40207,
+
+        ID_PE_ID3 =                       40208,
+
+        ID_PE_S_TITLE =                   40209,
+
+        ID_PE_S_FILENAME =                40210,
+
+        ID_PE_S_PATH =                    40211,
+
+        ID_PE_S_RANDOM =                  40212,
+
+        ID_PE_S_REV =                     40213,
+
+        ID_PE_CLEAR =                     40214,
+
+        ID_PE_MOVEUP =                    40215,
+
+        ID_PE_MOVEDOWN =                  40216,
+
+        WINAMP_SELSKIN =                  40219,
+
+        WINAMP_VISCONF =                  40221,
+
+        ID_PE_NONEXIST =                  40222,
+
+        ID_PE_DELETEFROMDISK =            40223,
+
+        ID_PE_CLOSE =                     40224,
+
+        WINAMP_VIS_SETOSC =               40226,
+
+        WINAMP_VIS_SETANA =               40227,
+
+        WINAMP_VIS_SETOFF =               40228,
+
+        WINAMP_VIS_DOTSCOPE =             40229,
+
+        WINAMP_VIS_LINESCOPE =            40230,
+
+        WINAMP_VIS_SOLIDSCOPE =           40231,
+
+        WINAMP_VIS_NORMANA =              40233,
+
+        WINAMP_VIS_FIREANA =              40234,
+
+        WINAMP_VIS_LINEANA =              40235,
+
+        WINAMP_VIS_NORMVU =               40236,
+
+        WINAMP_VIS_SMOOTHVU =             40237,
+
+        WINAMP_VIS_FULLREF =              40238,
+
+        WINAMP_VIS_FULLREF2 =             40239,
+
+        WINAMP_VIS_FULLREF3 =             40240,
+
+        WINAMP_VIS_FULLREF4 =             40241,
+
+        WINAMP_OPTIONS_TOGTIME =          40242,
+
+        EQ_ENABLE =                       40244,
+
+        EQ_AUTO =                         40245,
+
+        EQ_PRESETS =                      40246,
+
+        WINAMP_VIS_FALLOFF0 =             40247,
+
+        WINAMP_VIS_FALLOFF1 =             40248,
+
+        WINAMP_VIS_FALLOFF2 =             40249,
+
+        WINAMP_VIS_FALLOFF3 =             40250,
+
+        WINAMP_VIS_FALLOFF4 =             40251,
+
+        WINAMP_VIS_PEAKS =                40252,
+
+        ID_LOAD_EQF =                     40253,
+
+        ID_SAVE_EQF =                     40254,
+
+        ID_PE_ENTRY =                     40255,
+
+        ID_PE_SCROLLUP =                  40256,
+
+        ID_PE_SCROLLDOWN =                40257,
+
+        WINAMP_MAIN_WINDOW =              40258,
+
+        WINAMP_VIS_PFALLOFF0 =            40259,
+
+        WINAMP_VIS_PFALLOFF1 =            40260,
+
+        WINAMP_VIS_PFALLOFF2 =            40261,
+
+        WINAMP_VIS_PFALLOFF3 =            40262,
+
+        WINAMP_VIS_PFALLOFF4 =            40263,
+
+        ID_PE_TOP =                       40264,
+
+        ID_PE_BOTTOM =                    40265,
+
+        WINAMP_OPTIONS_WINDOWSHADE_PL =   40266,
+
+        EQ_INC1 =                         40267,
+
+        EQ_INC2 =                         40268,
+
+        EQ_INC3 =                         40269,
+
+        EQ_INC4 =                         40270,
+
+        EQ_INC5 =                         40271,
+
+        EQ_INC6 =                         40272,
+
+        EQ_INC7 =                         40273,
+
+        EQ_INC8 =                         40274,
+
+        EQ_INC9 =                         40275,
+
+        EQ_INC10 =                        40276,
+
+        EQ_INCPRE =                       40277,
+
+        EQ_DECPRE =                       40278,
+
+        EQ_DEC1 =                         40279,
+
+        EQ_DEC2 =                         40280,
+
+        EQ_DEC3 =                         40281,
+
+        EQ_DEC4 =                         40282,
+
+        EQ_DEC5 =                         40283,
+
+        EQ_DEC6 =                         40284,
+
+        EQ_DEC7 =                         40285,
+
+        EQ_DEC8 =                         40286,
+
+        EQ_DEC9 =                         40287,
+
+        EQ_DEC10 =                        40288,
+
+        ID_PE_SCUP =                      40289,
+
+        ID_PE_SCDOWN =                    40290,
+
+        WINAMP_REFRESHSKIN =              40291,
+
+        ID_PE_PRINT =                     40292,
+
+        ID_PE_EXTINFO =                   40293,
+
+        WINAMP_PLAYLIST_ADVANCE =         40294,
+
+        WINAMP_VIS_LIN =                  40295,
+
+        WINAMP_VIS_BAR =                  40296,
+
+        WINAMP_OPTIONS_MINIBROWSER =      40298,
+
+        MB_FWD =                          40299,
+
+        MB_BACK =                         40300,
+
+        MB_RELOAD =                       40301,
+
+        MB_OPENMENU =                     40302,
+
+        MB_OPENLOC =                      40303,
+
+        WINAMP_NEW_INSTANCE =             40305,
+
+        MB_UPDATE =                       40309,
+
+        WINAMP_OPTIONS_WINDOWSHADE_EQ =   40310,
+
+        EQ_PANLEFT =                      40313,
+
+        EQ_PANRIGHT =                     40314,
+
+        WINAMP_GETMORESKINS =             40316,
+
+        WINAMP_VIS_OPTIONS =              40317,
+
+        WINAMP_PE_SEARCH =                40318,
+
+        ID_PE_BOOKMARK =                  40319,
+
+        WINAMP_EDIT_BOOKMARKS =           40320,
+
+        WINAMP_MAKECURBOOKMARK =          40321,
+
+        ID_MAIN_PLAY_BOOKMARK_NONE =      40322,
+
+        /// <summary>
+        /// starts playing the audio CD in the first CD reader 
+        /// </summary>
+        ID_MAIN_PLAY_AUDIOCD =            40323,
+
+        /// <summary>
+        /// plays the 2nd 
+        /// </summary>
+        ID_MAIN_PLAY_AUDIOCD2 =           40324,
+
+        /// <summary>
+        /// plays the 3rd 
+        /// </summary>
+        ID_MAIN_PLAY_AUDIOCD3 =           40325,
+
+        /// <summary>
+        /// plays the 4th 
+        /// </summary>
+        ID_MAIN_PLAY_AUDIOCD4 =           40326,
+
+        WINAMP_OPTIONS_VIDEO =            40328,
+
+        ID_VIDEOWND_ZOOMFULLSCREEN =      40329,
+
+        ID_VIDEOWND_ZOOM100 =             40330,
+
+        ID_VIDEOWND_ZOOM200 =             40331,
+
+        ID_VIDEOWND_ZOOM50 =              40332,
+
+        ID_VIDEOWND_VIDEOOPTIONS =        40333,
+
+        WINAMP_MINIMIZE =                 40334,
+
+        ID_PE_FONTBIGGER =                40335,
+
+        ID_PE_FONTSMALLER =               40336,
+
+        WINAMP_VIDEO_TOGGLE_FS =          40337,
+
+        WINAMP_VIDEO_TVBUTTON =           40338,
+
+        WINAMP_LIGHTNING_CLICK =          40339,
+
+        ID_FILE_ADDTOLIBRARY =            40344,
+
+        ID_HELP_HELPTOPICS =              40347,
+
+        ID_HELP_GETTINGSTARTED =          40348,
+
+        ID_HELP_WINAMPFORUMS =            40349,
+
+        ID_PLAY_VOLUMEUP =                40351,
+
+        ID_PLAY_VOLUMEDOWN =              40352,
+
+        ID_PEFILE_OPENPLAYLISTFROMLIBRARY_NOPLAYLISTSINLIBRARY = 40355, 
+
+        ID_PEFILE_ADDFROMLIBRARY =        40356,
+
+        ID_PEFILE_CLOSEPLAYLISTEDITOR =   40357,
+
+        ID_PEPLAYLIST_PLAYLISTPREFERENCES = 40358, 
+
+        ID_MLFILE_NEWPLAYLIST =           40359,
+
+        ID_MLFILE_LOADPLAYLIST =          40360,
+
+        ID_MLFILE_SAVEPLAYLIST =          40361,
+
+        ID_MLFILE_ADDMEDIATOLIBRARY =     40362,
+
+        ID_MLFILE_CLOSEMEDIALIBRARY =     40363,
+
+        ID_MLVIEW_NOWPLAYING =            40364,
+
+        ID_MLVIEW_LOCALMEDIA_ALLMEDIA =   40366,
+
+        ID_MLVIEW_LOCALMEDIA_AUDIO =      40367,
+
+        ID_MLVIEW_LOCALMEDIA_VIDEO =      40368,
+
+        ID_MLVIEW_PLAYLISTS_NOPLAYLISTINLIBRARY = 40369, 
+
+        ID_MLVIEW_INTERNETRADIO =         40370,
+
+        ID_MLVIEW_INTERNETTV =            40371,
+
+        ID_MLVIEW_LIBRARYPREFERENCES =    40372,
+
+        ID_MLVIEW_DEVICES_NOAVAILABLEDEVICE = 40373, 
+
+        ID_MLFILE_IMPORTCURRENTPLAYLIST = 40374, 
+
+        ID_MLVIEW_MEDIA =                 40376,
+
+        ID_MLVIEW_PLAYLISTS =             40377,
+
+        ID_MLVIEW_MEDIA_ALLMEDIA =        40377,
+
+        ID_MLVIEW_DEVICES =               40378,
+
+        ID_FILE_SHOWLIBRARY =             40379,
+
+        ID_FILE_CLOSELIBRARY =            40380,
+
+        ID_POST_PLAY_PLAYLIST =           40381,
+
+        ID_VIS_NEXT =                     40382,
+
+        ID_VIS_PREV =                     40383,
+
+        ID_VIS_RANDOM =                   40384,
+
+        ID_MANAGEPLAYLISTS =              40385,
+
+        ID_PREFS_SKIN_SWITCHTOSKIN =      40386,
+
+        ID_PREFS_SKIN_DELETESKIN =        40387,
+
+        ID_PREFS_SKIN_RENAMESKIN =        40388,
+
+        ID_VIS_FS =                       40389,
+
+        ID_VIS_CFG =                      40390,
+
+        ID_VIS_MENU =                     40391,
+
+        ID_VIS_SET_FS_FLAG =              40392,
+
+        ID_PE_SHOWPLAYING =               40393,
+
+        ID_HELP_REGISTERWINAMPPRO =       40394,
+
+        ID_PE_MANUAL_ADVANCE =            40395,
+
+        WA_SONG_5_STAR_RATING =           40396,
+
+        WA_SONG_4_STAR_RATING =           40397,
+
+        WA_SONG_3_STAR_RATING =           40398,
+
+        WA_SONG_2_STAR_RATING =           40399,
+
+        WA_SONG_1_STAR_RATING =           40400,
+
+        WA_SONG_NO_RATING =               40401,
+
+        PL_SONG_5_STAR_RATING =           40402,
+
+        PL_SONG_4_STAR_RATING =           40403,
+
+        PL_SONG_3_STAR_RATING =           40404,
+
+        PL_SONG_2_STAR_RATING =           40405,
+
+        PL_SONG_1_STAR_RATING =           40406,
+
+        PL_SONG_NO_RATING =               40407,
+
+        AUDIO_TRACK_ONE =                 40408,
+
+        VIDEO_TRACK_ONE =                 40424,
+
+
+        ID_SWITCH_COLOURTHEME =           44500,
+
+        ID_GENFF_LIMIT =                  45000,
+    }
+
+    public enum WM_USER_MSGS
+    {
+        WA_GET_VERS = 0, // Retrieves the version of Winamp running. Version will be 0x20yx for 2.yx. This is a good way to determine if you did in fact find the right window, etc.
+        WA_BEGINPLAYBACK = 100, // Starts playback. A lot like hitting 'play' in Winamp, but not exactly the same
+        WA_CLEAR_PLAYLIST = 101, // Clears Winamp's internal playlist.
+        WA_PLAY_TRACK = 102, // Begins play of selected track.
+        WA_CHANGE_DIR = 103, // Makes Winamp change to the directory C:\\download
+        WA_GET_PLAYSTATUS = 104, // Returns the status of playback. If 'ret' is 1, Winamp is playing. If 'ret' is 3, Winamp is paused. Otherwise, playback is stopped.
+        WA_GET_PLAYBACK_INFO = 105, // If data is 0, returns the position in milliseconds of playback. If data is 1, returns current track length in seconds. Returns -1 if not playing or if an error occurs.
+        WA_SEEK = 106, // Seeks within the current track. The offset is specified in 'data', in milliseconds.
+        WA_SAVE_PLAYLIST = 120, // Writes out the current playlist to Winampdir\winamp.m3u, and returns the current position in the playlist.
+        WA_PLAYLIST_JUMP = 121, // Sets the playlist position to the position specified in tracks in 'data'.
+        WA_SET_VOL = 122, // Sets the volume to 'data', which can be between 0 (silent) and 255 (maximum).
+        WA_SET_PANNING = 123, // Sets the panning to 'data', which can be between 0 (all left) and 255 (all right).
+        WA_GET_PLAYLIST_LENGTH = 124, // Returns length of the current playlist, in tracks.
+        WA_GET_PLAYLIST_POS = 125, // Returns the position in the current playlist, in tracks (requires Winamp 2.05+).
+        WA_GET_TRACK_INFO = 126, // Retrieves info about the current playing track. Returns samplerate (i.e. 44100) if 'data' is set to 0, bitrate if 'data' is set to 1, and number of channels if 'data' is set to 2. (requires Winamp 2.05+)
+        WA_GET_EQLIZER_DATA_ELEMENT = 127, // Retrieves one element of equalizer data, based on what 'data' is set to.
+        // The 10 bands of EQ data. Will return 0-63 (+20db - -20db)
+        WA_EQ_1 = 0, 
+        WA_EQ_2 = 1,
+        WA_EQ_3 = 2,
+        WA_EQ_4 = 3,
+        WA_EQ_5 = 4,
+        WA_EQ_6 = 5,
+        WA_EQ_7 = 6,
+        WA_EQ_8 = 7,
+        WA_EQ_9 = 8,
+        WA_EQ_10 = 9,
+        ////
+        WA_PREAMP = 10,  // The preamp value. Will return 0-63 (+20db - -20db)
+        WA_UKNOWN = 11,  // Enabled. Will return zero if disabled, nonzero if enabled.
+        WA_AUTOLOAD = 128, // Autoload. Will return zero if disabled, nonzero if enabled. To set an element of equalizer data, simply query which item you wish to set using the message above (127), then call this message with data
+        WA_ADD_FILE_TO_BOOKMARK = 129, // Adds the specified file to the Winamp bookmark list
+        WA_RESTART = 135, // Restarts Winamp
+
+        WA_SET_SKIN = 200, // Sets the current skin. 'data' points to a string that describes what skin to load, which can either be a directory or a .zip file. If no directory name is specified, the default Winamp skin directory is assumed.
+        WA_GET_SKIN = 201, // Retrieves the current skin directory and/or name. 'ret' is a pointer to the Skin name (or NULL if error), and if 'data' is non-NULL, it must point to a string 260 bytes long, which will receive the pathname to where the skin bitmaps are stored (which can be either a skin directory, or a temporary directory when zipped skins are used) (Requires Winamp 2.04+).
+        WA_RUN_VIS_PLUG = 202, /* Selects and executes a visualization plug-in. 'data' points to a string which defines which plug-in to execute. The string can be in the following formats:
+
+                vis_whatever.dll Executes the default module in vis_whatever.dll in your plug-ins directory.
+                vis_whatever.dll,1 executes the second module in vis_whatever.dll
+                C:\path\vis_whatever.dll,1 executes the second module in vis_whatever.dll in another directory */
+
+
+        WA_GET_TRACK_PATH = 211, // Retrieves (and returns a pointer in 'ret') a string that contains the filename of a playlist entry (indexed by 'data'). Returns NULL if error, or if 'data' is out of range.
+        WA_GET_TRACK_TITLE = 212, // Retrieves (and returns a pointer in 'ret') a string that contains the title of a playlist entry (indexed by 'data'). Returns NULL if error, or if 'data' is out of range.
+        WA_OPEN_IN_MINIBROWSER = 241, // Opens an new URL in the minibrowser. If the URL is NULL it will open the Minibrowser window
+        WA_GET_NET_STATUS = 242, // Returns 1 if the internet connecton is available for Winamp
+        WA_UPDATE_TITLE_INFO = 243, // Asks Winamp to update the information about the current title
+        WA_SET_PLAYLIST_ITEM = 245, // Sets the current playlist item
+        WA_GET_MINIBROWSER_LOC = 246, // Retrives the current Minibrowser URL into the buffer.
+        WA_FLUSH_PLAYLIST_CACHE = 247, // Flushes the playlist cache buffer
+        WA_MINIBROWSER_NOUPDATE = 248, // Blocks the Minibrowser from updates if value is set to 1
+        WA_FORCE_LOAD_URL = 249, // Opens an new URL in the minibrowser (like 241) except that it will work even if 248 is set to 1
+        WA_GET_SHUFFLE = 250, // Returns the status of the shuffle option (1 if set)
+        WA_GET_REPEAT = 251, // Returns the status of the repeat option (1 if set)
+        WA_SET_SHUFFLE = 252, // Sets the status of the suffle option (1 to turn it on)
+        WA_SET_REPEAT = 253, // Sets the status of the repeat option (1 to turn it on)
+    }
+
+
+}
+
+#endif
+
+[CSWinampSDK\Winamp SDK\Win32.cs]
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+namespace WinAmpSDK
+{
+    public class Win32
+    {
+        #region Win32 constants
+        public const int WM_COMMAND = 0x111; //273;
+        public const int WM_USER = 0x0400;
+        public const int WM_COPYDATA = 0x4a;
+
+        #endregion
+
+        #region Win23 structs
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct COPYDATASTRUCT
+        {
+            public IntPtr dwData;
+            public int cbData;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string lpData;
+        }
+
+        [Serializable, StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+
+            public RECT(int left_, int top_, int right_, int bottom_)
+            {
+                Left = left_;
+                Top = top_;
+                Right = right_;
+                Bottom = bottom_;
+            }
+
+            public int Height { get { return Bottom - Top + 1; } }
+            public int Width { get { return Right - Left + 1; } }
+            public Size Size { get { return new Size(Width, Height); } }
+
+            public Point Location { get { return new Point(Left, Top); } }
+
+            // Handy method for converting to a System.Drawing.Rectangle
+            public Rectangle ToRectangle()
+            { return Rectangle.FromLTRB(Left, Top, Right, Bottom); }
+
+            public static RECT FromRectangle(Rectangle rectangle)
+            {
+                return new RECT(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+            }
+
+            public override int GetHashCode()
+            {
+                return Left ^ ((Top << 13) | (Top >> 0x13))
+                  ^ ((Width << 0x1a) | (Width >> 6))
+                  ^ ((Height << 7) | (Height >> 0x19));
+            }
+
+            #region Operator overloads
+
+            public static implicit operator Rectangle(RECT rect)
+            {
+                return Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right, rect.Bottom);
+            }
+
+            public static implicit operator RECT(Rectangle rect)
+            {
+                return new RECT(rect.Left, rect.Top, rect.Right, rect.Bottom);
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #region Win32 function imports
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr FindWindow(
+        [MarshalAs(UnmanagedType.LPTStr)] string lpClassName,
+        [MarshalAs(UnmanagedType.LPTStr)] string lpWindowName
+        );
+
+        /*[DllImport("User32.dll")]
+        public static extern int FindWindow(string strClassName, 
+                                                string strWindowName);*/
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SendMessage(
+        IntPtr hwnd,
+        int wMsg,
+        int wParam,
+        uint lParam
+        );
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SendMessageA(IntPtr hwnd, int wMsg, int wParam,
+            [In()] ref COPYDATASTRUCT lParam);
+
+        //[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        //public static extern int ShellExecute(
+        #endregion
+
+    }
+
+}
+
+
+[CSWinampSDK\Winamp SDK\WinampSDK.cs]
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Text;
+using Microsoft.Win32;
+using System.IO;
+
+namespace WinAmpSDK
+{
+    //For convenience i moved the Win32 class outside of this file.
+
+    /// <summary>
+    /// Class for controlling Winamp
+    /// </summary>
+    //TO DO : still need to figure out how this is going to work (instance NOT static is better)
+    public class Winamp
+    {
+
+
+        public IntPtr Handle;
+        public string WA_Path;
+        public Process WinAmpProcess;
+        public bool Exited;
+
+        public static int SendCommandToWinamp(IntPtr hWnd, WM_COMMAND_MSGS Command, uint lParam)
+        {
+            return Win32.SendMessage(hWnd, Win32.WM_COMMAND, (int)Command, lParam);
+        }
+
+        private static int ToInt32(bool b)
+        {
+            return (b) == true ? 1 : 0; //Shorthand for if statement
+        }
+        private static bool ToBool(int i)
+        {
+            return (i) == 1 ? true : false;
+        }
+
+        /// <summary>
+        /// Creates a Winamp object and binds it to a running instance of winamp. 
+        /// Throws a "Winamp instance not found" Exception if no winamp is running.
+        /// </summary>
+        public Winamp()
+        {
+            StartWinAmp();
+        }
+
+        private void StartWinAmp()
+        {
+            //IntPtr hWnd = Win32.FindWindow("BaseWindow_RootWnd", null);
+            IntPtr hWnd = Win32.FindWindow("Winamp v1.x", null);
+
+            if (hWnd.ToInt32() == 0)
+            {
+                throw new Exception("Winamp instance not found.");
+            }
+            else
+                WinAmpProcess = Process.GetProcessesByName("Winamp")[0];
+
+            WinAmpProcess.EnableRaisingEvents = true;
+            WinAmpProcess.Exited += new EventHandler(WinAmpProcess_Exited);
+
+            Handle = hWnd;
+            Exited = false;
+            WA_Path = ((string)Registry.GetValue("HKEY_CLASSES_ROOT\\Applications\\winamp.exe\\shell\\open\\command", null, null)).Split(new char[] { '"' })[1];
+            //Win32.SendMessage(Handle, Win32.WM_COMMAND, (int)WA_Commands.WINAMP_BUTTON2, WA_NOTHING);
+            //I commented out this line because it was causing Winamp
+            //to restart the song that it's on when a new winamp object was created.
+
+            //MessageBox.Show(WinAmpProcess.MainWindowTitle);
+        }
+
+        /// <summary>
+        /// Creates a Winamp object and binds it to a running instance of winamp.
+        /// </summary>
+        /// <param name="bAutoStart">If true, starts an instance of winamp if none is found.</param>
+        public Winamp(bool bAutoStart)
+        {
+            if (bAutoStart)
+            {
+                try
+                {
+                    StartWinAmp();
+                }
+                catch
+                {
+                    // 'HCR\Applications\Winamp.exe\shell\command' - Path to WinAmp Command
+                    WA_Path = ((string)Microsoft.Win32.Registry.GetValue("HKEY_CLASSES_ROOT\\Applications\\winamp.exe\\shell\\open\\command", null, null)).Split(new char[] { '"' })[1];
+                    if (WA_Path != null)
+                    {
+                        WinAmpProcess = Process.Start(WA_Path);
+                    }
+                    else
+                    {
+                        throw new Exception("No installation of winamp detected.");
+                    }
+                    new Winamp(bAutoStart);
+                    //MessageBox.Show(WinAmpProcess.Handle.ToString());
+                    //while (hWnd.ToInt32() == 0)
+                    //    hWnd = Win32.FindWindow("Winamp v1.x", null);
+                    //MessageBox.Show(hWnd.ToString());
+                }
+            }
+        }
+
+        void WinAmpProcess_Exited(object sender, EventArgs e)
+        {
+            Handle = (IntPtr)0;
+            WinAmpProcess = null;
+            Exited = true;
+        }
+
+        public int SendToWinamp(int nData, WM_USER_MSGS msg)
+        {
+            return SendToWinamp(WA_MsgTypes.WM_USER, nData, (int)msg);
+        }
+        public int SendToWinamp(int nData, WM_COMMAND_MSGS msg)
+        {
+            return SendToWinamp(WA_MsgTypes.WM_COMMAND, (int)msg, 0);
+        }
+        public int SendToWinamp(ref Win32.COPYDATASTRUCT data) //not sure about this one, i think the only message you can send for copydata is 0
+        {
+            return Win32.SendMessageA(this.Handle, Win32.WM_COPYDATA, 0, ref data);
+        }
+        public int SendToWinamp(WA_MsgTypes msgType, int nData, int nMsg)
+        {
+            return Win32.SendMessage(this.Handle, (int)msgType, nData, (uint)nMsg);
+        }
+
+        #region Winamp Commands
+        public void AppendToPlayList(string fileName)
+        {
+
+            Win32.COPYDATASTRUCT cds;
+            //cds.dwData = (IntPtr)100;
+            cds.dwData = (IntPtr)WA_IPC.IPC_ENQUEUEFILE;
+            cds.lpData = fileName;
+            cds.cbData = fileName.Length + 1;
+
+            //Win32.SendMessageA(this.Handle, Win32.WM_COPYDATA, 0, ref cds);
+            SendToWinamp(ref cds);
+        }
+        public void AppendToPlayList(string[] fileNames)
+        {
+            foreach (string sFile in fileNames)
+            {
+                AppendToPlayList(sFile);
+            }
+        }
+        public void AppendToPlayList(FileInfo fileName)
+        {
+            AppendToPlayList(fileName.FullName);
+        }
+        public void AppendToPlayList(FileInfo[] fileNames)
+        {
+            foreach (FileInfo fileName in fileNames)
+            {
+                AppendToPlayList(fileName);
+            }
+        }
+
+        public bool ShuffleStatus
+        {
+            get
+            {
+                int length = SendToWinamp(0, WM_USER_MSGS.WA_GET_SHUFFLE);
+                    //Win32.SendMessage(this.Handle, Win32.WM_USER, 0, (uint)WM_USER_MSGS.WA_GET_SHUFFLE);
+                bool status = ToBool(length); 
+                return status; 
+            }
+            set
+            {
+                int status = ToInt32(value);
+                SendToWinamp(status, WM_USER_MSGS.WA_SET_SHUFFLE);
+                //Win32.SendMessage(this.Handle, Win32.WM_USER, status, (uint)WM_USER_MSGS.WA_SET_SHUFFLE);
+            }
+        }
+
+        public bool ToggleShuffle()
+        {
+            this.ShuffleStatus = !this.ShuffleStatus;
+            return this.ShuffleStatus;
+            //it is possible to use a WM_COMMAND to do this, but we cannot return the new value then.
+        }
+
+        public bool RepeatStatus
+        {
+            get
+            {
+                int length = SendToWinamp(0, WM_USER_MSGS.WA_GET_REPEAT);
+                    //Win32.SendMessage(this.Handle, Win32.WM_USER, 0, (uint)WM_USER_MSGS.WA_GET_REPEAT);
+                return ToBool(length);
+            }
+            set
+            {
+                int status = ToInt32(value);
+                SendToWinamp(status, WM_USER_MSGS.WA_SET_REPEAT);
+            }
+        }
+
+        public bool ToggleRepeat()
+        {
+            this.RepeatStatus = !this.RepeatStatus;
+            return this.RepeatStatus;
+            //it is possible to use a WM_COMMAND to do this, but we cannot return the new value then.
+        }
+
+        public int Volume
+        {
+            //volume is 0 - 255
+            get
+            {
+                return 0;//SendToWinamp(0, WM_USER_MSGS.wa_get;
+            }
+            set
+            {
+                int vol = value;
+                if (vol <= 0)
+                {
+                    vol = 0;
+                }
+                else if (vol >= 100)
+                {
+                    vol = 100;
+                }
+                int nWaVol = (int)(vol / 100d * 255);
+                SendToWinamp(nWaVol, WM_USER_MSGS.WA_SET_VOL);
+            }
+        }
+
+        #endregion
+    }
+}
+
+
+[CSWinampSDK\Winamp SDK\WinAmpSDK.csproj]
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{70E44987-DBB8-4455-87E0-33CD6F6C55DD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WinAmpSDK</RootNamespace>
+    <AssemblyName>WinAmpSDK</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="wa_ipc.cs" />
+    <Compile Include="wa_msgids.cs" />
+    <Compile Include="Win32.cs" />
+    <Compile Include="WinampSDK.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
+
+[download_bass.ps1]
+# Download BASS Native Libraries for PhoenixVisualizer
+# This script downloads the required native DLLs that ManagedBass depends on
+
+Write-Host "Downloading BASS Native Libraries..." -ForegroundColor Green
+
+$libsDir = "libs"
+if (!(Test-Path $libsDir)) {
+    New-Item -ItemType Directory -Path $libsDir | Out-Null
+}
+
+# BASS Core Library (x64)
+$bassUrl = "https://www.un4seen.com/files/bass24.zip"
+$bassZip = "$libsDir\bass24.zip"
+$bassExtract = "$libsDir\bass24"
+
+Write-Host "Downloading BASS Core..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $bassUrl -OutFile $bassZip
+
+Write-Host "Extracting BASS Core..." -ForegroundColor Yellow
+Expand-Archive -Path $bassZip -DestinationPath $bassExtract -Force
+
+# Copy the x64 DLL to the main libs directory
+$bassDll = "$bassExtract\x64\bass.dll"
+if (Test-Path $bassDll) {
+    Copy-Item $bassDll -Destination "$libsDir\bass.dll" -Force
+    Write-Host "âœ“ BASS Core DLL copied" -ForegroundColor Green
+} else {
+    Write-Host "âœ— BASS Core DLL not found" -ForegroundColor Red
+}
+
+# BASS FX Library (x64)
+$bassFxUrl = "https://www.un4seen.com/files/bass_fx24.zip"
+$bassFxZip = "$libsDir\bass_fx24.zip"
+$bassFxExtract = "$libsDir\bass_fx24"
+
+Write-Host "Downloading BASS FX..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $bassFxUrl -OutFile $bassFxZip
+
+Write-Host "Extracting BASS FX..." -ForegroundColor Yellow
+Expand-Archive -Path $bassFxZip -DestinationPath $bassFxExtract -Force
+
+# Copy the x64 DLL to the main libs directory
+$bassFxDll = "$bassFxExtract\x64\bass_fx.dll"
+if (Test-Path $bassFxDll) {
+    Copy-Item $bassFxDll -Destination "$libsDir\bass_fx.dll" -Force
+    Write-Host "âœ“ BASS FX DLL copied" -ForegroundColor Green
+} else {
+    Write-Host "âœ— BASS FX DLL not found" -ForegroundColor Red
+}
+
+# Clean up temporary files
+Write-Host "Cleaning up..." -ForegroundColor Yellow
+Remove-Item $bassZip -Force -ErrorAction SilentlyContinue
+Remove-Item $bassFxZip -Force -ErrorAction SilentlyContinue
+Remove-Item $bassExtract -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $bassFxExtract -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "`nBASS Libraries downloaded to: $libsDir" -ForegroundColor Green
+Write-Host "Files:" -ForegroundColor Cyan
+Get-ChildItem $libsDir -Name
+
+Write-Host "`nNext steps:" -ForegroundColor Yellow
+Write-Host "1. Copy these DLLs to your output directory" -ForegroundColor White
+Write-Host "2. Or add them to your project as content files" -ForegroundColor White
+Write-Host "3. Build and run PhoenixVisualizer" -ForegroundColor White
+
+
+[export_script.ps1]
+$output = "# Phoenix Visualizer PROJECT STRUCTURE DUMP`n`n"
+$files = Get-ChildItem -Recurse -File | Where-Object { 
+    $_.Extension -match "\.(cs|axaml|csproj|json|md|txt|sh|ps1|py|html)$" -and 
+    $_.FullName -notmatch "\\libs\\|\\bin\\|\\obj\\|\\tools\\|\\DreamDictionary\\|\.git\\|\.dotnet\\|\.vscode\\|misc\\|allfiles\.txt|update_.*\.ps1|fix_.*\.ps1|simplify_.*\.ps1|combine_.*\.py|convert_.*\.py|process_.*\.py|capture\.sh|PHASE2_FEATURES\.md|PORTABLE_THEMEBUILDER\.md|project_context\.txt|README_SPRINT.*\.md|RitualOS_TODO\.md|wishlist\.md" 
+} | Sort-Object FullName
+
+foreach ($file in $files) {
+    $relativePath = $file.FullName.Replace((Get-Location).Path + "\", "")
+    $output += "[$relativePath]`n"
+    try {
+        $content = Get-Content $file.FullName -Raw -ErrorAction Stop
+        $output += $content + "`n`n"
+    } catch {
+        $output += "ERROR READING FILE: $($_.Exception.Message)`n`n"
+    }
+}
+
+$output | Out-File -FilePath "ritualos_project_dump.txt" -Encoding UTF8
+Write-Host "Project dump created: Phoenix_Visualizer_project_dump.txt with $($files.Count) files"
+
+
+[export_script_fixed.ps1]
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+# Config
+$outputFile = Join-Path (Get-Location) 'ritualos_project_dump.txt'
+
+# Header (here-string avoids backtick/quote escape gotchas)
+$output = @"
+# Phoenix Visualizer PROJECT STRUCTURE DUMP
+
+"@
+
+# Collect files
+$files = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Extension -match '\.(cs|axaml|csproj|json|md|txt|sh|ps1|py|html)$' -and
+        $_.FullName -notmatch '\\(libs|bin|obj|tools|\.git|\.vscode)\\' -and
+        $_.FullName -notmatch 'README_SPRINT.*\.md|RitualOS_TODO\.md|wishlist\.md'
+    } |
+    Sort-Object FullName
+
+# Exclude any prior dump output if present
+$files = $files | Where-Object { $_.FullName -ne $outputFile }
+
+foreach ($file in $files) {
+    $relativePath = try { Resolve-Path -Relative $file.FullName } catch { $file.FullName }
+    $output += "[$relativePath]`r`n"
+    try {
+        $content = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop
+        $output += $content + "`r`n`r`n"
+    } catch {
+        $output += "ERROR READING FILE: $($_.Exception.Message)`r`n`r`n"
+    }
+}
+
+# Write result
+try {
+    $output | Out-File -LiteralPath $outputFile -Encoding utf8
+} catch {
+    Set-Content -LiteralPath $outputFile -Value $output -Encoding utf8
+}
+
+Write-Host "Project dump created: $outputFile with $($files.Count) files"
+
+[launch-phoenix.ps1]
+# PhoenixVisualizer Launcher Script
+# This script actually launches PhoenixVisualizer
+
+Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+
+# Change to the project root directory
+$projectRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $projectRoot
+
+# Launch PhoenixVisualizer
+dotnet run --project PhoenixVisualizer.App
+
+
+[README.md]
+# PhoenixVisualizer Utility Scripts
+
+This folder contains utility scripts and tools for PhoenixVisualizer development and deployment.
+
+## Scripts
+
+### Export Scripts
+- **`export_script.ps1`** - Basic project structure export script
+- **`export_script_fixed.ps1`** - Enhanced project structure export script with better error handling
+
+### Launcher Scripts
+- **`run-phoenix.ps1`** - PhoenixVisualizer function library (aliases and functions)
+- **`launch-phoenix.ps1`** - Working PhoenixVisualizer launcher script
+
+### Root Directory Launchers
+- **`run.ps1`** - PowerShell launcher (direct dotnet call)
+- **`run.bat`** - Batch launcher (direct dotnet call)
+- **`run-direct.cmd`** - Direct CMD launcher (no PowerShell dependency)
+
+### CLI Tool (Recommended!)
+- **`phoenix`** - Batch launcher for PhoenixVisualizer CLI menu
+- **`phoenix.ps1`** - PowerShell launcher for PhoenixVisualizer CLI menu
+- **`tools/phoenix-cli/`** - CLI tool source code and project
+
+### Library Scripts
+- **`download_bass.ps1`** - Downloads and installs BASS audio library
+
+## Usage
+
+### From Root Directory
+```powershell
+# PhoenixVisualizer CLI Menu (Recommended!)
+.\phoenix
+# or
+.\phoenix.ps1
+
+# Traditional launchers
+.\run.ps1
+.\run.bat
+.\run-direct.cmd
+```
+
+### From libs_etc Directory
+```powershell
+# Export project structure
+.\export_script_fixed.ps1
+
+# Run PhoenixVisualizer (working launcher)
+.\launch-phoenix.ps1
+
+# Load PhoenixVisualizer functions and aliases
+.\run-phoenix.ps1
+
+# Download BASS library
+.\download_bass.ps1
+```
+
+## Organization
+
+All utility scripts are kept in this folder to maintain a clean root directory structure. The root directory contains only:
+- Project files (.sln, .csproj)
+- Documentation (.md files)
+- Source code directories
+- Configuration files
+
+## Notes
+
+- Scripts in the root directory are simple launchers that call the actual scripts in `libs_etc`
+- This keeps the root clean while maintaining easy access to utilities
+- All scripts use relative paths to work from any location
+
+
+[ritualos_project_dump.txt]
+# Phoenix Visualizer PROJECT STRUCTURE DUMP
 [.\download_bass.ps1]
 # Download BASS Native Libraries for PhoenixVisualizer
 # This script downloads the required native DLLs that ManagedBass depends on
@@ -1455,6 +4868,1360 @@ go_windowed()
 
 
 That should be all. Feel free to send your questions to francis@winamp.com
+
+
+
+
+
+[run.ps1]
+Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+dotnet run --project PhoenixVisualizer.App
+Read-Host "Press Enter to continue..."
+
+
+[run-phoenix.ps1]
+# PhoenixVisualizer PowerShell Launcher
+# Source this file to add convenient aliases
+
+function Start-PhoenixVisualizer {
+    Write-Host "ðŸš€ Starting PhoenixVisualizer..." -ForegroundColor Green
+    dotnet run --project PhoenixVisualizer.App
+}
+
+function Start-PhoenixEditor {
+    Write-Host "âœï¸ Starting PhoenixVisualizer Editor..." -ForegroundColor Blue
+    dotnet run --project PhoenixVisualizer.Editor
+}
+
+# Create aliases
+Set-Alias -Name phoenix -Value Start-PhoenixVisualizer
+Set-Alias -Name phoenix-editor -Value Start-PhoenixEditor
+
+Write-Host "âœ… PhoenixVisualizer aliases loaded!" -ForegroundColor Green
+Write-Host "Use 'phoenix' to run the main app" -ForegroundColor Yellow
+Write-Host "Use 'phoenix-editor' to run the editor" -ForegroundColor Yellow
+Write-Host "Use 'Start-PhoenixVisualizer' for the full function name" -ForegroundColor Yellow
+
+
+[WAMPSDK\in_raw\README.TXT]
+There are actually two examples here, a tone generator and a RAW
+player. Remove main.c from the project, and add in_raw or in_tone to
+try it out..
+
+-J
+
+
+[WAMPSDK\lang_b\TIPS.TXT]
+Note that these keyboard shortcuts are a good starting point, but this list
+is far from complete. :)
+
+******* Keyboard Shortcuts (these can be used in most Winamp windows) *******
+
+Key		Action
+-----------------------------------------------------------------------------
+F1		Open Help
+Ctrl+F1		About Box
+Ctrl+A		Toggle Always on Top (N/A in playlist editor and media library)
+Ctrl+Alt+A		Toggle always on top (playlist editor)
+Ctrl+W		Toggle Windowshade mode (main window, unless in playlist editor)
+Ctrl+D		Toggle Doublesize Mode
+Ctrl+E		Toggle Easymove (only applicable in classic skins)
+Ctrl+T		Toggle Time Display Mode 
+Alt+W		Toggle Main Window
+Alt+E		Toggle Playlist Editor
+Alt+G		Toggle Graphical Equalizer
+Alt+V		Toggle Video Window
+Alt+L		Toggle Media Library
+Ctrl+Tab		Cycle through different Winamp windows
+Alt+S		Go to Skin selection
+Ctrl+P		Go to Preferences
+Alt+F		Open Main Menu
+Alt+K		Configure current visualization plug-in
+Ctrl+Sh+K		Start/stop current visualization plug-In
+Ctrl+K		Open visualization plug-in section of preferences
+Ctrl+J		Jump to time in current track
+J or Keypad .	Open jump-to-file box
+Ctrl+Alt+N		Spawn new Winamp instance
+Alt+M		Minimize Winamp
+Ctrl+H		Show recently played files/streams (History :)
+
+
+******* Main Window Keyboard Shortcuts *******
+
+Key		Action
+-----------------------------------------------------------------------------
+(options/toggles)
+R		Toggle Repeat
+S		Toggle Shuffle
+
+Alt+3		Current file info box/tag editor
+
+(playback controls)
+Z		Previous Track
+X		Play/Restart/Unpause
+C		Pause/Unpause
+V		Stop
+Shift+V		Stop with Fadeout
+Ctrl+V		Stop after current track
+B		Next Track
+L		Open/Play File
+Ctrl+L		Open/Play location
+Shift+L		Open/Play Directory
+
+Left Arrow	Rewind 5 seconds
+Right Arrow	Fast-forward 5 seconds
+Up Arrow		Turn Volume Up
+Down Arrow	Turn Volume Down
+
+Keypad 1		Jump Ten Songs Back
+Keypad 6		Next Track
+Keypad 5		Play/Restart/Unpause
+Keypad 4		Previous Track
+Keypad 3		Jump Ten Songs Forward
+Keypad 7		Rewind 5 seconds
+Keypad 9		Fast-forward 5 seconds
+Keypad 8		Turn Volume Up
+Keypad 2		Turn Volume Down
+Keypad 0		Open/Play File
+Ctrl+Keypad 0	Open/Play location
+Insert		Open/Play Directory
+
+
+******* Playlist Window Keyboard Shortcuts *******
+
+Key		Action
+-----------------------------------------------------------------------------
+R		Toggle Repeat
+S		Toggle Shuffle
+
+(file io)
+L		Add File
+Ctrl+L		Add Location
+Shift+L 	Add Directory
+Ctrl+N		New (Clear) Playlist
+Ctrl+O		Open (Load) Playlist
+Ctrl+S		Save Playlist
+Alt+3		View/Edit Track Info for selected track(s)
+Ctrl+E		Edit Selected Track Filename(s)
+Ctrl+Keypad 0	Add Location
+Insert		Add Directory
+
+(playlist manipulation)		
+Ctrl+A		Select All
+Ctrl+I		Invert Selection
+Delete		Remove Selected Files from Playlist
+Ctrl+Delete	Crop Playlist
+Ctrl+Sh+Del	Clear Playlist (same as Ctrl+N)
+
+Alt+Down Arrow	Move Selected Files Down
+Alt+Up Arrow	Move Selected Files Up
+
+Down Arrow	Move Cursor Down
+Up Arrow		Move Cursor Up
+Enter		Play Selected File
+End		Jump to End of List
+Home		Jump to Start of List
+Page Up		Move up by a fifth of a page
+Page Down	Move down by a fifth of a page
+
+Alt+Delete	Remove missing files from playlist
+
+(playlist sorting)
+Ctrl+Sh+1		Sort Playlist by Title
+Ctrl+Sh+2		Sort Playlist by File Name
+Ctrl+Sh+3		Sort Playlist by File Path and Name
+Ctrl+R		Reverse Playlist
+Ctrl+Sh+R	Randomize Playlist
+
+Most main window playback controls also work in the playlist editor.
+
+
+******* Equalizer Keyboard Shortcuts (Classic skins only) *******
+
+Key		Action
+-----------------------------------------------------------------------------
+1 - 0		Increase EQ bands 1-10
+Q - P		Decrease EQ bands 1-10
+`		Increase EQ Preamp
+TAB		Decrease EQ Preamp
+N		Toggle EQ Enabled
+A		Toggle EQ Auto-Loading
+S		Open Presets Menu
+Ctrl+S		Load Preset
+
+
+
+[WAMPSDK\out_raw\readme.txt]
+This mini SDK demonstrates the base structure of an output plug-in for Winamp.
+Much like Disk Writer, RAW Writer takes an input file and converts it to the 
+output format; in this case, the RAW format.  It bypasses playback and writes the 
+output file as quickly as the input file can be decoded.  I hope this has helped.
+
+-Denzil
+
+
+[WAMPSDK\readme.txt]
+Winamp 5 SDK
+------------
+
+This ZIP file contains various SDKs for creating new plugins for Winamp 5.
+
+Here's a description of the various folders:
+
+/dsp_test - Sample code for a DSP test plugin
+
+/gen_ml - Headers and IPC calls for accessing/controlling/querying the Media 
+          Library
+
+/gen_ml/ml_ex - Sample code for a Media Library plugin
+
+/gen_tray - Sample code for a General Purpose plugin
+
+/in_raw - Sample code for an Input plugin
+
+/lang_b - Sample code for a Language Pack plugin
+
+/maki - Compiler for building Maki binaries
+
+/out_raw - Sample code for an Output plugin
+
+/vis/vis_avs/apesdk - Sample code for an AVS APE plugin
+
+/vis/vis_avs/ns-eel - Nullsoft Expression Evaluator Library (NS-EEL)
+                      This is what powers AVS's expression evaluators, feel free
+                      to include/modify the code in your own AVS APE plugins
+
+The AVS source tree above (`vis/vis_avs`) is the canonical location in this
+repository. Older copies under `vis/avs` have been removed.
+
+/vis/vis_test - Sample code for a Visualisation plugin
+
+/vis/wa5vis.txt - Describes how to embed your visualisation plugin in the 
+                  Winamp 5 drawer
+
+/winamp - Headers and IPC calls for controlling Winamp
+
+
+[WAMPSDK\vis\avs\vis_avs\vis_avs.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Nullsoft Advanced Visualization Studio (AVS) v2.0a4 README
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Nullsoft Advanced Visualization Studio (AVS) is Winamp's visualization
+plugin. It lets you load community presets or create your own to
+generate real-time graphics reacting to your music. AVS is distributed
+under a BSD-style license permitting modification and redistribution as
+outlined above.
+
+Thanks to Paul Holden for the FunkyFX Firewurx APE  
+
+Once you install this baby, fire up Winamp, open up the preferences 
+(CTRL+P), go to the Plugins/Visualization section, and select 
+Nullsoft AVS as the visualization plug-in. Hit start. 
+
+Once the AVS opens, it will probably be showing a nice black output.
+To get AVS to display something more interesting, hit space, or right
+click in the black area and select a preset to load.
+
+If you want to create your own presets, click the left mouse button in 
+the black area of the window to bring up the AVS Editor window.
+
+The editor lets you create new visuals by adding effects from your Effect
+Library (in the upper right) to the Active Effect list (on the left side).
+Once you've added effects, you can configure each effect by selecting them
+from the Active Effect list. You can also clear the list, or load or save
+the list to be loaded later as a preset. 
+
+You can also configure some of AVS's settings by selecting items from the 
+Settings section of the Editor. 
+
+Hotkeys for main window:
+ *  Any winamp key
+ *  R toggles randomswitching
+ *  F toggles fullscreen framerate counter
+ *  Y and U cycle through presets in order
+ *  Space goes to random preset
+ *  Enter toggles fullscreen
+ *  0,1-9, F1-F10 load presets
+ *  Ctrl+above save presets
+
+That's it for now, and enjoy!
+
+
+Version history:
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+and before:
+
+Started out as wVis 5.0. Started out pretty lame.
+
+[WAMPSDK\vis\README.md]
+# vis_avs - Advanced Visualization Studio
+
+## Description
+
+Advanced Visualization Studio (AVS), is a music visualization plugin for Winamp. It was designed by Winamp's creator, Justin Frankel. AVS has a customizable design which allows users to create their own visualization effects, or "presets". AVS was made open source software in May 2005, released under a BSD-style license. â€”[Wikipedia](http://en.wikipedia.org/wiki/Advanced_Visualization_Studio)
+
+**Note:** The canonical location of the AVS source code is `vis/vis_avs`. Any
+previous copies under `vis/avs` have been removed.
+
+## Notes
+
+What follows is a reformatted copy from the original `readme.txt` which came with the source code.
+
+> [DrO](http://forums.winamp.com/member.php?s=&action=getinfo&userid=122037) has updated v2.81b to v2.81d by changing a few files, as he posted [here](http://forums.winamp.com/showthread.php?postid=2054764#post2054764)  
+>
+> This file you have here is the sourcecode from [nullsoft.com](http://www.nullsoft.com/free/avs/) (v2.81b), with the few files from [vis_avs_changed.zip](http://www.nunzioweb.com/daz/temp/avs/vis_avs_changed.zip) (2.81d) overwritten over v2.81b  >
+> Since DrO's download location sais that it's temporary, I've put this file up as a backup for his server and to have a complete file.  
+>
+> If you have questions or comments, the AVS forums are over [here](http://forums.winamp.com/forumdisplay.php?s=&forumid=85)  
+>
+> Keep in mind though, that there is currently only little, if any, development going on over there. If you have suggestions, your best chances are to make a start and post your results there with your questions, rather than to ask 'us' to do it, as none of  us are Nullsoft employees.  
+>
+> You'll also need the Winamp SDK. Search the forums for the lastest version.  
+>
+> Greetings,  
+> 'Warrior of the Light'  
+> http://Warrior-of-the-Light.net  
+> [email hidden]
+
+## License
+
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+[WAMPSDK\vis\vis_avs\evallib\readme.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+  Expression evaluation library v1.0 - by lone
+  --------------------------------------------
+
+
+    How to use
+    ~~~~~~~~~~
+
+ 
+      ¦ resetVars
+      -----------
+
+      void resetVars(void);
+
+      Resets the variables table. It is necessary to call it prior to evaluate your first
+      expression or variables contents may be random instead of zero
+
+
+      ¦ evaluate
+      ----------
+
+      double evaluate(char *expression, int *col);
+
+      Evaluates an expression and returns the result.
+      If a syntax error was encountered during the parsing of the expression, then col will
+      be non-null and col-1 will be the index of the char which triggered the error.
+
+
+    Limitations
+    ~~~~~~~~~~~
+
+       ¦ you can set only up to 1024 variables.
+       ¦ only decimal and hexadecimal bases available
+       ¦ operators are limited to :
+               + - / * % & | 
+       ¦ functions are limited to :
+               sin, cos, tan,
+               asin, acos, atan,
+               atan2, sqr, sqrt,
+               pow, exp, log, log10
+
+
+    Some examples
+    ~~~~~~~~~~~~~
+
+      - assignments :
+
+               pi=3.1415927
+               a=atan2(cos(pi/4),2)
+
+      - direct evaluations :
+
+               cos(pi/4)
+               sin(45)
+
+      - base notations :
+
+               3bh      (this is 0x3B)
+               17d      (this is 17)   
+               17dh     (this is 0x17D) 
+
+
+    Adding new functions
+    ~~~~~~~~~~~~~~~~~~~~
+
+       The file EVAL.C contains the functions table (fnTable). Just add an entry with the name,
+       the number of parameters, and a pointer to the function body. Implement the body and
+       you're done. If your function ahs more than 2 parameters, you'll need to extend the grammar
+       description file (CAL.Y) to add the FUNCTION3 (and eventually subsequent) token(s) and
+       parsing informations.
+
+    SCAN.L & CAL.Y
+    ~~~~~~~~~~~~~~
+
+       SCAN.L contains description for the lexical analyzer generator (LEX). Use makel.bat to rebuild
+              LEXTAB.C
+       CAL.Y  contains the LALR formal grammar description for the parser generator (BISON). Use makey.bat
+              to rebuild CAL_TAB.C
+
+
+    Compiling
+    ~~~~~~~~~
+
+       Just include all source files to your project, and include EVAL.H into your main source code.
+
+
+[WAMPSDK\vis\vis_avs\LICENSE.TXT]
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+[WAMPSDK\vis\vis_avs\vis_avs.txt]
+
+  LICENSE
+  -------
+Copyright 2005 Nullsoft, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer. 
+
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution. 
+
+  * Neither the name of Nullsoft nor the names of its contributors may be used to 
+    endorse or promote products derived from this software without specific prior written permission. 
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Nullsoft Advanced Visualization Studio (AVS) v2.0a4 README
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Nullsoft Advanced Visualization Studio (AVS) is Winamp's visualization
+plugin. It lets you load community presets or create your own to
+generate real-time graphics reacting to your music. AVS is distributed
+under a BSD-style license permitting modification and redistribution as
+outlined above.
+
+Thanks to Paul Holden for the FunkyFX Firewurx APE  
+
+Once you install this baby, fire up Winamp, open up the preferences 
+(CTRL+P), go to the Plugins/Visualization section, and select 
+Nullsoft AVS as the visualization plug-in. Hit start. 
+
+Once the AVS opens, it will probably be showing a nice black output.
+To get AVS to display something more interesting, hit space, or right
+click in the black area and select a preset to load.
+
+If you want to create your own presets, click the left mouse button in 
+the black area of the window to bring up the AVS Editor window.
+
+The editor lets you create new visuals by adding effects from your Effect
+Library (in the upper right) to the Active Effect list (on the left side).
+Once you've added effects, you can configure each effect by selecting them
+from the Active Effect list. You can also clear the list, or load or save
+the list to be loaded later as a preset. 
+
+You can also configure some of AVS's settings by selecting items from the 
+Settings section of the Editor. 
+
+Hotkeys for main window:
+ *  Any winamp key
+ *  R toggles randomswitching
+ *  F toggles fullscreen framerate counter
+ *  Y and U cycle through presets in order
+ *  Space goes to random preset
+ *  Enter toggles fullscreen
+ *  0,1-9, F1-F10 load presets
+ *  Ctrl+above save presets
+
+That's it for now, and enjoy!
+
+
+Version history:
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+and before:
+
+Started out as wVis 5.0. Started out pretty lame.
+
+[WAMPSDK\vis\vis_avs\whatsnew.txt]
+-francis:
+added floor(), ceil() and $Phi
+added "cancel fullscreen on deactivation" toggle option
+
+-mig:
+added example infrastructure to dmove.  :)
+now there are 8 examples in dmove.  also tuned up my beat-interpolation algos!  woo!
+
+-justin
+added blend modes to misc / buffer save
+made config expand trees by default
+
+-mig:
+started work on undo/redo system.
+infrastructure seems to work, but I can't figure out the magical
+  incantation to make the UI reflect the newly altered render list
+  although it seems to actually go back to the last values in the renderer.
+"Do you want to save?" dirty flag now contained (mostly) in the undo object.
+(In fact, it saves a dirty bit for every undo state, so you can undo twice,
+  save, then redo and you should have your dirty bit still set.  If you then
+  undo yet again, you're back to what you saved and you have no dirty bit)
+added more examples to SuperScope
+
+-justin:
+fixed memory leak in evallib stuff I made a bit back
+added debug window, moved register watch to it, added error listing
+added option for clear variables on recompile in debug window
+fixed bugs, too.
+
+-justin:
+started adding setting for reinit on edit for evallib stuff
+made config change detection a little more accurate
+made superscope/dmove/shift/etc reinit on edit work right
+made trans / movement only replace usereval with preseteval if editted
+fyi: trans / movement also provides 'sw' and 'sh' for screen width and height,
+  so things like 'd=d*0.93 + (((x*sw/2)&(y*sh/2)&1)*-0.3);' are fun :)
+fixed trans / movement backwards compatible stuff (no crashy at least)
+updated eval documentation stuff, need people to write docs for it, too.. heheh
+lots of ui cleanups (more edit room!)
+fixed some fullscreen new fbresize bugs
+updated fullscreen overlay mode some
+updated maximum local variables to 256 from 64 
+added global registers [reg00,reg01,... reg99] for debug 
+  and effect synchronization (or inter-preset communication) 
+added global register watch in root list window (for debugging) 
+added comments for eval code. // and /* bla */ 
+updated eval documentation 
+added gettime() function to eval 
+made annoying grey rectangle below tree go away when you aren't docked 
+added new color modifier effect, which can be used to replace 
+  (with script) a lot of different effects (and be faster and more flexible). 
+added 'minimum blend' mode for effect lists/line drawing 
+added 'round up' option for Blur. 
+made a generic avs directory scanner routine for subdirs (yay!)
+   made it only generate menus when opened, for speed
+made effects that use evallib reset variables to empty on recompile
+made avs track dirtiness of presets, and (optionally) prompt to save etc
+made avs resize images when resizing (optionally)
+added extended APE interface, that lets you access evallib, global registers,
+  line blend/width modes. (see apesdk.zip)
+
+
+
+
+- mig: made most of the presets in Trans/Movement show their algos in the edit field (so you can tune them yourself)
+       added multiple new algos to the preset list
+
+- mig: removed ability to RMB in fullscreen mode.  Bug 331 from the database.  want make new gui.  want make now.
+- basu: added 'onbeat enabled' option to lists
+- christophe: added thread priority settings (so you can set avs in idle prority while keeping winamp in
+  high prio.)
+2.0a7:
+- made better multimonitor support -- still needs more work (making it able to go fullscreen and you do other things
+2.0a6:
+- added 'skip first' in misc/custom bpm
+- added interferences effect
+2.0a4:
+- auto fullscreen window resizing
+2.0a3:
+- updated fullscreen vis code to handle leaving fullscreen
+  unexpectedly better
+- made configwnd repopulation more robust
+- made transitions work when preinit is disabled and you just
+  started up
+2.0a2:
+- updated options of display/fullscreen/trans
+- added doublesize for windowed
+- added seperate opts for windowed/fullscreen for text
+- fixed bug in mosaic.
+
+2.0a1:
+- preinit of presets for better transitions
+- integrated laser support (built-time option)
+- changed name to 'Winamp AVS'
+- Improved SVP/UVS loading
+- Made superscope support 'red' 'green' and 'blue'
+
+1.5a6:
+- preset transitions, woohoo
+- yay
+
+1.5a4:
+- presets for superscope
+- more superscope options
+- made random preset loading on beat
+- bugfixes
+
+1.5a3:
+- line width option
+- ability to use buffer as alpha channel for blending sub-effects back in
+- tons more
+
+1.5a2:
+- deadbeef: cleanups
+- lone: adjustable blend for sub-effects
+
+1.5a1:
+- deadbeef: made new effect system completely hiererchical and scaleable. 
+			reorganized code a lot. cleaned things up. made it nice.
+
+1.0a53:
+- deadbeef: superscope effect
+			made it save to plugins\vis_avs.dat, instead.
+-lone :		added Trans / Invert
+			added Trans / Unique tone
+			added Render / Timescope
+
+a52:
+- deadbeef: optimized/simplified evallib. made it limited to 8 char variable names,
+			32 variables max.
+			improved ddm effect.
+			improved color clip effect
+
+a51:
+- deadbeef:	optimized mosaic, grain, brightness, and bump effects
+			optimized and added more functionality to interleave effect
+- lone :	clear - fixed 'first frame only'
+			eval - added sigmoid, sign, max, min, rand, band, bor, bnot, if, equal, above, below
+			ddm  - added code for init and beat
+			bump - added 'bi' var to control bump intensity thru exps.
+			     - added depth source
+			clear - fixed 'first frame only' (again)
+			onbeat clear - fixed 'skip n beats' which was not saved
+- ron : picture - fixed picture border bugs when aspect ratio was on
+
+a50:
+- deadbeef: added subtractive blend, every other line blend to stack
+			fixed window-no-erase bug.
+			added new dynamic distance modifier effect
+			added 'go' button to fullscreen options
+			added wait for retrace options
+			revised logarithmic spectrum scaling table
+- ron: better no-minimize-on-winamp (now displays a separate window in taskman)
+- lone : bpm - better out of range detection in average calculation
+						 - better confidence calculation
+						 - added option to predict beats only if bpm has been found
+						 - fixed relearn/adapt on new song option
+						 - fixed unwanted resets when using 'don't minimize avs when minimizing winamp' option
+				 brightness - now works actually like a brightness filter (bit slower tho)
+				 text - fixed crash when window is smaller than width/height of text and random mode was checked
+				 bump - added invert depth
+				      - fixed exclusive use of eval lib, was choking with misc trans/custom
+							  or additional bump effects, now saves/restores vars in a clean way.
+							- changed 0-100 range to 0-1 which is much easier to use with math exps
+							  (for backward compatibility, old settings are still using the old range)
+
+a49:
+
+- ron: added transparency settings (win2k only). 
+			added AVI and Water Bump effects.
+			settings are now drageable (fixed).
+			deleting a setting now doesn't loose selection.
+			evallib now works when AVS is compiled in debug mode.
+			added "don't minimize avs with winamp" setting in Display tab.
+			added BMP Picture rendering.
+- lone: disabled resize in fullscreen mode, fixes directx lockups
+      added Custom BPM filter
+			fixed stuck moving particles when no beat occurs for a long time
+			fixed random word option in text renderer
+			added beat learning - fixed broken version, now better than ever :>
+			added option to dock AVS into litestep's wharfamp window :)
+- deadbeef: restyled editor. 
+			made rotation switching variable in rotoblitter, and onbeat zoom changes
+			made loading/saving of unsupported effects/ape's better
+            fixed text drawing bugs. 
+			fixed fullscreen-when-no-mode-selected, and made it verify video modes
+            made skin change detection
+			added vertical blank wait options
+			fixed rotoblitter crashing effect
+			tons of other stuff. 
+
+
+
+a46: more effects, etc from lone/ron. Improved main interface.
+     a few small bugfixes.
+a44: crashing bugfixes. border drawing bugfixes.
+a43: skinnability. Put the avs.bmp in the skin directory. 
+     avs.bmp.
+a42: improved mirror effect. Misc trans now has mixed mapping mode 
+     (onbeat changes). should either have fixed or broken coming out 
+     of fullscreen modes. Fixed a few cosmetic bugs.
+a41: added lone's mirror effect.
+a40: comment bugfix, lone's effects, MUCH better beat detection
+a39: source mapping translation mode. Fadeto has color to fade to.
+a38: clone button. One level of presets directories allowed. Lets 
+     you select a preset directory to pull random/cycles from.
+     Neato.
+a37: comment thingy. Status line. More improvements. No more keyboard
+     controls for config, though :(
+a36: optimized colorfade, moving particle is nicer circle, water effect,
+     little cleanups, AVS editor now in own thread, keyboard controls 
+     work better, etc etc .
+a35: more blur options, more presets, new APE module (FyreWurx)
+a33: ultra-fast expression eval. test those custom trantabs to make sure they didn't break.
+a32: unfucks blur for older presets
+a31: dot fountain, baby.
+a30: made effects alpha-channel-safe, made random switching adjustable,
+     a lot of little tastey cleanups, etc.
+a29: nifty-ass framebuffer saving/restoring effect
+a28: adjustable CPU usage. better beat detection stuff. etc.
+a26: new effect (dot grid), widescreen fullscreen modes, etc.
+a25: bugfixes, you can now drop .avs's into the window, etc.
+a24: much better custom transtab stuff (thanks, LONE, not lore. no 
+     offense, lore, though :)
+a23: custom transtabs much faster. buggier, though. will be fixed soon.
+     lone owns. :)
+a22: higher framerate, custom transtabs, more effects, etc.
+a21 adds new "Scatter" effect
+a20 adds DLL effect loading (APE)
+a18 fixes close-winamp die bug.
+a18 speeds up colorfade (all table driven)
+a17 fixes win2k fullscreen issues (afaik)
+a16 adds some fixes, and new winamp styled window
+
+
+[WAMPSDK\vis\wa5vis.txt]
+Winamp 5 VIS Drawer API
+-----------------------
+
+
+Here are the steps to get your visualization plugin in the Winamp 5 drawer :
+
+1) Create an embedded window to serve as a parent for your vis Wnd using the Winamp 5 Embedded Window SDK :
+
+HWND parent = NULL;
+HWND (*e)(embedWindowState *v);
+*(void**)&e = (void *)SendMessage(this_mod->hwndParent,WM_WA_IPC,(LPARAM)0,IPC_GET_EMBEDIF);
+if (e) parent = e(&myWindowState);
+
+2) Create your vis window (say, g_hwnd) for your vis plugin, using the embedded window as a parent.
+
+3) BEFORE showing your parent window, notify Winamp that you are a VIS window :
+
+SendMessage(this_mod->hwndParent, WM_WA_IPC, (int)g_hwnd, IPC_SETVISWND);
+ShowWindow(parent, SW_SHOWNA);
+
+4) When your plugin is asked to terminate, notify winamp that the VIS has gone away :
+
+SendMessage(g_mod->hwndParent, WM_WA_IPC, NULL, IPC_SETVISWND);
+
+5) From now on, your vis is going to be automatically inserted in the drawer, and your window (the one you sent to winamp
+using SETVISWND) is going to receive commands when the user clicks in the vis buttons (ie, next/previous/random, etc). You 
+should implement these commands by trapping WM_COMMAND:
+
+case WM_COMMAND: {
+  int id = LOWORD(wParam);
+  switch (id) {
+
+    // user clicked on 'next' preset button
+    case ID_VIS_NEXT: next_preset(); break;
+
+    // user clicked on 'previous' preset button
+    case ID_VIS_PREV: previous_preset(); break;
+
+    // user clicked on 'random' togglebutton
+    case ID_VIS_RANDOM: {
+      // determine if we're switching random on or off or if Winamp is asking us about the state of our random flag
+      int v = HIWORD(wParam) ? 1 : 0; 
+
+      // are we being asked about the state of our random flag ?
+      if (wParam >> 16 == 0xFFFF) {
+        // tell winamp about our state
+        SendMessage(g_mod->hwndParent,WM_WA_IPC,random_presets_flag,IPC_CB_VISRANDOM);
+        break;
+      }
+      
+      // changes random_preset_flag 
+      set_random(v); 
+
+      // if we are turning random on, we should switch to a new random preset right away
+      if (v) load_random_preset();
+
+      break;
+    }
+    case ID_VIS_FS: go_fullscreen(); break;
+    case ID_VIS_CFG: open_configuration(); break;
+    case ID_VIS_MENU: open_popup_menu(); break;
+  }
+  break;
+}
+
+6) Before turning fullscreen on, you should check wether video is already fullscreen or not :
+
+if (SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_IS_PLAYING_VIDEO)>1) 
+{
+  cant_go_fullscreen_dlg();
+}
+
+7) You're almost done, the last thing to do is to notify Winamp when you go fullscreen :
+
+go_fullscreen() 
+{
+  if (SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_IS_PLAYING_VIDEO)>1) 
+  {
+    cant_go_fullscreen_dlg();
+  }
+  else
+  {
+    SendMessage(g_mod->hwndParent,WM_WA_IPC,1,IPC_SET_VIS_FS_FLAG);
+
+    ... now do the work of actually going fullscreen ...
+
+  }
+}
+
+go_windowed()
+{
+  SendMessage(g_mod->hwndParent,WM_WA_IPC,0,IPC_SET_VIS_FS_FLAG);
+
+  ... now do the work of going back to windowed mode ...
+
+}
+
+
+That should be all. Feel free to send your questions to francis@winamp.com
+
+
+[WinampPluginWrapper\README.md]
+# WinampPluginWrapper
+
+A C++ DLL wrapper that provides proper interop between C# and Winamp visualization plugins.
+
+## ðŸŽ¯ **What This Solves**
+
+The fundamental issue with our previous approach was trying to use **C# interop** to load **C++ Winamp plugins**. This creates problems with:
+- Struct layouts and memory alignment
+- Function calling conventions
+- Pointer management and memory safety
+- Type conversions between C# and C++
+
+## ðŸš€ **How It Works**
+
+1. **C++ DLL Wrapper** (`WinampPluginWrapper.dll`)
+   - Loads Winamp plugin DLLs using native Windows APIs
+   - Calls the `winampVisGetHeader()` function directly
+   - Manages plugin lifecycle (load, init, render, quit)
+   - Exports simple C functions for C# to call
+
+2. **C# P/Invoke Wrapper** (`WinampPluginWrapper.cs`)
+   - Uses P/Invoke to call the C++ DLL functions
+   - Provides a clean, managed interface
+   - Handles string marshaling and error handling
+
+## ðŸ”§ **Building the C++ DLL**
+
+### Prerequisites
+- Visual Studio 2019 or later with C++ development tools
+- Windows SDK
+
+### Build Steps
+1. Open `WinampPluginWrapper.sln` in Visual Studio
+2. Select your target platform (x86 or x64)
+3. Build the solution (Ctrl+Shift+B)
+4. The DLL will be output to `$(Platform)\$(Configuration)\WinampPluginWrapper.dll`
+
+### Alternative: Command Line Build
+```cmd
+msbuild WinampPluginWrapper.sln /p:Configuration=Release /p:Platform=x64
+```
+
+## ðŸ§ª **Testing**
+
+1. **Build the DLL** first
+2. **Copy the DLL** to the same directory as `test_wrapper.cpp`
+3. **Compile the test program**:
+   ```cmd
+   cl test_wrapper.cpp /Fe:test_wrapper.exe
+   ```
+4. **Run the test**:
+   ```cmd
+   test_wrapper.exe
+   ```
+
+## ðŸ“ **File Structure**
+
+```
+WinampPluginWrapper/
+â”œâ”€â”€ WinampPluginWrapper.cpp      # Main C++ implementation
+â”œâ”€â”€ WinampPluginWrapper.vcxproj  # Visual Studio project
+â”œâ”€â”€ WinampPluginWrapper.sln      # Visual Studio solution
+â”œâ”€â”€ test_wrapper.cpp             # Test program
+â””â”€â”€ README.md                    # This file
+```
+
+## ðŸ”Œ **Integration with PhoenixVisualizer**
+
+1. **Build the DLL** and place it in your app's output directory
+2. **Use the C# wrapper** in your `WinampIntegrationService`
+3. **Replace the old `SimpleWinampHost`** with calls to `WinampPluginWrapper`
+
+## ðŸŽµ **Expected Results**
+
+When working correctly, you should see:
+```
+ðŸ§ª Testing WinampPluginWrapper DLL
+==================================
+âœ… WinampPluginWrapper.dll loaded successfully
+âœ… All function addresses obtained
+
+ðŸ” Testing with plugin: D:\GitHub\AMrepo\PhoenixVisualizer\plugins\vis\vis_milk2.dll
+âœ… Plugin loaded successfully!
+ðŸ“ Plugin description: MilkDrop 2.0
+ðŸ“Š Module count: 1
+  - Module 0: MilkDrop 2.0
+
+ðŸ§¹ Test completed
+```
+
+## ðŸš¨ **Troubleshooting**
+
+### DLL Not Found
+- Ensure `WinampPluginWrapper.dll` is in the same directory as your executable
+- Check that the DLL was built for the correct platform (x86 vs x64)
+
+### Plugin Loading Fails
+- Verify the plugin DLL path is correct
+- Check that the plugin DLL exports `winampVisGetHeader`
+- Ensure the plugin DLL is compatible with your system architecture
+
+### Build Errors
+- Make sure you have the Windows SDK installed
+- Verify Visual Studio C++ tools are installed
+- Check that the project targets the correct Windows version
+
+## ðŸ”® **Future Enhancements**
+
+- **Audio data integration** - Pass FFT/spectrum data to plugins
+- **Window embedding** - Embed plugin windows in the main UI
+- **Plugin configuration** - Access plugin settings dialogs
+- **Multiple plugin support** - Load and manage multiple plugins simultaneously
 
 
 

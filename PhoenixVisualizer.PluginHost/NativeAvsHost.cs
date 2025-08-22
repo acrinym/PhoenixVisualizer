@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -40,12 +42,21 @@ public static class NativeAvsHost
             message = "vis_avs already loaded.";
             return true;
         }
-        var dll = string.IsNullOrWhiteSpace(path) ? "vis_avs.dll" : path!;
-        if (!NativeLibrary.TryLoad(dll, out _lib))
+
+        // Try to find vis_avs.dll in common locations
+        var dllPath = FindVisAvsDll(path);
+        if (string.IsNullOrEmpty(dllPath))
         {
-            message = $"vis_avs.dll not found (tried '{dll}').";
+            message = "vis_avs.dll not found in any plugin directories.";
             return false;
         }
+
+        if (!NativeLibrary.TryLoad(dllPath, out _lib))
+        {
+            message = $"Failed to load vis_avs.dll from '{dllPath}'.";
+            return false;
+        }
+
         try
         {
             var fp = NativeLibrary.GetExport(_lib, "winampVisGetHeader");
@@ -53,7 +64,7 @@ public static class NativeAvsHost
             var hdrPtr = _getHeader();
             _hdr = Marshal.PtrToStructure<NativeAvsInterop.WinampVisHeader>(hdrPtr);
             _getModule = Marshal.GetDelegateForFunctionPointer<NativeAvsInterop.GetModuleDelegate>(_hdr.getModule);
-            message = $"✅ Loaded vis_avs.dll • modules: {_hdr.numMods}";
+            message = $"✅ Loaded vis_avs.dll from {dllPath} • modules: {_hdr.numMods}";
             return true;
         }
         catch (Exception ex)
@@ -62,6 +73,79 @@ public static class NativeAvsHost
             SafeFree();
             return false;
         }
+    }
+
+    /// <summary>
+    /// Search for vis_avs.dll in common plugin directories
+    /// </summary>
+    private static string? FindVisAvsDll(string? explicitPath = null)
+    {
+        // If explicit path provided, check it first
+        if (!string.IsNullOrWhiteSpace(explicitPath))
+        {
+            var explicitFile = Path.Combine(explicitPath, "vis_avs.dll");
+            if (File.Exists(explicitFile))
+            {
+                return explicitFile;
+            }
+        }
+
+        // Search in common plugin directories
+        var searchPaths = new[]
+        {
+            // Source repository plugins directory
+            Path.Combine(Directory.GetCurrentDirectory(), "plugins"),
+            Path.Combine(Directory.GetCurrentDirectory(), "plugins", "vis"),
+            
+            // Debug output directory
+            Path.Combine(AppContext.BaseDirectory, "plugins"),
+            Path.Combine(AppContext.BaseDirectory, "plugins", "vis"),
+            
+            // Search upward from current directory
+            SearchUpForVisAvs(Directory.GetCurrentDirectory()),
+            SearchUpForVisAvs(AppContext.BaseDirectory),
+            
+            // Traditional Winamp installation
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Winamp", "Plugins"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Winamp", "Plugins"),
+            
+            // WACUP installation
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "WACUP", "Plugins"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WACUP", "Plugins")
+        };
+
+        foreach (var searchPath in searchPaths)
+        {
+            if (string.IsNullOrEmpty(searchPath)) continue;
+            
+            var dllPath = Path.Combine(searchPath, "vis_avs.dll");
+            if (File.Exists(dllPath))
+            {
+                return dllPath;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Search upward from a directory for vis_avs.dll
+    /// </summary>
+    private static string? SearchUpForVisAvs(string startDir)
+    {
+        const int MaxDepth = 6;
+        var dir = new DirectoryInfo(startDir);
+        
+        for (int i = 0; i < MaxDepth && dir != null; i++, dir = dir.Parent)
+        {
+            var candidate = Path.Combine(dir.FullName, "plugins", "vis_avs.dll");
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+        
+        return null;
     }
 
     /// <summary>Enumerate module descriptions (e.g., "Advanced Visualization Studio")</summary>

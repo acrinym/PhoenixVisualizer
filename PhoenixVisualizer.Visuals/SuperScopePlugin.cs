@@ -12,8 +12,8 @@ public class SuperScopePlugin : IVisualizerPlugin
     public string Id => "superscope_pro";
     public string DisplayName => "SuperScope Pro";
 
-    private AvsEffects.SuperScope.ScopeContext _scopeContext = new();
-    private Random _random = new();
+    private readonly AvsEffects.SuperScope.ScopeContext _scopeContext = new();
+    private readonly Random _random = new();
     private float _time = 0f;
     private int _renderMode = 0;
     private float _modeTimer = 0f;

@@ -15,14 +15,12 @@ namespace PhoenixVisualizer.Views;
 public partial class MainWindow : Window
 {
     private bool _handlersWired;
-    private WinampPluginManager? _pluginManager;
-    private enum VisualMode { BuiltIn, Winamp }
+    private enum VisualMode { BuiltIn }
     private VisualMode _visualMode = VisualMode.BuiltIn;
     
     // Plugin mode tracking
-    private enum PluginMode { BuiltIn, Winamp }
+    private enum PluginMode { BuiltIn }
     private PluginMode _currentPluginMode = PluginMode.BuiltIn;
-    private WinampIntegrationService? _winampService;
     
 
     
@@ -71,10 +69,8 @@ public partial class MainWindow : Window
             }
         }
 
-        // ✅ Wire Winamp UI buttons if present (only wire once!)
-        var btnWinamp = this.FindControl<Button>("BtnWinampPlugins");
+        // ✅ Wire plugin switcher button if present
         var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
-        if (btnWinamp != null) btnWinamp.Click += OnWinampPluginsClick;
         if (btnSwitcher != null) btnSwitcher.Click += OnPluginSwitcherClick;
 
         // Initialize AVS overlay renderer
@@ -304,19 +300,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenWinampManager()
-    {
-        try
-        {
-            var mgr = new Views.WinampPluginManager();
-            mgr.Show(this);
-        }
-        catch (Exception ex)
-        {
-            // emoji-friendly status already in the manager; just log
-            Console.WriteLine($"Winamp manager error: {ex.Message}");
-        }
-    }
+
 
     private void InitializePlugin()
     {

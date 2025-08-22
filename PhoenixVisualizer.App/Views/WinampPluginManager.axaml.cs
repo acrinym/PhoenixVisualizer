@@ -53,14 +53,29 @@ public partial class WinampPluginManager : Window
                 return;
             }
 
+            SetStatus("🔍 Resolving plugin directory...");
+            
             // Resolve plugin directory and show it to user
             var resolved = await WinampIntegrationService.ResolvePluginDirectoryAsync();
             var pathText = this.FindControl<TextBlock>("PluginPathTextBlock");
             if (pathText != null)
             {
-                pathText.Text = resolved ?? "(none)";
+                pathText.Text = resolved ?? "(none found)";
             }
 
+            if (string.IsNullOrWhiteSpace(resolved))
+            {
+                SetStatus("❌ No plugin directory found - check console for details");
+                var countText1 = this.FindControl<TextBlock>("PluginCountTextBlock");
+                if (countText1 != null)
+                {
+                    countText1.Text = "No plugin directory found";
+                }
+                return;
+            }
+
+            SetStatus("🔍 Scanning for plugins...");
+            
             // Scan for plugins
             var result = await _integrationService.ScanForPluginsAsync();
             
@@ -70,6 +85,11 @@ public partial class WinampPluginManager : Window
                 if (result.Error != null)
                 {
                     SetStatus($"❌ Error refreshing plugins: {result.Error.Message}");
+                    var countText2 = this.FindControl<TextBlock>("PluginCountTextBlock");
+                    if (countText2 != null)
+                    {
+                        countText2.Text = $"Error: {result.Error.Message}";
+                    }
                     return;
                 }
 
@@ -88,12 +108,27 @@ public partial class WinampPluginManager : Window
                     pluginList.ItemsSource = _plugins;
                 }
 
+                // Update plugin count
+                var countText3 = this.FindControl<TextBlock>("PluginCountTextBlock");
+                if (countText3 != null)
+                {
+                    countText3.Text = $"Found {result.Plugins.Count} plugins in {resolved}";
+                }
+
                 SetStatus(result.Status);
             });
         }
         catch (Exception ex)
         {
-            Dispatcher.UIThread.Post(() => SetStatus($"❌ Error refreshing plugins: {ex.Message}"));
+            Dispatcher.UIThread.Post(() => 
+            {
+                SetStatus($"❌ Error refreshing plugins: {ex.Message}");
+                var countText = this.FindControl<TextBlock>("PluginCountTextBlock");
+                if (countText != null)
+                {
+                    countText.Text = $"Exception: {ex.Message}";
+                }
+            });
         }
     }
 
@@ -156,26 +191,68 @@ public partial class WinampPluginManager : Window
 
     private void OnTestClick(object? sender, RoutedEventArgs e)
     {
-        _ = sender; _ = e; // silence unused parameters
-        var pluginList = this.FindControl<ListBox>("PluginList");
-        if (pluginList?.SelectedItem is string selectedPluginText)
+        _ = sender; _ = e;
+        // TODO: Implement plugin testing
+        SetStatus("🧪 Plugin testing not yet implemented");
+    }
+
+    private async void OnDebugClick(object? sender, RoutedEventArgs e)
+    {
+        _ = sender; _ = e;
+        
+        try
         {
-            try
+            if (_integrationService == null)
             {
-                // Test the plugin with sample data
-                // TODO: Implement plugin testing with sample audio data
-                SetStatus($"🧪 Testing {selectedPluginText}");
+                SetStatus("❌ Integration service not initialized");
+                return;
             }
-            catch (Exception ex)
+
+            SetStatus("🐛 Gathering debug information...");
+            
+            // Get detailed debug info
+            var resolved = await WinampIntegrationService.ResolvePluginDirectoryAsync();
+            var result = await _integrationService.ScanForPluginsAsync();
+            
+            var debugInfo = $"🔍 Plugin Directory: {resolved ?? "(none)"}\n";
+            debugInfo += $"🔍 Integration Service Initialized: {_integrationService.IsInitialized}\n";
+            debugInfo += $"🔍 Scan Result: {result.Status}\n";
+            debugInfo += $"🔍 Plugins Found: {result.Plugins.Count}\n";
+            
+            if (result.Error != null)
             {
-                SetStatus($"❌ Error testing plugin: {ex.Message}");
+                debugInfo += $"❌ Error: {result.Error.Message}\n";
+                debugInfo += $"❌ Stack Trace: {result.Error.StackTrace}\n";
             }
+            
+            // Show debug info in a simple dialog
+            var debugWindow = new Window
+            {
+                Title = "🐛 Debug Information",
+                Width = 600,
+                Height = 400,
+                Content = new ScrollViewer
+                {
+                    Content = new TextBox
+                    {
+                        Text = debugInfo,
+                        IsReadOnly = true,
+                        FontFamily = "Consolas",
+                        FontSize = 11,
+                        AcceptsReturn = true,
+                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                    }
+                }
+            };
+            
+            await debugWindow.ShowDialog(this);
+            SetStatus("🐛 Debug information displayed");
         }
-        else
+        catch (Exception ex)
         {
-            SetStatus("⚠️ Please select a plugin first");
+            SetStatus($"❌ Error getting debug info: {ex.Message}");
         }
-        }
+    }
 
     private void SetStatus(string message)
     {
