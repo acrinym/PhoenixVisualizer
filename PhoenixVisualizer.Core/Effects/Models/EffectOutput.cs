@@ -1,0 +1,1 @@
+using System.Drawing; namespace PhoenixVisualizer.Core.Effects.Models { public class EffectOutput { public ImageBuffer Image { get; set; } public EffectMetadata Metadata { get; set; } public EffectOutput() { Metadata = new EffectMetadata(); } public EffectOutput(ImageBuffer image) { Image = image; Metadata = new EffectMetadata(); } } }

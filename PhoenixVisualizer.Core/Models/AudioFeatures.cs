@@ -1,10 +1,1 @@
-namespace PhoenixVisualizer.Core.Models;
-
-/// <summary>
-/// Minimal audio features interface for Core project
-/// </summary>
-public class AudioFeatures
-{
-    public float Rms { get; set; }
-    public bool Beat { get; set; }
-}
+using System; namespace PhoenixVisualizer.Core.Models { public class AudioFeatures { public bool IsBeat { get; set; } public double BPM { get; set; } public double Timestamp { get; set; } public float[] SpectrumData { get; set; } public float[] WaveformData { get; set; } public float LeftChannel { get; set; } public float RightChannel { get; set; } public float CenterChannel { get; set; } public AudioFeatures() { SpectrumData = new float[512]; WaveformData = new float[512]; } } }
