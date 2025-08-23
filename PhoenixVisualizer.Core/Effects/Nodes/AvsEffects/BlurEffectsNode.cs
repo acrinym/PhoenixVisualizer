@@ -1,0 +1,16 @@
+using System; using System.Collections.Generic; using PhoenixVisualizer.Core.Effects.Models; using PhoenixVisualizer.Core.Models; namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects { public class BlurEffectsNode : BaseEffectNode { public int BlurIntensity { get; set; } = 1; public int RoundMode { get; set; } = 0; public bool MultiThreaded { get; set; } = true; private const int BLUR_OFF = 0; private const int BLUR_LIGHT = 1; private const int BLUR_MEDIUM = 2; private const int BLUR_HEAVY = 3; public BlurEffectsNode() { Name = \
+Blur
+Effects\; Description = \Creates
+sophisticated
+image
+blurring
+with
+multiple
+intensity
+levels\; Category = \AVS
+Effects\; } protected override void InitializePorts() { _inputPorts.Add(new EffectPort(\Image\, typeof(ImageBuffer), true, null, \Input
+image
+to
+blur\)); _outputPorts.Add(new EffectPort(\Output\, typeof(ImageBuffer), false, null, \Blurred
+output
+image\)); } protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures) { if (!inputs.TryGetValue(\Image\, out var input) || input is not ImageBuffer imageBuffer) return GetDefaultOutput(); var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height); Array.Copy(imageBuffer.Pixels, output.Pixels, imageBuffer.Pixels.Length); switch (BlurIntensity) { case BLUR_LIGHT: ApplyLightBlur(imageBuffer, output); break; case BLUR_MEDIUM: ApplyMediumBlur(imageBuffer, output); break; case BLUR_HEAVY: ApplyHeavyBlur(imageBuffer, output); break; } return output; } private void ApplyLightBlur(ImageBuffer input, ImageBuffer output) { int width = input.Width; int height = input.Height; for (int y = 1; y < height - 1; y++) { for (int x = 1; x < width - 1; x++) { int pixelIndex = y * width + x; int currentPixel = input.Pixels[pixelIndex]; int leftPixel = input.Pixels[pixelIndex - 1]; int rightPixel = input.Pixels[pixelIndex + 1]; int topPixel = input.Pixels[pixelIndex - width]; int bottomPixel = input.Pixels[pixelIndex + width]; int blurredPixel = (currentPixel >> 1) + (currentPixel >> 2) + (leftPixel >> 3) + (rightPixel >> 3) + (topPixel >> 3) + (bottomPixel >> 3); output.Pixels[pixelIndex] = blurredPixel; } } } private void ApplyMediumBlur(ImageBuffer input, ImageBuffer output) { int width = input.Width; int height = input.Height; for (int y = 1; y < height - 1; y++) { for (int x = 1; x < width - 1; x++) { int pixelIndex = y * width + x; int leftPixel = input.Pixels[pixelIndex - 1]; int rightPixel = input.Pixels[pixelIndex + 1]; int bottomPixel = input.Pixels[pixelIndex + width]; int blurredPixel = (leftPixel >> 2) + (rightPixel >> 2) + (bottomPixel >> 1); output.Pixels[pixelIndex] = blurredPixel; } } } private void ApplyHeavyBlur(ImageBuffer input, ImageBuffer output) { int width = input.Width; int height = input.Height; for (int y = 1; y < height - 1; y++) { for (int x = 1; x < width - 1; x++) { int pixelIndex = y * width + x; int currentPixel = input.Pixels[pixelIndex]; int leftPixel = input.Pixels[pixelIndex - 1]; int rightPixel = input.Pixels[pixelIndex + 1]; int bottomPixel = input.Pixels[pixelIndex + width]; int blurredPixel = (currentPixel >> 2) + (leftPixel >> 2) + (rightPixel >> 2) + (bottomPixel >> 2); output.Pixels[pixelIndex] = blurredPixel; } } } protected override object GetDefaultOutput() { return new ImageBuffer(1, 1); } } }
