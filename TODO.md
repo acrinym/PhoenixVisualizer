@@ -130,6 +130,7 @@
    - [ ] FastBrightnessEffectsNode ✅ (implemented - high-performance brightness adjustment with multiple modes and optimizations)
    - [ ] ColorreplaceEffectsNode ✅ (implemented - sophisticated color replacement with beat reactivity and smooth transitions)
    - [ ] FadeoutEffectsNode ✅ (implemented - smooth color transitions with beat reactivity and advanced fade algorithms)
+   - [ ] OnetoneEffectsNode ⚠️ (attempted but had type conversion issues - needs reimplementation)
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/EffectsIndex.md
   - [ ] FeedbackEffectsNode - code not yet implemented, see Docs/Effects/FeedbackEffects.md
   - [ ] FractalEffectsNode - code not yet implemented, see Docs/Effects/FractalEffects.md
