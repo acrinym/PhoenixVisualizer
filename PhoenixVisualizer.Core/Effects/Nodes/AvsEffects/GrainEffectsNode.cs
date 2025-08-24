@@ -148,7 +148,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private float _currentTime = 0.0f;
         private int _lastWidth = 0;
         private int _lastHeight = 0;
-        private int _randtabPos = 0;
+        // removed unused field randtabPos (not used in final implementation)
         private readonly byte[] _randtab = new byte[491];
 
         #endregion
@@ -258,7 +258,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 _randtab[i] = (byte)tempRandom.Next(0, 256);
             }
-            _randtabPos = 0;
+            // removed unused field assignment
         }
 
         private void InitializeGrainBuffer(int width, int height)

@@ -37,7 +37,7 @@ namespace PhoenixVisualizer.Core.Services.AudioProcessing
         private readonly Stopwatch _processingTimer;
         private double _averageProcessingTime;
         private int _totalBeatsDetected;
-        private int _falsePositiveCount;
+        // removed unused field falsePositiveCount
         
         private bool _isDisposed;
         
@@ -365,8 +365,8 @@ namespace PhoenixVisualizer.Core.Services.AudioProcessing
                 return;
             }
             
-            // Calculate confidence based on false positive ratio and consistency
-            float falsePositiveRatio = (float)_falsePositiveCount / _totalBeatsDetected;
+            // Calculate confidence based on consistency (falsePositiveCount was removed)
+            float falsePositiveRatio = 0.0f; // No false positives tracked
             float consistencyScore = CalculateConsistencyScore();
             
             BeatConfidence = Math.Max(0.0f, 1.0f - falsePositiveRatio) * consistencyScore;
@@ -443,7 +443,7 @@ namespace PhoenixVisualizer.Core.Services.AudioProcessing
             return new BeatDetectorStats
             {
                 TotalBeatsDetected = _totalBeatsDetected,
-                FalsePositiveCount = _falsePositiveCount,
+                                 FalsePositiveCount = 0, // No false positives tracked
                 BeatConfidence = BeatConfidence,
                 AverageProcessingTime = _averageProcessingTime,
                 CurrentBPM = _currentBPM,

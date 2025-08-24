@@ -6,22 +6,23 @@ using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
-    public class BrightnessEffectsNode : BaseEffectNode
+    public class DotsEffectsNode : BaseEffectNode
     {
+        private readonly Random rand = new();
         public bool Enabled { get; set; } = true;
-        public float Brightness { get; set; } = 1.0f;
+        public int DotCount { get; set; } = 100;
 
-        public BrightnessEffectsNode()
+        public DotsEffectsNode()
         {
-            Name = "Brightness Effects";
-            Description = "Adjusts image brightness with configurable multiplier";
-            Category = "Color Effects";
+            Name = "Dots Effects";
+            Description = "Generates random dots on the image";
+            Category = "Particle Effects";
         }
 
         protected override void InitializePorts()
         {
-            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Source image for brightness adjustment"));
-            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Brightness-adjusted output image"));
+            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Source image for dot overlay"));
+            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Image with dots effect"));
         }
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
@@ -37,16 +38,22 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
+            
+            // Copy input to output first
             for (int y = 0; y < imageBuffer.Height; y++)
             {
                 for (int x = 0; x < imageBuffer.Width; x++)
                 {
-                    var c = imageBuffer.GetPixel(x, y);
-                    int r = (int)Math.Clamp((c & 0xFF) * Brightness, 0, 255);
-                    int g = (int)Math.Clamp(((c >> 8) & 0xFF) * Brightness, 0, 255);
-                    int b = (int)Math.Clamp(((c >> 16) & 0xFF) * Brightness, 0, 255);
-                    output.SetPixel(x, y, (b << 16) | (g << 8) | r);
+                    output.SetPixel(x, y, imageBuffer.GetPixel(x, y));
                 }
+            }
+
+            // Add random dots
+            for (int i = 0; i < DotCount; i++)
+            {
+                int x = rand.Next(imageBuffer.Width);
+                int y = rand.Next(imageBuffer.Height);
+                output.SetPixel(x, y, 0xFFFFFF); // White dots
             }
 
             return output;

@@ -250,9 +250,9 @@ namespace PhoenixVisualizer.Core.Services
         /// <summary>
         /// Starts audio capture and processing
         /// </summary>
-        public async Task StartAsync()
+        public Task StartAsync()
         {
-            if (_isActive || _isDisposed) return;
+            if (_isActive || _isDisposed) return Task.CompletedTask;
             
             try
             {
@@ -261,7 +261,6 @@ namespace PhoenixVisualizer.Core.Services
                 _lastAudioUpdate = DateTime.UtcNow;
                 
                 Debug.WriteLine("VlcAudioBus started successfully");
-                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -269,42 +268,45 @@ namespace PhoenixVisualizer.Core.Services
                 Debug.WriteLine($"Failed to start VlcAudioBus: {ex.Message}");
                 throw;
             }
+            
+            return Task.CompletedTask;
         }
         
         /// <summary>
         /// Stops audio capture and processing
         /// </summary>
-        public async Task StopAsync()
+        public Task StopAsync()
         {
-            if (!_isActive || _isDisposed) return;
+            if (!_isActive || _isDisposed) return Task.CompletedTask;
             
             try
             {
                 _isActive = false;
                 
                 Debug.WriteLine("VlcAudioBus stopped successfully");
-                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error stopping VlcAudioBus: {ex.Message}");
                 throw;
             }
+            
+            return Task.CompletedTask;
         }
         
         /// <summary>
         /// Gets current audio data in AVS-compatible format
         /// </summary>
-        public async Task<Dictionary<string, object>> GetAudioDataAsync()
+        public Task<Dictionary<string, object>> GetAudioDataAsync()
         {
             if (!_isActive || _isDisposed)
             {
-                return new Dictionary<string, object>();
+                return Task.FromResult(new Dictionary<string, object>());
             }
             
             lock (_audioLock)
             {
-                return new Dictionary<string, object>
+                var result = new Dictionary<string, object>
                 {
                     ["timestamp"] = _lastAudioUpdate,
                     ["sample_rate"] = SAMPLE_RATE,
@@ -317,17 +319,19 @@ namespace PhoenixVisualizer.Core.Services
                     ["processing_latency"] = _averageProcessingTime,
                     ["frame_count"] = _frameCount
                 };
+                
+                return Task.FromResult(result);
             }
         }
         
         /// <summary>
         /// Gets spectrum data for the specified number of channels
         /// </summary>
-        public async Task<Dictionary<string, object>> GetSpectrumDataAsync(int channels = 2)
+        public Task<Dictionary<string, object>> GetSpectrumDataAsync(int channels = 2)
         {
             if (!_isActive || _isDisposed)
             {
-                return new Dictionary<string, object>();
+                return Task.FromResult(new Dictionary<string, object>());
             }
             
             lock (_audioLock)
@@ -344,18 +348,18 @@ namespace PhoenixVisualizer.Core.Services
                     result[$"channel_{ch}"] = _spectrumData[ch].Clone() as float[];
                 }
                 
-                return result;
+                return Task.FromResult(result);
             }
         }
         
         /// <summary>
         /// Gets waveform data for the specified number of channels
         /// </summary>
-        public async Task<Dictionary<string, object>> GetWaveformDataAsync(int channels = 2)
+        public Task<Dictionary<string, object>> GetWaveformDataAsync(int channels = 2)
         {
             if (!_isActive || _isDisposed)
             {
-                return new Dictionary<string, object>();
+                return Task.FromResult(new Dictionary<string, object>());
             }
             
             lock (_audioLock)
@@ -372,21 +376,21 @@ namespace PhoenixVisualizer.Core.Services
                     result[$"channel_{ch}"] = _waveformData[ch].Clone() as float[];
                 }
                 
-                return result;
+                return Task.FromResult(result);
             }
         }
         
         /// <summary>
         /// Checks if a beat was detected in the current audio frame
         /// </summary>
-        public async Task<bool> IsBeatDetectedAsync()
+        public Task<bool> IsBeatDetectedAsync()
         {
             if (!_isActive || _isDisposed)
             {
-                return false;
+                return Task.FromResult(false);
             }
             
-            return await Task.FromResult(_beatDetector.IsBeatDetected);
+            return Task.FromResult(_beatDetector.IsBeatDetected);
         }
         
         /// <summary>

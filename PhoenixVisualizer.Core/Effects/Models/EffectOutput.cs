@@ -5,8 +5,8 @@ namespace PhoenixVisualizer.Core.Effects.Models
 {
     public class EffectOutput
     {
-        public ImageBuffer Image { get; set; }
-        public EffectMetadata Metadata { get; set; }
+        public required ImageBuffer Image { get; set; }
+        public EffectMetadata Metadata { get; set; } = default!;
 
         public EffectOutput()
         {

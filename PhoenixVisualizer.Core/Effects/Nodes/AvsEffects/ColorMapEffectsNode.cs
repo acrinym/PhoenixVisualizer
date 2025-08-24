@@ -6,22 +6,22 @@ using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
-    public class BrightnessEffectsNode : BaseEffectNode
+    public class ColorMapEffectsNode : BaseEffectNode
     {
         public bool Enabled { get; set; } = true;
-        public float Brightness { get; set; } = 1.0f;
+        public Func<Color, Color> Map { get; set; } = c => c; // identity by default
 
-        public BrightnessEffectsNode()
+        public ColorMapEffectsNode()
         {
-            Name = "Brightness Effects";
-            Description = "Adjusts image brightness with configurable multiplier";
+            Name = "Color Map Effects";
+            Description = "Applies custom color mapping functions to images";
             Category = "Color Effects";
         }
 
         protected override void InitializePorts()
         {
-            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Source image for brightness adjustment"));
-            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Brightness-adjusted output image"));
+            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Source image for color mapping"));
+            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Color-mapped output image"));
         }
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
@@ -42,10 +42,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 for (int x = 0; x < imageBuffer.Width; x++)
                 {
                     var c = imageBuffer.GetPixel(x, y);
-                    int r = (int)Math.Clamp((c & 0xFF) * Brightness, 0, 255);
-                    int g = (int)Math.Clamp(((c >> 8) & 0xFF) * Brightness, 0, 255);
-                    int b = (int)Math.Clamp(((c >> 16) & 0xFF) * Brightness, 0, 255);
-                    output.SetPixel(x, y, (b << 16) | (g << 8) | r);
+                    var mappedColor = Map(Color.FromArgb(c));
+                    output.SetPixel(x, y, (mappedColor.B << 16) | (mappedColor.G << 8) | mappedColor.R);
                 }
             }
 

@@ -5,24 +5,23 @@ namespace PhoenixVisualizer.Core.Effects.Models
 {
     public class EffectConnection
     {
-        public string SourceNodeId { get; set; }
-        public string SourcePort { get; set; }
-        public string TargetNodeId { get; set; }
-        public string TargetPort { get; set; }
-        public Dictionary<string, object> Parameters { get; set; }
+        public required string SourceNodeId { get; set; }
+        public required string SourcePort { get; set; }
+        public required string TargetNodeId { get; set; }
+        public required string TargetPort { get; set; }
+        public EffectPort Source { get; set; } = default!;
+        public EffectPort Target { get; set; } = default!;
 
         public EffectConnection()
         {
-            Parameters = new Dictionary<string, object>();
         }
 
         public EffectConnection(string sourceNodeId, string sourcePort, string targetNodeId, string targetPort)
         {
-            SourceNodeId = sourceNodeId;
-            SourcePort = sourcePort;
-            TargetNodeId = targetNodeId;
-            TargetPort = targetPort;
-            Parameters = new Dictionary<string, object>();
+            SourceNodeId = sourceNodeId ?? throw new ArgumentNullException(nameof(sourceNodeId));
+            SourcePort = sourcePort ?? throw new ArgumentNullException(nameof(sourcePort));
+            TargetNodeId = targetNodeId ?? throw new ArgumentNullException(nameof(targetNodeId));
+            TargetPort = targetPort ?? throw new ArgumentNullException(nameof(targetPort));
         }
     }
 }
