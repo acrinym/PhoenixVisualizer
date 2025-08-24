@@ -114,8 +114,8 @@
   - [ ] BrightnessEffectsNode ✅ (implemented)
   - [ ] SuperscopeEffectsNode ✅ (implemented - AVS core visualization engine)
   - [ ] DynamicMovementEffectsNode ✅ (implemented - per-pixel displacement engine)
-  - [ ] ChannelShiftEffectsNode - code not yet implemented, see Docs/Effects/ChannelShiftEffects.md
-  - [ ] ClearFrameEffectsNode - code not yet implemented, see Docs/Effects/ClearFrameEffects.md
+  - [ ] ChannelShiftEffectsNode ✅ (implemented - RGB channel manipulation with beat reactivity)
+  - [ ] ClearFrameEffectsNode ✅ (implemented - multiple clearing modes with patterns and beat reactivity)
   - [ ] ColorBalanceEffectsNode - code not yet implemented, see Docs/Effects/ColorBalanceEffects.md
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/ColorMapEffects.md
   - [ ] ConvolutionEffectsNode - code not yet implemented, see Docs/Effects/ConvolutionEffects.md
