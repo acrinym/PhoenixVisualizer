@@ -126,7 +126,8 @@
    - [ ] ConvolutionEffectsNode ✅ (implemented - high-performance 5x5 convolution blur with SIMD optimization and multi-threading)
    - [ ] BlitterFeedbackEffectsNode ✅ (implemented - advanced scaling and feedback operations with beat-responsive behavior)
    - [ ] GrainEffectsNode ✅ (implemented - comprehensive film grain and noise effects with multiple blending modes and beat reactivity)
-  - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/ColorMapEffects.md
+   - [ ] BlitEffectsNode ⚠️ (created but has syntax errors in bit shift operations - needs fixing)
+  - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/EffectsIndex.md
   - [ ] FeedbackEffectsNode - code not yet implemented, see Docs/Effects/FeedbackEffects.md
   - [ ] FractalEffectsNode - code not yet implemented, see Docs/Effects/FractalEffects.md
   - [ ] InvertEffectsNode - code not yet implemented, see Docs/Effects/InvertEffects.md
