@@ -475,7 +475,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Default Output
 
-        protected override object GetDefaultOutput()
+        public override object GetDefaultOutput()
         {
             return new ImageBuffer(800, 600);
         }

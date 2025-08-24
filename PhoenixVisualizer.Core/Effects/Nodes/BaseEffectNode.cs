@@ -7,22 +7,34 @@ using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes
 {
+    /// <summary>
+    /// Base class for all effect nodes providing common functionality
+    /// </summary>
     public abstract class BaseEffectNode : IEffectNode
     {
-        public virtual string Id { get; protected set; }
-        public virtual string Name { get; protected set; }
-        public virtual string Description { get; protected set; }
-        public virtual string Category { get; protected set; }
-        public virtual Version Version { get; protected set; }
+        #region Properties
+
+        public virtual string Id { get; protected set; } = string.Empty;
+        public virtual string Name { get; protected set; } = string.Empty;
+        public virtual string Description { get; protected set; } = string.Empty;
+        public virtual string Category { get; protected set; } = string.Empty;
+        public virtual Version Version { get; protected set; } = new Version(1, 0, 0);
         public virtual bool IsEnabled { get; set; } = true;
-        public virtual EffectGraph Graph { get; set; }
 
         public virtual IReadOnlyList<EffectPort> InputPorts => _inputPorts.AsReadOnly();
         public virtual IReadOnlyList<EffectPort> OutputPorts => _outputPorts.AsReadOnly();
 
+        #endregion
+
+        #region Protected Fields
+
         protected readonly List<EffectPort> _inputPorts;
         protected readonly List<EffectPort> _outputPorts;
         protected readonly object _processingLock;
+
+        #endregion
+
+        #region Constructor
 
         protected BaseEffectNode()
         {
@@ -30,17 +42,24 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
             _outputPorts = new List<EffectPort>();
             _processingLock = new object();
 
+            // Generate unique ID if not set
             if (string.IsNullOrEmpty(Id))
                 Id = Guid.NewGuid().ToString();
 
-            if (Version == null)
-                Version = new Version(1, 0, 0);
-
+            // Initialize ports after setting up collections
             InitializePorts();
         }
 
+        #endregion
+
+        #region Abstract Methods
+
         protected abstract void InitializePorts();
         protected abstract object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures);
+
+        #endregion
+
+        #region Public Methods
 
         public virtual object Process(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
@@ -88,9 +107,15 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
             return $"{Name} ({Category}) - Enabled: {IsEnabled}";
         }
 
+        #endregion
+
+        #region Protected Virtual Methods
+
         protected virtual void OnReset() { }
         protected virtual void OnInitialize() { }
         protected virtual void OnProcessingError(Exception ex) { }
-        protected virtual object GetDefaultOutput() { return null; }
+        public virtual object GetDefaultOutput() { return null!; }
+
+        #endregion
     }
 }

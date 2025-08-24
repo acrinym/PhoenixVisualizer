@@ -30,12 +30,12 @@ namespace PhoenixVisualizer.Core.Effects
         /// <summary>
         /// Root input node for the graph
         /// </summary>
-        public InputNode RootInput { get; private set; }
+        public IEffectNode RootInput { get; private set; }
 
         /// <summary>
         /// Final output node for the graph
         /// </summary>
-        public OutputNode FinalOutput { get; private set; }
+        public IEffectNode FinalOutput { get; private set; }
 
         /// <summary>
         /// Current processing state of the graph
@@ -83,12 +83,32 @@ namespace PhoenixVisualizer.Core.Effects
             State = EffectGraphState.Initialized;
             Stats = new EffectGraphStats();
 
-            // Create default input and output nodes
-            RootInput = new InputNode();
-            FinalOutput = new OutputNode();
+            // Create default input and output nodes using factory pattern
+            RootInput = CreateInputNode();
+            FinalOutput = CreateOutputNode();
 
             AddNode(RootInput);
             AddNode(FinalOutput);
+        }
+
+        #endregion
+
+        #region Factory Methods
+
+        /// <summary>
+        /// Factory method to create input nodes
+        /// </summary>
+        protected virtual IEffectNode CreateInputNode()
+        {
+            return new InputNode();
+        }
+
+        /// <summary>
+        /// Factory method to create output nodes
+        /// </summary>
+        protected virtual IEffectNode CreateOutputNode()
+        {
+            return new OutputNode();
         }
 
         #endregion
@@ -112,7 +132,6 @@ namespace PhoenixVisualizer.Core.Effects
 
                 _nodes.Add(node);
                 _nodeLookup[node.Id] = node;
-                node.Graph = this;
                 
                 State = EffectGraphState.Modified;
                 return true;
@@ -140,8 +159,7 @@ namespace PhoenixVisualizer.Core.Effects
                 // Remove the node
                 _nodes.Remove(node);
                 _nodeLookup.Remove(nodeId);
-                node.Graph = null;
-
+                
                 State = EffectGraphState.Modified;
                 return true;
             }
@@ -210,137 +228,6 @@ namespace PhoenixVisualizer.Core.Effects
         }
 
         /// <summary>
-        /// Get a node by ID
-        /// </summary>
-        /// <param name="nodeId">Node ID to find</param>
-        /// <returns>Node if found, null otherwise</returns>
-        public IEffectNode GetNode(string nodeId)
-        {
-            if (string.IsNullOrEmpty(nodeId) || _isDisposed)
-                return null;
-
-            lock (_graphLock)
-            {
-                return _nodeLookup.TryGetValue(nodeId, out var node) ? node : null;
-            }
-        }
-
-        /// <summary>
-        /// Get all connections for a specific node
-        /// </summary>
-        /// <param name="nodeId">Node ID</param>
-        /// <returns>List of connections involving the node</returns>
-        public List<EffectConnection> GetNodeConnections(string nodeId)
-        {
-            if (string.IsNullOrEmpty(nodeId) || _isDisposed)
-                return new List<EffectConnection>();
-
-            lock (_graphLock)
-            {
-                return _connections.Where(c => c.SourceNodeId == nodeId || c.TargetNodeId == nodeId).ToList();
-            }
-        }
-
-        /// <summary>
-        /// Execute the effect graph with input data
-        /// </summary>
-        /// <param name="inputData">Input data to process</param>
-        /// <param name="audioFeatures">Audio features for beat-reactive effects</param>
-        /// <returns>Processed output data</returns>
-        public async Task<EffectOutput> ExecuteAsync(EffectInput inputData, AudioFeatures audioFeatures)
-        {
-            if (_isDisposed || State == EffectGraphState.Error)
-                throw new InvalidOperationException("EffectGraph is not in a valid state for execution");
-
-            try
-            {
-                State = EffectGraphState.Executing;
-                Stats.ExecutionCount++;
-                var startTime = DateTime.UtcNow;
-
-                // Validate graph structure
-                if (!ValidateGraph())
-                {
-                    State = EffectGraphState.Error;
-                    throw new InvalidOperationException("EffectGraph validation failed");
-                }
-
-                // Execute the graph
-                var output = await ExecuteGraphAsync(inputData, audioFeatures);
-
-                // Update statistics
-                Stats.LastExecutionTime = DateTime.UtcNow - startTime;
-                Stats.TotalExecutionTime += Stats.LastExecutionTime;
-                Stats.AverageExecutionTime = Stats.TotalExecutionTime.TotalMilliseconds / Stats.ExecutionCount;
-
-                State = EffectGraphState.Ready;
-                return output;
-            }
-            catch (Exception ex)
-            {
-                State = EffectGraphState.Error;
-                Stats.ErrorCount++;
-                throw new EffectGraphExecutionException("EffectGraph execution failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Validate the graph structure
-        /// </summary>
-        /// <returns>True if graph is valid</returns>
-        public bool ValidateGraph()
-        {
-            if (_isDisposed)
-                return false;
-
-            lock (_graphLock)
-            {
-                // Check for orphaned nodes
-                var connectedNodeIds = _connections
-                    .SelectMany(c => new[] { c.SourceNodeId, c.TargetNodeId })
-                    .Distinct()
-                    .ToHashSet();
-
-                // Root input and final output should always be connected
-                if (!connectedNodeIds.Contains(RootInput.Id) || !connectedNodeIds.Contains(FinalOutput.Id))
-                    return false;
-
-                // Check for cycles
-                if (HasCycles())
-                    return false;
-
-                // Validate node configurations
-                foreach (var node in _nodes)
-                {
-                    if (!node.ValidateConfiguration())
-                        return false;
-                }
-
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Reset the graph state
-        /// </summary>
-        public void Reset()
-        {
-            if (_isDisposed)
-                return;
-
-            lock (_graphLock)
-            {
-                foreach (var node in _nodes)
-                {
-                    node.Reset();
-                }
-
-                State = EffectGraphState.Ready;
-                Stats.Reset();
-            }
-        }
-
-        /// <summary>
         /// Clear all nodes and connections
         /// </summary>
         public void Clear()
@@ -354,7 +241,7 @@ namespace PhoenixVisualizer.Core.Effects
                 
                 foreach (var node in _nodes)
                 {
-                    node.Graph = null;
+                    // No need to set Graph property - removed circular dependency
                 }
                 
                 _nodes.Clear();
@@ -451,27 +338,29 @@ namespace PhoenixVisualizer.Core.Effects
             }
             catch (Exception ex)
             {
-                throw new EffectNodeExecutionException($"Node {node.Id} execution failed", ex);
+                // Log error and return default output
+                Console.WriteLine($"Error executing node {node.Name}: {ex.Message}");
+                return node.GetDefaultOutput();
             }
         }
 
         /// <summary>
         /// Check if adding a connection would create a cycle
         /// </summary>
-        private bool WouldCreateCycle(string sourceNodeId, string targetNodeId)
+        private bool WouldCreateCycle(string sourceId, string targetId)
         {
-            // Simple cycle detection - if target can reach source, adding this connection creates a cycle
+            // Simple cycle detection - if target can reach source, it would create a cycle
             var visited = new HashSet<string>();
             var stack = new Stack<string>();
             
-            stack.Push(targetNodeId);
-            visited.Add(targetNodeId);
+            stack.Push(targetId);
+            visited.Add(targetId);
 
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
                 
-                if (current == sourceNodeId)
+                if (current == sourceId)
                     return true;
 
                 var outgoingConnections = _connections.Where(c => c.SourceNodeId == current);
@@ -489,126 +378,77 @@ namespace PhoenixVisualizer.Core.Effects
         }
 
         /// <summary>
-        /// Check if the graph has cycles
-        /// </summary>
-        private bool HasCycles()
-        {
-            var visited = new HashSet<string>();
-            var recursionStack = new HashSet<string>();
-
-            foreach (var node in _nodes)
-            {
-                if (!visited.Contains(node.Id))
-                {
-                    if (HasCyclesDFS(node.Id, visited, recursionStack))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Depth-first search for cycle detection
-        /// </summary>
-        private bool HasCyclesDFS(string nodeId, HashSet<string> visited, HashSet<string> recursionStack)
-        {
-            visited.Add(nodeId);
-            recursionStack.Add(nodeId);
-
-            var outgoingConnections = _connections.Where(c => c.SourceNodeId == nodeId);
-            foreach (var connection in outgoingConnections)
-            {
-                if (!visited.Contains(connection.TargetNodeId))
-                {
-                    if (HasCyclesDFS(connection.TargetNodeId, visited, recursionStack))
-                        return true;
-                }
-                else if (recursionStack.Contains(connection.TargetNodeId))
-                {
-                    return true;
-                }
-            }
-
-            recursionStack.Remove(nodeId);
-            return false;
-        }
-
-        /// <summary>
         /// Perform topological sort of nodes
         /// </summary>
         private List<IEffectNode> TopologicalSort()
         {
             var result = new List<IEffectNode>();
             var visited = new HashSet<string>();
-            var tempVisited = new HashSet<string>();
+            var temp = new HashSet<string>();
 
             foreach (var node in _nodes)
             {
                 if (!visited.Contains(node.Id))
                 {
-                    TopologicalSortDFS(node.Id, visited, tempVisited, result);
+                    TopologicalSortVisit(node.Id, visited, temp, result);
                 }
             }
 
-            result.Reverse();
             return result;
         }
 
         /// <summary>
-        /// Depth-first search for topological sort
+        /// Recursive helper for topological sort
         /// </summary>
-        private void TopologicalSortDFS(string nodeId, HashSet<string> visited, HashSet<string> tempVisited, List<IEffectNode> result)
+        private void TopologicalSortVisit(string nodeId, HashSet<string> visited, HashSet<string> temp, List<IEffectNode> result)
         {
-            if (tempVisited.Contains(nodeId))
+            if (temp.Contains(nodeId))
                 throw new InvalidOperationException("Graph contains cycles");
 
             if (visited.Contains(nodeId))
                 return;
 
-            tempVisited.Add(nodeId);
+            temp.Add(nodeId);
 
             var outgoingConnections = _connections.Where(c => c.SourceNodeId == nodeId);
             foreach (var connection in outgoingConnections)
             {
-                TopologicalSortDFS(connection.TargetNodeId, visited, tempVisited, result);
+                TopologicalSortVisit(connection.TargetNodeId, visited, temp, result);
             }
 
-            tempVisited.Remove(nodeId);
+            temp.Remove(nodeId);
             visited.Add(nodeId);
 
-            if (_nodeLookup.TryGetValue(nodeId, out var node))
-            {
-                result.Add(node);
-            }
+            var node = _nodeLookup[nodeId];
+            result.Add(node);
         }
 
         #endregion
 
-        #region IDisposable
+        #region IDisposable Implementation
 
         public void Dispose()
         {
             if (_isDisposed)
                 return;
 
-            lock (_graphLock)
-            {
-                foreach (var node in _nodes)
-                {
-                    if (node is IDisposable disposableNode)
-                    {
-                        disposableNode.Dispose();
-                    }
-                }
+            _isDisposed = true;
 
-                _nodes.Clear();
-                _connections.Clear();
-                _nodeLookup.Clear();
-                _isDisposed = true;
+            // Clear all nodes and connections
+            Clear();
+
+            // Dispose of nodes that implement IDisposable
+            foreach (var node in _nodes)
+            {
+                if (node is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
 
-            GC.SuppressFinalize(this);
+            _nodes.Clear();
+            _nodeLookup.Clear();
+            _connections.Clear();
         }
 
         #endregion

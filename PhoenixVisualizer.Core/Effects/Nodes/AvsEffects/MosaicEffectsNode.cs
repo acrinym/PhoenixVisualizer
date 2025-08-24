@@ -410,7 +410,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
         }
 
-        protected override object GetDefaultOutput()
+        public override object GetDefaultOutput()
         {
             return new ImageBuffer(800, 600);
         }

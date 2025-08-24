@@ -23,7 +23,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
             return null;
         }
 
-        protected override object GetDefaultOutput()
+        public override object GetDefaultOutput()
         {
             return new EffectInput();
         }

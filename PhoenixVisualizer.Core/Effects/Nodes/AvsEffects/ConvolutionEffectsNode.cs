@@ -403,7 +403,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public void SetThreadCount(int count) => ThreadCount = Math.Max(1, count);
         public void SetBatchSize(int size) => batchSize = Math.Max(1, size);
         
-        protected override object GetDefaultOutput()
+        public override object GetDefaultOutput()
         {
             return new ImageBuffer(800, 600);
         }
