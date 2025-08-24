@@ -581,7 +581,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private int ApplyHardLight(int baseColor, int blendColor, float alpha)
         {
-            if (blendColor < 128)
+            if (baseColor < 128)
                 return (int)((2 * baseColor * blendColor / 255) * alpha + baseColor * (1.0f - alpha));
             else
                 return (int)((255 - 2 * (255 - baseColor) * (255 - blendColor) / 255) * alpha + baseColor * (1.0f - alpha));
