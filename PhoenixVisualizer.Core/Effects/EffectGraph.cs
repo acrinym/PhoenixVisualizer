@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.Core.Effects.Nodes;
+using PhoenixVisualizer.Core.Effects.Interfaces;
+using PhoenixVisualizer.Core.Effects.Models;
 
 namespace PhoenixVisualizer.Core.Effects
 {

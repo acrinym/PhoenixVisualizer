@@ -1,2 +1,22 @@
-using System; namespace PhoenixVisualizer.Core.Effects.Models { public class EffectPort { public string Name { get; set; } public Type DataType { get; set; } public bool IsRequired { get; set; } public object DefaultValue { get; set; } public string Description { get; set; } public EffectPort(string name, Type dataType, bool isRequired = true, object defaultValue = null, string description = \
-\) { Name = name; DataType = dataType; IsRequired = isRequired; DefaultValue = defaultValue; Description = description; } } }
+using System;
+
+namespace PhoenixVisualizer.Core.Effects.Models
+{
+    public class EffectPort
+    {
+        public string Name { get; set; }
+        public Type DataType { get; set; }
+        public bool IsRequired { get; set; }
+        public object DefaultValue { get; set; }
+        public string Description { get; set; }
+
+        public EffectPort(string name, Type dataType, bool isRequired = true, object defaultValue = null, string description = "")
+        {
+            Name = name;
+            DataType = dataType;
+            IsRequired = isRequired;
+            DefaultValue = defaultValue;
+            Description = description;
+        }
+    }
+}
