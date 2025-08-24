@@ -108,10 +108,12 @@
   - [x] Recreated essential effect files (BlurEffectsNode, BrightnessEffectsNode)
   - [x] Project now compiles successfully with 0 syntax errors
 
-### **Phase 3C: Effect Implementation - READY TO BEGIN** 🚀
+### **Phase 3C: Effect Implementation - IN PROGRESS** 🚀
 - [ ] **Recreate Missing Effects** - Based on documentation in docs/Docs/Effects/
   - [ ] BlurEffectsNode ✅ (implemented)
   - [ ] BrightnessEffectsNode ✅ (implemented)
+  - [ ] SuperscopeEffectsNode ✅ (implemented - AVS core visualization engine)
+  - [ ] DynamicMovementEffectsNode ✅ (implemented - per-pixel displacement engine)
   - [ ] ChannelShiftEffectsNode - code not yet implemented, see Docs/Effects/ChannelShiftEffects.md
   - [ ] ClearFrameEffectsNode - code not yet implemented, see Docs/Effects/ClearFrameEffects.md
   - [ ] ColorBalanceEffectsNode - code not yet implemented, see Docs/Effects/ColorBalanceEffects.md
@@ -129,7 +131,6 @@
   - [ ] ParticleEffectsNode - code not yet implemented, see Docs/Effects/ParticleEffects.md
   - [ ] SpectrumEffectsNode - code not yet implemented, see Docs/Effects/SpectrumEffects.md
   - [ ] StarfieldEffectsNode - code not yet implemented, see Docs/Effects/StarfieldEffects.md
-  - [ ] SuperScopeEffectsNode - code not yet implemented, see Docs/Effects/Superscope.md
   - [ ] TexerEffectsNode - code not yet implemented, see Docs/Effects/TexerEffects.md
   - [ ] TransEffectsNode - code not yet implemented, see Docs/Effects/Transitions.md
   - [ ] WaterEffectsNode - code not yet implemented, see Docs/Effects/WaterEffects.md
