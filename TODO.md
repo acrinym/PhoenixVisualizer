@@ -127,6 +127,7 @@
    - [ ] BlitterFeedbackEffectsNode ✅ (implemented - advanced scaling and feedback operations with beat-responsive behavior)
    - [ ] GrainEffectsNode ✅ (implemented - comprehensive film grain and noise effects with multiple blending modes and beat reactivity)
    - [ ] BlitEffectsNode ⚠️ (created but has syntax errors in bit shift operations - needs fixing)
+   - [ ] FastBrightnessEffectsNode ✅ (implemented - high-performance brightness adjustment with multiple modes and optimizations)
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/EffectsIndex.md
   - [ ] FeedbackEffectsNode - code not yet implemented, see Docs/Effects/FeedbackEffects.md
   - [ ] FractalEffectsNode - code not yet implemented, see Docs/Effects/FractalEffects.md
