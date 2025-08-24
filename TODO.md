@@ -116,6 +116,7 @@
   - [ ] DynamicMovementEffectsNode ✅ (implemented - per-pixel displacement engine)
   - [ ] ChannelShiftEffectsNode ✅ (implemented - RGB channel manipulation with beat reactivity)
   - [ ] ClearFrameEffectsNode ✅ (implemented - multiple clearing modes with patterns and beat reactivity)
+  - [ ] ColorFadeEffectsNode ✅ (implemented - comprehensive color fading with 6 fade types and 6 blend modes)
   - [ ] ColorBalanceEffectsNode - code not yet implemented, see Docs/Effects/ColorBalanceEffects.md
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/ColorMapEffects.md
   - [ ] ConvolutionEffectsNode - code not yet implemented, see Docs/Effects/ConvolutionEffects.md
