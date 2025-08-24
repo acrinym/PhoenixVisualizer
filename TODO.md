@@ -109,7 +109,7 @@
   - [x] Project now compiles successfully with 0 syntax errors
 
 ### **Phase 3C: Effect Implementation - IN PROGRESS** 🚀
-**Progress:** 12/22 effects implemented (55% complete)
+**Progress:** 13/22 effects implemented (59% complete)
 
 - [ ] **Recreate Missing Effects** - Based on documentation in docs/Docs/Effects/
   - [ ] BlurEffectsNode ✅ (implemented)
@@ -125,6 +125,7 @@
    - [ ] ColorReductionEffectsNode ✅ (implemented - advanced color reduction with multiple quantization methods and dithering)
    - [ ] ConvolutionEffectsNode ✅ (implemented - high-performance 5x5 convolution blur with SIMD optimization and multi-threading)
    - [ ] BlitterFeedbackEffectsNode ✅ (implemented - advanced scaling and feedback operations with beat-responsive behavior)
+   - [ ] GrainEffectsNode ✅ (implemented - comprehensive film grain and noise effects with multiple blending modes and beat reactivity)
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/ColorMapEffects.md
   - [ ] FeedbackEffectsNode - code not yet implemented, see Docs/Effects/FeedbackEffects.md
   - [ ] FractalEffectsNode - code not yet implemented, see Docs/Effects/FractalEffects.md
