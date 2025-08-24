@@ -118,6 +118,7 @@
   - [ ] ClearFrameEffectsNode ✅ (implemented - multiple clearing modes with patterns and beat reactivity)
   - [ ] ColorFadeEffectsNode ✅ (implemented - comprehensive color fading with 6 fade types and 6 blend modes)
   - [ ] InvertEffectsNode ✅ (implemented - comprehensive color inversion with channel selection, threshold, masking, and animation)
+  - [ ] MosaicEffectsNode ✅ (implemented - comprehensive mosaic/pixelation with quality control, beat reactivity, and advanced algorithms)
   - [ ] ColorBalanceEffectsNode - code not yet implemented, see Docs/Effects/ColorBalanceEffects.md
   - [ ] ColorMapEffectsNode - code not yet implemented, see Docs/Effects/ColorMapEffects.md
   - [ ] ConvolutionEffectsNode - code not yet implemented, see Docs/Effects/ConvolutionEffects.md
