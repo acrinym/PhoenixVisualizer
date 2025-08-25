@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Services;
@@ -22,6 +23,21 @@ public class AvsEffectLibraryService
         if (_isInitialized) return;
 
         _effectLibrary.Clear();
+
+        // === UTILITY EFFECTS ===
+        AddEffect(new AvsEffect
+        {
+            Id = "comment",
+            Name = "comment",
+            DisplayName = "Comment",
+            Description = "Adds a comment that does not affect rendering",
+            Type = AvsEffectType.Comment,
+            Section = AvsSection.Frame,
+            Parameters = new Dictionary<string, object>
+            {
+                ["text"] = string.Empty
+            }
+        });
 
         // === INIT SECTION EFFECTS ===
         AddEffect(new AvsEffect
@@ -678,6 +694,7 @@ public class AvsEffectLibraryService
     {
         var categories = new Dictionary<string, List<AvsEffect>>
         {
+            ["Utility"] = GetEffectsByType(AvsEffectType.Comment).ToList(),
             ["Rendering"] = GetEffectsByType(AvsEffectType.Clear).Concat(GetEffectsByType(AvsEffectType.Blend)).ToList(),
             ["Movement"] = GetEffectsByType(AvsEffectType.Movement).Concat(GetEffectsByType(AvsEffectType.Rotation)).Concat(GetEffectsByType(AvsEffectType.Zoom)).ToList(),
             ["Color"] = GetEffectsByType(AvsEffectType.Color).Concat(GetEffectsByType(AvsEffectType.Brightness)).Concat(GetEffectsByType(AvsEffectType.Contrast)).ToList(),
