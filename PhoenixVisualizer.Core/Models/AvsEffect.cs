@@ -16,7 +16,10 @@ public enum AvsEffectType
     Buffer,
     Text,
     Picture,
-    
+
+    // Utility effects
+    Comment,
+
     // Movement effects
     Movement,
     Rotation,

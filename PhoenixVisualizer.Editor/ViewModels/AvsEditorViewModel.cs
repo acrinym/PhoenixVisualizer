@@ -735,6 +735,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 "spectrum" => AvsEffectType.Spectrum,
                 "text" => AvsEffectType.Text,
                 "picture" => AvsEffectType.Picture,
+                "comment" => AvsEffectType.Comment,
                 "movement" => AvsEffectType.Movement,
                 "color" => AvsEffectType.Color,
                 "particle" => AvsEffectType.Particle,

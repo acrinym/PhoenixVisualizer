@@ -284,7 +284,11 @@ namespace PhoenixVisualizer.Core.Services
                 case AvsEffectType.Custom:
                     await ExecuteCustomEffectAsync(effect);
                     break;
-                    
+
+                case AvsEffectType.Comment:
+                    // Comments do not require processing
+                    break;
+
                 default:
                     // Handle other effect types
                     await ExecuteGenericEffectAsync(effect);
