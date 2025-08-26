@@ -6,6 +6,8 @@ using AvaloniaEdit;                // ✨ Syntax highlighting
 using AvaloniaEdit.Highlighting;
 using System.Collections.Generic; // Added for List<object>
 using System.Text.Json;
+using System.Linq;
+using PhoenixVisualizer.Core.Nodes;
 
 namespace PhoenixVisualizer.Views
 {
@@ -14,6 +16,7 @@ public partial class PluginEditorWindow : Window
 {
     private string? _currentFile;
     private readonly TextEditor _editor;
+    private readonly List<EffectDescriptor> _effects = new();
 
     public PluginEditorWindow()
     {
@@ -84,6 +87,78 @@ public partial class PluginEditorWindow : Window
     {
         File.WriteAllText(path, CollectPhx());
     }
+
+    private void OnAddEffect(object? _, RoutedEventArgs __)
+    {
+        // Show registry picker dialog to select an effect
+        var dlg = new Window
+        {
+            Title = "Add Effect",
+            Width = 300,
+            Height = 400
+        };
+
+        var list = new ListBox
+        {
+            Items = EffectRegistry.GetAll().Select(n => n.Name).ToList()
+        };
+
+        list.DoubleTapped += (s, e) =>
+        {
+            if (list.SelectedItem is string name)
+            {
+                var node = EffectRegistry.CreateByName(name);
+                if (node != null)
+                {
+                    _effects.Add(new EffectDescriptor { Name = name, Enabled = true, Node = node });
+                    RefreshEffects();
+                }
+                dlg.Close();
+            }
+        };
+
+        dlg.Content = list;
+        dlg.ShowDialog(this);
+    }
+
+    private void OnDuplicateEffect(object? _, RoutedEventArgs __)
+    {
+        var listBox = this.FindControl<ListBox>("EffectList");
+        if (listBox?.SelectedItem is EffectDescriptor eff && eff.Node != null)
+        {
+            var clone = EffectRegistry.CreateByName(eff.Node.Name);
+            if (clone != null)
+            {
+                foreach (var kv in eff.Node.Params)
+                {
+                    if (clone.Params.TryGetValue(kv.Key, out var dest))
+                    {
+                        dest.FloatValue = kv.Value.FloatValue;
+                        dest.BoolValue = kv.Value.BoolValue;
+                        dest.ColorValue = kv.Value.ColorValue;
+                    }
+                }
+                _effects.Add(new EffectDescriptor { Name = eff.Name + " Copy", Enabled = eff.Enabled, Node = clone });
+                RefreshEffects();
+            }
+        }
+    }
+
+    private void RefreshEffects()
+    {
+        var listBox = this.FindControl<ListBox>("EffectList");
+        if (listBox != null)
+        {
+            listBox.Items = _effects.ToList();
+        }
+    }
+}
+
+public class EffectDescriptor
+{
+    public string Name { get; set; } = string.Empty;
+    public bool Enabled { get; set; }
+    public IEffectNode? Node { get; set; }
 }
 
 // Full AVS binary converter
