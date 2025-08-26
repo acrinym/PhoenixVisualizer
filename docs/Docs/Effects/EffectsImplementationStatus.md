@@ -9,7 +9,11 @@ This document tracks the status of AVS effects implementation in PhoenixVisualiz
 - **InputNode** - Input node for image sources
 - **OutputNode** - Output node for final rendering
 
-### AVS Effects (36 implemented)
+### Expression Engine
+- **PhoenixExpressionEngine** - True ns-eel compatible expression evaluator with PhoenixVisualizer integration ✅ **COMPLETE**
+- **PhoenixExecutionEngine** - Phoenix-native execution engine with global audio variable injection ✅ **NEW**
+
+### AVS Effects (38 implemented)
 
 #### Audio-Reactive Effects
 - **BassSpinEffectsNode** - Bass-reactive spinning effects
@@ -23,13 +27,13 @@ This document tracks the status of AVS effects implementation in PhoenixVisualiz
 - **BlurEffectsNode** - Blur and convolution effects
 - **BrightnessEffectsNode** - Brightness and contrast adjustments
 - **ChannelShiftEffectsNode** - RGB channel manipulation
-- **ClearFrameEffectsNode** - Frame clearing and reset
+- **ClearFrameEffectsNode** - Frame clearing and reset ✅ **NEW**
 - **ColorFadeEffectsNode** - Color fading and transitions
 - **ColorMapEffectsNode** - Color mapping and palette effects
 - **ColorReductionEffectsNode** - Color reduction and quantization
 - **ColorreplaceEffectsNode** - Color replacement and substitution
 - **CommentEffectsNode** - Comment and annotation effects
-- **ContrastEffectsNode** - Contrast enhancement and adjustment
+- **ContrastEffectsNode** - Contrast enhancement and adjustment ✅ **NEW**
 - **ConvolutionEffectsNode** - Advanced convolution filtering
 - **DotGridEffectsNode** - Grid of dots with configurable spacing
 - **DotsEffectsNode** - Particle dot effects
@@ -46,7 +50,7 @@ This document tracks the status of AVS effects implementation in PhoenixVisualiz
 - **NFClearEffectsNode** - NF Clear effect implementation
 - **RotBlitEffectsNode** - Rotated blitting effects
 - **StarfieldEffectsNode** - Starfield and particle systems
-- **SuperscopeEffectsNode** - Superscope visualization effects
+- **SuperscopeEffectsNode** - Superscope visualization effects ✅ **COMPLETE** (Phoenix architecture integrated)
 - **TextEffectsNode** - Customizable text effects
 - **TransitionEffectsNode** - Smooth transitions between effects
 - **WaterBumpEffectsNode** - Water ripple and bump mapping
@@ -54,6 +58,21 @@ This document tracks the status of AVS effects implementation in PhoenixVisualiz
 #### Legacy/Utility Effects
 - **BlitterFeedbackEffectsNode** - Blitter feedback effects
 - **BlurConvolutionEffectsNode** - Legacy blur convolution
+
+## 🚀 Phoenix Architecture Status
+
+### Core Infrastructure ✅ **COMPLETE**
+- **BaseEffectNode** - Expression engine binding integrated
+- **PhoenixExpressionEngine** - ns-eel compatible expression evaluator
+- **PhoenixExecutionEngine** - Global audio variable injection system
+- **Variable Injection** - bass, mid, treb, rms, beat, spec, wave automatically injected
+- **Phoenix Variables** - pel_frame, pel_time, pel_dt for Phoenix-specific context
+
+### Architecture Benefits
+- **No Winamp Drift** - Unified Phoenix expression engine prevents legacy patterns
+- **Global Audio Context** - All effects automatically receive audio variables
+- **Future-Ready** - Foundation for Phoenix Effect Language (PEL) extensions
+- **Unified API** - Consistent expression engine interface across all effects
 
 ## 📚 Documentation Status
 
@@ -70,6 +89,8 @@ This document tracks the status of AVS effects implementation in PhoenixVisualiz
 - ✅ **DynamicColorModulation** - `DcolormodEffects.md` → `DynamicColorModulationEffectsNode.cs`
 - ✅ **InterleaveEffects** - `InterleavingEffects.md` → `InterleaveEffectsNode.cs`
 - ✅ **CommentEffects** - `CommentEffects.md` → `CommentEffectsNode.cs`
+- ✅ **ClearFrameEffects** - `ClearFrameEffects.md` → `ClearFrameEffectsNode.cs` ✅ **NEW**
+- ✅ **ContrastEffects** - `ContrastEffects.md` → `ContrastEffectsNode.cs` ✅ **NEW**
 
 ### Implemented but Need Documentation Updates
 - ⚠️ **DotFountainEffects** - Implemented, needs documentation

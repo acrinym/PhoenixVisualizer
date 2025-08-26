@@ -218,7 +218,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Reset the effect to its initial state.
         /// </summary>
-        public void Reset()
+        public override void Reset()
         {
             _isInitialized = false;
         }

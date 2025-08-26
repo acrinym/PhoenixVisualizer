@@ -10,6 +10,8 @@ namespace PhoenixVisualizer.Core.Effects.Models
 
         public EffectOutput()
         {
+            // Initialize with default values to avoid nullable warnings
+            Image = new ImageBuffer(640, 480); // Default size
             Metadata = new EffectMetadata();
         }
 

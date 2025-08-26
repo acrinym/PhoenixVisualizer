@@ -1377,3 +1377,79 @@ public override EffectMetadata GetMetadata()
 ## Conclusion
 
 The SuperScope effect provides essential oscilloscope visualization capabilities for audio-reactive AVS presets. This C# implementation maintains full compatibility with the original while adding modern features like enhanced audio processing and improved scope effects. Complete documentation ensures reliable operation in production environments with optimal performance and visual quality.
+
+---
+
+## 🚀 **PhoenixVisualizer Implementation**
+
+### **Phoenix Architecture Integration** ✅ **COMPLETE**
+The SuperscopeEffectsNode is now fully integrated with the **Phoenix Architecture** - a unified system that provides:
+
+- **PhoenixExpressionEngine**: True ns-eel compatible expression evaluator
+- **PhoenixExecutionEngine**: Global audio variable injection system
+- **Unified Variable Management**: Global audio context (bass, mid, treb, rms, beat, spec, wave)
+- **Phoenix-Native Variables**: pel_frame, pel_time, pel_dt for Phoenix-specific context
+- **No Winamp Drift**: Pure Phoenix implementation prevents legacy patterns
+
+### **Implementation Status** ✅ **COMPLETE**
+- ✅ **PhoenixExpressionEngine** - Complete and functional
+- ✅ **PhoenixExecutionEngine** - Global audio variable injection
+- ✅ **SuperscopeEffectsNode** - Fully integrated with Phoenix architecture
+- ✅ **API Integration** - Complete integration with new engine API
+- ✅ **Variable Binding** - Automatic binding to global expression engine
+
+### **Technical Architecture**
+```csharp
+public class SuperscopeEffectsNode : BaseEffectNode
+{
+    // Now inherits Engine from BaseEffectNode
+    // Engine is automatically bound by PhoenixExecutionEngine
+    
+    private void RenderSuperscope(ImageBuffer output, AudioFeatures audioFeatures)
+    {
+        if (Engine == null) return;
+        
+        // Init script runs once
+        if (!_initialized && !string.IsNullOrEmpty(InitScript))
+        {
+            Engine.Execute(InitScript);
+            _initialized = true;
+        }
+        
+        // Frame script
+        if (!string.IsNullOrEmpty(FrameScript))
+            Engine.Execute(FrameScript);
+            
+        // Beat script
+        if (BeatReactive && audioFeatures?.IsBeat == true && !string.IsNullOrEmpty(BeatScript))
+            Engine.Execute(BeatScript);
+    }
+    
+    private void RenderPoints(ImageBuffer output, AudioFeatures audioFeatures)
+    {
+        // Bind per-point vars
+        Engine.SetVar("i", (double)i / PointCount);
+        Engine.SetVar("v", audioData[i % audioData.Length]);
+        
+        // Execute point script
+        if (!string.IsNullOrEmpty(PointScript))
+            Engine.Execute(PointScript);
+            
+        // Pull results from engine
+        double x = Engine.GetVar("x", 0.0);
+        double y = Engine.GetVar("y", 0.0);
+        double red = Engine.GetVar("red", 1.0);
+        double green = Engine.GetVar("green", 1.0);
+        double blue = Engine.GetVar("blue", 1.0);
+    }
+}
+```
+
+### **Phoenix Architecture Benefits**
+- **Global Audio Context**: All audio variables automatically injected every frame
+- **Unified Expression Engine**: Consistent API across all effects
+- **Future-Ready**: Foundation for Phoenix Effect Language (PEL) extensions
+- **Performance**: Optimized variable injection and expression evaluation
+- **Maintainability**: Clean separation from legacy AVS/Winamp patterns
+
+---

@@ -360,6 +360,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #endregion
 
+        #endregion
+
         #region Public Configuration Helpers
 
         public void SetMode(int mode) => Mode = (mode == 0 || mode == 1) ? mode : 1;

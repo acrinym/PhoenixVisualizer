@@ -4,6 +4,7 @@ using System.Linq;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes
 {
@@ -31,6 +32,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         protected readonly List<EffectPort> _inputPorts;
         protected readonly List<EffectPort> _outputPorts;
         protected readonly object _processingLock;
+
+        /// <summary>
+        /// Shared Phoenix expression engine instance
+        /// </summary>
+        protected PhoenixExpressionEngine? Engine { get; private set; }
 
         #endregion
 
@@ -115,6 +121,14 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         protected virtual void OnInitialize() { }
         protected virtual void OnProcessingError(Exception ex) { }
         public virtual object GetDefaultOutput() { return null!; }
+
+        /// <summary>
+        /// Bind a global expression engine to this node
+        /// </summary>
+        public virtual void BindExpressionEngine(PhoenixExpressionEngine engine)
+        {
+            Engine = engine;
+        }
 
         #endregion
     }

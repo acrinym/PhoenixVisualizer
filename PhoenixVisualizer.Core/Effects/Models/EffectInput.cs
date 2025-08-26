@@ -13,6 +13,9 @@ namespace PhoenixVisualizer.Core.Effects.Models
 
         public EffectInput()
         {
+            // Initialize with default values to avoid nullable warnings
+            Image = new ImageBuffer(640, 480); // Default size
+            AudioFeatures = new AudioFeatures();
         }
 
         public EffectInput(ImageBuffer image, AudioFeatures? audioFeatures = null, int frameNumber = 0, double timestamp = 0.0)

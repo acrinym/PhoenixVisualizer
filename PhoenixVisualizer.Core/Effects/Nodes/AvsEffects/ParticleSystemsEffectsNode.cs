@@ -146,9 +146,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 var particle = _particles[i];
                 
                 // Update particle physics
-                particle.Velocity.Y += Gravity * (1.0f / 60.0f);
-                particle.Velocity *= (1.0f - Drag * (1.0f / 60.0f));
-                particle.Position += particle.Velocity * (1.0f / 60.0f);
+                var velocity = particle.Velocity;
+                velocity.Y += Gravity * (1.0f / 60.0f);
+                velocity *= (1.0f - Drag * (1.0f / 60.0f));
+                particle.Velocity = velocity;
+                particle.Position += velocity * (1.0f / 60.0f);
                 particle.Life -= 1.0f / 60.0f;
 
                 // Apply audio forces if enabled

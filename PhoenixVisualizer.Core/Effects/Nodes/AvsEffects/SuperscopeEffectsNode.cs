@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
@@ -76,6 +77,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private double _time = 0.0;
         private readonly Dictionary<string, double> _variables;
         private readonly Random _random;
+        private readonly PhoenixExpressionEngine _engine;
+        private bool _initialized = false;
 
         #endregion
 
@@ -93,11 +96,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public SuperscopeEffectsNode()
         {
             Name = "Superscope";
-            Description = "Core AVS visualization engine with mathematical expression support";
+            Description = "Phoenix port of AVS Superscope with ns-eel/PEL expression support";
             Category = "AVS Effects";
             
             _variables = new Dictionary<string, double>();
             _random = new Random();
+            _engine = new PhoenixExpressionEngine();
             InitializeVariables();
         }
 
@@ -139,21 +143,25 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void RenderSuperscope(ImageBuffer output, AudioFeatures audioFeatures)
         {
+            if (Engine == null) return;
             try
             {
-                // Execute initialization script (runs once)
-                ExecuteScript(InitScript);
-
-                // Execute frame script (runs every frame)
-                ExecuteScript(FrameScript);
-
-                // Execute beat script if beat detected
-                if (BeatReactive && audioFeatures?.IsBeat == true)
+                // Init script runs once
+                if (!_initialized && !string.IsNullOrEmpty(InitScript))
                 {
-                    ExecuteScript(BeatScript);
+                    Engine.Execute(InitScript);
+                    _initialized = true;
                 }
 
-                // Render points based on point script
+                // Frame script
+                if (!string.IsNullOrEmpty(FrameScript))
+                    Engine.Execute(FrameScript);
+
+                // Beat script
+                if (BeatReactive && audioFeatures?.IsBeat == true && !string.IsNullOrEmpty(BeatScript))
+                    Engine.Execute(BeatScript);
+
+                // Render points
                 RenderPoints(output, audioFeatures);
             }
             catch (Exception ex)
@@ -177,22 +185,21 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             // Render each point
             for (int i = 0; i < PointCount && i < audioData.Length; i++)
             {
-                // Set current point index
-                _variables["i"] = (double)i / PointCount;
-                
-                // Set audio value
-                _variables["v"] = audioData[i % audioData.Length];
+                // Bind per-point vars
+                Engine.SetVar("i", (double)i / PointCount);
+                Engine.SetVar("v", audioData[i % audioData.Length]);
 
                 // Execute point script
-                ExecuteScript(PointScript);
+                if (!string.IsNullOrEmpty(PointScript))
+                    Engine.Execute(PointScript);
 
-                // Get coordinates and colors
-                double x = GetVariable("x", 0.0);
-                double y = GetVariable("y", 0.0);
-                double red = GetVariable("red", 1.0);
-                double green = GetVariable("green", 1.0);
-                double blue = GetVariable("blue", 1.0);
-                double skip = GetVariable("skip", 0.0);
+                // Pull results from engine
+                double x = Engine.GetVar("x", 0.0);
+                double y = Engine.GetVar("y", 0.0);
+                double red = Engine.GetVar("red", 1.0);
+                double green = Engine.GetVar("green", 1.0);
+                double blue = Engine.GetVar("blue", 1.0);
+                double skip = Engine.GetVar("skip", 0.0);
 
                 // Check skip threshold
                 if (skip > SkipThreshold) continue;
@@ -261,78 +268,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         {
             if (string.IsNullOrWhiteSpace(script)) return;
 
-            // Simple script execution - in production, this would use a proper expression parser
-            // For now, implement basic variable assignment and mathematical operations
-            ProcessScriptLine(script);
-        }
-
-        private void ProcessScriptLine(string script)
-        {
-            // Handle basic assignments like "n=800", "t=t-0.05"
-            if (script.Contains("="))
-            {
-                var parts = script.Split('=', 2);
-                if (parts.Length == 2)
-                {
-                    string varName = parts[0].Trim();
-                    string expression = parts[1].Trim();
-                    
-                    double value = EvaluateExpression(expression);
-                    _variables[varName] = value;
-                }
-            }
-        }
-
-        private double EvaluateExpression(string expression)
-        {
-            // Simple expression evaluator - in production, use a proper math parser
-            // This handles basic operations like "t-0.05", "i*$PI*4"
+            // Use the Phoenix Expression Engine for proper ns-eel script execution
+            _engine.Execute(script);
             
-            // Replace constants
-            expression = expression.Replace("$PI", PI.ToString());
-            expression = expression.Replace("PI", PI.ToString());
-            
-            // Handle basic arithmetic
-            if (expression.Contains("+"))
-            {
-                var parts = expression.Split('+');
-                return parts.Select(p => EvaluateExpression(p)).Sum();
-            }
-            else if (expression.Contains("-"))
-            {
-                var parts = expression.Split('-');
-                if (parts.Length == 2)
-                {
-                    return EvaluateExpression(parts[0]) - EvaluateExpression(parts[1]);
-                }
-            }
-            else if (expression.Contains("*"))
-            {
-                var parts = expression.Split('*');
-                return parts.Select(p => EvaluateExpression(p)).Aggregate(1.0, (a, b) => a * b);
-            }
-            else if (expression.Contains("/"))
-            {
-                var parts = expression.Split('/');
-                if (parts.Length == 2)
-                {
-                    return EvaluateExpression(parts[0]) / EvaluateExpression(parts[1]);
-                }
-            }
-            
-            // Try to parse as number
-            if (double.TryParse(expression, out double number))
-            {
-                return number;
-            }
-            
-            // Try to get variable value
-            if (_variables.TryGetValue(expression, out double variable))
-            {
-                return variable;
-            }
-            
-            return 0.0;
+            // Note: Variables are now managed globally by the PhoenixExecutionEngine
+            // Local variables are maintained for backward compatibility
         }
 
         #endregion

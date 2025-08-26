@@ -22,12 +22,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         {
             if (inputs.TryGetValue("Input", out var input))
                 return input;
-            return new EffectOutput();
+            return new EffectOutput { Image = new ImageBuffer(640, 480) };
         }
 
         public override object GetDefaultOutput()
         {
-            return new EffectOutput();
+            return new EffectOutput { Image = new ImageBuffer(640, 480) };
         }
     }
 }

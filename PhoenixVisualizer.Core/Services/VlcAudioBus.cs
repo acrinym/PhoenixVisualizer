@@ -396,55 +396,55 @@ namespace PhoenixVisualizer.Core.Services
         /// <summary>
         /// Gets the current BPM (beats per minute)
         /// </summary>
-        public async Task<float> GetBPMAsync()
+        public Task<float> GetBPMAsync()
         {
             if (!_isActive || _isDisposed)
             {
-                return 0.0f;
+                return Task.FromResult(0.0f);
             }
             
-            return await Task.FromResult(_beatDetector.CurrentBPM);
+            return Task.FromResult(_beatDetector.CurrentBPM);
         }
         
         /// <summary>
         /// Gets the current audio level (0.0 to 1.0)
         /// </summary>
-        public async Task<float> GetAudioLevelAsync()
+        public Task<float> GetAudioLevelAsync()
         {
             if (!_isActive || _isDisposed)
             {
-                return 0.0f;
+                return Task.FromResult(0.0f);
             }
             
-            return await Task.FromResult(GetCurrentAudioLevel());
+            return Task.FromResult(GetCurrentAudioLevel());
         }
         
         /// <summary>
         /// Gets the current audio level for a specific channel
         /// </summary>
-        public async Task<float> GetChannelLevelAsync(int channel)
+        public Task<float> GetChannelLevelAsync(int channel)
         {
             if (!_isActive || _isDisposed || channel < 0 || channel >= CHANNELS)
             {
-                return 0.0f;
+                return Task.FromResult(0.0f);
             }
             
-            return await Task.FromResult(GetChannelLevel(channel));
+            return Task.FromResult(GetChannelLevel(channel));
         }
         
         /// <summary>
         /// Gets the current frequency data for FFT analysis
         /// </summary>
-        public async Task<Dictionary<string, object>> GetFrequencyDataAsync()
+        public Task<Dictionary<string, object>> GetFrequencyDataAsync()
         {
             if (!_isActive || _isDisposed)
             {
-                return new Dictionary<string, object>();
+                return Task.FromResult(new Dictionary<string, object>());
             }
             
             lock (_audioLock)
             {
-                return new Dictionary<string, object>
+                var result = new Dictionary<string, object>
                 {
                     ["timestamp"] = _lastAudioUpdate,
                     ["sample_rate"] = SAMPLE_RATE,
@@ -453,6 +453,7 @@ namespace PhoenixVisualizer.Core.Services
                     ["magnitudes"] = _spectrumData[0].Clone() as float[],
                     ["phases"] = GeneratePhaseArray()
                 };
+                return Task.FromResult(result);
             }
         }
         

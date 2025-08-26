@@ -14,6 +14,13 @@ namespace PhoenixVisualizer.Core.Effects.Models
 
         public EffectConnection()
         {
+            // Initialize with default values to avoid nullable warnings
+            SourceNodeId = string.Empty;
+            SourcePort = string.Empty;
+            TargetNodeId = string.Empty;
+            TargetPort = string.Empty;
+            Source = new EffectPort("source", typeof(object), false, null, "Source port");
+            Target = new EffectPort("target", typeof(object), false, null, "Target port");
         }
 
         public EffectConnection(string sourceNodeId, string sourcePort, string targetNodeId, string targetPort)
@@ -22,6 +29,10 @@ namespace PhoenixVisualizer.Core.Effects.Models
             SourcePort = sourcePort ?? throw new ArgumentNullException(nameof(sourcePort));
             TargetNodeId = targetNodeId ?? throw new ArgumentNullException(nameof(targetNodeId));
             TargetPort = targetPort ?? throw new ArgumentNullException(nameof(targetPort));
+            
+            // Initialize Source and Target ports
+            Source = new EffectPort(sourcePort, typeof(object), false, null, $"Source port {sourcePort}");
+            Target = new EffectPort(targetPort, typeof(object), false, null, $"Target port {targetPort}");
         }
     }
 }

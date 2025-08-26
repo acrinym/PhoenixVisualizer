@@ -298,7 +298,7 @@ namespace PhoenixVisualizer.Core.Effects
             }
 
             // Return final output
-            return nodeOutputs[FinalOutput.Id] as EffectOutput ?? new EffectOutput();
+            return nodeOutputs[FinalOutput.Id] as EffectOutput ?? new EffectOutput { Image = new ImageBuffer(640, 480) };
         }
 
         /// <summary>

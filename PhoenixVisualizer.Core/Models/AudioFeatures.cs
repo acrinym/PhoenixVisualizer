@@ -4,19 +4,20 @@ namespace PhoenixVisualizer.Core.Models
 {
     public class AudioFeatures
     {
-        public bool IsBeat { get; set; }
-        public bool Beat { get; set; } // Alias for IsBeat for compatibility
-        public double BPM { get; set; }
-        public double Timestamp { get; set; }
-        public float[] SpectrumData { get; set; }
-        public float[] WaveformData { get; set; }
-        public float LeftChannel { get; set; }
-        public float RightChannel { get; set; }
-        public float CenterChannel { get; set; }
-        public float Rms { get; set; } // Root Mean Square for volume detection
+        public bool IsBeat { get; init; } = false;
+        public bool Beat { get; init; } = false; // Alias for IsBeat for compatibility
+        public double BPM { get; init; } = 0.0;
+        public double Timestamp { get; init; } = 0.0;
+        public float[] SpectrumData { get; init; } = Array.Empty<float>();
+        public float[] WaveformData { get; init; } = Array.Empty<float>();
+        public float LeftChannel { get; init; } = 0.0f;
+        public float RightChannel { get; init; } = 0.0f;
+        public float CenterChannel { get; init; } = 0.0f;
+        public float Rms { get; init; } = 0.0f; // Root Mean Square for volume detection
 
         public AudioFeatures()
         {
+            // Initialize with default values
             SpectrumData = new float[512];
             WaveformData = new float[512];
         }
