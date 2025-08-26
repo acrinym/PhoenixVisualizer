@@ -1,0 +1,176 @@
+<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/AvsEffectsConfigWindow.axaml -->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PhoenixVisualizer.Views.AvsEffectsConfigWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="AVS Effects Engine Configuration"
+        Width="800" Height="600"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="🌟 AVS Effects Engine Configuration"
+                       FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+            <TextBlock Text="Configure your Advanced Visualization Studio effects engine with 48+ implemented effects"
+                       FontSize="14" Foreground="Gray"/>
+            
+            <!-- Status Bar -->
+            <Border Background="LightBlue" Padding="10" CornerRadius="5" Margin="0,10,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📊 Status: " FontWeight="Bold"/>
+                    <TextBlock x:Name="StatusText" Text="Ready - Click '🔄 Refresh' to discover effects" Foreground="DarkBlue"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="300,*" RowDefinitions="Auto,*">
+            
+            <!-- Left Panel - Effect Selection -->
+            <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                    BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5" Margin="0,0,10,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="Available Effects" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="EffectsCountText" Text="(0 effects)" Foreground="Gray" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        <Button Content="🔄 Refresh" Click="OnRefreshEffects" Margin="10,0,0,0" Padding="8,4"/>
+                    </StackPanel>
+                    
+                    <!-- Effect Categories -->
+                    <TextBlock Text="Effect Categories:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="CategoryComboBox" Margin="0,0,0,10" SelectionChanged="OnCategoryChanged">
+                        <ComboBoxItem Content="All Effects" Tag="all"/>
+                        <ComboBoxItem Content="Oscilloscope Effects" Tag="oscilloscope"/>
+                        <ComboBoxItem Content="Beat Reactive Effects" Tag="beat"/>
+                        <ComboBoxItem Content="Pattern Effects" Tag="pattern"/>
+                        <ComboBoxItem Content="Utility Effects" Tag="utility"/>
+                    </ComboBox>
+                    
+                    <!-- Effect List -->
+                    <TextBlock Text="Effects:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ListBox x:Name="EffectsListBox" Height="300" SelectionChanged="OnEffectSelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <CheckBox x:Name="EffectCheckBox" 
+                                              IsChecked="{Binding IsSelected}" 
+                                              Checked="OnEffectChecked"
+                                              Unchecked="OnEffectUnchecked"/>
+                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    
+                    <!-- Quick Actions -->
+                    <StackPanel Margin="0,15,0,0">
+                        <TextBlock Text="Quick Actions:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Button Content="Select All" Click="OnSelectAll" Margin="0,2"/>
+                        <Button Content="Clear All" Click="OnClearAll" Margin="0,2"/>
+                        <Button Content="Random Selection" Click="OnRandomSelection" Margin="0,2"/>
+                        <Button Content="🐛 Debug Discovery" Click="OnDebugDiscovery" Margin="0,2" Background="Orange"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Right Panel - Configuration -->
+            <Border Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"
+                    BorderBrush="Gray" BorderThickness="1" Padding="15" CornerRadius="5">
+                <StackPanel>
+                    <TextBlock Text="Effect Configuration" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                    
+                    <!-- Engine Settings -->
+                    <Expander Header="Engine Settings" IsExpanded="True" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,5">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Max Active Effects:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Slider Grid.Row="0" Grid.Column="1" x:Name="MaxEffectsSlider" Minimum="1" Maximum="16" Value="8" ValueChanged="OnMaxEffectsChanged"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Value, ElementName=MaxEffectsSlider}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto Rotate Effects:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" x:Name="AutoRotateCheckBox" IsChecked="True"/>
+                                
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation Speed:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Slider Grid.Row="2" Grid.Column="1" x:Name="RotationSpeedSlider" Minimum="0" Maximum="5" Value="1" ValueChanged="OnRotationSpeedChanged"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Value, ElementName=RotationSpeedSlider, StringFormat='{}{0:F1}'}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Beat Reactive:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox Grid.Row="3" Grid.Column="1" x:Name="BeatReactiveCheckBox" IsChecked="True"/>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+                    
+                    <!-- Display Settings -->
+                    <Expander Header="Display Settings" IsExpanded="True" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,5">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Show Effect Names:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" x:Name="ShowNamesCheckBox" IsChecked="True"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Show Effect Grid:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShowGridCheckBox" IsChecked="True"/>
+                                
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Effect Spacing:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Slider Grid.Row="2" Grid.Column="1" x:Name="SpacingSlider" Minimum="10" Maximum="50" Value="20" ValueChanged="OnSpacingChanged"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Value, ElementName=SpacingSlider}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+                    
+                    <!-- Active Effects Chain -->
+                    <Expander Header="Active Effects Chain" IsExpanded="True" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Current Effect Chain:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ListBox x:Name="ActiveEffectsListBox" Height="120" Margin="0,0,0,10">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1" Content="Remove" Click="OnRemoveEffect" Tag="{Binding Index}" Margin="5,0,0,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="Move Up" Click="OnMoveEffectUp"/>
+                                <Button Content="Move Down" Click="OnMoveEffectDown"/>
+                                <Button Content="Clear Chain" Click="OnClearChain"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Expander>
+                    
+                    <!-- Presets -->
+                    <Expander Header="Presets" IsExpanded="False" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <Grid ColumnDefinitions="*,Auto" Margin="0,5">
+                                <ComboBox x:Name="PresetComboBox" PlaceholderText="Select a preset..."/>
+                                <Button Grid.Column="1" Content="Load" Click="OnLoadPreset" Margin="10,0,0,0"/>
+                            </Grid>
+                            
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                                <Button Content="Save Current as Preset" Click="OnSavePreset"/>
+                                <Button Content="Delete Preset" Click="OnDeletePreset"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Footer -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Apply" Click="OnApply" Background="Green" Foreground="White" Margin="0,0,10,0"/>
+            <Button Content="Reset to Defaults" Click="OnResetDefaults" Margin="0,0,10,0"/>
+            <Button Content="Close" Click="OnClose"/>
+        </StackPanel>
+    </Grid>
+</Window>

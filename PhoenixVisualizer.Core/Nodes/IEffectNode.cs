@@ -1,0 +1,64 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
+namespace PhoenixVisualizer.Core.Nodes;
+
+public interface IEffectNode
+{
+    string Name { get; }
+    Dictionary<string, EffectParam> Params { get; }
+    void Render(float[] waveform, float[] spectrum, RenderContext ctx);
+}
+
+public class EffectParam
+{
+    public string Label { get; set; } = "";
+    public string Type { get; set; } = "slider"; // slider, checkbox, color
+    public float FloatValue { get; set; }
+    public bool BoolValue { get; set; }
+    public string ColorValue { get; set; } = "#FFFFFF";
+    public float Min { get; set; } = 0;
+    public float Max { get; set; } = 1;
+}
+
+public class RenderContext
+{
+    public int Width { get; set; }
+    public int Height { get; set; }
+    // TODO: add SkiaSharp/GL surface handles
+}
+
+public static class EffectRegistry
+{
+    private static readonly List<Type> _effectTypes;
+
+    static EffectRegistry()
+    {
+        var iface = typeof(IEffectNode);
+        _effectTypes = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => iface.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+            .ToList();
+    }
+
+    public static IEnumerable<IEffectNode> GetAll()
+    {
+        foreach (var type in _effectTypes)
+        {
+            if (Activator.CreateInstance(type) is IEffectNode node)
+                yield return node;
+        }
+    }
+
+    public static IEffectNode? CreateByName(string name)
+    {
+        var type = _effectTypes.FirstOrDefault(t =>
+        {
+            var tmp = (IEffectNode?)Activator.CreateInstance(t);
+            return tmp?.Name == name;
+        });
+        return type != null ? (IEffectNode?)Activator.CreateInstance(type) : null;
+    }
+}

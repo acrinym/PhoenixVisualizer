@@ -29,8 +29,9 @@ public partial class App : Application
             PluginRegistry.Register("pulse", "Pulse Circle", () => new PulseVisualizer());
             PluginRegistry.Register("energy", "Energy Ring", () => new EnergyVisualizer());
             PluginRegistry.Register("sanity", "Sanity Check", () => new SanityVisualizer());
-            PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
-            PluginRegistry.Register("spectrum_analyzer", "🎵 Spectrum Analyzer", () => new SpectrumAnalyzerPlugin());
+                    PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
+        PluginRegistry.Register("avs_effects_engine", "🌟 AVS Effects Engine", () => new AvsEffectsVisualizer(), "Full AVS effects engine with 48+ implemented effects", "1.0", "PhoenixVisualizer");
+        PluginRegistry.Register("spectrum_analyzer", "🎵 Spectrum Analyzer", () => new SpectrumAnalyzerPlugin());
             
             // --- Register Phoenix Waterfall (Classic Winamp DNA) ---
             PluginRegistry.Register("phoenix_waterfall", "🔥 Phoenix Waterfall", () => new PhoenixWaterfallPlugin());
@@ -61,6 +62,9 @@ public partial class App : Application
             // --- Register Advanced AVS Effects ---
             PluginRegistry.Register("advanced_avs", "🌟 Advanced AVS", () => new AdvancedAvsPlugin(), "Advanced AVS effects with transitions, SuperScope, and awesome visuals", "1.0", "PhoenixVisualizer");
             PluginRegistry.Register("superscope_pro", "🎯 SuperScope Pro", () => new SuperScopePlugin(), "Professional SuperScope visualizations with multiple rendering modes", "1.0", "PhoenixVisualizer");
+            
+            // --- Register VLC Audio Test Visualizer ---
+            PluginRegistry.Register("vlc_audio_test", "🔍 VLC Audio Test Debug", () => new VlcAudioTestVisualizer(), "Debug visualizer for testing VLC audio data flow and buffer analysis", "1.0", "PhoenixVisualizer");
 
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();

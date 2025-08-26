@@ -2,107 +2,258 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using LibVLCSharp.Shared;
+using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Visuals;
+using PhoenixVisualizer.PluginHost;
 
-namespace VlcTest;
+namespace PhoenixVisualizer;
 
-class Program
+/// <summary>
+/// Test program for VLC audio integration and visualizer data flow
+/// </summary>
+public class VlcTest
 {
-    static void Main(string[] args)
+    private VlcAudioService? _audioService;
+    private VlcAudioTestVisualizer? _testVisualizer;
+    private bool _isRunning = false;
+
+    public void RunTest()
     {
-        Console.WriteLine("=== VLC Audio Test ===");
+        Console.WriteLine("=== VLC Audio Integration Test ===");
+        Console.WriteLine("Testing VLC audio service and visualizer data flow...");
         
         try
         {
-            // Test 1: Basic VLC initialization
-            Console.WriteLine("1. Testing VLC initialization...");
-            var libVlc = new LibVLC(enableDebugLogs: true);
-            Console.WriteLine("   ✓ LibVLC created successfully");
+            // Initialize VLC audio service
+            Console.WriteLine("1. Initializing VLC Audio Service...");
+            _audioService = new VlcAudioService();
+            Console.WriteLine("   ✓ VLC Audio Service initialized");
             
-            var mediaPlayer = new MediaPlayer(libVlc);
-            Console.WriteLine("   ✓ MediaPlayer created successfully");
+            // Initialize test visualizer
+            Console.WriteLine("2. Initializing Test Visualizer...");
+            _testVisualizer = new VlcAudioTestVisualizer();
+            _testVisualizer.Initialize(800, 600);
+            Console.WriteLine("   ✓ Test Visualizer initialized");
             
-            // Test 2: Try to create a media object (this will test if native libvlc.dll is found)
-            Console.WriteLine("2. Testing media creation...");
-            
-            // Create a dummy media object to test if VLC can find the native library
-            var testMedia = new Media(libVlc, new Uri("file:///dummy"));
-            Console.WriteLine("   ✓ Media object created successfully");
-            testMedia.Dispose();
-            
-            // Test 3: Check if we can access VLC properties
-            Console.WriteLine("3. Testing VLC properties...");
-            var version = libVlc.Version;
-            Console.WriteLine($"   ✓ VLC Version: {version}");
-            
-            var libVersion = libVlc.LibVlcVersion;
-            Console.WriteLine($"   ✓ LibVLC Version: {libVersion}");
-            
-            // Test 4: Try to play a test file if provided
-            if (args.Length > 0 && File.Exists(args[0]))
+            // Test with sample audio file
+            var testAudioFile = Path.Combine("libs_etc", "Come home Amanda (1).mp3");
+            if (File.Exists(testAudioFile))
             {
-                Console.WriteLine($"4. Testing audio playback with: {args[0]}");
+                Console.WriteLine($"3. Testing with audio file: {testAudioFile}");
                 
-                var media = new Media(libVlc, new Uri(Path.GetFullPath(args[0])));
-                mediaPlayer.Media = media;
-                
-                // Set up event handlers
-                mediaPlayer.TimeChanged += (s, e) => Console.WriteLine($"   Time: {e.Time}ms");
-                mediaPlayer.LengthChanged += (s, e) => Console.WriteLine($"   Length: {e.Length}ms");
-                mediaPlayer.Playing += (s, e) => Console.WriteLine("   ✓ Playback started");
-                mediaPlayer.Paused += (s, e) => Console.WriteLine("   ✓ Playback paused");
-                mediaPlayer.Stopped += (s, e) => Console.WriteLine("   ✓ Playback stopped");
-                mediaPlayer.EncounteredError += (s, e) => Console.WriteLine("   ✗ Error encountered");
-                
-                // Try to play
-                var playResult = mediaPlayer.Play();
-                Console.WriteLine($"   Play() result: {playResult}");
-                
-                if (playResult)
+                // Open and play the file
+                if (_audioService.Open(testAudioFile))
                 {
-                    Console.WriteLine("   Waiting 3 seconds to see if playback starts...");
-                    System.Threading.Thread.Sleep(3000);
+                    Console.WriteLine("   ✓ Audio file opened successfully");
                     
-                    var isPlaying = mediaPlayer.IsPlaying;
-                    var time = mediaPlayer.Time;
-                    var length = mediaPlayer.Length;
-                    
-                    Console.WriteLine($"   IsPlaying: {isPlaying}");
-                    Console.WriteLine($"   Current Time: {time}ms");
-                    Console.WriteLine($"   Total Length: {length}ms");
-                    
-                    if (isPlaying && time > 0)
+                    // Start playback
+                    if (_audioService.Play())
                     {
-                        Console.WriteLine("   🎵 SUCCESS: Audio is actually playing!");
+                        Console.WriteLine("   ✓ Playback started");
+                        _isRunning = true;
+                        
+                        // Test audio data flow
+                        TestAudioDataFlow();
                     }
                     else
                     {
-                        Console.WriteLine("   ⚠️  WARNING: Play() succeeded but no actual playback detected");
+                        Console.WriteLine("   ✗ Failed to start playback");
                     }
-                    
-                    mediaPlayer.Stop();
                 }
                 else
                 {
-                    Console.WriteLine("   ✗ Play() failed");
+                    Console.WriteLine("   ✗ Failed to open audio file");
                 }
-                
-                media.Dispose();
             }
             else
             {
-                Console.WriteLine("4. No test file provided. Usage: dotnet run VlcTest.cs <audio-file-path>");
+                Console.WriteLine($"3. Test audio file not found: {testAudioFile}");
+                Console.WriteLine("   Creating simulated audio data for testing...");
+                TestWithSimulatedData();
             }
-            
-            // Cleanup
-            mediaPlayer.Dispose();
-            libVlc.Dispose();
-            
-            Console.WriteLine("\n=== Test Complete ===");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"\n✗ TEST FAILED: {ex.Message}");
+            Console.WriteLine($"Error during test: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
+        
+        Console.WriteLine("\n=== Test Complete ===");
+        Console.WriteLine("Press any key to exit...");
+        Console.ReadKey();
     }
+
+    private void TestAudioDataFlow()
+    {
+        Console.WriteLine("\n4. Testing Audio Data Flow...");
+        
+        var testDuration = TimeSpan.FromSeconds(10);
+        var startTime = DateTime.Now;
+        var frameCount = 0;
+        
+        Console.WriteLine($"   Testing for {testDuration.TotalSeconds} seconds...");
+        
+        while (_isRunning && (DateTime.Now - startTime) < testDuration)
+        {
+            try
+            {
+                // Get audio data from VLC service
+                var spectrumData = _audioService?.GetSpectrumData();
+                var waveformData = _audioService?.GetWaveformData();
+                
+                if (spectrumData != null && waveformData != null)
+                {
+                    // Create test audio features
+                    var audioFeatures = AudioFeaturesImpl.CreateEnhanced(
+                        spectrumData,
+                        waveformData,
+                        0.5f, // RMS
+                        120.0, // BPM
+                        false,  // Beat
+                        0.0     // Time
+                    );
+                    
+                    // Test visualizer rendering (simulated)
+                    if (_testVisualizer != null)
+                    {
+                        // Create a mock canvas for testing
+                        var mockCanvas = new MockCanvas();
+                        _testVisualizer.RenderFrame(audioFeatures, mockCanvas);
+                        
+                        frameCount++;
+                        
+                        // Log data every 100 frames
+                        if (frameCount % 100 == 0)
+                        {
+                            var fftSum = spectrumData.Sum(f => MathF.Abs(f));
+                            var waveSum = waveformData.Sum(w => MathF.Abs(w));
+                            var fftNonZero = spectrumData.Count(f => MathF.Abs(f) > 0.001f);
+                            var waveNonZero = waveformData.Count(w => MathF.Abs(w) > 0.001f);
+                            
+                            Console.WriteLine($"   Frame {frameCount}: FFT[{fftSum:F6}, {fftNonZero}], Wave[{waveSum:F6}, {waveNonZero}]");
+                        }
+                    }
+                }
+                
+                // Small delay to simulate real-time rendering
+                System.Threading.Thread.Sleep(16); // ~60 FPS
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   Error during frame {frameCount}: {ex.Message}");
+            }
+        }
+        
+        Console.WriteLine($"   ✓ Completed {frameCount} frames");
+        Console.WriteLine($"   Average FPS: {frameCount / testDuration.TotalSeconds:F1}");
+    }
+
+    private void TestWithSimulatedData()
+    {
+        Console.WriteLine("\n4. Testing with Simulated Audio Data...");
+        
+        var frameCount = 0;
+        var testDuration = TimeSpan.FromSeconds(5);
+        var startTime = DateTime.Now;
+        
+        while ((DateTime.Now - startTime) < testDuration)
+        {
+            try
+            {
+                // Generate simulated audio data
+                var spectrumData = GenerateSimulatedSpectrumData();
+                var waveformData = GenerateSimulatedWaveformData();
+                
+                // Create test audio features
+                var audioFeatures = AudioFeaturesImpl.CreateEnhanced(
+                    spectrumData,
+                    waveformData,
+                    0.3f,  // RMS
+                    120.0,  // BPM
+                    false,   // Beat
+                    0.0     // Time
+                );
+                
+                // Test visualizer rendering
+                if (_testVisualizer != null)
+                {
+                    var mockCanvas = new MockCanvas();
+                    _testVisualizer.RenderFrame(audioFeatures, mockCanvas);
+                    
+                    frameCount++;
+                    
+                    if (frameCount % 50 == 0)
+                    {
+                        Console.WriteLine($"   Frame {frameCount}: Simulated data rendered");
+                    }
+                }
+                
+                System.Threading.Thread.Sleep(16);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   Error during simulated frame {frameCount}: {ex.Message}");
+            }
+        }
+        
+        Console.WriteLine($"   ✓ Completed {frameCount} simulated frames");
+    }
+
+    private float[] GenerateSimulatedSpectrumData()
+    {
+        var data = new float[2048];
+        var time = DateTime.Now.Ticks * 0.0001;
+        
+        for (int i = 0; i < data.Length; i++)
+        {
+            var frequency = i / (float)data.Length;
+            data[i] = (float)(Math.Sin(frequency * Math.PI * 4 + time) * 0.5 + 0.5);
+        }
+        
+        return data;
+    }
+
+    private float[] GenerateSimulatedWaveformData()
+    {
+        var data = new float[2048];
+        var time = DateTime.Now.Ticks * 0.0001;
+        
+        for (int i = 0; i < data.Length; i++)
+        {
+            var t = i / (float)data.Length;
+            data[i] = (float)(Math.Sin(t * Math.PI * 8 + time) * 0.6);
+        }
+        
+        return data;
+    }
+
+    public void Cleanup()
+    {
+        _isRunning = false;
+        _testVisualizer?.Dispose();
+        _audioService?.Dispose();
+    }
+}
+
+/// <summary>
+/// Mock canvas for testing visualizer rendering
+/// </summary>
+public class MockCanvas : ISkiaCanvas
+{
+    public void Clear(uint color) { }
+    public void DrawText(string text, float x, float y, uint color, float size) { }
+    public void DrawLine(float x1, float y1, float x2, float y2, uint color, float thickness) { }
+    public void DrawRect(float x, float y, float width, float height, uint color) { }
+    public void DrawLines(Span<(float x, float y)> points, float thickness, uint color) { }
+    public void DrawCircle(float x, float y, float radius, uint color) { }
+    public void DrawEllipse(float x, float y, float width, float height, uint color) { }
+    public void DrawPolygon(Span<(float x, float y)> points, uint color) { }
+    public void DrawPath(Span<(float x, float y)> points, uint color, float thickness) { }
+    public void DrawImage(byte[] imageData, float x, float y, float width, float height) { }
+    public void SetTransform(float m11, float m12, float m21, float m22, float m31, float m32) { }
+    public void ResetTransform() { }
+    public void PushClip(float x, float y, float width, float height) { }
+    public void PopClip() { }
+    public void SaveState() { }
+    public void RestoreState() { }
 }
