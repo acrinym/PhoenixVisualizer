@@ -20,7 +20,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            return null;
+            return new EffectInput();
         }
 
         public override object GetDefaultOutput()

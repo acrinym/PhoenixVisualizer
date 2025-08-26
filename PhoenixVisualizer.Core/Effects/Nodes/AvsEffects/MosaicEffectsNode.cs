@@ -18,7 +18,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public float QualityAnimationSpeed { get; set; } = 1.0f;
         public int QualityAnimationMode { get; set; } = 0;
         public bool EnableMosaicMasking { get; set; } = false;
-        public ImageBuffer MosaicMask { get; set; } = null;
+        public ImageBuffer? MosaicMask { get; set; } = null;
         public float MaskInfluence { get; set; } = 1.0f;
         public bool EnableMosaicBlending { get; set; } = false;
         public float MosaicBlendStrength { get; set; } = 0.5f;

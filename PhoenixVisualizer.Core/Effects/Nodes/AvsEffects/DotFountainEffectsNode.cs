@@ -184,6 +184,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 FountainPoint p = new FountainPoint
                 {
                     Radius = BaseRadius,
+                    RadiusVelocity = 0f, // Initialize radius velocity
                     Height = 250f,
                     AngularX = (float)Math.Sin(angle),
                     AngularY = (float)Math.Cos(angle),
@@ -231,7 +232,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private void RenderPoint(FountainPoint p, ImageBuffer buffer, float persp)
         {
             Vector3 pos = new Vector3(p.AngularX * p.Radius, p.Height, p.AngularY * p.Radius);
-            Vector3 tp = Vector3.Transform(pos, _transformationMatrix);
+            Vector3 tp = TransformVector(pos, _transformationMatrix);
             if (tp.Z <= 1e-7f) return;
             float scale = persp / tp.Z;
             int sx = (int)(tp.X * scale) + buffer.Width / 2;
@@ -264,6 +265,15 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 for (int r = 0; r < NUM_ROT_DIV; r++)
                     if (_points[h, r].IsActive) count++;
             return count;
+        }
+
+        private Vector3 TransformVector(Vector3 vector, Matrix4x4 matrix)
+        {
+            return new Vector3(
+                vector.X * matrix.M11 + vector.Y * matrix.M21 + vector.Z * matrix.M31 + matrix.M41,
+                vector.X * matrix.M12 + vector.Y * matrix.M22 + vector.Z * matrix.M32 + matrix.M42,
+                vector.X * matrix.M13 + vector.Y * matrix.M23 + vector.Z * matrix.M33 + matrix.M43
+            );
         }
         #endregion
 

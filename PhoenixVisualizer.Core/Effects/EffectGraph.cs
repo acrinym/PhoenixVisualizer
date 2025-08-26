@@ -76,9 +76,9 @@ namespace PhoenixVisualizer.Core.Effects
         /// </summary>
         public EffectGraph()
         {
-            _nodes = new List<IEffectNode>();
-            _connections = new List<EffectConnection>();
-            _nodeLookup = new Dictionary<string, IEffectNode>();
+            _nodes = [];
+            _connections = [];
+            _nodeLookup = [];
             _graphLock = new object();
             State = EffectGraphState.Initialized;
             Stats = new EffectGraphStats();
@@ -98,18 +98,12 @@ namespace PhoenixVisualizer.Core.Effects
         /// <summary>
         /// Factory method to create input nodes
         /// </summary>
-        protected virtual IEffectNode CreateInputNode()
-        {
-            return new InputNode();
-        }
+        protected virtual IEffectNode CreateInputNode() => new InputNode();
 
         /// <summary>
         /// Factory method to create output nodes
         /// </summary>
-        protected virtual IEffectNode CreateOutputNode()
-        {
-            return new OutputNode();
-        }
+        protected virtual IEffectNode CreateOutputNode() => new OutputNode();
 
         #endregion
 
@@ -187,7 +181,7 @@ namespace PhoenixVisualizer.Core.Effects
                 if (WouldCreateCycle(sourceNodeId, targetNodeId))
                     return false;
 
-                var connection = new EffectConnection
+                EffectConnection connection = new EffectConnection
                 {
                     SourceNodeId = sourceNodeId,
                     SourcePort = sourcePort,
@@ -214,7 +208,7 @@ namespace PhoenixVisualizer.Core.Effects
 
             lock (_graphLock)
             {
-                var removed = _connections.RemoveAll(c => 
+                int removed = _connections.RemoveAll(c => 
                     c.SourceNodeId == sourceNodeId && c.TargetNodeId == targetNodeId);
 
                 if (removed > 0)
@@ -280,20 +274,20 @@ namespace PhoenixVisualizer.Core.Effects
         /// </summary>
         private async Task<EffectOutput> ExecuteGraphAsync(EffectInput inputData, AudioFeatures audioFeatures)
         {
-            var executionOrder = GetExecutionOrder();
-            var nodeOutputs = new Dictionary<string, object>();
+            List<IEffectNode> executionOrder = GetExecutionOrder();
+            Dictionary<string, object> nodeOutputs = new Dictionary<string, object>();
 
             // Set input data
             nodeOutputs[RootInput.Id] = inputData;
 
             // Execute nodes in order
-            foreach (var node in executionOrder)
+            foreach (IEffectNode node in executionOrder)
             {
                 if (node == RootInput)
                     continue;
 
-                var inputs = GatherNodeInputs(node, nodeOutputs);
-                var output = await ExecuteNodeAsync(node, inputs, audioFeatures);
+                Dictionary<string, object> inputs = GatherNodeInputs(node, nodeOutputs);
+                object output = await ExecuteNodeAsync(node, inputs, audioFeatures);
                 nodeOutputs[node.Id] = output;
             }
 
@@ -306,12 +300,12 @@ namespace PhoenixVisualizer.Core.Effects
         /// </summary>
         private Dictionary<string, object> GatherNodeInputs(IEffectNode node, Dictionary<string, object> nodeOutputs)
         {
-            var inputs = new Dictionary<string, object>();
+            Dictionary<string, object> inputs = new Dictionary<string, object>();
 
-            var inputConnections = _connections.Where(c => c.TargetNodeId == node.Id);
-            foreach (var connection in inputConnections)
+            IEnumerable<EffectConnection> inputConnections = _connections.Where(c => c.TargetNodeId == node.Id);
+            foreach (EffectConnection connection in inputConnections)
             {
-                if (nodeOutputs.TryGetValue(connection.SourceNodeId, out var sourceOutput))
+                if (nodeOutputs.TryGetValue(connection.SourceNodeId, out object? sourceOutput) && sourceOutput != null)
                 {
                     inputs[connection.TargetPort] = sourceOutput;
                 }
@@ -323,7 +317,7 @@ namespace PhoenixVisualizer.Core.Effects
         /// <summary>
         /// Execute a single node
         /// </summary>
-        private async Task<object> ExecuteNodeAsync(IEffectNode node, Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        private static async Task<object> ExecuteNodeAsync(IEffectNode node, Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
             try
             {
@@ -350,21 +344,21 @@ namespace PhoenixVisualizer.Core.Effects
         private bool WouldCreateCycle(string sourceId, string targetId)
         {
             // Simple cycle detection - if target can reach source, it would create a cycle
-            var visited = new HashSet<string>();
-            var stack = new Stack<string>();
+            HashSet<string> visited = new HashSet<string>();
+            Stack<string> stack = new Stack<string>();
             
             stack.Push(targetId);
             visited.Add(targetId);
 
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
+                string current = stack.Pop();
                 
                 if (current == sourceId)
                     return true;
 
-                var outgoingConnections = _connections.Where(c => c.SourceNodeId == current);
-                foreach (var connection in outgoingConnections)
+                IEnumerable<EffectConnection> outgoingConnections = _connections.Where(c => c.SourceNodeId == current);
+                foreach (EffectConnection connection in outgoingConnections)
                 {
                     if (!visited.Contains(connection.TargetNodeId))
                     {
@@ -382,11 +376,11 @@ namespace PhoenixVisualizer.Core.Effects
         /// </summary>
         private List<IEffectNode> TopologicalSort()
         {
-            var result = new List<IEffectNode>();
-            var visited = new HashSet<string>();
-            var temp = new HashSet<string>();
+            List<IEffectNode> result = new List<IEffectNode>();
+            HashSet<string> visited = new HashSet<string>();
+            HashSet<string> temp = new HashSet<string>();
 
-            foreach (var node in _nodes)
+            foreach (IEffectNode node in _nodes)
             {
                 if (!visited.Contains(node.Id))
                 {
@@ -410,8 +404,8 @@ namespace PhoenixVisualizer.Core.Effects
 
             temp.Add(nodeId);
 
-            var outgoingConnections = _connections.Where(c => c.SourceNodeId == nodeId);
-            foreach (var connection in outgoingConnections)
+            IEnumerable<EffectConnection> outgoingConnections = _connections.Where(c => c.SourceNodeId == nodeId);
+            foreach (EffectConnection connection in outgoingConnections)
             {
                 TopologicalSortVisit(connection.TargetNodeId, visited, temp, result);
             }
@@ -419,7 +413,7 @@ namespace PhoenixVisualizer.Core.Effects
             temp.Remove(nodeId);
             visited.Add(nodeId);
 
-            var node = _nodeLookup[nodeId];
+            IEffectNode node = _nodeLookup[nodeId];
             result.Add(node);
         }
 
@@ -438,7 +432,7 @@ namespace PhoenixVisualizer.Core.Effects
             Clear();
 
             // Dispose of nodes that implement IDisposable
-            foreach (var node in _nodes)
+            foreach (IEffectNode node in _nodes)
             {
                 if (node is IDisposable disposable)
                 {
@@ -449,6 +443,8 @@ namespace PhoenixVisualizer.Core.Effects
             _nodes.Clear();
             _nodeLookup.Clear();
             _connections.Clear();
+            
+            GC.SuppressFinalize(this);
         }
 
         #endregion
@@ -490,22 +486,16 @@ namespace PhoenixVisualizer.Core.Effects
     /// <summary>
     /// Exception thrown during effect graph execution
     /// </summary>
-    public class EffectGraphExecutionException : Exception
+    public class EffectGraphExecutionException(string message, Exception innerException) 
+        : Exception(message, innerException)
     {
-        public EffectGraphExecutionException(string message, Exception innerException) 
-            : base(message, innerException)
-        {
-        }
     }
 
     /// <summary>
     /// Exception thrown during individual node execution
     /// </summary>
-    public class EffectNodeExecutionException : Exception
+    public class EffectNodeExecutionException(string message, Exception innerException) 
+        : Exception(message, innerException)
     {
-        public EffectNodeExecutionException(string message, Exception innerException) 
-            : base(message, innerException)
-        {
-        }
     }
 }

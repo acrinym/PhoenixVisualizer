@@ -533,8 +533,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
     /// </summary>
     public class ParticleTrail
     {
-        public Vector2[] Positions { get; set; }
-        public Color[] Colors { get; set; }
+        public Vector2[] Positions { get; set; } = Array.Empty<Vector2>();
+        public Color[] Colors { get; set; } = Array.Empty<Color>();
         public int Life { get; set; }
     }
 

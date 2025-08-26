@@ -17,11 +17,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public bool BeatReactive { get; set; } = false;
         public int BeatReductionLevel { get; set; } = 64;
         public float DitheringStrength { get; set; } = 1.0f;
-        public int[] CustomPalette { get; set; } = null;
+        public int[]? CustomPalette { get; set; } = null;
         public bool PreserveBrightness { get; set; } = true;
 
         // Internal state
-        private int[] _currentPalette;
+        private int[]? _currentPalette;
         private readonly object _paletteLock = new object();
         private readonly Random _random = new Random();
 
@@ -34,7 +34,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             Name = "Color Reduction Effects";
             Description = "Advanced color reduction with multiple quantization methods and dithering";
             Category = "Color Transformation";
-            _currentPalette = null;
+            _currentPalette = GenerateGrayscalePalette(64); // Initialize with default palette
         }
 
         protected override void InitializePorts()

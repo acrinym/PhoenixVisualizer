@@ -57,8 +57,8 @@ namespace PhoenixVisualizer.Core.Services
             _timeSeconds += deltaTime;
 
             // Inject AVS-compat vars
-            _engine.SetVar("rms", audioFeatures.Rms);
-            _engine.SetVar("beat", audioFeatures.IsBeat ? 1.0 : 0.0);
+            _engine.Set("rms", audioFeatures.Rms);
+            _engine.Set("beat", audioFeatures.IsBeat ? 1.0 : 0.0);
             
             // Calculate frequency bands from spectrum data
             if (audioFeatures.SpectrumData.Length > 0)
@@ -66,29 +66,29 @@ namespace PhoenixVisualizer.Core.Services
                 // Bass: 0-20% of spectrum
                 int bassEnd = Math.Max(1, audioFeatures.SpectrumData.Length / 5);
                 float bass = CalculateFrequencyBand(audioFeatures.SpectrumData, 0, bassEnd);
-                _engine.SetVar("bass", bass);
+                _engine.Set("bass", bass);
                 
                 // Mid: 20-80% of spectrum
                 int midStart = bassEnd;
                 int midEnd = audioFeatures.SpectrumData.Length * 4 / 5;
                 float mid = CalculateFrequencyBand(audioFeatures.SpectrumData, midStart, midEnd);
-                _engine.SetVar("mid", mid);
+                _engine.Set("mid", mid);
                 
                 // Treble: 80-100% of spectrum
                 float treb = CalculateFrequencyBand(audioFeatures.SpectrumData, midEnd, audioFeatures.SpectrumData.Length);
-                _engine.SetVar("treb", treb);
+                _engine.Set("treb", treb);
             }
 
             for (int i = 0; i < audioFeatures.SpectrumData.Length; i++)
-                _engine.SetVar($"spec{i}", audioFeatures.SpectrumData[i]);
+                _engine.Set($"spec{i}", audioFeatures.SpectrumData[i]);
 
             for (int i = 0; i < audioFeatures.WaveformData.Length; i++)
-                _engine.SetVar($"wave{i}", audioFeatures.WaveformData[i]);
+                _engine.Set($"wave{i}", audioFeatures.WaveformData[i]);
 
             // Inject Phoenix-native vars
-            _engine.SetVar("pel_frame", _frameCounter);
-            _engine.SetVar("pel_time", _timeSeconds);
-            _engine.SetVar("pel_dt", deltaTime);
+            _engine.Set("pel_frame", _frameCounter);
+            _engine.Set("pel_time", _timeSeconds);
+            _engine.Set("pel_dt", deltaTime);
 
             // Run all nodes
             foreach (var node in _nodes)

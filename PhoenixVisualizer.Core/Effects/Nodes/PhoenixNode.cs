@@ -79,10 +79,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         /// <summary>
         /// Get the current BPM from audio features
         /// </summary>
-        protected virtual double GetCurrentBPM(AudioFeatures audioFeatures)
-        {
-            return audioFeatures?.BPM ?? 120.0;
-        }
+        protected virtual double GetCurrentBPM(AudioFeatures audioFeatures) => audioFeatures?.BPM ?? 120.0;
 
         /// <summary>
         /// Get the current audio intensity (0.0 to 1.0)
@@ -105,18 +102,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         /// <summary>
         /// Update frame counter and handle temporal effects
         /// </summary>
-        protected virtual void UpdateFrameCounter()
-        {
-            FrameCounter++;
-        }
+        protected virtual void UpdateFrameCounter() => FrameCounter++;
 
         /// <summary>
         /// Get a normalized value based on the current frame
         /// </summary>
-        protected virtual double GetFrameBasedValue(double frequency = 1.0)
-        {
-            return Math.Sin(FrameCounter * frequency * 0.1) * 0.5 + 0.5;
-        }
+        protected virtual double GetFrameBasedValue(double frequency = 1.0) => Math.Sin(FrameCounter * frequency * 0.1) * 0.5 + 0.5;
 
         #endregion
 

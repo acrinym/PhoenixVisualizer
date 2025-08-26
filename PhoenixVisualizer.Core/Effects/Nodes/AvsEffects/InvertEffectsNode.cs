@@ -26,7 +26,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public float AnimationSpeed { get; set; } = 1.0f;
         public int AnimationMode { get; set; } = 0;
         public bool EnableInversionMasking { get; set; } = false;
-        public ImageBuffer InversionMask { get; set; } = null;
+        public ImageBuffer? InversionMask { get; set; } = null;
         public float MaskInfluence { get; set; } = 1.0f;
         public bool EnableInversionBlending { get; set; } = false;
         public float BlendMode { get; set; } = 0.5f;

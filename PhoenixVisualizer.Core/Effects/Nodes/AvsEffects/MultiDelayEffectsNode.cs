@@ -140,9 +140,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 int delayG = EnablePerChannelDelay ? ChannelFrameDelay[b][1] : delay;
                 int delayB = EnablePerChannelDelay ? ChannelFrameDelay[b][2] : delay;
 
-                ImageBuffer frameR = buffer.Count > delayR ? buffer[buffer.Count - delayR - 1] : null;
-                ImageBuffer frameG = buffer.Count > delayG ? buffer[buffer.Count - delayG - 1] : null;
-                ImageBuffer frameB = buffer.Count > delayB ? buffer[buffer.Count - delayB - 1] : null;
+                ImageBuffer? frameR = buffer.Count > delayR ? buffer[buffer.Count - delayR - 1] : null;
+                ImageBuffer? frameG = buffer.Count > delayG ? buffer[buffer.Count - delayG - 1] : null;
+                ImageBuffer? frameB = buffer.Count > delayB ? buffer[buffer.Count - delayB - 1] : null;
 
                 for (int i = 0; i < output.Pixels.Length; i++)
                 {

@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
-using PhoenixVisualizer.Core;
+using PhoenixVisualizer.Core.Engine;
+using PhoenixVisualizer.Core.Effects.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
     /// <summary>
-    /// Superscope Effects Node - Core AVS visualization engine with mathematical expression support
-    /// Implements the scripting-based renderer that plots points, lines, or shapes based on mathematical equations
+    /// Superscope Effects Node
+    /// Core AVS visualization engine, now fully powered by PhoenixExpressionEngine
     /// </summary>
     public class SuperscopeEffectsNode : BaseEffectNode
     {
@@ -53,12 +51,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Initialization script (runs once at startup)
         /// </summary>
-        public string InitScript { get; set; } = "n=800";
+        public string InitScript { get; set; } = "n=800;";
 
         /// <summary>
         /// Frame script (runs every frame)
         /// </summary>
-        public string FrameScript { get; set; } = "t=t-0.05";
+        public string FrameScript { get; set; } = "t=t-0.05;";
 
         /// <summary>
         /// Beat script (runs on beat detection)
@@ -68,26 +66,13 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Point script (runs for each point)
         /// </summary>
-        public string PointScript { get; set; } = "d=i+v*0.2; r=t+i*$PI*4; x=cos(r)*d; y=sin(r)*d";
+        public string PointScript { get; set; } =
+            "d=i+v*0.2; r=t+i*$PI*4; x=cos(r)*d; y=sin(r)*d;";
 
         #endregion
 
         #region Internal State
-
         private double _time = 0.0;
-        private readonly Dictionary<string, double> _variables;
-        private readonly Random _random;
-        private readonly PhoenixExpressionEngine _engine;
-        private bool _initialized = false;
-
-        #endregion
-
-        #region Constants
-
-        private const double PI = Math.PI;
-        private const double TWO_PI = 2.0 * Math.PI;
-        private const int MAX_POINTS = 128000;
-        private const int MIN_POINTS = 1;
 
         #endregion
 
@@ -96,13 +81,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public SuperscopeEffectsNode()
         {
             Name = "Superscope";
-            Description = "Phoenix port of AVS Superscope with ns-eel/PEL expression support";
+            Description = "Core AVS visualization engine with Phoenix scripting";
             Category = "AVS Effects";
-            
-            _variables = new Dictionary<string, double>();
-            _random = new Random();
-            _engine = new PhoenixExpressionEngine();
-            InitializeVariables();
         }
 
         #endregion
@@ -127,13 +107,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // Copy input image to output
             Array.Copy(imageBuffer.Pixels, output.Pixels, imageBuffer.Pixels.Length);
 
-            // Execute superscope rendering
             RenderSuperscope(output, audioFeatures);
-
             return output;
         }
 
@@ -143,31 +119,21 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void RenderSuperscope(ImageBuffer output, AudioFeatures audioFeatures)
         {
-            if (Engine == null) return;
             try
             {
-                // Init script runs once
-                if (!_initialized && !string.IsNullOrEmpty(InitScript))
-                {
-                    Engine.Execute(InitScript);
-                    _initialized = true;
-                }
+                Engine?.Execute(InitScript);
+                Engine?.Set("t", _time);
+                Engine?.Execute(FrameScript);
 
-                // Frame script
-                if (!string.IsNullOrEmpty(FrameScript))
-                    Engine.Execute(FrameScript);
+                if (BeatReactive && audioFeatures?.IsBeat == true)
+                    Engine?.Execute(BeatScript);
 
-                // Beat script
-                if (BeatReactive && audioFeatures?.IsBeat == true && !string.IsNullOrEmpty(BeatScript))
-                    Engine.Execute(BeatScript);
-
-                // Render points
                 RenderPoints(output, audioFeatures);
+                _time += 0.016; // ~60fps delta
             }
             catch (Exception ex)
             {
-                // Log error and continue with default rendering
-                System.Diagnostics.Debug.WriteLine($"Superscope script error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Superscope error: {ex.Message}");
             }
         }
 
@@ -178,72 +144,50 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             int centerX = width / 2;
             int centerY = height / 2;
 
-            // Get audio data
             float[] audioData = GetAudioData(audioFeatures);
-            if (audioData == null || audioData.Length == 0) return;
+            if (audioData.Length == 0) return;
 
-            // Render each point
             for (int i = 0; i < PointCount && i < audioData.Length; i++)
             {
-                // Bind per-point vars
-                Engine.SetVar("i", (double)i / PointCount);
-                Engine.SetVar("v", audioData[i % audioData.Length]);
+                Engine?.Set("i", (double)i / PointCount);
+                Engine?.Set("v", audioData[i % audioData.Length]);
 
-                // Execute point script
-                if (!string.IsNullOrEmpty(PointScript))
-                    Engine.Execute(PointScript);
+                Engine?.Execute(PointScript);
 
-                // Pull results from engine
-                double x = Engine.GetVar("x", 0.0);
-                double y = Engine.GetVar("y", 0.0);
-                double red = Engine.GetVar("red", 1.0);
-                double green = Engine.GetVar("green", 1.0);
-                double blue = Engine.GetVar("blue", 1.0);
-                double skip = Engine.GetVar("skip", 0.0);
+                double x = Engine?.Get("x", 0.0) ?? 0.0;
+                double y = Engine?.Get("y", 0.0) ?? 0.0;
+                double red = Engine?.Get("red", 1.0) ?? 1.0;
+                double green = Engine?.Get("green", 1.0) ?? 1.0;
+                double blue = Engine?.Get("blue", 1.0) ?? 1.0;
+                double skip = Engine?.Get("skip", 0.0) ?? 0.0;
 
-                // Check skip threshold
                 if (skip > SkipThreshold) continue;
 
-                // Convert normalized coordinates to pixel coordinates
                 int pixelX = centerX + (int)(x * centerX);
-                int pixelY = centerY + (int)(y * centerY);
-
-                // Clamp coordinates to image bounds
+                int pixelY = centerY + (int)(y * centerX);
                 pixelX = Math.Clamp(pixelX, 0, width - 1);
                 pixelY = Math.Clamp(pixelY, 0, height - 1);
 
-                // Convert colors to 8-bit values
                 int r = Math.Clamp((int)(red * 255), 0, 255);
                 int g = Math.Clamp((int)(green * 255), 0, 255);
                 int b = Math.Clamp((int)(blue * 255), 0, 255);
-
-                // Combine into pixel value
                 int pixelColor = r | (g << 8) | (b << 16);
 
-                // Render point or line
                 if (DrawMode == 0)
                 {
-                    // Point mode
                     output.SetPixel(pixelX, pixelY, pixelColor);
                 }
-                else
+                else if (i > 0)
                 {
-                    // Line mode - draw line from previous point
-                    if (i > 0)
-                    {
-                        // Get previous coordinates (simplified - in real implementation, store previous point)
-                        double prevX = GetVariable("prevX", x);
-                        double prevY = GetVariable("prevY", y);
-                        int prevPixelX = centerX + (int)(prevX * centerX);
-                        int prevPixelY = centerY + (int)(prevY * centerY);
-                        
-                        DrawLine(output, prevPixelX, prevPixelY, pixelX, pixelY, pixelColor, (int)LineSize);
-                    }
+                    double prevX = Engine?.Get("prevX", x) ?? x;
+                    double prevY = Engine?.Get("prevY", y) ?? y;
+                    int prevPixelX = centerX + (int)(prevX * centerX);
+                    int prevPixelY = centerY + (int)(prevY * centerX);
+                    DrawLine(output, prevPixelX, prevPixelY, pixelX, pixelY, pixelColor, (int)LineSize);
                 }
 
-                // Store current coordinates for next iteration
-                _variables["prevX"] = x;
-                _variables["prevY"] = y;
+                Engine?.Set("prevX", x);
+                Engine?.Set("prevY", y);
             }
         }
 
@@ -251,13 +195,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Audio Data Processing
 
-        private float[] GetAudioData(AudioFeatures audioFeatures)
+        private float[] GetAudioData(AudioFeatures? audioFeatures)
         {
-            if (audioFeatures == null) return new float[576];
-
-            return AudioSource == 0 
-                ? audioFeatures.SpectrumData 
-                : audioFeatures.WaveformData;
+            if (audioFeatures == null) return Array.Empty<float>();
+            return AudioSource == 0 ? audioFeatures.SpectrumData : audioFeatures.WaveformData;
         }
 
         #endregion
@@ -269,8 +210,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             if (string.IsNullOrWhiteSpace(script)) return;
 
             // Use the Phoenix Expression Engine for proper ns-eel script execution
-            _engine.Execute(script);
-            
+            Engine?.Execute(script);
             // Note: Variables are now managed globally by the PhoenixExecutionEngine
             // Local variables are maintained for backward compatibility
         }
@@ -324,32 +264,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #endregion
 
-        #region Variable Management
 
-        private void InitializeVariables()
-        {
-            _variables.Clear();
-            _variables["n"] = PointCount;
-            _variables["t"] = _time;
-            _variables["b"] = 0.0;
-            _variables["w"] = 800.0; // Default width
-            _variables["h"] = 600.0; // Default height
-            _variables["linesize"] = LineSize;
-            _variables["skip"] = SkipThreshold;
-            _variables["drawmode"] = DrawMode;
-        }
-
-        private double GetVariable(string name, double defaultValue)
-        {
-            return _variables.TryGetValue(name, out double value) ? value : defaultValue;
-        }
-
-        private void SetVariable(string name, double value)
-        {
-            _variables[name] = value;
-        }
-
-        #endregion
 
         #region Default Output
 

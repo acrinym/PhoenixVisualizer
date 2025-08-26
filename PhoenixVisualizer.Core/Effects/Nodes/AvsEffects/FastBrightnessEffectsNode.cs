@@ -82,7 +82,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Brightness mask image buffer
         /// </summary>
-        public ImageBuffer BrightnessMask { get; set; } = null;
+        public ImageBuffer? BrightnessMask { get; set; } = null;
 
         /// <summary>
         /// Influence of the brightness mask (0.0 to 1.0)

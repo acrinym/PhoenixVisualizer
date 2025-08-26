@@ -262,7 +262,7 @@ public class DotPlaneEffectsNode : BaseEffectNode
                     (renderIndex - NUM_WIDTH * 0.5f) * dotWidth
                 );
 
-                Vector3 transformedPosition = Vector3.Transform(position, _transformationMatrix);
+                Vector3 transformedPosition = TransformVector(position, _transformationMatrix);
 
                 if (transformedPosition.Z > 0.0000001f)
                 {
@@ -314,6 +314,15 @@ public class DotPlaneEffectsNode : BaseEffectNode
         _currentRotation += RotationVelocity / 5.0f;
         while (_currentRotation >= 360.0f) _currentRotation -= 360.0f;
         while (_currentRotation < 0.0f) _currentRotation += 360.0f;
+    }
+
+    private Vector3 TransformVector(Vector3 vector, Matrix4x4 matrix)
+    {
+        return new Vector3(
+            vector.X * matrix.M11 + vector.Y * matrix.M21 + vector.Z * matrix.M31 + matrix.M41,
+            vector.X * matrix.M12 + vector.Y * matrix.M22 + vector.Z * matrix.M32 + matrix.M42,
+            vector.X * matrix.M13 + vector.Y * matrix.M23 + vector.Z * matrix.M33 + matrix.M43
+        );
     }
 
     #endregion

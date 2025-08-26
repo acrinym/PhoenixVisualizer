@@ -96,7 +96,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Fade mask image buffer
         /// </summary>
-        public ImageBuffer FadeMask { get; set; } = null;
+        public ImageBuffer? FadeMask { get; set; } = null;
 
         /// <summary>
         /// Influence of the fade mask (0.0 to 1.0)

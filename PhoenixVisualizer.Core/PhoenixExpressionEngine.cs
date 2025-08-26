@@ -19,8 +19,8 @@ namespace PhoenixVisualizer.Core
             RegisterStandardFunctions();
         }
 
-        public void SetVar(string name, double value) => _vars[name] = value;
-        public double GetVar(string name, double def = 0.0) => _vars.TryGetValue(name, out var v) ? v : def;
+        public void Set(string name, double value) => _vars[name] = value;
+        public double Get(string name, double def = 0.0) => _vars.TryGetValue(name, out var v) ? v : def;
 
         public void RegisterStandardFunctions()
         {

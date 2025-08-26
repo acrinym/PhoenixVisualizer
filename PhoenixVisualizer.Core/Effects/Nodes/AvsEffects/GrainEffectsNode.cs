@@ -67,7 +67,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// <summary>
         /// Grain mask image buffer
         /// </summary>
-        public ImageBuffer GrainMask { get; set; } = null;
+        public ImageBuffer? GrainMask { get; set; } = null;
 
         /// <summary>
         /// Influence of mask on grain application
@@ -143,8 +143,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Fields
 
-        private ImageBuffer _grainBuffer;
-        private Random _random;
+        private ImageBuffer? _grainBuffer;
+        private Random? _random;
         private float _currentTime = 0.0f;
         private int _lastWidth = 0;
         private int _lastHeight = 0;
@@ -162,6 +162,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             Category = "AVS Effects";
             
             // Initialize random table
+            _random = new Random();
             InitializeRandomTable();
         }
 
