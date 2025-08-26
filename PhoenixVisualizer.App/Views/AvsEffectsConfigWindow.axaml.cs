@@ -42,6 +42,9 @@ public partial class AvsEffectsConfigWindow : Window
         LoadPresets();
         PopulateEffectsList();
         UpdateActiveEffectsList();
+        
+        // Set initial status
+        UpdateStatusText();
     }
 
     private void InitializeComponent()
@@ -160,6 +163,7 @@ public partial class AvsEffectsConfigWindow : Window
             {
                 var effectItem = new EffectItem
                 {
+                    Name = effectName,
                     DisplayName = effectName,
                     IsSelected = selectedEffectNames.Contains(effectName),
                     Category = GetEffectCategory(effectName)
@@ -174,10 +178,127 @@ public partial class AvsEffectsConfigWindow : Window
             {
                 effectsListBox.ItemsSource = _availableEffects;
             }
+            
+            // Update effects count display
+            UpdateEffectsCount();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[AVS Config] Error populating effects list: {ex.Message}");
+        }
+    }
+
+    private void UpdateEffectsCount()
+    {
+        try
+        {
+            var effectsCountText = this.FindControl<TextBlock>("EffectsCountText");
+            if (effectsCountText != null)
+            {
+                var count = _visualizer.GetAvailableEffectCount();
+                effectsCountText.Text = $"({count} effects)";
+            }
+            
+            // Also update status text
+            UpdateStatusText();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error updating effects count: {ex.Message}");
+        }
+    }
+
+    private void UpdateStatusText()
+    {
+        try
+        {
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText != null)
+            {
+                var count = _visualizer.GetAvailableEffectCount();
+                if (count > 0)
+                {
+                    statusText.Text = $"✅ {count} effects discovered and ready to use!";
+                }
+                else
+                {
+                    statusText.Text = "⚠️ No effects discovered - Click '🔄 Refresh' to try again";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error updating status text: {ex.Message}");
+        }
+    }
+
+    private void UpdateStatusText(string message)
+    {
+        try
+        {
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            if (statusText != null)
+            {
+                statusText.Text = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error updating status text: {ex.Message}");
+        }
+    }
+
+    private void OnRefreshEffects(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            UpdateStatusText("🔄 Refreshing effects list...");
+            
+            // Refresh the effects list in the visualizer
+            _visualizer.RefreshEffectsList();
+            
+            // Repopulate the UI
+            PopulateEffectsList();
+            
+            UpdateStatusText($"✅ Refresh complete! {_visualizer.GetAvailableEffectCount()} effects available");
+            System.Diagnostics.Debug.WriteLine("[AVS Effects Config] Effects list refreshed successfully");
+        }
+        catch (Exception ex)
+        {
+            UpdateStatusText($"❌ Error refreshing effects: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error refreshing effects: {ex.Message}");
+        }
+    }
+
+    private void OnDebugDiscovery(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            UpdateStatusText("🐛 Running debug discovery...");
+            
+            // Run debug discovery
+            _visualizer.DebugEffectDiscovery();
+            
+            // Show debug info in a message box
+            var count = _visualizer.GetAvailableEffectCount();
+            var effectNames = _visualizer.GetAvailableEffectNames();
+            var message = $"Debug Discovery Results:\n\n" +
+                         $"Total Effects Found: {count}\n\n" +
+                         $"Effect Names:\n{string.Join("\n", effectNames.Take(20))}" +
+                         (effectNames.Count > 20 ? $"\n... and {effectNames.Count - 20} more" : "");
+            
+            var messageBox = MessageBox.Show(message, "AVS Effects Discovery Debug", MessageBoxButtons.OK);
+            
+            // Refresh the UI
+            PopulateEffectsList();
+            
+            UpdateStatusText($"🐛 Debug complete! {count} effects found");
+        }
+        catch (Exception ex)
+        {
+            UpdateStatusText($"❌ Debug error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error in debug discovery: {ex.Message}");
+            MessageBox.Show($"Debug Discovery Error: {ex.Message}", "Error", MessageBoxButtons.OK);
         }
     }
 
@@ -615,6 +736,7 @@ public partial class AvsEffectsConfigWindow : Window
 // Data models
 public class EffectItem
 {
+    public string Name { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public bool IsSelected { get; set; }
     public string Category { get; set; } = string.Empty;

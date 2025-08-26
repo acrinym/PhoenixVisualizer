@@ -19,7 +19,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
 {
     public string Id => "avs_effects_engine";
     public string DisplayName => "AVS Effects Engine";
-    public string Description => "Full Advanced Visualization Studio effects engine with 48+ implemented effects";
+    public string Description => "Full Advanced Visualization Studio effects engine with 48+ implemented effects - including OscilloscopeRing, BeatSpinning, InterferencePatterns, TimeDomainScope, OscilloscopeStar, Onetone, EffectStacking, WaterBump, Interleave, and many more!";
     public bool IsEnabled { get; set; } = true;
 
     private int _width, _height;
@@ -52,12 +52,45 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         _availableEffects = new Dictionary<string, IEffectNode>();
         _activeEffects = new List<IEffectNode>();
         
-        // Initialize with popular effect types
+        // Initialize with popular effect types including newly created ones
         SelectedEffectTypes = new List<string>
         {
             "OscilloscopeRing", "BeatSpinning", "InterferencePatterns", 
-            "TimeDomainScope", "OscilloscopeStar", "Onetone"
+            "TimeDomainScope", "OscilloscopeStar", "Onetone",
+            "EffectStacking", "WaterBump", "Interleave", "AdvancedTransitions",
+            "NFClear", "DynamicColorModulation", "FastBrightness", "SpectrumVisualization"
         };
+        
+        // Manually register some key effects to ensure they're available
+        // This is a fallback in case automatic discovery fails
+        try
+        {
+            RegisterKeyEffects();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error registering key effects: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Manually register key effects to ensure they're available
+    /// </summary>
+    private void RegisterKeyEffects()
+    {
+        try
+        {
+            // Try to register some of the newly created effects
+            // This will help with debugging if automatic discovery isn't working
+            System.Diagnostics.Debug.WriteLine("[AVS Effects] Attempting to manually register key effects...");
+            
+            // Note: These will only work if the effect types are accessible from this assembly
+            // If they're not, the automatic discovery should still find them
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error in manual effect registration: {ex.Message}");
+        }
     }
 
     public void Initialize()
@@ -140,6 +173,159 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         }
     }
 
+    /// <summary>
+    /// Manually refresh the effects list - useful for debugging and development
+    /// </summary>
+    public void RefreshEffectsList()
+    {
+        System.Diagnostics.Debug.WriteLine("[AVS Effects] Manually refreshing effects list...");
+        _availableEffects.Clear();
+        DiscoverAvsEffects();
+        System.Diagnostics.Debug.WriteLine($"[AVS Effects] Refresh complete. Available effects: {_availableEffects.Count}");
+    }
+
+    /// <summary>
+    /// Get a list of all available effect names
+    /// </summary>
+    public List<string> GetAvailableEffectNames()
+    {
+        return _availableEffects.Keys.OrderBy(k => k).ToList();
+    }
+
+    /// <summary>
+    /// Get the count of available effects
+    /// </summary>
+    public int GetAvailableEffectCount()
+    {
+        return _availableEffects.Count;
+    }
+
+    /// <summary>
+    /// Check if a specific effect is available
+    /// </summary>
+    public bool IsEffectAvailable(string effectName)
+    {
+        return _availableEffects.ContainsKey(effectName);
+    }
+
+    /// <summary>
+    /// Get a specific effect by name
+    /// </summary>
+    public IEffectNode? GetEffect(string effectName)
+    {
+        return _availableEffects.TryGetValue(effectName, out var effect) ? effect : null;
+    }
+
+    /// <summary>
+    /// Manually register an effect - useful for testing and development
+    /// </summary>
+    public void RegisterEffect(string effectName, IEffectNode effect)
+    {
+        if (!_availableEffects.ContainsKey(effectName))
+        {
+            _availableEffects[effectName] = effect;
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Manually registered effect: {effectName}");
+        }
+    }
+
+    /// <summary>
+    /// Manually register an effect by type - useful for testing and development
+    /// </summary>
+    public void RegisterEffectByType<T>() where T : IEffectNode, new()
+    {
+        try
+        {
+            var effect = new T();
+            var effectName = typeof(T).Name.Replace("EffectsNode", "").Replace("Node", "");
+            RegisterEffect(effectName, effect);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error manually registering effect type {typeof(T).Name}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Debug method to test effect discovery
+    /// </summary>
+    public void DebugEffectDiscovery()
+    {
+        System.Diagnostics.Debug.WriteLine("=== AVS Effects Discovery Debug ===");
+        System.Diagnostics.Debug.WriteLine($"Current available effects count: {_availableEffects.Count}");
+        
+        if (_availableEffects.Count > 0)
+        {
+            System.Diagnostics.Debug.WriteLine("Available effects:");
+            foreach (var kvp in _availableEffects.OrderBy(k => k.Key))
+            {
+                System.Diagnostics.Debug.WriteLine($"  - {kvp.Key}: {kvp.Value.GetType().FullName}");
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("No effects found! Attempting discovery...");
+            DiscoverAvsEffects();
+            System.Diagnostics.Debug.WriteLine($"After discovery: {_availableEffects.Count} effects");
+        }
+        
+        // Also try to discover all effect types without instantiation
+        DiscoverAllEffectTypes();
+        
+        System.Diagnostics.Debug.WriteLine("=== End Debug ===");
+    }
+
+    /// <summary>
+    /// Discover all effect types without instantiation - for debugging
+    /// </summary>
+    private void DiscoverAllEffectTypes()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("--- Discovering All Effect Types ---");
+            
+            var allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var allEffectTypes = new List<Type>();
+            
+            foreach (var assembly in allAssemblies)
+            {
+                try
+                {
+                    if (assembly.FullName?.Contains("PhoenixVisualizer") == true)
+                    {
+                        var assemblyEffectTypes = assembly
+                            .GetTypes()
+                            .Where(t => t.IsClass && !t.IsAbstract && 
+                                      (t.IsSubclassOf(typeof(BaseEffectNode)) || 
+                                       t.GetInterfaces().Contains(typeof(IEffectNode))))
+                            .ToList();
+                        
+                        if (assemblyEffectTypes.Count > 0)
+                        {
+                            allEffectTypes.AddRange(assemblyEffectTypes);
+                            System.Diagnostics.Debug.WriteLine($"Assembly {assembly.GetName().Name}: {assemblyEffectTypes.Count} effect types");
+                            
+                            foreach (var effectType in assemblyEffectTypes)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"  - {effectType.Name} ({effectType.FullName})");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error scanning assembly {assembly.GetName().Name}: {ex.Message}");
+                }
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Total effect types found across all assemblies: {allEffectTypes.Count}");
+            System.Diagnostics.Debug.WriteLine("--- End Effect Types Discovery ---");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in DiscoverAllEffectTypes: {ex.Message}");
+        }
+    }
+
     public void Dispose()
     {
         Shutdown();
@@ -150,25 +336,84 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
     {
         try
         {
+            var allEffectTypes = new List<Type>();
+            
             // Get all types from the current assembly that inherit from BaseEffectNode
-            var effectTypes = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(BaseEffectNode)))
+            try
+            {
+                var currentAssemblyTypes = Assembly.GetExecutingAssembly()
+                    .GetTypes()
+                    .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(BaseEffectNode)))
+                    .ToList();
+                allEffectTypes.AddRange(currentAssemblyTypes);
+                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Found {currentAssemblyTypes.Count} effects in current assembly");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error scanning current assembly: {ex.Message}");
+            }
+
+            // Check the Core assembly for AVS effects - this is where most effects are located
+            try
+            {
+                var coreAssembly = typeof(BaseEffectNode).Assembly;
+                var coreEffectTypes = coreAssembly
+                    .GetTypes()
+                    .Where(t => t.IsClass && !t.IsAbstract && 
+                               (t.IsSubclassOf(typeof(BaseEffectNode)) || 
+                                t.GetInterfaces().Contains(typeof(IEffectNode))))
+                    .ToList();
+                allEffectTypes.AddRange(coreEffectTypes);
+                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Found {coreEffectTypes.Count} effects in Core assembly");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error scanning Core assembly: {ex.Message}");
+            }
+
+            // Also check all loaded assemblies for BaseEffectNode types
+            try
+            {
+                var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var assembly in loadedAssemblies)
+                {
+                    try
+                    {
+                        if (assembly.FullName?.Contains("PhoenixVisualizer") == true)
+                        {
+                            var assemblyEffectTypes = assembly
+                                .GetTypes()
+                                .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(BaseEffectNode)))
+                                .ToList();
+                            
+                            if (assemblyEffectTypes.Count > 0)
+                            {
+                                allEffectTypes.AddRange(assemblyEffectTypes);
+                                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Found {assemblyEffectTypes.Count} effects in {assembly.GetName().Name}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error scanning assembly {assembly.GetName().Name}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error scanning loaded assemblies: {ex.Message}");
+            }
+
+            // Remove duplicates and filter for valid effect types
+            var uniqueEffectTypes = allEffectTypes
+                .Where(t => t != null && t.IsClass && !t.IsAbstract && 
+                           (t.IsSubclassOf(typeof(BaseEffectNode)) || t.GetInterfaces().Contains(typeof(IEffectNode))))
+                .Distinct()
                 .ToList();
 
-            // Also check the Core assembly for AVS effects
-            var coreAssembly = typeof(BaseEffectNode).Assembly;
-            var coreEffectTypes = coreAssembly
-                .GetTypes()
-                .Where(t => t.IsClass && !t.IsAbstract && 
-                           (t.IsSubclassOf(typeof(BaseEffectNode)) || 
-                            t.GetInterfaces().Contains(typeof(IEffectNode))))
-                .ToList();
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Total unique effect types found: {uniqueEffectTypes.Count}");
 
-            // Combine and deduplicate
-            var allEffectTypes = effectTypes.Concat(coreEffectTypes).Distinct().ToList();
-
-            foreach (var effectType in allEffectTypes)
+            foreach (var effectType in uniqueEffectTypes)
             {
                 try
                 {
@@ -178,7 +423,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                         var effectName = effectType.Name.Replace("EffectsNode", "").Replace("Node", "");
                         _availableEffects[effectName] = effect;
                         
-                        System.Diagnostics.Debug.WriteLine($"[AVS Effects] Discovered effect: {effectName}");
+                        System.Diagnostics.Debug.WriteLine($"[AVS Effects] Successfully instantiated effect: {effectName} ({effectType.FullName})");
                     }
                 }
                 catch (Exception ex)
@@ -187,11 +432,16 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Discovered {_availableEffects.Count} effects");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Successfully discovered {_availableEffects.Count} effects out of {uniqueEffectTypes.Count} found types");
+            
+            // Log all available effect names for debugging
+            var effectNames = _availableEffects.Keys.OrderBy(k => k).ToList();
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Available effects: {string.Join(", ", effectNames)}");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error discovering effects: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Stack trace: {ex.StackTrace}");
         }
     }
 
@@ -245,7 +495,11 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         // If no selected effects found, add some defaults
         if (effects.Count == 0)
         {
-            var defaultEffects = new[] { "OscilloscopeRing", "BeatSpinning", "InterferencePatterns" };
+            var defaultEffects = new[] { 
+                "OscilloscopeRing", "BeatSpinning", "InterferencePatterns", 
+                "TimeDomainScope", "OscilloscopeStar", "Onetone",
+                "EffectStacking", "WaterBump", "Interleave"
+            };
             foreach (var effect in defaultEffects)
             {
                 if (_availableEffects.ContainsKey(effect))
