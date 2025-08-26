@@ -623,18 +623,18 @@ public partial class MainWindow : Window
             if (audio is null) return;
 
             // Check if the audio service supports tempo/pitch features
-            if (audio is AudioService bassAudio)
+            if (audio is VlcAudioService vlcAudio)
             {
-                var dlg = new TempoPitchWindow(bassAudio);
+                var dlg = new TempoPitchWindow(vlcAudio);
                 await dlg.ShowDialog(this);
             }
             else
             {
-                // Show message that tempo/pitch is not available with VLC audio
+                // Show message that tempo/pitch is not available with this audio service
                 var statusText = this.FindControl<TextBlock>("LblTime");
                 if (statusText != null)
                 {
-                    statusText.Text = "⚠️ Tempo/Pitch requires BASS audio (not available with VLC)";
+                    statusText.Text = "⚠️ Tempo/Pitch not available with this audio service";
                 }
             }
         }

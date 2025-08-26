@@ -9,13 +9,18 @@ namespace PhoenixVisualizer.Audio;
 
 public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
 {
-    private readonly LibVLC _libVlc;
-    private readonly MediaPlayer _mediaPlayer;
+    private LibVLC? _libVlc;
+    private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
     private string _currentFile = string.Empty;
     private bool _isPlaying = false;
     private bool _isDisposed = false;
     private readonly Random _random = new Random();
+    
+    // Audio data buffers for visualizers
+    private readonly float[] _spectrumData = new float[2048];
+    private readonly float[] _waveformData = new float[2048];
+    private readonly object _audioLock = new object();
 
     public bool IsPlaying => _isPlaying;
 
@@ -25,31 +30,21 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         {
             Debug.WriteLine("[VlcAudioService] Starting initialization...");
             
-            // Use the simple approach from the working example
+            // Create LibVLC instance with debug logging
             _libVlc = new LibVLC(enableDebugLogs: true);
             Debug.WriteLine("[VlcAudioService] LibVLC instance created successfully");
             
+            // Create MediaPlayer
             _mediaPlayer = new MediaPlayer(_libVlc);
             Debug.WriteLine("[VlcAudioService] MediaPlayer instance created successfully");
             
             // Set up event handlers
-            _mediaPlayer.TimeChanged += (s, e) => Debug.WriteLine($"[VlcAudioService] Time: {_mediaPlayer.Time}ms");
-            _mediaPlayer.LengthChanged += (s, e) => Debug.WriteLine($"[VlcAudioService] Length: {_mediaPlayer.Length}ms");
-            _mediaPlayer.Playing += (s, e) => 
-            { 
-                _isPlaying = true; 
-                Debug.WriteLine("[VlcAudioService] Playback started"); 
-            };
-            _mediaPlayer.Paused += (s, e) => 
-            { 
-                _isPlaying = false; 
-                Debug.WriteLine("[VlcAudioService] Playback paused"); 
-            };
-            _mediaPlayer.Stopped += (s, e) => 
-            { 
-                _isPlaying = false; 
-                Debug.WriteLine("[VlcAudioService] Playback stopped"); 
-            };
+            _mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
+            _mediaPlayer.LengthChanged += MediaPlayer_LengthChanged;
+            _mediaPlayer.Playing += MediaPlayer_Playing;
+            _mediaPlayer.Paused += MediaPlayer_Paused;
+            _mediaPlayer.Stopped += MediaPlayer_Stopped;
+            _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
             
             Debug.WriteLine("[VlcAudioService] Initialized successfully with LibVLC (debug enabled)");
         }
@@ -61,9 +56,42 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         }
     }
 
+    private void MediaPlayer_TimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
+    {
+        Debug.WriteLine($"[VlcAudioService] Time: {e.Time}ms");
+    }
+
+    private void MediaPlayer_LengthChanged(object? sender, MediaPlayerLengthChangedEventArgs e)
+    {
+        Debug.WriteLine($"[VlcAudioService] Length: {e.Length}ms");
+    }
+
+    private void MediaPlayer_Playing(object? sender, EventArgs e)
+    {
+        _isPlaying = true;
+        Debug.WriteLine("[VlcAudioService] Playback started");
+    }
+
+    private void MediaPlayer_Paused(object? sender, EventArgs e)
+    {
+        _isPlaying = false;
+        Debug.WriteLine("[VlcAudioService] Playback paused");
+    }
+
+    private void MediaPlayer_Stopped(object? sender, EventArgs e)
+    {
+        _isPlaying = false;
+        Debug.WriteLine("[VlcAudioService] Playback stopped");
+    }
+
+    private void MediaPlayer_EncounteredError(object? sender, EventArgs e)
+    {
+        Debug.WriteLine("[VlcAudioService] MediaPlayer encountered an error");
+    }
+
     public void Play(string path)
     {
-        if (_isDisposed) return;
+        if (_isDisposed || _mediaPlayer == null) return;
         
         try
         {
@@ -73,10 +101,13 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
                 _mediaPlayer.Stop();
 
             _currentMedia?.Dispose();
-            _currentMedia = new Media(_libVlc, new Uri(path));
+            
+            // Create media from file path
+            _currentMedia = new Media(_libVlc!, new Uri(Path.GetFullPath(path)));
             _mediaPlayer.Media = _currentMedia;
             _currentFile = path;
             
+            // Start playback
             _mediaPlayer.Play();
             Debug.WriteLine($"[VlcAudioService] Play() called successfully for: {path}");
         }
@@ -125,14 +156,28 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
 
     public float[] GetWaveformData()
     {
-        // For now, return simulated data until we implement real audio capture
-        return GenerateSimulatedWaveformData();
+        lock (_audioLock)
+        {
+            if (_isPlaying && _mediaPlayer != null)
+            {
+                // For now, return simulated data that responds to playback state
+                return GenerateResponsiveWaveformData();
+            }
+            return GenerateSimulatedWaveformData();
+        }
     }
 
     public float[] GetSpectrumData()
     {
-        // For now, return simulated data until we implement real audio capture
-        return GenerateSimulatedSpectrumData();
+        lock (_audioLock)
+        {
+            if (_isPlaying && _mediaPlayer != null)
+            {
+                // For now, return simulated data that responds to playback state
+                return GenerateResponsiveSpectrumData();
+            }
+            return GenerateSimulatedSpectrumData();
+        }
     }
 
     public void SetRate(float rate)
@@ -198,12 +243,12 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         
         try
         {
-            if (_mediaPlayer.IsPlaying)
+            if (_mediaPlayer?.IsPlaying == true)
                 _mediaPlayer.Stop();
 
             _currentMedia?.Dispose();
-            _currentMedia = new Media(_libVlc, new Uri(path));
-            _mediaPlayer.Media = _currentMedia;
+            _currentMedia = new Media(_libVlc!, new Uri(Path.GetFullPath(path)));
+            _mediaPlayer!.Media = _currentMedia;
             _currentFile = path;
             
             Debug.WriteLine($"[VlcAudioService] Opened file: {path}");
@@ -222,7 +267,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         
         try
         {
-            _mediaPlayer.Play();
+            _mediaPlayer!.Play();
             Debug.WriteLine("[VlcAudioService] Playback started via IAudioProvider.Play()");
             return true;
         }
@@ -248,7 +293,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
             _isDisposed = true;
             _isPlaying = false;
             
-            if (_mediaPlayer.IsPlaying) _mediaPlayer.Stop();
+            if (_mediaPlayer?.IsPlaying == true) _mediaPlayer.Stop();
             _currentMedia?.Dispose();
             _mediaPlayer?.Dispose();
             _libVlc?.Dispose();
@@ -259,6 +304,41 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         {
             Debug.WriteLine($"[VlcAudioService] Error during disposal: {ex.Message}");
         }
+    }
+
+    private float[] GenerateResponsiveSpectrumData()
+    {
+        var data = new float[2048];
+        
+        // Generate data that responds to playback state
+        for (int i = 0; i < data.Length; i++)
+        {
+            float frequency = i / (float)data.Length;
+            float amplitude = (float)(Math.Sin(frequency * Math.PI * 4 + DateTime.Now.Ticks * 0.0001) * 0.5 + 0.5);
+            amplitude *= (float)(_random.NextDouble() * 0.5 + 0.5);
+            
+            data[i] = amplitude;
+        }
+        
+        return data;
+    }
+    
+    private float[] GenerateResponsiveWaveformData()
+    {
+        var data = new float[2048];
+        
+        // Generate data that responds to playback state
+        for (int i = 0; i < data.Length; i++)
+        {
+            float time = i / (float)data.Length;
+            float amplitude = (float)(Math.Sin(time * Math.PI * 8 + DateTime.Now.Ticks * 0.0001) * 0.6);
+            amplitude += (float)(Math.Sin(time * Math.PI * 16 + DateTime.Now.Ticks * 0.0002) * 0.3);
+            amplitude *= (float)(_random.NextDouble() * 0.6 + 0.4);
+            
+            data[i] = amplitude;
+        }
+        
+        return data;
     }
 
     private float[] GenerateSimulatedSpectrumData()

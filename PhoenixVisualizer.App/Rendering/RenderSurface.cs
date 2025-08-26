@@ -1,5 +1,6 @@
 using System.Diagnostics;
 
+using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
@@ -50,8 +51,7 @@ public sealed class RenderSurface : Control
     public RenderSurface()
     {
         // Default to VLC audio service
-        var vlcBus = new VlcAudioBus();
-        _audio = new VlcAudioService(vlcBus);
+        _audio = new VlcAudioService();
     }
     
     public RenderSurface(IAudioProvider audioService)

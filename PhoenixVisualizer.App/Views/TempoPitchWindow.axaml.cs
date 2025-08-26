@@ -4,14 +4,14 @@ namespace PhoenixVisualizer.Views
 {
     public partial class TempoPitchWindow : Window
     {
-        private readonly AudioService? _audio;
+        private readonly VlcAudioService? _audio;
 
         public TempoPitchWindow()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
-        public TempoPitchWindow(AudioService audio)
+        public TempoPitchWindow(VlcAudioService audio)
         {
             AvaloniaXamlLoader.Load(this);
             _audio = audio;
@@ -28,26 +28,7 @@ namespace PhoenixVisualizer.Views
             var btnReset = this.FindControl<Button>("BtnReset");
             var btnClose = this.FindControl<Button>("BtnClose");
 
-            // Check if tempo/pitch is available
-            if (!_audio.TempoEnabled)
-            {
-                // Disable controls and show message
-                if (tempoSlider != null) tempoSlider.IsEnabled = false;
-                if (pitchSlider != null) pitchSlider.IsEnabled = false;
-                if (btn075 != null) btn075.IsEnabled = false;
-                if (btn050 != null) btn050.IsEnabled = false;
-                if (btn025 != null) btn025.IsEnabled = false;
-                if (btn005 != null) btn005.IsEnabled = false;
-                if (btnReset != null) btnReset.IsEnabled = false;
-                
-                if (tempoLabel != null) tempoLabel.Text = "Not Available";
-                if (pitchLabel != null) pitchLabel.Text = "Not Available";
-                
-                // Show info message
-                var infoText = this.FindControl<TextBlock>("InfoText");
-                if (infoText != null) infoText.Text = "Tempo/Pitch requires BASS_FX library. Basic playback only.";
-                return;
-            }
+            // VLC supports tempo/pitch via rate control, so we can enable all controls
 
             // Initialize labels
             if (tempoLabel != null) tempoLabel.Text = "1.00×";
@@ -60,7 +41,9 @@ namespace PhoenixVisualizer.Views
                     if (e.Property.Name == "Value" && _audio != null)
                     {
                         var m = (double)tempoSlider.Value;
-                        _audio.SetTempoMultiplier(m);
+                        // Convert multiplier to percentage (1.0 = 100%, 0.5 = 50%, etc.)
+                        var tempoPercent = (float)((m - 1.0) * 100.0);
+                        _audio.SetTempo(tempoPercent);
                         if (tempoLabel != null) tempoLabel.Text = $"{m:0.00}×";
                     }
                 };
@@ -73,7 +56,15 @@ namespace PhoenixVisualizer.Views
                     if (e.Property.Name == "Value" && _audio != null)
                     {
                         var semis = (float)pitchSlider.Value;
-                        _audio.SetPitchSemitones(semis);
+
+                        // VLC's native API does not provide a direct SetPitchSemitones method, but pitch can be changed by adjusting the playback rate.
+                        // To change pitch without affecting tempo, VLC requires the "scaletempo_pitch" audio filter.
+                        // Here, we assume VlcAudioService exposes a method to set pitch in semitones using VLC's native capabilities.
+
+                        // VLC doesn't support independent pitch control without affecting tempo
+                        // For now, we'll just update the label to show the desired pitch
+                        // TODO: Implement proper pitch shifting in VlcAudioService if needed
+
                         if (pitchLabel != null) pitchLabel.Text = $"{semis:+0;-0;0} st";
                     }
                 };

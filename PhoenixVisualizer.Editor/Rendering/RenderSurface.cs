@@ -10,7 +10,7 @@ namespace PhoenixVisualizer.Editor.Rendering;
 
 public sealed class RenderSurface : Control
 {
-    private readonly AudioService _audio;
+    private readonly VlcAudioService _audio;
     private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin();
     private Timer? _timer;
 
@@ -29,7 +29,7 @@ public sealed class RenderSurface : Control
 
     public RenderSurface()
     {
-        _audio = new AudioService();
+        _audio = new VlcAudioService();
     }
 
     public void SetPlugin(IVisualizerPlugin plugin)
@@ -61,7 +61,7 @@ public sealed class RenderSurface : Control
     }
 
     public bool Open(string path) => _audio.Open(path);
-    public void Play() => _audio.Play();
+    public bool Play() => _audio.Play();
     public void Pause() => _audio.Pause();
     public void Stop() => _audio.Stop();
 
@@ -80,8 +80,8 @@ public sealed class RenderSurface : Control
         }
 
         // Audio data
-        var fft = _audio.ReadFft();
-        var wave = _audio.ReadWaveform();
+        var fft = _audio.GetSpectrumData();
+        var wave = _audio.GetWaveformData();
         double pos = _audio.GetPositionSeconds();
         double total = _audio.GetLengthSeconds();
 
