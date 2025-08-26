@@ -21,6 +21,12 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
     private readonly float[] _spectrumData = new float[2048];
     private readonly float[] _waveformData = new float[2048];
     private readonly object _audioLock = new object();
+    
+    // Real audio data buffers
+    private float[]? _realSpectrumData;
+    private float[]? _realWaveformData;
+    private readonly float[] _audioBuffer = new float[2048];
+    private int _audioBufferIndex = 0;
 
     public bool IsPlaying => _isPlaying;
 
@@ -160,7 +166,11 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         {
             if (_isPlaying && _mediaPlayer != null)
             {
-                // For now, return simulated data that responds to playback state
+                // Return real audio data if available, otherwise responsive simulated data
+                if (_realWaveformData != null && _realWaveformData.Length > 0)
+                {
+                    return _realWaveformData;
+                }
                 return GenerateResponsiveWaveformData();
             }
             return GenerateSimulatedWaveformData();
@@ -173,7 +183,11 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         {
             if (_isPlaying && _mediaPlayer != null)
             {
-                // For now, return simulated data that responds to playback state
+                // Return real audio data if available, otherwise responsive simulated data
+                if (_realSpectrumData != null && _realSpectrumData.Length > 0)
+                {
+                    return _realSpectrumData;
+                }
                 return GenerateResponsiveSpectrumData();
             }
             return GenerateSimulatedSpectrumData();
@@ -376,5 +390,51 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         }
         
         return data;
+    }
+    
+    // Process real audio data from VLC
+    private void ProcessRealAudioData(float[] audioSamples)
+    {
+        if (audioSamples == null || audioSamples.Length == 0) return;
+        
+        lock (_audioLock)
+        {
+            // Update waveform data (simple downsampling for now)
+            var waveformData = new float[2048];
+            int step = Math.Max(1, audioSamples.Length / 2048);
+            
+            for (int i = 0; i < 2048 && i * step < audioSamples.Length; i++)
+            {
+                waveformData[i] = audioSamples[i * step];
+            }
+            
+            _realWaveformData = waveformData;
+            
+            // Generate spectrum data from waveform (simple FFT approximation)
+            var spectrumData = new float[2048];
+            for (int i = 0; i < 2048; i++)
+            {
+                // Simple frequency analysis - this is a placeholder for real FFT
+                float frequency = i / 2048.0f;
+                float amplitude = 0;
+                
+                for (int j = 0; j < Math.Min(audioSamples.Length, 1024); j++)
+                {
+                    amplitude += (float)(audioSamples[j] * Math.Sin(frequency * Math.PI * 2 * j));
+                }
+                
+                spectrumData[i] = Math.Abs(amplitude) / 1024.0f;
+            }
+            
+            _realSpectrumData = spectrumData;
+            
+            Debug.WriteLine($"[VlcAudioService] Processed {audioSamples.Length} audio samples into real data");
+        }
+    }
+    
+    // Method to feed real audio data from external source
+    public void FeedAudioData(float[] audioSamples)
+    {
+        ProcessRealAudioData(audioSamples);
     }
 }
