@@ -15,6 +15,7 @@ This folder indexes core specs and reference conversations relevant to the Phoen
 - **ContrastEffectsNode** - Contrast adjustment effects fully implemented
 - **SuperscopeEffectsNode** - Fully integrated with Phoenix architecture ✅ **COMPLETE**
 - **Code Quality & Build Status** - All compilation errors resolved, PhoenixVisualizer.Core builds successfully ✅ **LATEST**
+- **Winamp Integration Removed** - Simplified to built-in visualizers only, all projects build successfully ✅ **LATEST**
 - **Effects Implementation Status**: [EffectsImplementationStatus.md](Docs/Effects/EffectsImplementationStatus.md)
 
 ## Reference Conversations
