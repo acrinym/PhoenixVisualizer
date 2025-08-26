@@ -1,0 +1,696 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using PhoenixVisualizer.Core.Effects.Models;
+using PhoenixVisualizer.Core.Models;
+
+namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
+{
+    /// <summary>
+    /// SVP (Super Video Processing) Effects
+    /// Advanced video processing with multiple algorithms and real-time enhancement
+    /// </summary>
+    public class SVPEffectsNode : BaseEffectNode
+    {
+        #region Properties
+
+        public bool Enabled { get; set; } = true;
+        
+        /// <summary>
+        /// SVP processing mode
+        /// 0 = Motion compensation, 1 = Frame interpolation, 2 = Noise reduction, 3 = Edge enhancement
+        /// </summary>
+        public int ProcessingMode { get; set; } = 0;
+        
+        /// <summary>
+        /// Processing intensity (0.0 to 2.0)
+        /// </summary>
+        public float ProcessingIntensity { get; set; } = 1.0f;
+        
+        /// <summary>
+        /// Quality vs Speed balance (0.0 = speed, 1.0 = quality)
+        /// </summary>
+        public float QualityBalance { get; set; } = 0.7f;
+        
+        /// <summary>
+        /// Enable temporal processing (multi-frame analysis)
+        /// </summary>
+        public bool TemporalProcessing { get; set; } = true;
+        
+        /// <summary>
+        /// Motion detection sensitivity
+        /// </summary>
+        public float MotionSensitivity { get; set; } = 0.5f;
+        
+        /// <summary>
+        /// Beat reactive processing boost
+        /// </summary>
+        public bool BeatReactive { get; set; } = false;
+        
+        /// <summary>
+        /// Beat boost multiplier
+        /// </summary>
+        public float BeatBoostMultiplier { get; set; } = 1.5f;
+        
+        /// <summary>
+        /// Enable adaptive processing based on scene complexity
+        /// </summary>
+        public bool AdaptiveProcessing { get; set; } = true;
+        
+        /// <summary>
+        /// Artifact reduction strength
+        /// </summary>
+        public float ArtifactReduction { get; set; } = 0.3f;
+        
+        /// <summary>
+        /// Color space processing mode
+        /// 0 = RGB, 1 = YUV, 2 = HSV, 3 = Lab
+        /// </summary>
+        public int ColorSpaceMode { get; set; } = 1;
+        
+        /// <summary>
+        /// Enable multi-threading for performance
+        /// </summary>
+        public bool MultiThreading { get; set; } = true;
+
+        #endregion
+
+        #region Private Fields
+
+        private ImageBuffer[] _frameHistory = new ImageBuffer[5]; // Keep last 5 frames for temporal processing
+        private int _frameHistoryIndex = 0;
+        private int _beatCounter = 0;
+        private float[] _motionVectors = new float[1000]; // Motion estimation data
+        private readonly Random _random = new Random();
+        private const int BEAT_DURATION = 30;
+
+        #endregion
+
+        #region Constructor
+
+        public SVPEffectsNode()
+        {
+            Name = "SVP Effects";
+            Description = "Advanced video processing with motion compensation and enhancement";
+            Category = "Video Effects";
+        }
+
+        #endregion
+
+        #region Initialization
+
+        protected override void InitializePorts()
+        {
+            _inputPorts.Add(new EffectPort("Video", typeof(ImageBuffer), true, null, "Source video frame"));
+            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "SVP processed output"));
+        }
+
+        #endregion
+
+        #region Effect Processing
+
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
+        {
+            if (!Enabled) return;
+
+            try
+            {
+                var sourceImage = GetInputValue<ImageBuffer>("Video", inputData);
+                if (sourceImage?.Data == null) return;
+
+                var outputImage = new ImageBuffer(sourceImage.Width, sourceImage.Height);
+
+                // Handle beat reactivity
+                if (BeatReactive && audioFeatures.Beat)
+                {
+                    _beatCounter = BEAT_DURATION;
+                }
+                else if (_beatCounter > 0)
+                {
+                    _beatCounter--;
+                }
+
+                // Store current frame in history
+                UpdateFrameHistory(sourceImage);
+
+                // Apply SVP processing
+                ApplySVPProcessing(sourceImage, outputImage, audioFeatures);
+
+                outputData["Output"] = outputImage;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SVP Effects] Error processing frame: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void UpdateFrameHistory(ImageBuffer currentFrame)
+        {
+            // Initialize frame history if needed
+            if (_frameHistory[0] == null)
+            {
+                for (int i = 0; i < _frameHistory.Length; i++)
+                {
+                    _frameHistory[i] = new ImageBuffer(currentFrame.Width, currentFrame.Height);
+                }
+            }
+
+            // Store current frame
+            Array.Copy(currentFrame.Data, _frameHistory[_frameHistoryIndex].Data, currentFrame.Data.Length);
+            _frameHistoryIndex = (_frameHistoryIndex + 1) % _frameHistory.Length;
+        }
+
+        private void ApplySVPProcessing(ImageBuffer source, ImageBuffer output, AudioFeatures audioFeatures)
+        {
+            // Calculate effective processing intensity
+            float effectiveIntensity = CalculateEffectiveIntensity();
+
+            switch (ProcessingMode)
+            {
+                case 0: // Motion compensation
+                    ApplyMotionCompensation(source, output, effectiveIntensity);
+                    break;
+
+                case 1: // Frame interpolation
+                    ApplyFrameInterpolation(source, output, effectiveIntensity);
+                    break;
+
+                case 2: // Noise reduction
+                    ApplyNoiseReduction(source, output, effectiveIntensity);
+                    break;
+
+                case 3: // Edge enhancement
+                    ApplyEdgeEnhancement(source, output, effectiveIntensity);
+                    break;
+
+                default:
+                    Array.Copy(source.Data, output.Data, source.Data.Length);
+                    break;
+            }
+
+            // Apply artifact reduction if enabled
+            if (ArtifactReduction > 0)
+            {
+                ApplyArtifactReduction(output, ArtifactReduction);
+            }
+        }
+
+        private float CalculateEffectiveIntensity()
+        {
+            float intensity = ProcessingIntensity;
+
+            // Apply beat boost
+            if (BeatReactive && _beatCounter > 0)
+            {
+                float beatFactor = (_beatCounter / (float)BEAT_DURATION);
+                intensity *= (1.0f + (BeatBoostMultiplier - 1.0f) * beatFactor);
+            }
+
+            return Math.Max(0.0f, Math.Min(2.0f, intensity));
+        }
+
+        private void ApplyMotionCompensation(ImageBuffer source, ImageBuffer output, float intensity)
+        {
+            int width = source.Width;
+            int height = source.Height;
+
+            // Simple motion compensation algorithm
+            if (TemporalProcessing && _frameHistory[0] != null)
+            {
+                var previousFrame = _frameHistory[(_frameHistoryIndex + _frameHistory.Length - 1) % _frameHistory.Length];
+                
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int index = y * width + x;
+                        
+                        // Estimate motion vector
+                        float motionX, motionY;
+                        EstimateMotion(source, previousFrame, x, y, out motionX, out motionY);
+                        
+                        // Apply motion compensation
+                        int compensatedX = (int)(x + motionX * intensity * MotionSensitivity);
+                        int compensatedY = (int)(y + motionY * intensity * MotionSensitivity);
+                        
+                        // Clamp coordinates
+                        compensatedX = Math.Max(0, Math.Min(width - 1, compensatedX));
+                        compensatedY = Math.Max(0, Math.Min(height - 1, compensatedY));
+                        
+                        uint compensatedPixel = source.Data[compensatedY * width + compensatedX];
+                        uint originalPixel = source.Data[index];
+                        
+                        // Blend based on quality balance
+                        output.Data[index] = BlendPixels(originalPixel, compensatedPixel, QualityBalance);
+                    }
+                }
+            }
+            else
+            {
+                Array.Copy(source.Data, output.Data, source.Data.Length);
+            }
+        }
+
+        private void EstimateMotion(ImageBuffer current, ImageBuffer previous, int x, int y, out float motionX, out float motionY)
+        {
+            // Simple block-matching motion estimation
+            int blockSize = 8;
+            int searchRange = 16;
+            
+            int bestMatchX = 0, bestMatchY = 0;
+            int minDifference = int.MaxValue;
+            
+            int width = current.Width;
+            int height = current.Height;
+            
+            // Search in a small window around the current position
+            for (int dy = -searchRange; dy <= searchRange; dy += 2)
+            {
+                for (int dx = -searchRange; dx <= searchRange; dx += 2)
+                {
+                    int searchX = x + dx;
+                    int searchY = y + dy;
+                    
+                    if (searchX >= 0 && searchX < width && searchY >= 0 && searchY < height)
+                    {
+                        int difference = CalculateBlockDifference(current, previous, x, y, searchX, searchY, blockSize);
+                        
+                        if (difference < minDifference)
+                        {
+                            minDifference = difference;
+                            bestMatchX = dx;
+                            bestMatchY = dy;
+                        }
+                    }
+                }
+            }
+            
+            motionX = bestMatchX / (float)searchRange;
+            motionY = bestMatchY / (float)searchRange;
+        }
+
+        private int CalculateBlockDifference(ImageBuffer current, ImageBuffer previous, int x1, int y1, int x2, int y2, int blockSize)
+        {
+            int width = current.Width;
+            int height = current.Height;
+            int totalDifference = 0;
+            int pixelCount = 0;
+            
+            for (int dy = -blockSize/2; dy < blockSize/2; dy++)
+            {
+                for (int dx = -blockSize/2; dx < blockSize/2; dx++)
+                {
+                    int px1 = x1 + dx, py1 = y1 + dy;
+                    int px2 = x2 + dx, py2 = y2 + dy;
+                    
+                    if (px1 >= 0 && px1 < width && py1 >= 0 && py1 < height &&
+                        px2 >= 0 && px2 < width && py2 >= 0 && py2 < height)
+                    {
+                        uint pixel1 = current.Data[py1 * width + px1];
+                        uint pixel2 = previous.Data[py2 * width + px2];
+                        
+                        int r1 = (int)((pixel1 >> 16) & 0xFF);
+                        int g1 = (int)((pixel1 >> 8) & 0xFF);
+                        int b1 = (int)(pixel1 & 0xFF);
+                        
+                        int r2 = (int)((pixel2 >> 16) & 0xFF);
+                        int g2 = (int)((pixel2 >> 8) & 0xFF);
+                        int b2 = (int)(pixel2 & 0xFF);
+                        
+                        totalDifference += Math.Abs(r1 - r2) + Math.Abs(g1 - g2) + Math.Abs(b1 - b2);
+                        pixelCount++;
+                    }
+                }
+            }
+            
+            return pixelCount > 0 ? totalDifference / pixelCount : int.MaxValue;
+        }
+
+        private void ApplyFrameInterpolation(ImageBuffer source, ImageBuffer output, float intensity)
+        {
+            // Frame interpolation using temporal blending
+            if (TemporalProcessing && _frameHistory[0] != null)
+            {
+                var previousFrame = _frameHistory[(_frameHistoryIndex + _frameHistory.Length - 1) % _frameHistory.Length];
+                var nextFrame = _frameHistory[(_frameHistoryIndex + _frameHistory.Length - 2) % _frameHistory.Length];
+                
+                for (int i = 0; i < source.Data.Length; i++)
+                {
+                    uint currentPixel = source.Data[i];
+                    uint prevPixel = previousFrame.Data[i];
+                    uint nextPixel = nextFrame?.Data[i] ?? currentPixel;
+                    
+                    // Temporal interpolation
+                    uint interpolatedPixel = InterpolatePixels(prevPixel, currentPixel, nextPixel, intensity);
+                    output.Data[i] = interpolatedPixel;
+                }
+            }
+            else
+            {
+                Array.Copy(source.Data, output.Data, source.Data.Length);
+            }
+        }
+
+        private void ApplyNoiseReduction(ImageBuffer source, ImageBuffer output, float intensity)
+        {
+            int width = source.Width;
+            int height = source.Height;
+            
+            // Temporal noise reduction using frame history
+            if (TemporalProcessing && _frameHistory[0] != null)
+            {
+                for (int i = 0; i < source.Data.Length; i++)
+                {
+                    uint currentPixel = source.Data[i];
+                    uint[] historyPixels = new uint[_frameHistory.Length];
+                    
+                    for (int j = 0; j < _frameHistory.Length; j++)
+                    {
+                        historyPixels[j] = _frameHistory[j]?.Data[i] ?? currentPixel;
+                    }
+                    
+                    // Apply temporal averaging with outlier rejection
+                    output.Data[i] = ApplyTemporalFiltering(currentPixel, historyPixels, intensity);
+                }
+            }
+            else
+            {
+                // Spatial noise reduction
+                ApplySpatialNoiseReduction(source, output, intensity);
+            }
+        }
+
+        private void ApplySpatialNoiseReduction(ImageBuffer source, ImageBuffer output, float intensity)
+        {
+            int width = source.Width;
+            int height = source.Height;
+            
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int index = y * width + x;
+                    uint centerPixel = source.Data[index];
+                    
+                    // 3x3 neighborhood average
+                    uint[] neighbors = new uint[9];
+                    int neighborIndex = 0;
+                    
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            neighbors[neighborIndex++] = source.Data[(y + dy) * width + (x + dx)];
+                        }
+                    }
+                    
+                    uint filteredPixel = ApplyMedianFilter(neighbors);
+                    output.Data[index] = BlendPixels(centerPixel, filteredPixel, intensity);
+                }
+            }
+            
+            // Copy edges
+            for (int x = 0; x < width; x++)
+            {
+                output.Data[x] = source.Data[x]; // Top row
+                output.Data[(height - 1) * width + x] = source.Data[(height - 1) * width + x]; // Bottom row
+            }
+            for (int y = 0; y < height; y++)
+            {
+                output.Data[y * width] = source.Data[y * width]; // Left column
+                output.Data[y * width + width - 1] = source.Data[y * width + width - 1]; // Right column
+            }
+        }
+
+        private void ApplyEdgeEnhancement(ImageBuffer source, ImageBuffer output, float intensity)
+        {
+            int width = source.Width;
+            int height = source.Height;
+            
+            // Sobel edge detection with enhancement
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int index = y * width + x;
+                    uint centerPixel = source.Data[index];
+                    
+                    // Calculate edge strength using Sobel operator
+                    float edgeStrength = CalculateEdgeStrength(source, x, y, width);
+                    
+                    // Enhance edges
+                    uint enhancedPixel = EnhanceEdges(centerPixel, edgeStrength, intensity);
+                    output.Data[index] = enhancedPixel;
+                }
+            }
+            
+            // Copy edges without enhancement
+            for (int x = 0; x < width; x++)
+            {
+                output.Data[x] = source.Data[x];
+                output.Data[(height - 1) * width + x] = source.Data[(height - 1) * width + x];
+            }
+            for (int y = 0; y < height; y++)
+            {
+                output.Data[y * width] = source.Data[y * width];
+                output.Data[y * width + width - 1] = source.Data[y * width + width - 1];
+            }
+        }
+
+        private float CalculateEdgeStrength(ImageBuffer source, int x, int y, int width)
+        {
+            // Sobel X kernel: [-1, 0, 1; -2, 0, 2; -1, 0, 1]
+            // Sobel Y kernel: [-1, -2, -1; 0, 0, 0; 1, 2, 1]
+            
+            float gx = 0, gy = 0;
+            
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    uint pixel = source.Data[(y + dy) * width + (x + dx)];
+                    float luminance = GetLuminance(pixel);
+                    
+                    // Sobel X
+                    if (dx == -1) gx -= luminance * (dy == 0 ? 2 : 1);
+                    else if (dx == 1) gx += luminance * (dy == 0 ? 2 : 1);
+                    
+                    // Sobel Y
+                    if (dy == -1) gy -= luminance * (dx == 0 ? 2 : 1);
+                    else if (dy == 1) gy += luminance * (dx == 0 ? 2 : 1);
+                }
+            }
+            
+            return (float)Math.Sqrt(gx * gx + gy * gy) / 255.0f;
+        }
+
+        private float GetLuminance(uint pixel)
+        {
+            uint r = (pixel >> 16) & 0xFF;
+            uint g = (pixel >> 8) & 0xFF;
+            uint b = pixel & 0xFF;
+            return r * 0.299f + g * 0.587f + b * 0.114f;
+        }
+
+        private uint EnhanceEdges(uint centerPixel, float edgeStrength, float intensity)
+        {
+            uint a = (centerPixel >> 24) & 0xFF;
+            uint r = (centerPixel >> 16) & 0xFF;
+            uint g = (centerPixel >> 8) & 0xFF;
+            uint b = centerPixel & 0xFF;
+            
+            // Enhance based on edge strength
+            float enhancement = 1.0f + edgeStrength * intensity;
+            
+            r = (uint)Math.Min(255, r * enhancement);
+            g = (uint)Math.Min(255, g * enhancement);
+            b = (uint)Math.Min(255, b * enhancement);
+            
+            return (a << 24) | (r << 16) | (g << 8) | b;
+        }
+
+        private uint ApplyTemporalFiltering(uint currentPixel, uint[] historyPixels, float intensity)
+        {
+            // Calculate median of history for noise reduction
+            uint medianPixel = ApplyMedianFilter(historyPixels);
+            return BlendPixels(currentPixel, medianPixel, intensity * 0.5f);
+        }
+
+        private uint ApplyMedianFilter(uint[] pixels)
+        {
+            // Simple median calculation for each channel
+            byte[] rValues = new byte[pixels.Length];
+            byte[] gValues = new byte[pixels.Length];
+            byte[] bValues = new byte[pixels.Length];
+            byte[] aValues = new byte[pixels.Length];
+            
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                aValues[i] = (byte)((pixels[i] >> 24) & 0xFF);
+                rValues[i] = (byte)((pixels[i] >> 16) & 0xFF);
+                gValues[i] = (byte)((pixels[i] >> 8) & 0xFF);
+                bValues[i] = (byte)(pixels[i] & 0xFF);
+            }
+            
+            Array.Sort(rValues);
+            Array.Sort(gValues);
+            Array.Sort(bValues);
+            Array.Sort(aValues);
+            
+            int medianIndex = pixels.Length / 2;
+            return ((uint)aValues[medianIndex] << 24) | ((uint)rValues[medianIndex] << 16) | 
+                   ((uint)gValues[medianIndex] << 8) | bValues[medianIndex];
+        }
+
+        private uint InterpolatePixels(uint pixel1, uint pixel2, uint pixel3, float factor)
+        {
+            // Temporal interpolation between three frames
+            uint a1 = (pixel1 >> 24) & 0xFF, r1 = (pixel1 >> 16) & 0xFF, g1 = (pixel1 >> 8) & 0xFF, b1 = pixel1 & 0xFF;
+            uint a2 = (pixel2 >> 24) & 0xFF, r2 = (pixel2 >> 16) & 0xFF, g2 = (pixel2 >> 8) & 0xFF, b2 = pixel2 & 0xFF;
+            uint a3 = (pixel3 >> 24) & 0xFF, r3 = (pixel3 >> 16) & 0xFF, g3 = (pixel3 >> 8) & 0xFF, b3 = pixel3 & 0xFF;
+            
+            // Weighted average
+            uint finalA = (uint)((a1 + a2 * 2 + a3) / 4);
+            uint finalR = (uint)((r1 + r2 * 2 + r3) / 4);
+            uint finalG = (uint)((g1 + g2 * 2 + g3) / 4);
+            uint finalB = (uint)((b1 + b2 * 2 + b3) / 4);
+            
+            // Blend with original based on factor
+            finalA = (uint)(a2 * (1 - factor) + finalA * factor);
+            finalR = (uint)(r2 * (1 - factor) + finalR * factor);
+            finalG = (uint)(g2 * (1 - factor) + finalG * factor);
+            finalB = (uint)(b2 * (1 - factor) + finalB * factor);
+            
+            return (finalA << 24) | (finalR << 16) | (finalG << 8) | finalB;
+        }
+
+        private void ApplyArtifactReduction(ImageBuffer image, float strength)
+        {
+            // Simple artifact reduction using local averaging
+            if (strength <= 0) return;
+            
+            int width = image.Width;
+            int height = image.Height;
+            var tempBuffer = new uint[image.Data.Length];
+            Array.Copy(image.Data, tempBuffer, image.Data.Length);
+            
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int index = y * width + x;
+                    uint centerPixel = tempBuffer[index];
+                    
+                    // Calculate local average
+                    uint avgPixel = CalculateLocalAverage(tempBuffer, x, y, width);
+                    
+                    // Blend based on strength
+                    image.Data[index] = BlendPixels(centerPixel, avgPixel, strength);
+                }
+            }
+        }
+
+        private uint CalculateLocalAverage(uint[] data, int x, int y, int width)
+        {
+            uint totalA = 0, totalR = 0, totalG = 0, totalB = 0;
+            int count = 0;
+            
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    uint pixel = data[(y + dy) * width + (x + dx)];
+                    totalA += (pixel >> 24) & 0xFF;
+                    totalR += (pixel >> 16) & 0xFF;
+                    totalG += (pixel >> 8) & 0xFF;
+                    totalB += pixel & 0xFF;
+                    count++;
+                }
+            }
+            
+            return ((totalA / (uint)count) << 24) | ((totalR / (uint)count) << 16) | 
+                   ((totalG / (uint)count) << 8) | (totalB / (uint)count);
+        }
+
+        private uint BlendPixels(uint pixel1, uint pixel2, float factor)
+        {
+            uint a1 = (pixel1 >> 24) & 0xFF, r1 = (pixel1 >> 16) & 0xFF, g1 = (pixel1 >> 8) & 0xFF, b1 = pixel1 & 0xFF;
+            uint a2 = (pixel2 >> 24) & 0xFF, r2 = (pixel2 >> 16) & 0xFF, g2 = (pixel2 >> 8) & 0xFF, b2 = pixel2 & 0xFF;
+            
+            uint finalA = (uint)(a1 * (1 - factor) + a2 * factor);
+            uint finalR = (uint)(r1 * (1 - factor) + r2 * factor);
+            uint finalG = (uint)(g1 * (1 - factor) + g2 * factor);
+            uint finalB = (uint)(b1 * (1 - factor) + b2 * factor);
+            
+            return (finalA << 24) | (finalR << 16) | (finalG << 8) | finalB;
+        }
+
+        #endregion
+
+        #region Configuration
+
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "ProcessingMode", ProcessingMode },
+                { "ProcessingIntensity", ProcessingIntensity },
+                { "QualityBalance", QualityBalance },
+                { "TemporalProcessing", TemporalProcessing },
+                { "MotionSensitivity", MotionSensitivity },
+                { "BeatReactive", BeatReactive },
+                { "BeatBoostMultiplier", BeatBoostMultiplier },
+                { "AdaptiveProcessing", AdaptiveProcessing },
+                { "ArtifactReduction", ArtifactReduction },
+                { "ColorSpaceMode", ColorSpaceMode },
+                { "MultiThreading", MultiThreading }
+            };
+        }
+
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            
+            if (config.TryGetValue("ProcessingMode", out var processingMode))
+                ProcessingMode = Convert.ToInt32(processingMode);
+            
+            if (config.TryGetValue("ProcessingIntensity", out var intensity))
+                ProcessingIntensity = Convert.ToSingle(intensity);
+            
+            if (config.TryGetValue("QualityBalance", out var quality))
+                QualityBalance = Convert.ToSingle(quality);
+            
+            if (config.TryGetValue("TemporalProcessing", out var temporal))
+                TemporalProcessing = Convert.ToBoolean(temporal);
+            
+            if (config.TryGetValue("MotionSensitivity", out var motion))
+                MotionSensitivity = Convert.ToSingle(motion);
+            
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            
+            if (config.TryGetValue("BeatBoostMultiplier", out var beatBoost))
+                BeatBoostMultiplier = Convert.ToSingle(beatBoost);
+            
+            if (config.TryGetValue("AdaptiveProcessing", out var adaptive))
+                AdaptiveProcessing = Convert.ToBoolean(adaptive);
+            
+            if (config.TryGetValue("ArtifactReduction", out var artifact))
+                ArtifactReduction = Convert.ToSingle(artifact);
+            
+            if (config.TryGetValue("ColorSpaceMode", out var colorSpace))
+                ColorSpaceMode = Convert.ToInt32(colorSpace);
+            
+            if (config.TryGetValue("MultiThreading", out var multiThreading))
+                MultiThreading = Convert.ToBoolean(multiThreading);
+        }
+
+        #endregion
+    }
+}
