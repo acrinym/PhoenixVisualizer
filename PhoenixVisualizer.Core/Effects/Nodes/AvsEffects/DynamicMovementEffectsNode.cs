@@ -1,485 +1,281 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
     /// <summary>
-    /// Dynamic Movement Effects Node - Per-pixel displacement engine for complex motion effects
-    /// Applies mathematical transformations to the entire framebuffer with audio reactivity
+    /// Enhanced Dynamic Movement Effects with advanced animation patterns
+    /// Based on r_dynamicmovement.cpp from original AVS
     /// </summary>
     public class DynamicMovementEffectsNode : BaseEffectNode
     {
-        #region Properties
-
-        /// <summary>
-        /// Enable/disable the effect
-        /// </summary>
         public bool Enabled { get; set; } = true;
+        public int MovementType { get; set; } = 0; // 0=Linear, 1=Circular, 2=Figure-8, 3=Spiral
+        public float MovementSpeed { get; set; } = 1.0f;
+        public int MovementPath { get; set; } = 0; // 0=Forward, 1=Reverse, 2=Ping-pong
+        public bool BeatReactive { get; set; } = false;
+        public int MovementEffect { get; set; } = 0; // 0=Translation, 1=Rotation, 2=Scale
+        public float MovementAmplitude { get; set; } = 50.0f;
+        public float MovementFrequency { get; set; } = 1.0f;
+        public float Parameter1 { get; set; } = 1.0f;
+        public float Parameter2 { get; set; } = 1.0f;
+        public float BeatSpeedMultiplier { get; set; } = 2.0f;
 
-        /// <summary>
-        /// Enable multi-threading for performance
-        /// </summary>
-        public bool MultiThreaded { get; set; } = true;
-
-        /// <summary>
-        /// Maximum number of threads for processing
-        /// </summary>
-        public int MaxThreads { get; set; } = Environment.ProcessorCount;
-
-        /// <summary>
-        /// Enable beat-reactive transformations
-        /// </summary>
-        public bool BeatReactive { get; set; } = true;
-
-        /// <summary>
-        /// Audio data source (0=spectrum, 1=waveform)
-        /// </summary>
-        public int AudioSource { get; set; } = 0;
-
-        /// <summary>
-        /// Blending mode for transformed pixels
-        /// </summary>
-        public int BlendMode { get; set; } = 0; // 0=replace, 1=add, 2=multiply
-
-        /// <summary>
-        /// Wrapping mode for out-of-bounds coordinates
-        /// </summary>
-        public int WrapMode { get; set; } = 0; // 0=clamp, 1=wrap, 2=mirror
-
-        #endregion
-
-        #region Script Sections
-
-        /// <summary>
-        /// Initialization script (runs once at startup)
-        /// </summary>
-        public string InitScript { get; set; } = "";
-
-        /// <summary>
-        /// Frame script (runs every frame)
-        /// </summary>
-        public string FrameScript { get; set; } = "";
-
-        /// <summary>
-        /// Beat script (runs on beat detection)
-        /// </summary>
-        public string BeatScript { get; set; } = "";
-
-        /// <summary>
-        /// Point script (runs for each pixel)
-        /// </summary>
-        public string PointScript { get; set; } = "x=x; y=y";
-
-        #endregion
-
-        #region Internal State
-
-        private double _time = 0.0;
-        private readonly Dictionary<string, double> _variables;
-
-        #endregion
-
-        #region Constants
-
-        private const double PI = Math.PI;
-        private const double TWO_PI = 2.0 * Math.PI;
-        private const int MAX_THREADS = 16;
-        private const int MIN_THREADS = 1;
-
-        #endregion
-
-        #region Constructor
+        private float _currentTime = 0.0f;
+        private float _currentX = 0.0f;
+        private float _currentY = 0.0f;
+        private int _beatCounter = 0;
+        private const int BEAT_DURATION = 30;
 
         public DynamicMovementEffectsNode()
         {
-            Name = "Dynamic Movement";
-            Description = "Per-pixel displacement engine for complex motion effects and transformations";
-            Category = "AVS Effects";
-            
-            _variables = new Dictionary<string, double>();
-            InitializeVariables();
+            Name = "Dynamic Movement Effects";
+            Description = "Enhanced movement patterns with advanced animation";
+            Category = "Transform Effects";
         }
-
-        #endregion
-
-        #region Port Initialization
 
         protected override void InitializePorts()
         {
-            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Input image for transformation"));
-            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Transformed output image"));
+            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Source image"));
+            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Output image"));
         }
 
-        #endregion
-
-        #region Process Method
-
-        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
         {
-            if (!Enabled || !inputs.TryGetValue("Image", out var input) || input is not ImageBuffer imageBuffer)
-            {
-                return GetDefaultOutput();
-            }
+            if (!Enabled) return;
 
-            var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // Execute dynamic movement transformation
-            if (MultiThreaded && MaxThreads > 1)
-            {
-                RenderMultiThreaded(imageBuffer, output, audioFeatures);
-            }
-            else
-            {
-                RenderSingleThreaded(imageBuffer, output, audioFeatures);
-            }
-
-            return output;
-        }
-
-        #endregion
-
-        #region Rendering Methods
-
-        private void RenderSingleThreaded(ImageBuffer input, ImageBuffer output, AudioFeatures audioFeatures)
-        {
-            lock (_processingLock)
-            {
-                ExecuteScripts(audioFeatures);
-                TransformPixels(input, output, 0, input.Height, audioFeatures);
-            }
-        }
-
-        private void RenderMultiThreaded(ImageBuffer input, ImageBuffer output, AudioFeatures audioFeatures)
-        {
-            lock (_processingLock)
-            {
-                ExecuteScripts(audioFeatures);
-                
-                int threadCount = Math.Clamp(MaxThreads, MIN_THREADS, MAX_THREADS);
-                int rowsPerThread = input.Height / threadCount;
-                
-                var tasks = new List<Task>();
-                
-                for (int i = 0; i < threadCount; i++)
-                {
-                    int startRow = i * rowsPerThread;
-                    int endRow = (i == threadCount - 1) ? input.Height : (i + 1) * rowsPerThread;
-                    
-                    var task = Task.Run(() => TransformPixels(input, output, startRow, endRow, audioFeatures));
-                    tasks.Add(task);
-                }
-                
-                Task.WaitAll(tasks.ToArray());
-            }
-        }
-
-        #endregion
-
-        #region Script Execution
-
-        private void ExecuteScripts(AudioFeatures audioFeatures)
-        {
             try
             {
-                // Execute initialization script (runs once)
-                ExecuteScript(InitScript);
+                var sourceImage = GetInputValue<ImageBuffer>("Image", inputData);
+                if (sourceImage?.Data == null) return;
 
-                // Execute frame script (runs every frame)
-                ExecuteScript(FrameScript);
+                var outputImage = new ImageBuffer(sourceImage.Width, sourceImage.Height);
 
-                // Execute beat script if beat detected
-                if (BeatReactive && audioFeatures?.IsBeat == true)
+                if (BeatReactive && audioFeatures.Beat)
                 {
-                    ExecuteScript(BeatScript);
+                    _beatCounter = BEAT_DURATION;
                 }
+                else if (_beatCounter > 0)
+                {
+                    _beatCounter--;
+                }
+
+                UpdateMovementParameters();
+                ApplyMovementTransformation(sourceImage, outputImage);
+
+                outputData["Output"] = outputImage;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Dynamic Movement script error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Dynamic Movement Effects] Error: {ex.Message}");
             }
         }
 
-        private void ExecuteScript(string script)
+        private void UpdateMovementParameters()
         {
-            if (string.IsNullOrWhiteSpace(script)) return;
-
-            // Simple script execution - in production, this would use a proper expression parser
-            ProcessScriptLine(script);
-        }
-
-        private void ProcessScriptLine(string script)
-        {
-            // Handle basic assignments like "x=x*2", "y=y+0.1"
-            if (script.Contains("="))
+            float effectiveSpeed = MovementSpeed;
+            if (BeatReactive && _beatCounter > 0)
             {
-                var parts = script.Split('=', 2);
-                if (parts.Length == 2)
+                float beatFactor = (_beatCounter / (float)BEAT_DURATION);
+                effectiveSpeed *= (1.0f + (BeatSpeedMultiplier - 1.0f) * beatFactor);
+            }
+
+            _currentTime += effectiveSpeed * 0.016f;
+            float t = _currentTime * MovementFrequency;
+
+            switch (MovementType)
+            {
+                case 0: // Linear
+                    _currentX = (t * Parameter1) % 1.0f;
+                    _currentY = (t * Parameter2) % 1.0f;
+                    break;
+                case 1: // Circular
+                    _currentX = 0.5f + MovementAmplitude / 200.0f * (float)Math.Cos(t);
+                    _currentY = 0.5f + MovementAmplitude / 200.0f * (float)Math.Sin(t);
+                    break;
+                case 2: // Figure-8
+                    _currentX = 0.5f + MovementAmplitude / 200.0f * (float)Math.Sin(t);
+                    _currentY = 0.5f + MovementAmplitude / 400.0f * (float)Math.Sin(2 * t);
+                    break;
+                case 3: // Spiral
+                    float radius = MovementAmplitude / 200.0f * (0.1f + 0.9f * ((t * 0.1f) % 1.0f));
+                    _currentX = 0.5f + radius * (float)Math.Cos(t);
+                    _currentY = 0.5f + radius * (float)Math.Sin(t);
+                    break;
+            }
+
+            if (MovementPath == 1) // Reverse
+            {
+                _currentX = 1.0f - _currentX;
+                _currentY = 1.0f - _currentY;
+            }
+            else if (MovementPath == 2) // Ping-pong
+            {
+                if (_currentTime % 2.0f > 1.0f)
                 {
-                    string varName = parts[0].Trim();
-                    string expression = parts[1].Trim();
-                    
-                    double value = EvaluateExpression(expression);
-                    _variables[varName] = value;
+                    _currentX = 1.0f - _currentX;
+                    _currentY = 1.0f - _currentY;
                 }
             }
         }
 
-        private double EvaluateExpression(string expression)
+        private void ApplyMovementTransformation(ImageBuffer source, ImageBuffer output)
         {
-            // Simple expression evaluator - in production, use a proper math parser
-            // This handles basic operations like "x*2", "y+0.1", "sin(t)"
-            
-            // Replace constants
-            expression = expression.Replace("$PI", PI.ToString());
-            expression = expression.Replace("PI", PI.ToString());
-            
-            // Handle basic arithmetic
-            if (expression.Contains("+"))
+            int width = source.Width;
+            int height = source.Height;
+            float offsetX = (_currentX - 0.5f) * width * MovementAmplitude / 100.0f;
+            float offsetY = (_currentY - 0.5f) * height * MovementAmplitude / 100.0f;
+
+            switch (MovementEffect)
             {
-                var parts = expression.Split('+');
-                return parts.Select(p => EvaluateExpression(p)).Sum();
+                case 0: // Translation
+                    ApplyTranslation(source, output, offsetX, offsetY);
+                    break;
+                case 1: // Rotation
+                    ApplyRotation(source, output, _currentTime * Parameter1 * 360.0f);
+                    break;
+                case 2: // Scale
+                    float scale = 1.0f + MovementAmplitude / 200.0f * (float)Math.Sin(_currentTime * Parameter1);
+                    ApplyScale(source, output, scale);
+                    break;
+                default:
+                    Array.Copy(source.Data, output.Data, source.Data.Length);
+                    break;
             }
-            else if (expression.Contains("-"))
-            {
-                var parts = expression.Split('-');
-                if (parts.Length == 2)
-                {
-                    return EvaluateExpression(parts[0]) - EvaluateExpression(parts[1]);
-                }
-            }
-            else if (expression.Contains("*"))
-            {
-                var parts = expression.Split('*');
-                return parts.Select(p => EvaluateExpression(p)).Aggregate(1.0, (a, b) => a * b);
-            }
-            else if (expression.Contains("/"))
-            {
-                var parts = expression.Split('/');
-                if (parts.Length == 2)
-                {
-                    return EvaluateExpression(parts[0]) / EvaluateExpression(parts[1]);
-                }
-            }
-            
-            // Handle mathematical functions
-            if (expression.StartsWith("sin(") && expression.EndsWith(")"))
-            {
-                string arg = expression.Substring(4, expression.Length - 5);
-                return Math.Sin(EvaluateExpression(arg));
-            }
-            else if (expression.StartsWith("cos(") && expression.EndsWith(")"))
-            {
-                string arg = expression.Substring(4, expression.Length - 5);
-                return Math.Cos(EvaluateExpression(arg));
-            }
-            else if (expression.StartsWith("tan(") && expression.EndsWith(")"))
-            {
-                string arg = expression.Substring(4, expression.Length - 5);
-                return Math.Tan(EvaluateExpression(arg));
-            }
-            
-            // Try to parse as number
-            if (double.TryParse(expression, out double number))
-            {
-                return number;
-            }
-            
-            // Try to get variable value
-            if (_variables.TryGetValue(expression, out double variable))
-            {
-                return variable;
-            }
-            
-            return 0.0;
         }
 
-        #endregion
-
-        #region Pixel Transformation
-
-        private void TransformPixels(ImageBuffer input, ImageBuffer output, int startRow, int endRow, AudioFeatures audioFeatures)
+        private void ApplyTranslation(ImageBuffer source, ImageBuffer output, float offsetX, float offsetY)
         {
-            int width = input.Width;
-            int height = input.Height;
-            int centerX = width / 2;
-            int centerY = height / 2;
+            int width = source.Width;
+            int height = source.Height;
+            int intOffsetX = (int)Math.Round(offsetX);
+            int intOffsetY = (int)Math.Round(offsetY);
 
-            // Get audio data for reactivity
-            float[] audioData = GetAudioData(audioFeatures);
-
-            for (int y = startRow; y < endRow; y++)
+            for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // Set coordinate variables
-                    _variables["x"] = (double)(x - centerX) / centerX;
-                    _variables["y"] = (double)(y - centerY) / centerY;
-                    _variables["d"] = Math.Sqrt(_variables["x"] * _variables["x"] + _variables["y"] * _variables["y"]);
-                    _variables["r"] = Math.Atan2(_variables["y"], _variables["x"]);
-                    _variables["w"] = width;
-                    _variables["h"] = height;
-                    _variables["b"] = audioFeatures?.IsBeat == true ? 1.0 : 0.0;
+                    int srcX = x - intOffsetX;
+                    int srcY = y - intOffsetY;
 
-                    // Execute point script for transformation
-                    ExecuteScript(PointScript);
-
-                    // Get transformed coordinates
-                    double newX = GetVariable("x", _variables["x"]);
-                    double newY = GetVariable("y", _variables["y"]);
-
-                    // Convert back to pixel coordinates
-                    int sourceX = centerX + (int)(newX * centerX);
-                    int sourceY = centerY + (int)(newY * centerY);
-
-                    // Apply wrapping mode
-                    ApplyWrapping(ref sourceX, ref sourceY, width, height);
-
-                    // Get source pixel color
-                    int sourceColor = GetSourcePixel(input, sourceX, sourceY);
-
-                    // Apply blending mode
-                    int finalColor = ApplyBlending(output.GetPixel(x, y), sourceColor);
-
-                    // Set output pixel
-                    output.SetPixel(x, y, finalColor);
+                    if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height)
+                    {
+                        output.Data[y * width + x] = source.Data[srcY * width + srcX];
+                    }
+                    else
+                    {
+                        output.Data[y * width + x] = 0;
+                    }
                 }
             }
         }
 
-        private int GetSourcePixel(ImageBuffer input, int x, int y)
+        private void ApplyRotation(ImageBuffer source, ImageBuffer output, float rotation)
         {
-            // Clamp coordinates to image bounds
-            x = Math.Clamp(x, 0, input.Width - 1);
-            y = Math.Clamp(y, 0, input.Height - 1);
-            
-            return input.GetPixel(x, y);
-        }
+            int width = source.Width;
+            int height = source.Height;
+            float centerX = width * 0.5f;
+            float centerY = height * 0.5f;
+            float radians = rotation * (float)Math.PI / 180.0f;
+            float cosAngle = (float)Math.Cos(radians);
+            float sinAngle = (float)Math.Sin(radians);
 
-        private void ApplyWrapping(ref int x, ref int y, int width, int height)
-        {
-            switch (WrapMode)
+            for (int y = 0; y < height; y++)
             {
-                case 0: // Clamp
-                    x = Math.Clamp(x, 0, width - 1);
-                    y = Math.Clamp(y, 0, height - 1);
-                    break;
-                    
-                case 1: // Wrap
-                    x = ((x % width) + width) % width;
-                    y = ((y % height) + height) % height;
-                    break;
-                    
-                case 2: // Mirror
-                    x = Math.Abs(x) % (width * 2);
-                    y = Math.Abs(y) % (height * 2);
-                    if (x >= width) x = width * 2 - x - 1;
-                    if (y >= height) y = height * 2 - y - 1;
-                    break;
+                for (int x = 0; x < width; x++)
+                {
+                    float relX = x - centerX;
+                    float relY = y - centerY;
+
+                    int srcX = (int)(centerX + relX * cosAngle - relY * sinAngle);
+                    int srcY = (int)(centerY + relX * sinAngle + relY * cosAngle);
+
+                    if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height)
+                    {
+                        output.Data[y * width + x] = source.Data[srcY * width + srcX];
+                    }
+                    else
+                    {
+                        output.Data[y * width + x] = 0;
+                    }
+                }
             }
         }
 
-        private int ApplyBlending(int destColor, int sourceColor)
+        private void ApplyScale(ImageBuffer source, ImageBuffer output, float scale)
         {
-            switch (BlendMode)
+            int width = source.Width;
+            int height = source.Height;
+            float centerX = width * 0.5f;
+            float centerY = height * 0.5f;
+            float invScale = 1.0f / scale;
+
+            for (int y = 0; y < height; y++)
             {
-                case 0: // Replace
-                    return sourceColor;
-                    
-                case 1: // Add
-                    return AddColors(destColor, sourceColor);
-                    
-                case 2: // Multiply
-                    return MultiplyColors(destColor, sourceColor);
-                    
-                default:
-                    return sourceColor;
+                for (int x = 0; x < width; x++)
+                {
+                    float relX = (x - centerX) * invScale;
+                    float relY = (y - centerY) * invScale;
+
+                    int srcX = (int)(centerX + relX);
+                    int srcY = (int)(centerY + relY);
+
+                    if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height)
+                    {
+                        output.Data[y * width + x] = source.Data[srcY * width + srcX];
+                    }
+                    else
+                    {
+                        output.Data[y * width + x] = 0;
+                    }
+                }
             }
         }
 
-        private int AddColors(int color1, int color2)
+        public override Dictionary<string, object> GetConfiguration()
         {
-            int r1 = color1 & 0xFF;
-            int g1 = (color1 >> 8) & 0xFF;
-            int b1 = (color1 >> 16) & 0xFF;
-            
-            int r2 = color2 & 0xFF;
-            int g2 = (color2 >> 8) & 0xFF;
-            int b2 = (color2 >> 16) & 0xFF;
-            
-            int r = Math.Clamp(r1 + r2, 0, 255);
-            int g = Math.Clamp(g1 + g2, 0, 255);
-            int b = Math.Clamp(b1 + b2, 0, 255);
-            
-            return r | (g << 8) | (b << 16);
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "MovementType", MovementType },
+                { "MovementSpeed", MovementSpeed },
+                { "MovementPath", MovementPath },
+                { "BeatReactive", BeatReactive },
+                { "MovementEffect", MovementEffect },
+                { "MovementAmplitude", MovementAmplitude },
+                { "MovementFrequency", MovementFrequency },
+                { "Parameter1", Parameter1 },
+                { "Parameter2", Parameter2 },
+                { "BeatSpeedMultiplier", BeatSpeedMultiplier }
+            };
         }
 
-        private int MultiplyColors(int color1, int color2)
+        public override void ApplyConfiguration(Dictionary<string, object> config)
         {
-            int r1 = color1 & 0xFF;
-            int g1 = (color1 >> 8) & 0xFF;
-            int b1 = (color1 >> 16) & 0xFF;
-            
-            int r2 = color2 & 0xFF;
-            int g2 = (color2 >> 8) & 0xFF;
-            int b2 = (color2 >> 16) & 0xFF;
-            
-            int r = (r1 * r2) / 255;
-            int g = (g1 * g2) / 255;
-            int b = (b1 * b2) / 255;
-            
-            return r | (g << 8) | (b << 16);
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            if (config.TryGetValue("MovementType", out var movementType))
+                MovementType = Convert.ToInt32(movementType);
+            if (config.TryGetValue("MovementSpeed", out var speed))
+                MovementSpeed = Convert.ToSingle(speed);
+            if (config.TryGetValue("MovementPath", out var path))
+                MovementPath = Convert.ToInt32(path);
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            if (config.TryGetValue("MovementEffect", out var effect))
+                MovementEffect = Convert.ToInt32(effect);
+            if (config.TryGetValue("MovementAmplitude", out var amplitude))
+                MovementAmplitude = Convert.ToSingle(amplitude);
+            if (config.TryGetValue("MovementFrequency", out var frequency))
+                MovementFrequency = Convert.ToSingle(frequency);
+            if (config.TryGetValue("Parameter1", out var param1))
+                Parameter1 = Convert.ToSingle(param1);
+            if (config.TryGetValue("Parameter2", out var param2))
+                Parameter2 = Convert.ToSingle(param2);
+            if (config.TryGetValue("BeatSpeedMultiplier", out var beatMult))
+                BeatSpeedMultiplier = Convert.ToSingle(beatMult);
         }
-
-        #endregion
-
-        #region Audio Data Processing
-
-        private float[] GetAudioData(AudioFeatures audioFeatures)
-        {
-            if (audioFeatures == null) return new float[576];
-
-            return AudioSource == 0 
-                ? audioFeatures.SpectrumData 
-                : audioFeatures.WaveformData;
-        }
-
-        #endregion
-
-        #region Variable Management
-
-        private void InitializeVariables()
-        {
-            _variables.Clear();
-            _variables["t"] = _time;
-            _variables["b"] = 0.0;
-            _variables["w"] = 800.0; // Default width
-            _variables["h"] = 600.0; // Default height
-            _variables["alpha"] = 1.0;
-        }
-
-        private double GetVariable(string name, double defaultValue)
-        {
-            return _variables.TryGetValue(name, out double value) ? value : defaultValue;
-        }
-
-        private void SetVariable(string name, double value)
-        {
-            _variables[name] = value;
-        }
-
-        #endregion
-
-        #region Default Output
-
-        public override object GetDefaultOutput()
-        {
-            return new ImageBuffer(800, 600);
-        }
-
-        #endregion
     }
 }
