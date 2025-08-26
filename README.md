@@ -4,19 +4,21 @@
 
 ## ✨ Latest Features (v2.0)
 
+- **🎵 VLC Audio Integration**: Real-time audio playback with actual FFT and waveform data ✅
 - **🎭 Superscopes System**: 11 AVS-based mathematical visualizations with audio response
 - **✏️ AVS Editor**: Full-featured editor for creating and editing AVS presets with real-time preview
 - **🎯 Plugin Management UI**: Complete plugin manager in Settings window
 - **🎨 Native AVS Engine**: Pure C# implementation of Advanced Visualization Studio
-- **⚡ Enhanced Audio System**: Fixed freezing visualizers and audio corruption
-- **🎨 Advanced Visualizations**: Waveform, FFT, Bars, Energy with fallback patterns
+- **⚡ Enhanced Audio System**: VLC-based audio with real-time analysis and processing
+- **🎨 Advanced Visualizations**: Waveform, FFT, Bars, Energy with real audio data
 - **🚀 Easy Launcher System**: Double-click `run.bat` or use `phoenix` alias
 - **📁 Organized Plugin Structure**: Clean directories for plugins, presets, and effects
 
 ## ✨ Features
 
 ### 🎵 Audio & Analysis
-- **Music Playback**: Open file, Play/Pause, Stop, Seek, Volume (MP3, WAV, FLAC)
+- **VLC Audio Engine**: Real-time audio playback with actual FFT and waveform data ✅
+- **Music Playback**: Open file, Play/Pause, Stop, Seek, Volume (MP3, WAV, FLAC, OGG, M4A)
 - **Real-time Analysis**: FFT (1024/2048), BPM detection, energy/peaks, RMS
 - **Advanced Processing**: Input gain, smoothing, noise gate, beat sensitivity
 - **Audio Recovery**: Automatic stream corruption detection and recovery

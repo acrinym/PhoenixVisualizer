@@ -410,6 +410,12 @@ public partial class MainWindow : Window
             {
                 RenderSurfaceControl.SetPlugin(plugin);
                 RenderSurfaceControl.InvalidateVisual();
+                
+                // Update status for AVS Effects Engine
+                if (plugin is AvsEffectsVisualizer)
+                {
+                    UpdateAvsEffectsStatus();
+                }
             }
         }
     }
@@ -946,12 +952,174 @@ public partial class MainWindow : Window
                 // Execute preset with E key
                 OnExecutePreset(null, null!);
                 break;
+            case Key.C:
+                // Configure AVS Effects Engine
+                ConfigureAvsEffects();
+                break;
+            case Key.G:
+                // Toggle effect grid
+                ToggleEffectGrid();
+                break;
+            case Key.A:
+                // Add random effect
+                AddRandomEffect();
+                break;
+            case Key.X:
+                // Remove last effect
+                RemoveLastEffect();
+                break;
         }
     }
 
     private void ToggleFullscreen()
     {
         WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
+    }
+
+    private void ConfigureAvsEffects()
+    {
+        try
+        {
+            // Find and configure the AVS Effects Engine plugin
+            if (RenderSurfaceControl?.CurrentPlugin is AvsEffectsVisualizer avsVisualizer)
+            {
+                avsVisualizer.Configure();
+            }
+            else
+            {
+                // Show status message
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = "Press 'C' to configure AVS Effects Engine (when active)";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ AVS config failed: {ex.Message}";
+            }
+        }
+    }
+
+    private void ToggleEffectGrid()
+    {
+        try
+        {
+            if (RenderSurfaceControl?.CurrentPlugin is AvsEffectsVisualizer avsVisualizer)
+            {
+                avsVisualizer.ShowEffectGrid = !avsVisualizer.ShowEffectGrid;
+                
+                // Show status message
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = $"Effect Grid: {(avsVisualizer.ShowEffectGrid ? "ON" : "OFF")}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ Grid toggle failed: {ex.Message}";
+            }
+        }
+    }
+
+    private void AddRandomEffect()
+    {
+        try
+        {
+            if (RenderSurfaceControl?.CurrentPlugin is AvsEffectsVisualizer avsVisualizer)
+            {
+                var availableEffects = avsVisualizer.GetAvailableEffectNames();
+                var activeEffects = avsVisualizer.GetActiveEffectNames();
+                
+                // Find effects that aren't currently active
+                var unusedEffects = availableEffects.Except(activeEffects).ToList();
+                
+                if (unusedEffects.Count > 0)
+                {
+                    var random = new Random();
+                    var randomEffect = unusedEffects[random.Next(unusedEffects.Count)];
+                    avsVisualizer.AddEffect(randomEffect);
+                    
+                    // Show status message
+                    var statusText = this.FindControl<TextBlock>("LblTime");
+                    if (statusText != null)
+                    {
+                        statusText.Text = $"Added effect: {randomEffect}";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ Add effect failed: {ex.Message}";
+            }
+        }
+    }
+
+    private void RemoveLastEffect()
+    {
+        try
+        {
+            if (RenderSurfaceControl?.CurrentPlugin is AvsEffectsVisualizer avsVisualizer)
+            {
+                var activeEffects = avsVisualizer.GetActiveEffectNames();
+                
+                if (activeEffects.Count > 0)
+                {
+                    var lastEffect = activeEffects[activeEffects.Count - 1];
+                    avsVisualizer.RemoveEffect(activeEffects.Count - 1);
+                    
+                    // Show status message
+                    var statusText = this.FindControl<TextBlock>("LblTime");
+                    if (statusText != null)
+                    {
+                        statusText.Text = $"Removed effect: {lastEffect}";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ Remove effect failed: {ex.Message}";
+            }
+        }
+    }
+
+    private void UpdateAvsEffectsStatus()
+    {
+        try
+        {
+            if (RenderSurfaceControl?.CurrentPlugin is AvsEffectsVisualizer avsVisualizer)
+            {
+                var activeEffects = avsVisualizer.GetActiveEffectNames();
+                var totalEffects = avsVisualizer.GetAvailableEffectNames().Count;
+                
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = $"AVS Effects: {activeEffects.Count}/{totalEffects} | Press C to configure";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Error updating AVS effects status: {ex.Message}");
+        }
     }
 
     private void OnHotkeyManagerClick(object? sender, RoutedEventArgs e)
