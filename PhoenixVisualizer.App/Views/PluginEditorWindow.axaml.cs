@@ -5,6 +5,7 @@ using System.IO;
 using AvaloniaEdit;                // ✨ Syntax highlighting
 using AvaloniaEdit.Highlighting;
 using System.Collections.Generic; // Added for List<object>
+using System.Text.Json;
 
 namespace PhoenixVisualizer.Views
 {
@@ -54,6 +55,34 @@ public partial class PluginEditorWindow : Window
             _currentFile = path;
             this.Title = $"Phoenix Plugin Editor - {Path.GetFileName(_currentFile)} (saved)";
         }
+    }
+
+    private async void OnSaveAsClick(object? _, RoutedEventArgs __)
+    {
+        var dlg = new SaveFileDialog { Title = "Save Plugin As..." };
+        dlg.Filters.Add(new FileDialogFilter { Name = "Phoenix Plugin", Extensions = { "phx" } });
+        dlg.Filters.Add(new FileDialogFilter { Name = "Winamp AVS Preset", Extensions = { "avs" } });
+        var path = await dlg.ShowAsync(this);
+        if (!string.IsNullOrEmpty(path))
+        {
+            if (path.EndsWith(".avs", StringComparison.OrdinalIgnoreCase))
+            {
+                AvsConverter.SaveAvs(path, CollectPhx());
+            }
+            else
+            {
+                SavePhx(path);
+            }
+            _currentFile = path;
+            this.Title = $"Phoenix Plugin Editor - {Path.GetFileName(path)}";
+        }
+    }
+
+    private string CollectPhx() => _editor?.Text ?? "{}";
+
+    private void SavePhx(string path)
+    {
+        File.WriteAllText(path, CollectPhx());
     }
 }
 
@@ -133,6 +162,61 @@ public static class AvsConverter
         catch
         {
             return "// (unreadable AVS code block)";
+        }
+    }
+
+    public static void SaveAvs(string path, string phxJson)
+    {
+        var doc = JsonDocument.Parse(phxJson);
+        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
+        using var bw = new BinaryWriter(fs);
+
+        // Header: 32 bytes, padded
+        var header = "Nullsoft AVS Preset";
+        var headerBytes = new byte[32];
+        System.Text.Encoding.ASCII.GetBytes(header, 0, header.Length, headerBytes, 0);
+        bw.Write(headerBytes);
+
+        var effects = new List<JsonElement>();
+        if (doc.RootElement.TryGetProperty("effects", out var effs))
+        {
+            foreach (var e in effs.EnumerateArray()) effects.Add(e);
+        }
+
+        bw.Write(effects.Count + 4); // effects + 4 code ops
+
+        // Write each block as id + size + data
+        void WriteBlock(int id, string? text)
+        {
+            var bytes = System.Text.Encoding.ASCII.GetBytes(text ?? "");
+            bw.Write(id);
+            bw.Write(bytes.Length);
+            bw.Write(bytes);
+        }
+
+        if (doc.RootElement.TryGetProperty("point", out var point))
+            WriteBlock(0x01, point.GetString());
+        if (doc.RootElement.TryGetProperty("frame", out var frame))
+            WriteBlock(0x02, frame.GetString());
+        if (doc.RootElement.TryGetProperty("init", out var init))
+            WriteBlock(0x03, init.GetString());
+        if (doc.RootElement.TryGetProperty("beat", out var beat))
+            WriteBlock(0x04, beat.GetString());
+
+        bool clear = doc.RootElement.TryGetProperty("clearEveryFrame", out var cf) && cf.GetBoolean();
+        bw.Write(0x05);
+        bw.Write(1);
+        bw.Write(new byte[] { clear ? (byte)1 : (byte)0 });
+
+        // Remaining effects
+        int idx = 6;
+        foreach (var e in effects)
+        {
+            var type = e.GetProperty("type").GetString() ?? "unknown";
+            var bytes = System.Text.Encoding.ASCII.GetBytes(type);
+            bw.Write(idx++);
+            bw.Write(bytes.Length);
+            bw.Write(bytes);
         }
     }
 }
