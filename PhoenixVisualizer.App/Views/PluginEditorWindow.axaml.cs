@@ -4,8 +4,10 @@ using Avalonia.Markup.Xaml;
 using System.IO;
 using AvaloniaEdit;                // ✨ Syntax highlighting
 using AvaloniaEdit.Highlighting;
+using System.Collections.Generic; // Added for List<object>
 
-namespace PhoenixVisualizer.Views;
+namespace PhoenixVisualizer.Views
+{
 
 public partial class PluginEditorWindow : Window
 {
@@ -51,6 +53,86 @@ public partial class PluginEditorWindow : Window
             File.WriteAllText(path, _editor.Text ?? "");
             _currentFile = path;
             this.Title = $"Phoenix Plugin Editor - {Path.GetFileName(_currentFile)} (saved)";
+        }
+    }
+}
+
+// Full AVS binary converter
+public static class AvsConverter
+{
+    public static string LoadAvs(string path)
+    {
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var br = new BinaryReader(fs);
+
+        // Verify header
+        var header = new string(br.ReadChars(32)).TrimEnd('\0');
+        if (!header.Contains("Nullsoft AVS"))
+            throw new InvalidDataException("Not a valid AVS preset.");
+
+        // AVS presets store number of objects, then serialized ops
+        int effectCount = br.ReadInt32();
+        var effects = new List<object>();
+        string init = "", frame = "", point = "", beat = "";
+        bool clearEveryFrame = true;
+
+        for (int i = 0; i < effectCount; i++)
+        {
+            int id = br.ReadInt32();
+            int size = br.ReadInt32();
+            byte[] blob = br.ReadBytes(size);
+
+            // Known IDs for AVS components
+            switch (id)
+            {
+                case 0x01: // Superscope / point script
+                    point = ExtractString(blob);
+                    effects.Add(new { type = "superscope" });
+                    break;
+                case 0x02: // Trans / per frame
+                    frame = ExtractString(blob);
+                    break;
+                case 0x03: // Init code
+                    init = ExtractString(blob);
+                    break;
+                case 0x04: // On beat
+                    beat = ExtractString(blob);
+                    break;
+                case 0x05: // Clear every frame toggle
+                    clearEveryFrame = blob[0] != 0;
+                    break;
+                default:
+                    // Generic effect node mapping
+                    effects.Add(new { type = $"avs_{id}", data = Convert.ToBase64String(blob) });
+                    break;
+            }
+        }
+
+        // Build PHX JSON schema
+        var json = new
+        {
+            init,
+            frame,
+            point,
+            beat,
+            clearEveryFrame,
+            effects
+        };
+        return System.Text.Json.JsonSerializer.Serialize(json, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+    }
+
+    private static string ExtractString(byte[] data)
+    {
+        try
+        {
+            return System.Text.Encoding.ASCII.GetString(data).TrimEnd('\0');
+        }
+        catch
+        {
+            return "// (unreadable AVS code block)";
         }
     }
 }
