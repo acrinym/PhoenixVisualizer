@@ -18,6 +18,13 @@ This folder indexes core specs and reference conversations relevant to the Phoen
 - **Winamp Integration Removed** - Simplified to built-in visualizers only, all projects build successfully ✅ **LATEST**
 - **Effects Implementation Status**: [EffectsImplementationStatus.md](Docs/Effects/EffectsImplementationStatus.md)
 
+## 🚨 Critical Issue - Audio Not Working
+- **VLC Integration**: Implemented but no actual audio playback
+- **Status**: VlcAudioService initializes successfully but produces no sound
+- **Working Example Found**: Monsalma.AvaloniaAudioTest shows working implementation
+- **Next Step**: GPT consultation tomorrow to debug audio pipeline
+- **Impact**: Visualizers work with simulated data, but no real audio integration
+
 ## Reference Conversations
 - Avalonia Visualizer Screensaver notes: ../../Chats/ChatGPT-Avalonia_Visualizer_Screensaver_Creation.md
 - Full conversation (spec formation): ../../full_ritual_conversations/ritual_165_2025-08-13_USER_ Hey Onyx, I'm back, but I brought you to a different chat so we could talk about creating .md
