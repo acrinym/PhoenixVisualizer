@@ -37,6 +37,7 @@ namespace PhoenixVisualizer.Core.Services
         
         // Audio Configuration
         private const int AVS_BUFFER_SIZE = 576;  // AVS-compatible buffer size
+        private const int FFT_SIZE = 512;         // Power of 2 for FFT processing
         private const int SAMPLE_RATE = 44100;    // Standard audio sample rate
         private const int CHANNELS = 2;           // Stereo audio
         
@@ -76,7 +77,7 @@ namespace PhoenixVisualizer.Core.Services
             try
             {
                 // Initialize audio processing components
-                _fftProcessor = new FftProcessor(AVS_BUFFER_SIZE, SAMPLE_RATE);
+                _fftProcessor = new FftProcessor(FFT_SIZE, SAMPLE_RATE);
                 _beatDetector = new BeatDetector();
                 _channelProcessor = new ChannelProcessor(SAMPLE_RATE, AVS_BUFFER_SIZE);
                 
@@ -345,7 +346,10 @@ namespace PhoenixVisualizer.Core.Services
                 // Return AVS-compatible spectrum data
                 for (int ch = 0; ch < Math.Min(channels, 2); ch++)
                 {
-                    result[$"channel_{ch}"] = _spectrumData[ch].Clone() as float[];
+                    if (_spectrumData[ch] != null)
+                    {
+                        result[$"channel_{ch}"] = _spectrumData[ch]?.Clone() as float[] ?? Array.Empty<float>();
+                    }
                 }
                 
                 return Task.FromResult(result);
@@ -373,7 +377,10 @@ namespace PhoenixVisualizer.Core.Services
                 // Return AVS-compatible waveform data
                 for (int ch = 0; ch < Math.Min(channels, 2); ch++)
                 {
-                    result[$"channel_{ch}"] = _waveformData[ch].Clone() as float[];
+                    if (_waveformData[ch] != null)
+                    {
+                        result[$"channel_{ch}"] = _waveformData[ch]?.Clone() as float[] ?? Array.Empty<float>();
+                    }
                 }
                 
                 return Task.FromResult(result);
@@ -450,7 +457,7 @@ namespace PhoenixVisualizer.Core.Services
                     ["sample_rate"] = SAMPLE_RATE,
                     ["fft_size"] = AVS_BUFFER_SIZE,
                     ["frequencies"] = GenerateFrequencyArray(),
-                    ["magnitudes"] = _spectrumData[0].Clone() as float[],
+                    ["magnitudes"] = _spectrumData[0]?.Clone() as float[] ?? Array.Empty<float>(),
                     ["phases"] = GeneratePhaseArray()
                 };
                 return Task.FromResult(result);

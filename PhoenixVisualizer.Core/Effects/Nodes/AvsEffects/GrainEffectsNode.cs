@@ -271,8 +271,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
             for (int i = 0; i < _grainBuffer.Pixels.Length; i++)
             {
-                var intensity = _random.Next(0, 256);
-                var threshold = _random.Next(0, 101);
+                var intensity = _random?.Next(0, 256) ?? 0;
+                var threshold = _random?.Next(0, 101) ?? 0;
                 _grainBuffer.Pixels[i] = (threshold << 8) | intensity;
             }
         }
@@ -303,14 +303,17 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             // Update random grain pattern
-            var random = new Random(GrainSeed + (int)(_currentTime * 1000));
-            for (int i = 0; i < _grainBuffer.Pixels.Length; i++)
+            if (_grainBuffer?.Pixels != null)
             {
-                if (random.Next(0, 100) < 10) // 10% chance to update each pixel
+                var random = new Random(GrainSeed + (int)(_currentTime * 1000));
+                for (int i = 0; i < _grainBuffer.Pixels.Length; i++)
                 {
-                    var intensity = random.Next(0, 256);
-                    var threshold = random.Next(0, 101);
-                    _grainBuffer.Pixels[i] = (threshold << 8) | intensity;
+                    if (random.Next(0, 100) < 10) // 10% chance to update each pixel
+                    {
+                        var intensity = random.Next(0, 256);
+                        var threshold = random.Next(0, 101);
+                        _grainBuffer.Pixels[i] = (threshold << 8) | intensity;
+                    }
                 }
             }
         }
@@ -332,9 +335,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                     break;
 
                 case 2: // Random walk
-                    if (_random.NextDouble() < 0.01f) // 1% chance per frame
+                    if (_random?.NextDouble() < 0.01f) // 1% chance per frame
                     {
-                        GrainIntensity = _random.Next(20, 80);
+                        GrainIntensity = _random!.Next(20, 80);
                     }
                     break;
 
@@ -348,10 +351,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void UpdateDirectionalGrain()
         {
-            if (!EnableGrainDirectional) return;
+            if (!EnableGrainDirectional || _grainBuffer?.Pixels == null) return;
 
-            var width = _grainBuffer.Width;
-            var height = _grainBuffer.Height;
+            var width = _grainBuffer!.Width;
+            var height = _grainBuffer!.Height;
             var tempBuffer = new int[_grainBuffer.Pixels.Length];
 
             for (int y = 0; y < height; y++)
@@ -379,10 +382,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void UpdateDirectionalGrain(float directionX, float directionY)
         {
-            if (!EnableGrainDirectional) return;
+            if (!EnableGrainDirectional || _grainBuffer?.Pixels == null) return;
 
-            var width = _grainBuffer.Width;
-            var height = _grainBuffer.Height;
+            var width = _grainBuffer!.Width;
+            var height = _grainBuffer!.Height;
             var tempBuffer = new int[_grainBuffer.Pixels.Length];
 
             for (int y = 0; y < height; y++)
@@ -435,6 +438,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void UpdateGrainEvolution(float evolution)
         {
+            if (_grainBuffer?.Pixels == null) return;
+            
             var random = new Random((int)(evolution * 10000));
 
             for (int i = 0; i < _grainBuffer.Pixels.Length; i++)
@@ -470,7 +475,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private int GetGrainColor(int pixelIndex, float intensity)
         {
-            if (pixelIndex >= _grainBuffer.Pixels.Length) return 0;
+            if (_grainBuffer?.Pixels == null || pixelIndex >= _grainBuffer.Pixels.Length) return 0;
 
             var grainData = _grainBuffer.Pixels[pixelIndex];
             var grainIntensity = grainData & 0xFF;

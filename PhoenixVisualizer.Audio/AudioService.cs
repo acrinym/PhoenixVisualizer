@@ -13,7 +13,7 @@ public record AudioFileInfo
     public float BitRate { get; init; }
 }
 
-public sealed class AudioService : IAsyncDisposable
+public sealed class AudioService : IAsyncDisposable, PhoenixVisualizer.Core.Services.IAudioProvider
 {
     int _sourceHandle;      // decode source
     int _playHandle;        // the handle we actually play (tempo or direct)
@@ -25,7 +25,6 @@ public sealed class AudioService : IAsyncDisposable
     
     // Error handling
     public Exception? LastError { get; private set; }
-    public event Action<Exception>? Error;
     
     // Audio buffer management
     private readonly object _audioLock = new object();
@@ -94,6 +93,7 @@ public sealed class AudioService : IAsyncDisposable
                         {
                             var error = Bass.LastError;
                             LogToFile($"[AudioService] Failed to load codec plugin: {plugin}, Error: {error}");
+                            // Note: Can't set LastError from static method, but we log the error
                         }
                     }
                     catch (Exception ex)
@@ -878,6 +878,10 @@ public sealed class AudioService : IAsyncDisposable
         
         return 0.0;
     }
+    
+    // IAudioProvider interface methods
+    public float[] GetSpectrumData() => ReadFft();
+    public float[] GetWaveformData() => ReadWaveform();
 
     public void Dispose()
     {

@@ -60,7 +60,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private float _currentTime;
         private float _beatInterval;
         private int _frameCounter;
-        private bool _isInitialized;
+        // Removed unused field
 
         #endregion
 
@@ -263,7 +263,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _currentTime = 0;
             _beatInterval = 0;
             _frameCounter = 0;
-            _isInitialized = false;
+            // _isInitialized = false; // Removed unused field
             BPM = 120.0f;
             Confidence = 0.0f;
             IsBeat = false;

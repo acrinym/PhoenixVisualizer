@@ -103,6 +103,10 @@ public partial class SettingsWindow : Window
 
     private void LoadCurrentSettings()
     {
+        // Load engine selection from VisualizerSettings
+        var selectedEngine = _vz.SelectedEngine;
+        SelectedPlugin = selectedEngine;
+        
         // Radios
         if (SelectedPlugin == "phoenix") { PhoenixRadioControl?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
         else                             { AvsRadioControl?.SetCurrentValue(RadioButton.IsCheckedProperty, true); }
@@ -273,6 +277,9 @@ public partial class SettingsWindow : Window
         // legacy toggle from checkbox
         if (RandomOnBeatCheck?.IsChecked == true && _vz.RandomPresetMode == RandomPresetMode.Off)
             _vz.RandomPresetMode = RandomPresetMode.OnBeat;
+
+        // Save engine selection
+        _vz.SelectedEngine = SelectedPlugin;
 
         _vz.Save();
     }

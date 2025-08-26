@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.Core.Effects.Nodes;
 using PhoenixVisualizer.Core.Effects.Interfaces;
@@ -87,8 +83,8 @@ namespace PhoenixVisualizer.Core.Effects
             RootInput = CreateInputNode();
             FinalOutput = CreateOutputNode();
 
-            AddNode(RootInput);
-            AddNode(FinalOutput);
+            _ = AddNode(RootInput);
+            _ = AddNode(FinalOutput);
         }
 
         #endregion
@@ -148,11 +144,11 @@ namespace PhoenixVisualizer.Core.Effects
                     return false;
 
                 // Remove all connections involving this node
-                _connections.RemoveAll(c => c.SourceNodeId == nodeId || c.TargetNodeId == nodeId);
+                _ = _connections.RemoveAll(c => c.SourceNodeId == nodeId || c.TargetNodeId == nodeId);
 
                 // Remove the node
-                _nodes.Remove(node);
-                _nodeLookup.Remove(nodeId);
+                _ = _nodes.Remove(node);
+                _ = _nodeLookup.Remove(nodeId);
                 
                 State = EffectGraphState.Modified;
                 return true;
@@ -242,8 +238,8 @@ namespace PhoenixVisualizer.Core.Effects
                 _nodeLookup.Clear();
 
                 // Re-add default nodes
-                AddNode(RootInput);
-                AddNode(FinalOutput);
+                _ = AddNode(RootInput);
+                _ = AddNode(FinalOutput);
 
                 State = EffectGraphState.Initialized;
                 Stats.Reset();
@@ -348,7 +344,7 @@ namespace PhoenixVisualizer.Core.Effects
             Stack<string> stack = new Stack<string>();
             
             stack.Push(targetId);
-            visited.Add(targetId);
+            _ = visited.Add(targetId);
 
             while (stack.Count > 0)
             {
@@ -362,7 +358,7 @@ namespace PhoenixVisualizer.Core.Effects
                 {
                     if (!visited.Contains(connection.TargetNodeId))
                     {
-                        visited.Add(connection.TargetNodeId);
+                        _ = visited.Add(connection.TargetNodeId);
                         stack.Push(connection.TargetNodeId);
                     }
                 }
@@ -402,7 +398,7 @@ namespace PhoenixVisualizer.Core.Effects
             if (visited.Contains(nodeId))
                 return;
 
-            temp.Add(nodeId);
+            _ = temp.Add(nodeId);
 
             IEnumerable<EffectConnection> outgoingConnections = _connections.Where(c => c.SourceNodeId == nodeId);
             foreach (EffectConnection connection in outgoingConnections)
@@ -410,8 +406,8 @@ namespace PhoenixVisualizer.Core.Effects
                 TopologicalSortVisit(connection.TargetNodeId, visited, temp, result);
             }
 
-            temp.Remove(nodeId);
-            visited.Add(nodeId);
+            _ = temp.Remove(nodeId);
+            _ = visited.Add(nodeId);
 
             IEffectNode node = _nodeLookup[nodeId];
             result.Add(node);

@@ -6,11 +6,15 @@ using System.Drawing.Text;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
 
+// Needed for platform specific drawing
+using System.Runtime.Versioning;
+
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
     /// <summary>
     /// Fun little text renderer with fonts, alignment, and optional animation. 🎨
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class TextEffectsNode : BaseEffectNode
     {
         // ✅ Public properties for external configuration
@@ -100,7 +104,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             else
             {
                 using var brush = new SolidBrush(TextColor);
-                g.DrawString(textToRender, _currentFont, brush, rect, _stringFormat);
+                g.DrawString(textToRender, _currentFont ?? new Font(FontFamily, FontSize, FontStyle), brush, rect, _stringFormat);
             }
 
             // Copy rendered pixels back into the image buffer

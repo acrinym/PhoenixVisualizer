@@ -222,7 +222,7 @@ public class SuperScopePlugin : IVisualizerPlugin
         var g = (byte)Math.Clamp((rgb.Y + m) * 255f, 0f, 255f);
         var b = (byte)Math.Clamp((rgb.Z + m) * 255f, 0f, 255f);
         
-        return (uint)(0xFF000000 | (r << 16) | (g << 8) | b);
+        return (uint)(0xFF000000 | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF));
     }
 
     public void Dispose()

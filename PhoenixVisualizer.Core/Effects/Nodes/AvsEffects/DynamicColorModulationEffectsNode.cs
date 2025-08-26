@@ -28,7 +28,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private readonly byte[] _colorTable;
         private bool _tableValid = false;
         private EELScriptEngine _scriptEngine;
-        private readonly object[] _compiledScripts;
+        private readonly object?[] _compiledScripts;
         private bool _scriptsNeedRecompilation = true;
         private bool _isInitialized = false;
         private bool _currentBeat = false;
@@ -82,7 +82,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             if (_scriptsNeedRecompilation)
                 RecompileScripts();
 
+            if (audioFeatures != null)
+        {
             SetAudioVariables(audioFeatures);
+        }
 
             ExecuteInitScript();
             ExecuteFrameScript();
@@ -99,8 +102,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void SetAudioVariables(AudioFeatures audioFeatures)
         {
-            var spectrum = audioFeatures?.SpectrumData;
-            var waveform = audioFeatures?.WaveformData;
+            var spectrum = audioFeatures?.SpectrumData ?? Array.Empty<float>();
+            var waveform = audioFeatures?.WaveformData ?? Array.Empty<float>();
 
             double bass = CalculateFrequencyBand(spectrum, 0, 170);
             double mid = CalculateFrequencyBand(spectrum, 171, 341);
@@ -391,7 +394,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         {
             if (!_tableValid)
                 UpdateLookupTable();
-            return (byte[])_colorTable.Clone();
+            return _colorTable?.Clone() as byte[] ?? Array.Empty<byte>();
         }
 
         public bool IsLookupTableValid() => _tableValid;
@@ -430,14 +433,14 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             public void SetVariable(string name, double value) => _variables[name] = value;
             public double GetVariable(string name) => _variables.TryGetValue(name, out var v) ? v : 0.0;
 
-            public object CompileScript(string script)
+            public object? CompileScript(string script)
             {
                 if (string.IsNullOrEmpty(script))
                     return null;
                 return script;
             }
 
-            public void ExecuteScript(object compiledScript)
+            public void ExecuteScript(object? compiledScript)
             {
                 if (compiledScript == null) return;
                 string script = compiledScript.ToString() ?? string.Empty;

@@ -61,9 +61,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Fields
 
-        private float[,] _heightMap;
-        private float[,] _velocityMap;
-        private float[,] _previousHeightMap;
+        private float[,] _heightMap = new float[1,1];
+        private float[,] _velocityMap = new float[1,1];
+        private float[,] _previousHeightMap = new float[1,1];
         private readonly Random _random = new Random();
         private int _frameCounter;
         private float _time;

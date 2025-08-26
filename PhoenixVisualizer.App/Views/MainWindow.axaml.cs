@@ -2,7 +2,8 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
-
+using PhoenixVisualizer.Audio;
+using System.Linq;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.App.Rendering;
 using PhoenixVisualizer.App.Controls;
@@ -65,7 +66,9 @@ public partial class MainWindow : Window
             {
                 cmb.ItemsSource = items;
                 cmb.SelectionChanged += OnPluginSelectionChanged;
-                cmb.SelectedIndex = 0; // trigger selection -> SetPlugin
+                
+                // Initialize based on engine setting
+                InitializeVisualizerFromSettings();
             }
         }
 
@@ -219,6 +222,98 @@ public partial class MainWindow : Window
         SetVisualMode(VisualMode.BuiltIn);
     }
 
+    /// <summary>
+    /// Initialize the visualizer based on the engine setting from VisualizerSettings
+    /// </summary>
+    private void InitializeVisualizerFromSettings()
+    {
+        try
+        {
+            var settings = VisualizerSettings.Load();
+            var selectedEngine = settings.SelectedEngine;
+            
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Initializing visualizer with engine: {selectedEngine}");
+            
+            if (selectedEngine == "phoenix")
+            {
+                // Use Phoenix engine - select a Phoenix visualizer
+                var cmb = this.FindControl<ComboBox>("CmbPlugin");
+                if (cmb != null)
+                {
+                    var items = PluginRegistry.AvailablePlugins?.ToList() ?? new List<PluginMetadata>();
+                    
+                    // Look for Phoenix visualizers first
+                    var phoenixPlugin = items.FirstOrDefault(p => p.Id.Contains("phoenix") || p.DisplayName.Contains("Phoenix"));
+                    if (phoenixPlugin != null)
+                    {
+                        var idx = items.IndexOf(phoenixPlugin);
+                        cmb.SelectedIndex = idx;
+                        
+                        var plugin = PluginRegistry.Create(phoenixPlugin.Id);
+                        if (plugin != null)
+                        {
+                            RenderSurfaceControl?.SetPlugin(plugin);
+                            
+                            // Switch to VLC audio service for Phoenix engine
+                            if (RenderSurfaceControl != null)
+                            {
+                                var vlcAudioService = new PhoenixVisualizer.Audio.VlcAudioService();
+                                RenderSurfaceControl.SetAudioService(vlcAudioService);
+                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to VLC audio service for Phoenix engine");
+                            }
+                            
+                            System.Diagnostics.Debug.WriteLine($"[MainWindow] Phoenix engine initialized with: {phoenixPlugin.DisplayName}");
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to bars if no Phoenix visualizer found
+                        var barsPlugin = items.FirstOrDefault(p => p.Id == "bars");
+                        if (barsPlugin != null)
+                        {
+                            var idx = items.IndexOf(barsPlugin);
+                            cmb.SelectedIndex = idx;
+                            
+                            var plugin = PluginRegistry.Create(barsPlugin.Id);
+                            if (plugin != null)
+                            {
+                                RenderSurfaceControl?.SetPlugin(plugin);
+                                System.Diagnostics.Debug.WriteLine($"[MainWindow] Phoenix engine fallback to: {barsPlugin.DisplayName}");
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Use AVS engine - select bars visualizer as default
+                var cmb = this.FindControl<ComboBox>("CmbPlugin");
+                if (cmb != null)
+                {
+                    var items = PluginRegistry.AvailablePlugins?.ToList() ?? new List<PluginMetadata>();
+                    var barsPlugin = items.FirstOrDefault(p => p.Id == "bars");
+                    if (barsPlugin != null)
+                    {
+                        var idx = items.IndexOf(barsPlugin);
+                        cmb.SelectedIndex = idx;
+                        
+                        var plugin = PluginRegistry.Create(barsPlugin.Id);
+                        if (plugin != null)
+                        {
+                            RenderSurfaceControl?.SetPlugin(plugin);
+                            System.Diagnostics.Debug.WriteLine($"[MainWindow] AVS engine initialized with: {barsPlugin.DisplayName}");
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to initialize visualizer from settings: {ex.Message}");
+            // Fallback to default behavior
+        }
+    }
+
     private void WireUpEventHandlers()
     {
         if (_handlersWired) return;
@@ -258,12 +353,49 @@ public partial class MainWindow : Window
     {
         _visualMode = mode;
         var skia = this.FindControl<RenderSurface>("RenderHost");
+        var avsHost = this.FindControl<Control>("AvsWin32Host");
+        var avsCanvas = this.FindControl<Grid>("AvsCanvasHost");
         
         if (mode == VisualMode.BuiltIn)
         {
+            // Show Skia render surface, hide AVS elements
             if (skia != null)
             {
                 skia.IsVisible = true;
+                skia.ZIndex = 10; // Ensure it's on top
+            }
+            
+            if (avsHost != null)
+            {
+                avsHost.IsVisible = false;
+                avsHost.ZIndex = 0;
+            }
+            
+            if (avsCanvas != null)
+            {
+                avsCanvas.IsVisible = false;
+                avsCanvas.ZIndex = 0;
+            }
+        }
+        else
+        {
+            // Hide Skia, show AVS elements
+            if (skia != null)
+            {
+                skia.IsVisible = false;
+                skia.ZIndex = 0;
+            }
+            
+            if (avsHost != null)
+            {
+                avsHost.IsVisible = true;
+                avsHost.ZIndex = 10;
+            }
+            
+            if (avsCanvas != null)
+            {
+                avsCanvas.IsVisible = true;
+                avsCanvas.ZIndex = 10;
             }
         }
     }
@@ -462,6 +594,10 @@ public partial class MainWindow : Window
         {
             var dlg = new SettingsWindow();
             await dlg.ShowDialog(this);
+            
+            // Settings dialog was closed, refresh the visualizer to pick up any changes
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Settings dialog closed, refreshing visualizer");
+            InitializeVisualizerFromSettings();
         }
         catch
         {
@@ -486,8 +622,21 @@ public partial class MainWindow : Window
             var audio = RenderSurfaceControl.GetAudioService(); // provided by RenderSurface
             if (audio is null) return;
 
-            var dlg = new TempoPitchWindow(audio);
-            await dlg.ShowDialog(this);
+            // Check if the audio service supports tempo/pitch features
+            if (audio is AudioService bassAudio)
+            {
+                var dlg = new TempoPitchWindow(bassAudio);
+                await dlg.ShowDialog(this);
+            }
+            else
+            {
+                // Show message that tempo/pitch is not available with VLC audio
+                var statusText = this.FindControl<TextBlock>("LblTime");
+                if (statusText != null)
+                {
+                    statusText.Text = "⚠️ Tempo/Pitch requires BASS audio (not available with VLC)";
+                }
+            }
         }
         catch
         {

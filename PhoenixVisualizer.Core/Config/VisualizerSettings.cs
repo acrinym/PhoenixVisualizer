@@ -34,6 +34,9 @@ public sealed partial class VisualizerSettings
     public bool ShowPeaks { get; set; } = true;             // classic spectrum peak caps
     public bool EnableHotkeys { get; set; } = true;         // Y/U/Space/R/Enter
 
+    // --- Engine selection ---
+    public string SelectedEngine { get; set; } = "avs";  // "avs" or "phoenix"
+    
     // --- Random preset switching ---
     public RandomPresetMode RandomPresetMode { get; set; } = RandomPresetMode.Off;
     public int RandomPresetIntervalSeconds { get; set; } = 30;

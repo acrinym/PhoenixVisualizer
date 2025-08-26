@@ -16,6 +16,11 @@ public sealed class BarsVisualizer : IVisualizerPlugin
     {
         canvas.Clear(0xFF101010); // opaque background
 
+        // Debug: Log what we're receiving
+        float debugFftSum = f.Fft?.Sum(ff => MathF.Abs(ff)) ?? 0f;
+        float debugWaveSum = f.Waveform?.Sum(w => MathF.Abs(w)) ?? 0f;
+        System.Diagnostics.Debug.WriteLine($"[BarsVisualizer] Received: FFT sum: {debugFftSum:F6}, Wave sum: {debugWaveSum:F6}, RMS: {f.Rms:F6}, Beat: {f.Beat}");
+
         if (f.Fft is null || f.Fft.Length == 0) return;
 
         // Validate FFT data - check if it's stuck

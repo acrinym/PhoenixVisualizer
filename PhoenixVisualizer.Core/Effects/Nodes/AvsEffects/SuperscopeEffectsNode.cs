@@ -128,7 +128,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 if (BeatReactive && audioFeatures?.IsBeat == true)
                     Engine?.Execute(BeatScript);
 
+                if (audioFeatures != null)
+            {
                 RenderPoints(output, audioFeatures);
+            }
                 _time += 0.016; // ~60fps delta
             }
             catch (Exception ex)

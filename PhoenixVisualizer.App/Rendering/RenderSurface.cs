@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
@@ -9,7 +9,7 @@ namespace PhoenixVisualizer.App.Rendering;
 
 public sealed class RenderSurface : Control
 {
-    private readonly AudioService _audio;
+    private IAudioProvider _audio;
     private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin(); // keep a sensible default
     private Timer? _timer;
 
@@ -49,7 +49,14 @@ public sealed class RenderSurface : Control
 
     public RenderSurface()
     {
-        _audio = new AudioService();
+        // Default to VLC audio service
+        var vlcBus = new VlcAudioBus();
+        _audio = new VlcAudioService(vlcBus);
+    }
+    
+    public RenderSurface(IAudioProvider audioService)
+    {
+        _audio = audioService ?? throw new ArgumentNullException(nameof(audioService));
     }
 
     public void SetPlugin(IVisualizerPlugin plugin)
@@ -101,7 +108,20 @@ public sealed class RenderSurface : Control
         _audio.Stop();
     }
 
-    public AudioService? GetAudioService() => _audio;
+    public IAudioProvider? GetAudioService() => _audio;
+    
+    public void SetAudioService(IAudioProvider audioService)
+    {
+        if (audioService == null) return;
+        
+        // Dispose the old audio service
+        _audio?.Dispose();
+        
+        // Set the new one
+        _audio = audioService;
+        
+        Debug.WriteLine($"[RenderSurface] Audio service switched to: {audioService.GetType().Name}");
+    }
     
     public PluginPerformanceMonitor GetPerformanceMonitor() => _perfMonitor;
 
@@ -127,16 +147,32 @@ public sealed class RenderSurface : Control
         
         if (_audio != null && _audio.IsReadyToPlay)
         {
-            fft = _audio.ReadFft();
-            wave = _audio.ReadWaveform();
+            fft = _audio.GetSpectrumData();
+            wave = _audio.GetWaveformData();
             pos = _audio.GetPositionSeconds();
             total = _audio.GetLengthSeconds();
+            
+            // Debug: Check if we're getting actual audio data
+            float fftSum = fft.Sum(f => MathF.Abs(f));
+            float waveSum = wave.Sum(f => MathF.Abs(f));
+            
+            if (fftSum < 0.001f || waveSum < 0.001f)
+            {
+                // Audio data appears to be silent/zero - this might be the issue
+                System.Diagnostics.Debug.WriteLine($"[RenderSurface] Audio data appears silent - FFT sum: {fftSum:F6}, Wave sum: {waveSum:F6}");
+            }
         }
         else
         {
             // Fallback if audio service is not ready
             fft = new float[2048];
             wave = new float[2048];
+            
+            // Debug: Log why audio service isn't ready
+            if (_audio != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RenderSurface] Audio service not ready: {_audio.GetStatus()}");
+            }
         }
 
         // Load settings at most once per second
@@ -278,6 +314,11 @@ public sealed class RenderSurface : Control
             // Start performance monitoring
             _renderStopwatch.Restart();
             
+            // Debug: Log what we're sending to the plugin
+            float fftSum = _smoothFft.Sum(f => MathF.Abs(f));
+            float waveSum = wave.Sum(f => MathF.Abs(f));
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] Sending to plugin '{_plugin.Id}': FFT sum: {fftSum:F6}, Wave sum: {waveSum:F6}, RMS: {rms:F6}, Beat: {beat}, BPM: {_bpm:F1}");
+            
             // Create PluginHost AudioFeatures for plugin rendering
             var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
                 _smoothFft,  // fft
@@ -304,9 +345,10 @@ public sealed class RenderSurface : Control
                 _perfMonitor.RecordFrame(_plugin.Id, renderTimeMs);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Plugin render failed - keep UI responsive
+            // Plugin render failed - log the error for debugging
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] Plugin render failed: {ex.Message}");
         }
 
         // push position to UI listeners
