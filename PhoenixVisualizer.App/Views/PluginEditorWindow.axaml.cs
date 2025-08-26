@@ -131,8 +131,12 @@ public static class AvsConverter
                     clearEveryFrame = blob[0] != 0;
                     break;
                 default:
-                    // Generic effect node mapping
-                    effects.Add(new { type = $"avs_{id}", data = Convert.ToBase64String(blob) });
+                    // Preserve raw AVS effect data for round-trip
+                    effects.Add(new {
+                        type = "avs_raw",
+                        id,
+                        blob = Convert.ToBase64String(blob)
+                    });
                     break;
             }
         }
@@ -209,14 +213,25 @@ public static class AvsConverter
         bw.Write(new byte[] { clear ? (byte)1 : (byte)0 });
 
         // Remaining effects
-        int idx = 6;
         foreach (var e in effects)
         {
-            var type = e.GetProperty("type").GetString() ?? "unknown";
-            var bytes = System.Text.Encoding.ASCII.GetBytes(type);
-            bw.Write(idx++);
-            bw.Write(bytes.Length);
-            bw.Write(bytes);
+            if (e.TryGetProperty("type", out var typeEl) &&
+                typeEl.GetString() == "avs_raw")
+            {
+                int id = e.GetProperty("id").GetInt32();
+                var blob = Convert.FromBase64String(e.GetProperty("blob").GetString() ?? "");
+                bw.Write(id);
+                bw.Write(blob.Length);
+                bw.Write(blob);
+            }
+            else
+            {
+                var type = e.GetProperty("type").GetString() ?? "unknown";
+                var bytes = System.Text.Encoding.ASCII.GetBytes(type);
+                bw.Write(0x99); // generic placeholder ID
+                bw.Write(bytes.Length);
+                bw.Write(bytes);
+            }
         }
     }
 }
