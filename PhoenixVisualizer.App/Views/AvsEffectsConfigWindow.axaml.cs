@@ -43,9 +43,7 @@ public partial class AvsEffectsConfigWindow : Window
         LoadPresets();
         PopulateEffectsList();
         UpdateActiveEffectsList();
-        
-        // Set initial status
-        UpdateStatusText();
+
     }
 
     private void InitializeComponent()
