@@ -76,15 +76,19 @@
 | BlitEffects | ❌ **MISSING** | Different from BlitterFeedback (basic image copying vs scaling/feedback) |
 | BPMEffects | ❌ **MISSING** | Different from CustomBPM (comprehensive engine vs customizable analysis) |
 
-### ❓ **STILL NEED VERIFICATION**
-| Documented | Possible Implemented | Needs Check |
+### ✅ **FINAL VERIFIED MATCHES**
+| Documented | Implemented | Status |
 |------------|-------------|---------|
-| ConvolutionEffects | Convolution | ❓ **CHECK** (Should be match but need verify) |
-| PartsEffects | ? | ❓ **CHECK** (Unknown mapping) |
-| ScatterEffects | ? | ❓ **CHECK** (Unknown mapping) |
-| ShiftEffects | ? | ❓ **CHECK** (Different from ChannelShift?) |
-| SimpleEffects | ? | ❓ **CHECK** (Generic name, unclear mapping) |
-| StackEffects | ? | ❓ **CHECK** (Different from EffectStacking?) |
+| ConvolutionEffects | Convolution | ✅ **CONFIRMED MATCH** (General convolution filter) |
+
+### ❌ **VERIFIED AS MISSING (Final 5 effects)**
+| Documented | Status | Reason |
+|------------|---------|---------|
+| PartsEffects | ❌ **MISSING** | Multi-part video processing engine (screen partitioning) |
+| ScatterEffects | ❌ **MISSING** | Pixel scattering/distortion effect |
+| ShiftEffects | ❌ **MISSING** | Dynamic image shifting with EEL scripting (different from ChannelShift) |
+| SimpleEffects | ❌ **MISSING** | Spectrum analyzer & oscilloscope visualization |
+| StackEffects | ❌ **MISSING** | Layer stacking with blending modes (different from EffectStacking) |
 
 ### ❌ **TRULY MISSING (Need Implementation)**
 | Documented | Status |
@@ -109,6 +113,11 @@
 | StarfieldEffects | ❌ **MISSING** - Different from Starfield |
 | SVPEffects | ❌ **MISSING** - SVP effects |
 | WaterBumpMapping | ❌ **MISSING** - Water bump mapping |
+| PartsEffects | ❌ **MISSING** - Multi-part video processing engine |
+| ScatterEffects | ❌ **MISSING** - Pixel scattering/distortion effect |
+| ShiftEffects | ❌ **MISSING** - Dynamic image shifting with EEL scripting |
+| SimpleEffects | ❌ **MISSING** - Spectrum analyzer & oscilloscope visualization |
+| StackEffects | ❌ **MISSING** - Layer stacking with blending modes |
 
 ---
 
@@ -116,17 +125,17 @@
 
 - **Total Documented Effects**: 79 (excluding documentation files)
 - **Total Implemented Effects**: 54
-- **Confirmed Matches**: ~45+ effects ✅
-- **Truly Missing**: ~22 effects ❌
-- **Still Need Verification**: ~6 effects ❓
+- **Confirmed Matches**: ~46+ effects ✅
+- **Truly Missing**: 27 effects ❌
+- **Verification Complete**: ✅
 
 ### **Detailed Breakdown**
 - **Perfect Matches**: 15 effects with identical names
 - **Close Matches**: 25 effects with minor naming differences  
 - **Special/Combined Matches**: 5+ effects (multiple docs → single implementation)
-- **Verified Match**: 1 effect (BspinEffects = BassSpin)
-- **Missing**: 22 effects that need implementation
-- **Need Verification**: 6 effects requiring further investigation
+- **Verified Matches**: 2 effects (BspinEffects = BassSpin, ConvolutionEffects = Convolution)
+- **Missing**: 27 effects that need implementation
+- **Implementation Rate**: **~58% complete** (46 implemented / 79 documented)
 
 ## ✅ **CONCLUSION**
 
