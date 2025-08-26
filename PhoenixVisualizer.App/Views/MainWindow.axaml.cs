@@ -2,7 +2,7 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.PluginHost.Services;
+
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.App.Rendering;
 using PhoenixVisualizer.App.Controls;
@@ -237,7 +237,7 @@ public partial class MainWindow : Window
         var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
         var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
         var btnPluginSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
-        var btnWinampPlugins = this.FindControl<Button>("BtnWinampPlugins");
+
 
         if (btnOpen != null) btnOpen.Click += OnOpenClick;
         if (btnPlay != null) btnPlay.Click += OnPlayClick;
@@ -251,37 +251,19 @@ public partial class MainWindow : Window
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
         if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
-        // Winamp button is already wired in constructor to avoid duplicates
+
     }
 
     private void SetVisualMode(VisualMode mode)
     {
         _visualMode = mode;
-        var winamp = this.FindControl<Control>("AvsWin32Host");
         var skia = this.FindControl<RenderSurface>("RenderHost");
         
         if (mode == VisualMode.BuiltIn)
         {
-            if (winamp != null)
-            {
-                winamp.IsEnabled = false;
-                winamp.IsVisible = false;
-            }
             if (skia != null)
             {
                 skia.IsVisible = true;
-            }
-        }
-        else
-        {
-            if (skia != null)
-            {
-                skia.IsVisible = false;
-            }
-            if (winamp != null)
-            {
-                winamp.IsEnabled = true;
-                winamp.IsVisible = true;
             }
         }
     }
@@ -827,11 +809,12 @@ public partial class MainWindow : Window
     {
         try
         {
-            var hotkeyService = new PhoenixVisualizer.Services.WinampHotkeyService(
-                PhoenixVisualizer.Core.Config.VisualizerSettings.Load()
-            );
-            var hotkeyWindow = new PhoenixVisualizer.Views.HotkeyManagerWindow(hotkeyService);
-            hotkeyWindow.Show();
+            // Hotkey manager temporarily disabled - Winamp integration removed
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = "⚠️ Hotkey manager temporarily disabled";
+            }
         }
         catch
         {
@@ -839,21 +822,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnPluginSwitcherClick(object? sender, RoutedEventArgs e)
+    private void OnPluginSwitcherClick(object? sender, RoutedEventArgs e)
     {
         _ = sender; _ = e; // silence unused parameters
         try
         {
-            // Toggle between built-in and Winamp plugins
-            if (_currentPluginMode == PluginMode.BuiltIn)
+            // Currently only built-in mode is supported
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
             {
-                // Switch to Winamp mode
-                await SwitchToWinampMode();
-            }
-            else
-            {
-                // Switch to built-in mode
-                SwitchToBuiltInMode();
+                statusText.Text = "✅ Built-in visualizers active";
             }
         }
         catch (Exception ex)
@@ -866,68 +844,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task SwitchToWinampMode()
-    {
-        try
-        {
-            // Initialize Winamp service if not already done
-            if (_winampService == null)
-            {
-                _winampService = new WinampIntegrationService();
-            }
 
-            // Scan for available Winamp plugins
-            var result = await _winampService.ScanForPluginsAsync();
-            
-            if (result.Error != null)
-            {
-                throw new InvalidOperationException($"Winamp scan failed: {result.Error.Message}");
-            }
-
-            if (result.Plugins.Count == 0)
-            {
-                throw new InvalidOperationException("No Winamp plugins found. Please check your plugin directory.");
-            }
-
-            // Switch to Winamp mode
-            _currentPluginMode = PluginMode.Winamp;
-            
-            // Update button text
-            var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
-            if (btnSwitcher != null)
-            {
-                btnSwitcher.Content = "🔄 Switch to Built-in";
-            }
-
-            // Show status
-            var statusText = this.FindControl<TextBlock>("LblTime");
-            if (statusText != null)
-            {
-                statusText.Text = $"✅ Switched to Winamp mode - {result.Plugins.Count} plugins available";
-            }
-
-            // Update UI visibility
-            UpdatePluginModeUI();
-
-            // Set the first available Winamp plugin as active
-            if (result.Plugins.Count > 0 && RenderSurfaceControl != null)
-            {
-                var firstPlugin = result.Plugins[0];
-                var winampWrapper = new WinampPluginWrapper(_winampService, firstPlugin);
-                RenderSurfaceControl.SetPlugin(winampWrapper);
-                
-                var statusLabel = this.FindControl<TextBlock>("LblTime");
-                if (statusLabel != null)
-                {
-                    statusLabel.Text = $"✅ Active Winamp plugin: {winampWrapper.DisplayName}";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to switch to Winamp mode: {ex.Message}");
-        }
-    }
 
     private void SwitchToBuiltInMode()
     {
@@ -940,7 +857,7 @@ public partial class MainWindow : Window
             var btnSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
             if (btnSwitcher != null)
             {
-                btnSwitcher.Content = "🔄 Switch to Winamp";
+                btnSwitcher.Content = "🔄 Built-in Mode";
             }
 
             // Restore built-in plugin
@@ -969,57 +886,11 @@ public partial class MainWindow : Window
 
     private void UpdatePluginModeUI()
     {
-        var isWinamp = _currentPluginMode == PluginMode.Winamp;
-        // Show/hide Winamp host if present; always show RenderSurface for built-ins
-        if (_avsWin32HostControl != null) _avsWin32HostControl.IsVisible = isWinamp;
-        if (_renderSurface != null) _renderSurface.IsVisible = !isWinamp;
+        // Always show RenderSurface for built-ins
+        if (_renderSurface != null) _renderSurface.IsVisible = true;
     }
 
-    // Single-instance window open; avoid double Show() if handler is wired twice, etc.
-    private void OnWinampPluginsClick(object? sender, RoutedEventArgs e)
-    {
-        if (_pluginManager is { } existing && existing.IsVisible)
-        {
-            existing.Activate();
-            return;
-        }
-        _pluginManager = new WinampPluginManager();
-        _pluginManager.Closed += (_, __) => _pluginManager = null;
-        _pluginManager.PluginSelected += OnWinampPluginSelected;
-        _pluginManager.Show(this);
-    }
 
-    private void OnWinampPluginSelected(SimpleWinampHost.LoadedPlugin plugin, int moduleIndex)
-    {
-        try
-        {
-            // Initialize Winamp service if not already done
-            _winampService ??= new WinampIntegrationService();
-            
-            // Create wrapper and set it as the active plugin
-            var winampWrapper = new WinampPluginWrapper(_winampService, plugin, moduleIndex);
-            RenderSurfaceControl?.SetPlugin(winampWrapper);
-            
-            // Switch to Winamp mode
-            _currentPluginMode = PluginMode.Winamp;
-            UpdatePluginModeUI();
-            
-            // Update status
-            var statusLabel = this.FindControl<TextBlock>("LblTime");
-            if (statusLabel != null)
-            {
-                statusLabel.Text = $"✅ Active Winamp plugin: {winampWrapper.DisplayName}";
-            }
-        }
-        catch (Exception ex)
-        {
-            var statusLabel = this.FindControl<TextBlock>("LblTime");
-            if (statusLabel != null)
-            {
-                statusLabel.Text = $"❌ Failed to load Winamp plugin: {ex.Message}";
-            }
-        }
-    }
 
     private void OnPresetDragOver(object? sender, DragEventArgs e)
     {

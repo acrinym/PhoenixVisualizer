@@ -2,20 +2,20 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 
 using PhoenixVisualizer.App.Models;
-using PhoenixVisualizer.Services;
+
 
 namespace PhoenixVisualizer.Views;
 
 public partial class HotkeyManagerWindow : Window
 {
-    private readonly WinampHotkeyService _hotkeyService;
+    private readonly object _hotkeyService; // Placeholder - Winamp integration removed
     private readonly ObservableCollection<HotkeyItem> _hotkeyItems;
     private HotkeyItem? _editingItem;
 
     public HotkeyManagerWindow()
     {
         // Default constructor for XAML instantiation
-        _hotkeyService = new WinampHotkeyService(PhoenixVisualizer.Core.Config.VisualizerSettings.Load());
+        _hotkeyService = new object(); // Placeholder - Winamp integration removed
         _hotkeyItems = new ObservableCollection<HotkeyItem>();
         
         AvaloniaXamlLoader.Load(this);
@@ -23,7 +23,7 @@ public partial class HotkeyManagerWindow : Window
         InitializeHotkeyList();
     }
 
-    public HotkeyManagerWindow(WinampHotkeyService hotkeyService)
+    public HotkeyManagerWindow(object hotkeyService)
     {
         _hotkeyService = hotkeyService;
         _hotkeyItems = new ObservableCollection<HotkeyItem>();
@@ -35,7 +35,7 @@ public partial class HotkeyManagerWindow : Window
 
     private void InitializeHotkeyList()
     {
-        var descriptions = _hotkeyService.GetHotkeyDescriptions();
+        // Placeholder hotkey list - Winamp integration removed
         _hotkeyItems.Clear();
 
         // Group hotkeys by category
@@ -43,15 +43,26 @@ public partial class HotkeyManagerWindow : Window
         var enhancedHotkeys = new List<string> { "Ctrl+P", "Ctrl+M", "Ctrl+S", "Shift+S", "Shift+L", "Ctrl+A", "1", "2", "3" };
         var modifierHotkeys = new List<string> { "Ctrl+N", "Ctrl+P", "Ctrl+R", "Ctrl+F", "Ctrl+V", "Shift+R", "Shift+B", "Alt+Enter", "Alt+V" };
 
-        foreach (var hotkey in descriptions)
+        // Add placeholder hotkeys
+        var placeholderHotkeys = new Dictionary<string, string>
+        {
+            { "Y", "Toggle visualization" },
+            { "U", "Toggle audio input" },
+            { "Space", "Play/Pause" },
+            { "F", "Fullscreen toggle" },
+            { "V", "Volume up" },
+            { "B", "Volume down" },
+            { "R", "Reset visualization" },
+            { "Escape", "Exit fullscreen" }
+        };
+
+        foreach (var hotkey in placeholderHotkeys)
         {
             string category = "Core";
             if (enhancedHotkeys.Contains(hotkey.Key))
                 category = "Enhanced";
             else if (modifierHotkeys.Contains(hotkey.Key))
                 category = "Modifier";
-            else if (hotkey.Value.StartsWith("Custom:"))
-                category = "Custom";
 
             _hotkeyItems.Add(new HotkeyItem
             {
@@ -81,10 +92,10 @@ public partial class HotkeyManagerWindow : Window
                 // Update the hotkey binding
                 item.CurrentBinding = result;
                 
-                // Register the new binding with the service
+                // Register the new binding with the service (placeholder - Winamp integration removed)
                 if (TryParseKeyGesture(result, out var key, out var modifiers))
                 {
-                    _hotkeyService.RegisterCustomBinding(item.Key, key, modifiers);
+                    // _hotkeyService.RegisterCustomBinding(item.Key, key, modifiers); // Disabled
                 }
                 
                 // Refresh the list
@@ -262,7 +273,7 @@ public partial class HotkeyManagerWindow : Window
 
     private void OnResetToDefaults(object? sender, RoutedEventArgs e)
     {
-        _hotkeyService.ResetToDefaults();
+        // _hotkeyService.ResetToDefaults(); // Disabled - Winamp integration removed
         InitializeHotkeyList();
     }
 
@@ -324,7 +335,7 @@ public partial class HotkeyManagerWindow : Window
                     {
                         if (TryParseKeyGesture(binding.Value, out var key, out var modifiers))
                         {
-                            _hotkeyService.RegisterCustomBinding(binding.Key, key, modifiers);
+                            // _hotkeyService.RegisterCustomBinding(binding.Key, key, modifiers); // Disabled - Winamp integration removed
                         }
                     }
 
@@ -340,7 +351,7 @@ public partial class HotkeyManagerWindow : Window
 
     private void OnClearCustomBindings(object? sender, RoutedEventArgs e)
     {
-        _hotkeyService.ResetToDefaults();
+        // _hotkeyService.ResetToDefaults(); // Disabled - Winamp integration removed
         InitializeHotkeyList();
     }
 
