@@ -19,7 +19,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
 {
     public string Id => "avs_effects_engine";
     public string DisplayName => "AVS Effects Engine";
-    public string Description => "Full Advanced Visualization Studio effects engine with 49+ implemented effects";
+    public string Description => "Full Advanced Visualization Studio effects engine with 48+ implemented effects";
     public bool IsEnabled { get; set; } = true;
 
     private int _width, _height;
@@ -29,16 +29,35 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
     private bool _isInitialized = false;
 
     // Configuration
-    public int MaxActiveEffects { get; set; } = 5;
+    public int MaxActiveEffects { get; set; } = 8; // Increased from 5 to 8
     public bool AutoRotateEffects { get; set; } = true;
     public float EffectRotationSpeed { get; set; } = 1.0f;
     public bool BeatReactive { get; set; } = true;
+    public bool ShowEffectNames { get; set; } = true;
+    public bool ShowEffectGrid { get; set; } = true;
+    public float EffectSpacing { get; set; } = 20.0f;
+
+    // Effect selection
+    public List<string> SelectedEffectTypes { get; set; } = new List<string>();
+    public bool RandomEffectSelection { get; set; } = false;
+    public int EffectChangeInterval { get; set; } = 300; // frames
+
+    // Performance tracking
+    private int _frameCount = 0;
+    private DateTime _lastEffectChange = DateTime.UtcNow;
 
     public AvsEffectsVisualizer()
     {
         _effectGraph = new EffectGraph();
         _availableEffects = new Dictionary<string, IEffectNode>();
         _activeEffects = new List<IEffectNode>();
+        
+        // Initialize with popular effect types
+        SelectedEffectTypes = new List<string>
+        {
+            "OscilloscopeRing", "BeatSpinning", "InterferencePatterns", 
+            "TimeDomainScope", "OscilloscopeStar", "Onetone"
+        };
     }
 
     public void Initialize()
@@ -52,6 +71,8 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         CreateDefaultEffectChain();
         
         _isInitialized = true;
+        
+        System.Diagnostics.Debug.WriteLine($"[AVS Effects] Initialized with {_availableEffects.Count} available effects");
     }
 
     public void Initialize(int width, int height)
@@ -80,6 +101,8 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         
         try
         {
+            _frameCount++;
+            
             // Update effect graph with audio features
             UpdateEffectGraph(features);
             
@@ -88,6 +111,12 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             
             // Render the result
             RenderEffects(canvas, features);
+            
+            // Auto-rotate effects if enabled
+            if (AutoRotateEffects && _frameCount % EffectChangeInterval == 0)
+            {
+                RotateEffects();
+            }
         }
         catch (Exception ex)
         {
@@ -97,8 +126,18 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
 
     public void Configure()
     {
-        // Show configuration dialog or load preset
-        LoadPreset("default");
+        try
+        {
+            // Show configuration dialog
+            var configWindow = new PhoenixVisualizer.Views.AvsEffectsConfigWindow(this);
+            configWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error opening configuration: {ex.Message}");
+            // Fallback to preset loading
+            LoadPreset("default");
+        }
     }
 
     public void Dispose()
@@ -164,10 +203,12 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             _activeEffects.Clear();
             _effectGraph.Clear();
 
-            // Add some default effects
-            var defaultEffects = new[] { "OscilloscopeRing", "BeatSpinning", "InterferencePatterns" };
-            
-            foreach (var effectName in defaultEffects)
+            // Add effects based on selection or use random selection
+            var effectsToAdd = RandomEffectSelection ? 
+                GetRandomEffects() : 
+                GetSelectedEffects();
+
+            foreach (var effectName in effectsToAdd)
             {
                 if (_availableEffects.TryGetValue(effectName, out var effect))
                 {
@@ -186,6 +227,52 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         {
             System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error creating default chain: {ex.Message}");
         }
+    }
+
+    private List<string> GetSelectedEffects()
+    {
+        var effects = new List<string>();
+        
+        // Add selected effect types if they exist
+        foreach (var effectType in SelectedEffectTypes)
+        {
+            if (_availableEffects.ContainsKey(effectType))
+            {
+                effects.Add(effectType);
+            }
+        }
+        
+        // If no selected effects found, add some defaults
+        if (effects.Count == 0)
+        {
+            var defaultEffects = new[] { "OscilloscopeRing", "BeatSpinning", "InterferencePatterns" };
+            foreach (var effect in defaultEffects)
+            {
+                if (_availableEffects.ContainsKey(effect))
+                {
+                    effects.Add(effect);
+                }
+            }
+        }
+        
+        return effects.Take(MaxActiveEffects).ToList();
+    }
+
+    private List<string> GetRandomEffects()
+    {
+        var availableEffectNames = _availableEffects.Keys.ToList();
+        var randomEffects = new List<string>();
+        var random = new Random();
+        
+        // Randomly select effects
+        for (int i = 0; i < Math.Min(MaxActiveEffects, availableEffectNames.Count); i++)
+        {
+            var randomIndex = random.Next(availableEffectNames.Count);
+            randomEffects.Add(availableEffectNames[randomIndex]);
+            availableEffectNames.RemoveAt(randomIndex);
+        }
+        
+        return randomEffects;
     }
 
     private void AddEffectToChain(IEffectNode effect)
@@ -279,9 +366,15 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                 onetoneEffect.Contrast = 1.0f + features.RMS * 0.5f;
                 onetoneEffect.Brightness = 0.5f + features.RMS * 0.3f;
             }
-            else if (effect is EffectStackingEffectsNode stackingEffect)
+            else if (effect is TimeDomainScopeEffectsNode scopeEffect)
             {
-                stackingEffect.LayerSpacing = 20.0f + features.RMS * 10.0f;
+                scopeEffect.ScopeHeight = 100.0f + features.RMS * 50.0f;
+                scopeEffect.ScrollSpeed = EffectRotationSpeed + (features.Beat ? 2.0f : 0.0f);
+            }
+            else if (effect is OscilloscopeStarEffectsNode starEffect)
+            {
+                starEffect.Size = 80 + (int)(features.RMS * 40);
+                starEffect.StarRotationSpeed = EffectRotationSpeed + (features.Beat ? 1.5f : 0.0f);
             }
         }
         catch (Exception ex)
@@ -309,6 +402,12 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                 RenderEffectAtPosition(canvas, effect, position, features);
             }
             
+            // Draw effect grid if enabled
+            if (ShowEffectGrid)
+            {
+                DrawEffectGrid(canvas);
+            }
+            
             // Draw effect info overlay
             DrawEffectInfoOverlay(canvas);
         }
@@ -325,7 +424,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             return (_width / 2.0f, _height / 2.0f);
         }
         
-        // Arrange effects in a grid pattern
+        // Arrange effects in a grid pattern with spacing
         int cols = (int)Math.Ceiling(Math.Sqrt(totalEffects));
         int rows = (int)Math.Ceiling((float)totalEffects / cols);
         
@@ -342,9 +441,113 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
     {
         try
         {
-            // For now, just draw a placeholder for each effect
-            // In a full implementation, this would render the actual effect output
+            // Create a temporary image buffer for the effect
+            var effectBuffer = new ImageBuffer(200, 150); // Fixed size for each effect
             
+            // Set effect position and size
+            if (effect is BaseEffectNode baseEffect)
+            {
+                // Configure effect properties
+                ConfigureEffectForPosition(baseEffect, position, effectBuffer.Width, effectBuffer.Height);
+                
+                // Process the effect
+                var inputBuffer = new ImageBuffer(effectBuffer.Width, effectBuffer.Height);
+                baseEffect.Process(inputBuffer, effectBuffer, features);
+                
+                // Render the effect buffer to canvas
+                RenderEffectBuffer(canvas, effectBuffer, position);
+            }
+            
+            // Draw effect name if enabled
+            if (ShowEffectNames)
+            {
+                var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
+                canvas.DrawText(effectName, position.x, position.y + 80, 0xFFFFFFFF, 10);
+            }
+            
+            // Draw audio reactivity indicator
+            if (features.Beat)
+            {
+                canvas.FillCircle(position.x, position.y + 90, 3, 0xFFFF0000);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error rendering effect at position: {ex.Message}");
+            
+            // Fallback: draw placeholder
+            DrawEffectPlaceholder(canvas, position, effect, features);
+        }
+    }
+
+    private void ConfigureEffectForPosition(BaseEffectNode effect, (float x, float y) position, int width, int height)
+    {
+        // Configure effect to render in its allocated space
+        if (effect is OscilloscopeRingEffectsNode ringEffect)
+        {
+            ringEffect.Size = Math.Min(width, height) / 2;
+        }
+        else if (effect is BeatSpinningEffectsNode spinEffect)
+        {
+            spinEffect.Size = Math.Min(width, height) / 2;
+        }
+        else if (effect is InterferencePatternsEffectsNode interferenceEffect)
+        {
+            interferenceEffect.Size = Math.Min(width, height) / 2;
+        }
+        else if (effect is TimeDomainScopeEffectsNode scopeEffect)
+        {
+            scopeEffect.ScopeWidth = width * 0.8f;
+            scopeEffect.ScopeHeight = height * 0.6f;
+        }
+        else if (effect is OscilloscopeStarEffectsNode starEffect)
+        {
+            starEffect.Size = Math.Min(width, height) / 2;
+        }
+        else if (effect is OnetoneEffectsNode onetoneEffect)
+        {
+            // Onetone effects work on the full buffer
+        }
+    }
+
+    private void RenderEffectBuffer(ISkiaCanvas canvas, ImageBuffer effectBuffer, (float x, float y) position)
+    {
+        try
+        {
+            // Calculate render bounds
+            int startX = (int)(position.x - effectBuffer.Width / 2);
+            int startY = (int)(position.y - effectBuffer.Height / 2);
+            
+            // Render the effect buffer pixel by pixel
+            for (int y = 0; y < effectBuffer.Height; y++)
+            {
+                for (int x = 0; x < effectBuffer.Width; x++)
+                {
+                    var color = effectBuffer.GetPixel(x, y);
+                    if (color.A > 0) // Only render non-transparent pixels
+                    {
+                        int canvasX = startX + x;
+                        int canvasY = startY + y;
+                        
+                        if (canvasX >= 0 && canvasX < _width && canvasY >= 0 && canvasY < _height)
+                        {
+                            uint colorValue = (uint)((color.A << 24) | (color.R << 16) | (color.G << 8) | color.B);
+                            canvas.SetPixel(canvasX, canvasY, colorValue);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error rendering effect buffer: {ex.Message}");
+        }
+    }
+
+    private void DrawEffectPlaceholder(ISkiaCanvas canvas, (float x, float y) position, IEffectNode effect, AudioFeatures features)
+    {
+        try
+        {
             var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
             
             // Draw effect background
@@ -366,7 +569,36 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error rendering effect at position: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error drawing effect placeholder: {ex.Message}");
+        }
+    }
+
+    private void DrawEffectGrid(ISkiaCanvas canvas)
+    {
+        try
+        {
+            // Draw grid lines between effects
+            if (_activeEffects.Count > 1)
+            {
+                var positions = new List<(float x, float y)>();
+                for (int i = 0; i < _activeEffects.Count; i++)
+                {
+                    positions.Add(CalculateEffectPosition(i, _activeEffects.Count));
+                }
+                
+                // Draw connecting lines
+                for (int i = 0; i < positions.Count - 1; i++)
+                {
+                    var start = positions[i];
+                    var end = positions[i + 1];
+                    
+                    canvas.DrawLine(start.x, start.y, end.x, end.y, 0x40FFFFFF, 1);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error drawing effect grid: {ex.Message}");
         }
     }
 
@@ -379,8 +611,20 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             canvas.DrawText(infoText, 10, 20, 0xFFFFFFFF, 14);
             
             // Draw help text
-            var helpText = "Press C to configure, R to rotate effects";
+            var helpText = "C: Configure | G: Toggle Grid | A: Add Effect | X: Remove Effect | R: Rotate";
             canvas.DrawText(helpText, 10, _height - 10, 0xFFFFFF80, 12);
+            
+            // Draw effect names
+            if (ShowEffectNames)
+            {
+                var yPos = 40;
+                foreach (var effect in _activeEffects)
+                {
+                    var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
+                    canvas.DrawText(effectName, 10, yPos, 0xFFFFFF80, 10);
+                    yPos += 15;
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -388,58 +632,21 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         }
     }
 
-    public void LoadPreset(string presetText)
+    private void RotateEffects()
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(presetText) || presetText == "default")
-            {
-                CreateDefaultEffectChain();
-                return;
-            }
+            if (_activeEffects.Count <= 1) return;
             
-            // Parse preset text and load specific effects
-            var effectNames = presetText.Split(',', ';', ' ')
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .ToArray();
-            
-            // Clear existing effects
-            _activeEffects.Clear();
-            _effectGraph.Clear();
-            
-            // Add specified effects
-            foreach (var effectName in effectNames)
-            {
-                if (_availableEffects.TryGetValue(effectName.Trim(), out var effect))
-                {
-                    AddEffectToChain(effect);
-                }
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Loaded preset: {presetText}");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error loading preset: {ex.Message}");
-            CreateDefaultEffectChain(); // Fallback to default
-        }
-    }
-
-    public void RotateEffects()
-    {
-        if (!AutoRotateEffects || _activeEffects.Count <= 1) return;
-        
-        try
-        {
-            // Rotate the effect list
+            // Rotate effects by moving the first one to the end
             var firstEffect = _activeEffects[0];
             _activeEffects.RemoveAt(0);
             _activeEffects.Add(firstEffect);
             
-            // Rebuild connections
-            RebuildEffectConnections();
+            // Rebuild effect graph connections
+            RebuildEffectGraph();
             
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Rotated effects");
+            System.Diagnostics.Debug.WriteLine("[AVS Effects] Rotated effects");
         }
         catch (Exception ex)
         {
@@ -447,13 +654,12 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         }
     }
 
-    private void RebuildEffectConnections()
+    private void RebuildEffectGraph()
     {
         try
         {
             _effectGraph.Clear();
             
-            // Reconnect all effects
             for (int i = 0; i < _activeEffects.Count; i++)
             {
                 var effect = _activeEffects[i];
@@ -480,7 +686,85 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error rebuilding connections: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error rebuilding effect graph: {ex.Message}");
         }
+    }
+
+    public void LoadPreset(string presetText)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(presetText) || presetText == "default")
+            {
+                CreateDefaultEffectChain();
+                return;
+            }
+            
+            // Parse preset text and create effect chain
+            var effectNames = presetText.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToList();
+            
+            // Clear existing effects
+            _activeEffects.Clear();
+            _effectGraph.Clear();
+            
+            // Add effects from preset
+            foreach (var effectName in effectNames)
+            {
+                if (_availableEffects.TryGetValue(effectName, out var effect))
+                {
+                    AddEffectToChain(effect);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects] Error loading preset: {ex.Message}");
+            CreateDefaultEffectChain(); // Fallback to default
+        }
+    }
+
+    // Public methods for external control
+    public void AddEffect(string effectName)
+    {
+        if (_availableEffects.TryGetValue(effectName, out var effect))
+        {
+            AddEffectToChain(effect);
+        }
+    }
+
+    public void RemoveEffect(int index)
+    {
+        if (index >= 0 && index < _activeEffects.Count)
+        {
+            var effect = _activeEffects[index];
+            _activeEffects.RemoveAt(index);
+            _effectGraph.RemoveNode(effect.Id);
+            
+            // Rebuild connections
+            RebuildEffectGraph();
+        }
+    }
+
+    public void SetEffectCount(int count)
+    {
+        MaxActiveEffects = Math.Max(1, Math.Min(count, 16)); // Limit to 16 effects max
+        
+        // Adjust active effects if needed
+        while (_activeEffects.Count > MaxActiveEffects)
+        {
+            RemoveEffect(_activeEffects.Count - 1);
+        }
+    }
+
+    public List<string> GetAvailableEffectNames()
+    {
+        return _availableEffects.Keys.ToList();
+    }
+
+    public List<string> GetActiveEffectNames()
+    {
+        return _activeEffects.Select(e => e.GetType().Name.Replace("EffectsNode", "").Replace("Node", "")).ToList();
     }
 }
