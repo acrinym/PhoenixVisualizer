@@ -61,6 +61,9 @@ public partial class App : Application
             // --- Register Advanced AVS Effects ---
             PluginRegistry.Register("advanced_avs", "🌟 Advanced AVS", () => new AdvancedAvsPlugin(), "Advanced AVS effects with transitions, SuperScope, and awesome visuals", "1.0", "PhoenixVisualizer");
             PluginRegistry.Register("superscope_pro", "🎯 SuperScope Pro", () => new SuperScopePlugin(), "Professional SuperScope visualizations with multiple rendering modes", "1.0", "PhoenixVisualizer");
+            
+            // --- Register VLC Audio Test Visualizer ---
+            PluginRegistry.Register("vlc_audio_test", "🔍 VLC Audio Test Debug", () => new VlcAudioTestVisualizer(), "Debug visualizer for testing VLC audio data flow and buffer analysis", "1.0", "PhoenixVisualizer");
 
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
