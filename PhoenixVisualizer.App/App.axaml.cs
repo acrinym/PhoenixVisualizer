@@ -29,8 +29,9 @@ public partial class App : Application
             PluginRegistry.Register("pulse", "Pulse Circle", () => new PulseVisualizer());
             PluginRegistry.Register("energy", "Energy Ring", () => new EnergyVisualizer());
             PluginRegistry.Register("sanity", "Sanity Check", () => new SanityVisualizer());
-            PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
-            PluginRegistry.Register("spectrum_analyzer", "🎵 Spectrum Analyzer", () => new SpectrumAnalyzerPlugin());
+                    PluginRegistry.Register("vis_avs", "AVS Runtime", () => new AvsVisualizerPlugin());
+        PluginRegistry.Register("avs_effects_engine", "🌟 AVS Effects Engine", () => new AvsEffectsVisualizer(), "Full AVS effects engine with 49+ implemented effects", "1.0", "PhoenixVisualizer");
+        PluginRegistry.Register("spectrum_analyzer", "🎵 Spectrum Analyzer", () => new SpectrumAnalyzerPlugin());
             
             // --- Register Phoenix Waterfall (Classic Winamp DNA) ---
             PluginRegistry.Register("phoenix_waterfall", "🔥 Phoenix Waterfall", () => new PhoenixWaterfallPlugin());
