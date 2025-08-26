@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
+using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Views;
 

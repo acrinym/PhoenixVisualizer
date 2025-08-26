@@ -128,7 +128,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
         _effectGraph?.Dispose();
     }
 
-    public void ProcessFrame(AudioFeatures features, ISkiaCanvas canvas)
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
         if (!_isInitialized) return;
         
@@ -712,18 +712,18 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                 RenderEffectBuffer(canvas, effectBuffer, position);
             }
             
-            // Draw effect name if enabled
-            if (ShowEffectNames)
-            {
-                var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
-                canvas.DrawText(effectName, position.x, position.y + 80, 0xFFFFFFFF, 10);
-            }
-            
-            // Draw audio reactivity indicator
-            if (features.Beat)
-            {
-                canvas.FillCircle(position.x, position.y + 90, 3, 0xFFFF0000);
-            }
+                            // Draw effect name if enabled
+                if (ShowEffectNames)
+                {
+                    var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
+                    canvas.DrawText(effectName, position.x, position.y + 80, 0xFFFFFFFF, 10);
+                }
+                
+                // Draw audio reactivity indicator
+                if (features.Beat)
+                {
+                    canvas.DrawCircle(position.x, position.y + 90, 3, 0xFFFF0000);
+                }
         }
         catch (Exception ex)
         {
@@ -786,7 +786,8 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
                         if (canvasX >= 0 && canvasX < _width && canvasY >= 0 && canvasY < _height)
                         {
                             uint colorValue = (uint)((color.A << 24) | (color.R << 16) | (color.G << 8) | color.B);
-                            canvas.SetPixel(canvasX, canvasY, colorValue);
+                            // Since ISkiaCanvas might not have SetPixel, use DrawRect instead
+                            canvas.DrawRect(canvasX, canvasY, 1, 1, colorValue);
                         }
                     }
                 }
@@ -805,7 +806,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             var effectName = effect.GetType().Name.Replace("EffectsNode", "").Replace("Node", "");
             
             // Draw effect background
-            canvas.FillRect(position.x - 50, position.y - 30, 100, 60, 0x80000000);
+            canvas.DrawRect(position.x - 50, position.y - 30, 100, 60, 0x80000000);
             
             // Draw effect name
             canvas.DrawText(effectName, position.x, position.y, 0xFFFFFFFF, 12);
@@ -813,13 +814,13 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
             // Draw audio reactivity indicator
             if (features.Beat)
             {
-                canvas.FillCircle(position.x, position.y + 20, 5, 0xFFFF0000);
+                canvas.DrawCircle(position.x, position.y + 20, 5, 0xFFFF0000);
             }
             
             // Draw RMS indicator
             var rmsBarHeight = (int)(features.RMS * 20);
-            canvas.FillRect(position.x - 40, position.y + 25, 80, 4, 0xFF404040);
-            canvas.FillRect(position.x - 40, position.y + 25, (int)(features.RMS * 80), 4, 0xFF00FF00);
+            canvas.DrawRect(position.x - 40, position.y + 25, 80, 4, 0xFF404040);
+            canvas.DrawRect(position.x - 40, position.y + 25, (int)(features.RMS * 80), 4, 0xFF00FF00);
         }
         catch (Exception ex)
         {

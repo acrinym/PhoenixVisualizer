@@ -5,6 +5,7 @@ using PhoenixVisualizer.Audio.Interfaces;
 using PhoenixVisualizer.Core.Services;
 using LibVLCSharp.Shared;
 using System.IO;
+using System.Linq;
 
 namespace PhoenixVisualizer.Audio;
 
@@ -26,6 +27,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
     private readonly float[] _rawAudioBuffer = new float[8192]; // Raw audio samples
     private int _audioBufferIndex = 0;
     private readonly object _rawAudioLock = new object();
+    private readonly Random _random = new Random();
 
     // VLC audio callback delegates
     private LibVLC.AudioPlayCb? _audioPlayCb;
@@ -65,7 +67,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
             Debug.WriteLine("[VlcAudioService] LibVLC instance created successfully");
             
             // Create MediaPlayer
-            _mediaPlayer = new MediaPlayer(_libVLC);
+            _mediaPlayer = new MediaPlayer(_libVlc);
             Debug.WriteLine("[VlcAudioService] MediaPlayer instance created successfully");
             
             // Set up event handlers
@@ -289,7 +291,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
             _currentMedia?.Dispose();
             
             // Create media from file path
-            _currentMedia = new Media(_libVLC!, new Uri(Path.GetFullPath(path)));
+            _currentMedia = new Media(_libVlc!, new Uri(Path.GetFullPath(path)));
             _mediaPlayer.Media = _currentMedia;
             _currentFile = path;
             
@@ -443,7 +445,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
                 _mediaPlayer.Stop();
 
             _currentMedia?.Dispose();
-            _currentMedia = new Media(_libVLC!, new Uri(Path.GetFullPath(path)));
+            _currentMedia = new Media(_libVlc!, new Uri(Path.GetFullPath(path)));
             _mediaPlayer!.Media = _currentMedia;
             _currentFile = path;
             
