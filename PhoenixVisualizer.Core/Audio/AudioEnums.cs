@@ -1,4 +1,4 @@
-namespace PhoenixVisualizer.Audio
+namespace PhoenixVisualizer.Core.Audio
 {
     public enum OscilloscopeChannel
     {

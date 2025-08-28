@@ -1,6 +1,8 @@
 using System;
-using System.Drawing;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using SDColor = System.Drawing.Color;
+using SDPoint = System.Drawing.Point;
 
 namespace PhoenixVisualizer.Core.Models
 {
@@ -51,9 +53,9 @@ namespace PhoenixVisualizer.Core.Models
             return Pixels[y * Width + x];
         }
 
-        public Color GetPixelColor(int x, int y)
+        public SDColor GetPixelColor(int x, int y)
         {
-            return Color.FromArgb(GetPixel(x, y));
+            return SDColor.FromArgb(GetPixel(x, y));
         }
 
         public void SetPixel(int x, int y, int color)
@@ -69,9 +71,14 @@ namespace PhoenixVisualizer.Core.Models
         }
 
         // NEW: Additional methods that effects need
-        public void SetPixel(int x, int y, Color color)
+        public void SetPixel(int x, int y, SDColor color)
         {
             SetPixel(x, y, color.ToArgb());
+        }
+
+        public void SetPixel(int x, int y, Avalonia.Media.Color color)
+        {
+            SetPixel(x, y, unchecked((int)color.ToUint32()));
         }
 
         public void CopyTo(ImageBuffer destination)
@@ -92,7 +99,12 @@ namespace PhoenixVisualizer.Core.Models
         }
 
         // TODO: Implement DrawText using System.Drawing if needed
-        public void DrawText(string text, Typeface typeface, int fontSize, Color color, Point position)
+        public void DrawText(string text, Typeface typeface, int fontSize, SDColor color, SDPoint position)
+        {
+            // TODO: Implement text drawing using System.Drawing
+        }
+
+        public void DrawText(string text, Avalonia.Media.Typeface typeface, int fontSize, Avalonia.Media.Color color, SDPoint position)
         {
             // TODO: Implement text drawing using System.Drawing
         }
@@ -102,7 +114,4 @@ namespace PhoenixVisualizer.Core.Models
             // TODO: Implement bitmap drawing if needed
         }
     }
-
-    // Placeholder classes for compatibility
-    public class Typeface { }
 }
