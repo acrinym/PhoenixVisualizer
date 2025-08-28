@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:local="clr-namespace:PhoenixVisualizer.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="PhoenixVisualizer.Views.PluginEditorWindow"
         Title="Phoenix Plugin Editor"
@@ -56,17 +57,43 @@
       <Grid Grid.Column="2">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" 
-                   Text="Available Effects" 
+                   Text="Current Effects" 
                    FontWeight="Bold" 
                    Margin="5"/>
 
-        <ListBox Grid.Row="1" 
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
+          <Button Content="➕ Add Effect" Click="OnAddEffect" Margin="0,0,5,0"/>
+          <Button Content="🔄 Refresh" Click="OnRefreshEffects" Margin="0,0,5,0"/>
+          <Button Content="🗑️ Remove" Click="OnRemoveEffect"/>
+        </StackPanel>
+
+        <ListBox Grid.Row="2" 
                  Name="EffectList"
-                 Margin="5"/>
+                 ItemsSource="{Binding CurrentEffects}"
+                 x:DataType="local:PluginEditorWindow"
+                 Margin="5">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="local:EffectDescriptor">
+              <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Enabled}" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        
+        <TextBlock Grid.Row="3"
+                   Text="{Binding CurrentEffects.Count, StringFormat='Effects: {0}'}"
+                   x:DataType="local:PluginEditorWindow"
+                   FontSize="11"
+                   Foreground="Gray"
+                   Margin="5"/>
       </Grid>
     </Grid>
   </Grid>
