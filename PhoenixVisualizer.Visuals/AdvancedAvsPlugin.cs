@@ -153,7 +153,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
             if (screenX >= 0 && screenX < canvas.Width && screenY >= 0 && screenY < canvas.Height)
             {
                 var brightness = (byte)Math.Clamp(255f / star.Z, 0f, 255f);
-                var color = (uint)(0xFF000000 | ((brightness & 0xFF) << 16) | ((brightness & 0xFF) << 8) | (brightness & 0xFF));
+                var color = (uint)(0xFF000000 | ((uint)(brightness & 0xFF) << 16) | ((uint)(brightness & 0xFF) << 8) | (uint)(brightness & 0xFF));
                 canvas.DrawPoint(screenX, screenY, color, 2f);
             }
             
@@ -296,7 +296,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
         var g = (byte)Math.Clamp((rgb.Y + m) * 255f, 0f, 255f);
         var b = (byte)Math.Clamp((rgb.Z + m) * 255f, 0f, 255f);
         
-        return (uint)(0xFF000000 | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF));
+        return (uint)(0xFF000000 | ((uint)(r & 0xFF) << 16) | ((uint)(g & 0xFF) << 8) | (uint)(b & 0xFF));
     }
 
     public void Dispose()

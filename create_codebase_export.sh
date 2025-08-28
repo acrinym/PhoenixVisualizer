@@ -2,8 +2,11 @@
 
 # Phoenix Visualizer Complete Codebase Export Script
 # This script creates a comprehensive text export of the entire codebase
+# INCLUDING BUILD STATUS AND ERROR TRACKING
 
-EXPORT_FILE="/workspace/PhoenixVisualizer/COMPLETE_CODEBASE_EXPORT.txt"
+# Generate filename with current date
+DATE=$(date +%Y-%m-%d)
+EXPORT_FILE="/workspace/PhoenixVisualizer/phoenix_visualizer_source_export_$DATE.txt"
 
 # Function to add file content with header
 add_file_to_export() {
@@ -28,47 +31,82 @@ add_file_to_export() {
     echo "" >> "$EXPORT_FILE"
 }
 
-# Create header
-cat > "$EXPORT_FILE" << 'EOF'
+# Create header with build status
+cat > "$EXPORT_FILE" << EOF
 ================================================================================
-PHOENIX VISUALIZER - COMPLETE CODEBASE EXPORT
+PHOENIX VISUALIZER - SOURCE EXPORT BACKUP WITH BUILD STATUS
 ================================================================================
 Generated: $(date)
 Total Files: 441+
-Description: Complete text export of the entire PhoenixVisualizer codebase
+Description: Complete source code export of the entire PhoenixVisualizer codebase
              including all C# source files, project files, documentation,
              and configuration files.
-
-This export contains the complete implementation of:
-✅ 27 missing AVS effects (100% completion - HISTORIC ACHIEVEMENT!)
-✅ VLC audio integration with real-time processing
-✅ Debug visualizer for audio verification
-✅ Phoenix VFX framework foundation
-✅ Complete AVS compatibility strategy
-✅ ~12,000 lines of production-quality C# code
-✅ Advanced algorithms (particle systems, vector fields, video processing)
-✅ Full configuration and error handling
-
-ACHIEVEMENT: This represents one of the most comprehensive visual effects
-libraries ever created for audio visualization, with full backward 
-compatibility for Winamp AVS presets and unlimited forward extensibility.
+             
+             This export serves as a backup/restore point for the project state.
+             Generated automatically on: $DATE
 
 ================================================================================
-TABLE OF CONTENTS
-================================================================================
-1. Project Structure & Solution Files
-2. Core Engine & Effects Library (ALL 27 AVS EFFECTS)
-3. Audio Processing & VLC Integration
-4. Application Layer & UI Components
-5. Plugin System & Hosting
-6. Documentation & Strategy Files
-7. Configuration & Build Files
-8. VFX Framework & Advanced Features
-
+BUILD STATUS & ERROR TRACKING
 ================================================================================
 EOF
 
-echo "Creating complete PhoenixVisualizer codebase export..."
+# Capture build status and errors
+echo "Running dotnet build to capture current build status..." >> "$EXPORT_FILE"
+echo "Build started at: $(date)" >> "$EXPORT_FILE"
+echo "" >> "$EXPORT_FILE"
+
+# Run dotnet build and capture output
+echo "=== DOTNET BUILD OUTPUT ===" >> "$EXPORT_FILE"
+echo "Build Command: dotnet build PhoenixVisualizer.sln" >> "$EXPORT_FILE"
+echo "Build Timestamp: $(date)" >> "$EXPORT_FILE"
+echo "" >> "$EXPORT_FILE"
+
+# Capture build output
+BUILD_OUTPUT=$(dotnet build PhoenixVisualizer.sln 2>&1)
+BUILD_EXIT_CODE=$?
+
+echo "$BUILD_OUTPUT" >> "$EXPORT_FILE"
+echo "" >> "$EXPORT_FILE"
+echo "=== BUILD SUMMARY ===" >> "$EXPORT_FILE"
+echo "Build Exit Code: $BUILD_EXIT_CODE" >> "$EXPORT_FILE"
+echo "Build Status: $([ $BUILD_EXIT_CODE -eq 0 ] && echo "SUCCESS" || echo "FAILED")" >> "$EXPORT_FILE"
+echo "Build Completed: $(date)" >> "$EXPORT_FILE"
+
+# Count errors and warnings
+ERROR_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "error CS" || echo "0")
+WARNING_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "warning CS" || echo "0")
+
+echo "Total Errors: $ERROR_COUNT" >> "$EXPORT_FILE"
+echo "Total Warnings: $WARNING_COUNT" >> "$EXPORT_FILE"
+echo "" >> "$EXPORT_FILE"
+
+# If build failed, show error details
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+    echo "=== BUILD FAILURE DETAILS ===" >> "$EXPORT_FILE"
+    echo "The build failed with $ERROR_COUNT errors and $WARNING_COUNT warnings." >> "$EXPORT_FILE"
+    echo "This export captures the broken state for debugging purposes." >> "$EXPORT_FILE"
+    echo "" >> "$EXPORT_FILE"
+    
+    # Extract and list specific errors
+    echo "=== ERROR BREAKDOWN ===" >> "$EXPORT_FILE"
+    echo "$BUILD_OUTPUT" | grep "error CS" | head -20 >> "$EXPORT_FILE"
+    if [ $ERROR_COUNT -gt 20 ]; then
+        echo "... and $((ERROR_COUNT - 20)) more errors" >> "$EXPORT_FILE"
+    fi
+    echo "" >> "$EXPORT_FILE"
+else
+    echo "=== BUILD SUCCESS ===" >> "$EXPORT_FILE"
+    echo "✅ Build completed successfully with $WARNING_COUNT warnings" >> "$EXPORT_FILE"
+    echo "This export captures a working build state." >> "$EXPORT_FILE"
+    echo "" >> "$EXPORT_FILE"
+fi
+
+echo "=================================================================================" >> "$EXPORT_FILE"
+echo "END OF BUILD STATUS" >> "$EXPORT_FILE"
+echo "=================================================================================" >> "$EXPORT_FILE"
+echo "" >> "$EXPORT_FILE"
+
+echo "Creating complete PhoenixVisualizer codebase export with build status..."
 
 # Section 1: Project Structure & Solution Files
 echo "" >> "$EXPORT_FILE"
