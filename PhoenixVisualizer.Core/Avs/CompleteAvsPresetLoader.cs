@@ -1,7 +1,6 @@
 using System.Text.Json;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Models;
-// using PhoenixVisualizer.PluginHost; // Temporarily commented out to resolve circular dependency
 
 namespace PhoenixVisualizer.Core.Avs;
 
@@ -11,11 +10,11 @@ namespace PhoenixVisualizer.Core.Avs;
 /// </summary>
 public class CompleteAvsPresetLoader
 {
-    // private readonly NsEelEvaluator _eelEvaluator; // Temporarily commented out
+    private readonly INsEelEvaluator _eelEvaluator;
     
-    public CompleteAvsPresetLoader()
+    public CompleteAvsPresetLoader(INsEelEvaluator eelEvaluator)
     {
-        // _eelEvaluator = new NsEelEvaluator(); // Temporarily commented out
+        _eelEvaluator = eelEvaluator ?? throw new ArgumentNullException(nameof(eelEvaluator));
     }
 
     /// <summary>
@@ -245,6 +244,17 @@ public class CompleteAvsPresetLoader
                             {
                                 scriptable.LoadScript(code);
                             }
+                            
+                            // Validate the code syntax using NsEelEvaluator
+                            try
+                            {
+                                var result = _eelEvaluator.Evaluate(code);
+                                Console.WriteLine($"[CompleteAvsPresetLoader] Code validation successful, result: {result}");
+                            }
+                            catch (Exception evalEx)
+                            {
+                                Console.WriteLine($"[CompleteAvsPresetLoader] Code validation failed: {evalEx.Message}");
+                            }
                         }
                     }
                 }
@@ -281,24 +291,63 @@ public class CompleteAvsPresetLoader
     {
         try
         {
-            // TODO: Implement global script configuration
-            // This would involve:
-            // 1. Setting up NS-EEL evaluator with global variables
-            // 2. Compiling init/frame/beat scripts
-            // 3. Attaching them to the effect chain's execution pipeline
+            // Set up NS-EEL evaluator with global variables
+            _eelEvaluator.SetVariable("clearEveryFrame", metadata.ClearEveryFrame ? 1.0 : 0.0);
             
+            // Compile and validate init script
             if (!string.IsNullOrWhiteSpace(metadata.InitScript))
             {
-                Console.WriteLine($"[CompleteAvsPresetLoader] Init script: {metadata.InitScript.Substring(0, Math.Min(50, metadata.InitScript.Length))}...");
+                try
+                {
+                    var initResult = _eelEvaluator.Evaluate(metadata.InitScript);
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Init script compiled successfully, result: {initResult}");
+                    
+                    // Store the script for later execution
+                    effectChain.InitScript = metadata.InitScript;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Init script compilation failed: {ex.Message}");
+                }
             }
             
+            // Compile and validate frame script
             if (!string.IsNullOrWhiteSpace(metadata.FrameScript))
             {
-                Console.WriteLine($"[CompleteAvsPresetLoader] Frame script: {metadata.FrameScript.Substring(0, Math.Min(50, metadata.FrameScript.Length))}...");
+                try
+                {
+                    var frameResult = _eelEvaluator.Evaluate(metadata.FrameScript);
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Frame script compiled successfully, result: {frameResult}");
+                    
+                    // Store the script for later execution
+                    effectChain.FrameScript = metadata.FrameScript;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Frame script compilation failed: {ex.Message}");
+                }
+            }
+            
+            // Compile and validate beat script
+            if (!string.IsNullOrWhiteSpace(metadata.BeatScript))
+            {
+                try
+                {
+                    var beatResult = _eelEvaluator.Evaluate(metadata.BeatScript);
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Beat script compiled successfully, result: {beatResult}");
+                    
+                    // Store the script for later execution
+                    effectChain.BeatScript = metadata.BeatScript;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[CompleteAvsPresetLoader] Beat script compilation failed: {ex.Message}");
+                }
             }
             
             if (metadata.ClearEveryFrame)
             {
+                effectChain.ClearEveryFrame = true;
                 Console.WriteLine("[CompleteAvsPresetLoader] Clear every frame enabled");
             }
         }
@@ -447,10 +496,70 @@ public class EffectChain
 {
     public List<IEffectNode> Effects { get; }
     
+    // Global scripts
+    public string? InitScript { get; set; }
+    public string? FrameScript { get; set; }
+    public string? BeatScript { get; set; }
+    public bool ClearEveryFrame { get; set; }
+    
     public EffectChain(List<IEffectNode> effects)
     {
         Effects = effects ?? new List<IEffectNode>();
     }
     
     public int Count => Effects.Count;
+    
+    /// <summary>
+    /// Execute the init script
+    /// </summary>
+    public void ExecuteInitScript(INsEelEvaluator evaluator)
+    {
+        if (!string.IsNullOrWhiteSpace(InitScript))
+        {
+            try
+            {
+                evaluator.Evaluate(InitScript);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EffectChain] Error executing init script: {ex.Message}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Execute the frame script
+    /// </summary>
+    public void ExecuteFrameScript(INsEelEvaluator evaluator)
+    {
+        if (!string.IsNullOrWhiteSpace(FrameScript))
+        {
+            try
+            {
+                evaluator.Evaluate(FrameScript);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EffectChain] Error executing frame script: {ex.Message}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Execute the beat script
+    /// </summary>
+    public void ExecuteBeatScript(INsEelEvaluator evaluator)
+    {
+        if (!string.IsNullOrWhiteSpace(BeatScript))
+        {
+            try
+            {
+                evaluator.Evaluate(BeatScript);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EffectChain] Error executing beat script: {ex.Message}");
+            }
+        }
+    }
 }

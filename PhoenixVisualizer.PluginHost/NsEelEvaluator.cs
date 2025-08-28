@@ -1,10 +1,12 @@
+using PhoenixVisualizer.Core.Effects.Interfaces;
+
 namespace PhoenixVisualizer.PluginHost;
 
 /// <summary>
 /// NS-EEL Expression Evaluator
 /// Parses and executes Winamp AVS-style expressions
 /// </summary>
-public sealed class NsEelEvaluator
+public sealed class NsEelEvaluator : INsEelEvaluator
 {
     // Variable storage
     private readonly Dictionary<string, double> _variables = new();
@@ -148,6 +150,28 @@ public sealed class NsEelEvaluator
         if (_perPointVariables.TryGetValue(name, out value))
             return value;
         return 0.0;
+    }
+
+    /// <summary>
+    /// Check if a variable exists
+    /// </summary>
+    public bool HasVariable(string name)
+    {
+        return _variables.ContainsKey(name) || 
+               _perFrameVariables.ContainsKey(name) || 
+               _perPointVariables.ContainsKey(name);
+    }
+
+    /// <summary>
+    /// Dispose resources
+    /// </summary>
+    public void Dispose()
+    {
+        _expressionCache.Clear();
+        _variables.Clear();
+        _perFrameVariables.Clear();
+        _perPointVariables.Clear();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
