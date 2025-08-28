@@ -3,6 +3,7 @@ using System.Diagnostics;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 
@@ -294,7 +295,9 @@ public sealed class RenderSurface : Control
         double t = pos;
 
         // Random preset switching via scheduler - use the plugin features directly
+#pragma warning disable CS8625 // Suppress null literal warning for preset scheduler
         if (_presetScheduler.ShouldSwitch(null, vz))
+#pragma warning restore CS8625
         {
             Presets.GoRandom();
             _presetScheduler.NotifySwitched();
