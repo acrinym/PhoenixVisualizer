@@ -1,38 +1,51 @@
 using System;
-using System.Collections.Generic;
 
 namespace PhoenixVisualizer.Core.Effects.Models
 {
+    /// <summary>
+    /// Represents a connection between two effect nodes in the effects graph
+    /// </summary>
     public class EffectConnection
     {
-        public required string SourceNodeId { get; set; }
-        public required string SourcePort { get; set; }
-        public required string TargetNodeId { get; set; }
-        public required string TargetPort { get; set; }
-        public EffectPort Source { get; set; } = default!;
-        public EffectPort Target { get; set; } = default!;
+        public string Id { get; set; } = string.Empty;
+        public string SourceNodeId { get; set; } = string.Empty;
+        public string SourcePortName { get; set; } = string.Empty;
+        public string TargetNodeId { get; set; } = string.Empty;
+        public string TargetPortName { get; set; } = string.Empty;
+        public Type DataType { get; set; } = typeof(object);
+        public bool IsEnabled { get; set; } = true;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+        public string? Description { get; set; }
 
         public EffectConnection()
         {
-            // Initialize with default values to avoid nullable warnings
-            SourceNodeId = string.Empty;
-            SourcePort = string.Empty;
-            TargetNodeId = string.Empty;
-            TargetPort = string.Empty;
-            Source = new EffectPort("source", typeof(object), false, null, "Source port");
-            Target = new EffectPort("target", typeof(object), false, null, "Target port");
         }
 
-        public EffectConnection(string sourceNodeId, string sourcePort, string targetNodeId, string targetPort)
+        public EffectConnection(string sourceNodeId, string sourcePortName, string targetNodeId, string targetPortName)
         {
             SourceNodeId = sourceNodeId ?? throw new ArgumentNullException(nameof(sourceNodeId));
-            SourcePort = sourcePort ?? throw new ArgumentNullException(nameof(sourcePort));
+            SourcePortName = sourcePortName ?? throw new ArgumentNullException(nameof(sourcePortName));
             TargetNodeId = targetNodeId ?? throw new ArgumentNullException(nameof(targetNodeId));
-            TargetPort = targetPort ?? throw new ArgumentNullException(nameof(targetPort));
-            
-            // Initialize Source and Target ports
-            Source = new EffectPort(sourcePort, typeof(object), false, null, $"Source port {sourcePort}");
-            Target = new EffectPort(targetPort, typeof(object), false, null, $"Target port {targetPort}");
+            TargetPortName = targetPortName ?? throw new ArgumentNullException(nameof(targetPortName));
+        }
+
+        public override string ToString()
+        {
+            return $"{SourceNodeId}.{SourcePortName} -> {TargetNodeId}.{TargetPortName}";
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is EffectConnection other)
+            {
+                return Id == other.Id;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }
