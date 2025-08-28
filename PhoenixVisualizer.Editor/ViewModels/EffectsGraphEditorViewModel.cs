@@ -4,6 +4,7 @@ using PhoenixVisualizer.Core.Effects.Graph;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Editor.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -146,16 +147,16 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         #region Commands
 
-        public ICommand NewGraphCommand { get; }
-        public ICommand OpenGraphCommand { get; }
-        public ICommand SaveGraphCommand { get; }
-        public ICommand PlayCommand { get; }
-        public ICommand PauseCommand { get; }
-        public ICommand StopCommand { get; }
-        public ICommand ValidateGraphCommand { get; }
-        public ICommand ClearGraphCommand { get; }
-        public ICommand SelectTabCommand { get; }
-        public ICommand ToggleFullscreenPreviewCommand { get; }
+        public ICommand? NewGraphCommand { get; private set; }
+        public ICommand? OpenGraphCommand { get; private set; }
+        public ICommand? SaveGraphCommand { get; private set; }
+        public ICommand? PlayCommand { get; private set; }
+        public ICommand? PauseCommand { get; private set; }
+        public ICommand? StopCommand { get; private set; }
+        public ICommand? ValidateGraphCommand { get; private set; }
+        public ICommand? ClearGraphCommand { get; private set; }
+        public ICommand? SelectTabCommand { get; private set; }
+        public ICommand? ToggleFullscreenPreviewCommand { get; private set; }
 
         #endregion
 
@@ -233,7 +234,9 @@ namespace PhoenixVisualizer.Editor.ViewModels
             _graphManager.RegisterNodeType(new CommentEffectsNode());
             _graphManager.RegisterNodeType(new DotFontRenderingNode());
             _graphManager.RegisterNodeType(new PictureEffectsNode());
+#pragma warning disable CA1416 // TextEffectsNode is only supported on Windows
             _graphManager.RegisterNodeType(new TextEffectsNode());
+#pragma warning restore CA1416
         }
 
         private void CategorizeNodes()
@@ -467,9 +470,12 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         #region Tab Management
 
-        private void SelectTab(string tabName)
+        private void SelectTab(string? tabName)
         {
-            SelectedTab = tabName;
+            if (tabName != null)
+            {
+                SelectedTab = tabName;
+            }
         }
 
         #endregion

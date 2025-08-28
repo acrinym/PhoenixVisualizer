@@ -293,15 +293,8 @@ public sealed class RenderSurface : Control
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
-        // Create Core AudioFeatures for scheduler
-        var features = new PhoenixVisualizer.Core.Models.AudioFeatures
-        {
-            Rms = rms,
-            Beat = beat
-        };
-
-        // Random preset switching via scheduler
-        if (_presetScheduler.ShouldSwitch(features, vz))
+        // Random preset switching via scheduler - use the plugin features directly
+        if (_presetScheduler.ShouldSwitch(null, vz))
         {
             Presets.GoRandom();
             _presetScheduler.NotifySwitched();

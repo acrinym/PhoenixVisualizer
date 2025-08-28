@@ -24,15 +24,14 @@
                 <Button Content="New Graph" Command="{Binding NewGraphCommand}" Padding="10,5"/>
                 <Button Content="Open Graph" Command="{Binding OpenGraphCommand}" Padding="10,5"/>
                 <Button Content="Save Graph" Command="{Binding SaveGraphCommand}" Padding="10,5"/>
-                <Separator Orientation="Vertical" Margin="10,0"/>
-                <Button Content="▶ Play" Command="{Binding PlayCommand}" Padding="10,5" 
-                        Background="{Binding IsPlaying, Converter={x:Static BoolConverters.True}, ConverterParameter='#FF4444,Transparent'}"/>
+                <Separator Margin="10,0"/>
+                <Button Content="▶ Play" Command="{Binding PlayCommand}" Padding="10,5" />
                 <Button Content="⏸ Pause" Command="{Binding PauseCommand}" Padding="10,5"/>
                 <Button Content="⏹ Stop" Command="{Binding StopCommand}" Padding="10,5"/>
-                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Separator Margin="10,0"/>
                 <Button Content="Validate" Command="{Binding ValidateGraphCommand}" Padding="10,5"/>
                 <Button Content="Clear" Command="{Binding ClearGraphCommand}" Padding="10,5"/>
-                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Separator Margin="10,0"/>
                 <TextBlock Text="Graph:" VerticalAlignment="Center" FontWeight="Bold"/>
                 <TextBlock Text="{Binding CurrentGraphName}" VerticalAlignment="Center" Margin="5,0"/>
                 <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0"/>
@@ -205,7 +204,7 @@
                             </Border>
                             
                             <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
-                                <r:RenderSurface Name="PreviewSurface" Background="Black"/>
+                                <r:RenderSurface Name="PreviewSurface"/>
                             </Border>
                         </Grid>
                     </Border>

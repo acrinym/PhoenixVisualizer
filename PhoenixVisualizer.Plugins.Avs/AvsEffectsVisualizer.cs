@@ -1,6 +1,7 @@
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Core.Nodes;
 using PhoenixVisualizer.Core.Effects;
+using PhoenixVisualizer.Core.Effects.Graph;
 
 namespace PhoenixVisualizer.Plugins.Avs;
 
@@ -23,7 +24,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
     public float EffectSpacing { get; set; } = 20.0f;
 
     // Effect graph and management
-    private EffectGraph? _effectGraph;
+    private EffectsGraph? _effectGraph;
     private readonly List<IEffectNode> _activeEffects = new();
     private int _width, _height;
 
@@ -31,7 +32,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
     { 
         _width = width;
         _height = height;
-        _effectGraph = new EffectGraph();
+        _effectGraph = new EffectsGraph();
         RefreshEffectsList();
     }
 
@@ -77,7 +78,7 @@ public class AvsEffectsVisualizer : IVisualizerPlugin
 
     public void Dispose() 
     { 
-        _effectGraph?.Dispose();
+        _effectGraph = null;
         _activeEffects.Clear();
     }
 

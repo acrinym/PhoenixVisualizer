@@ -3,10 +3,17 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Layout;
+using Avalonia.Markup.Xaml;
+using Avalonia.Controls.Shapes;
+
 using PhoenixVisualizer.Core.Effects.Graph;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
+using PhoenixVisualizer.Editor.Models;
+using PhoenixVisualizer.Editor.Rendering;
+using PhoenixVisualizer.Editor.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +22,8 @@ namespace PhoenixVisualizer.Editor.Views
 {
     public partial class EffectsGraphEditor : UserControl
     {
-        private Canvas _graphCanvas;
-        private RenderSurface _previewSurface;
+        private Canvas? _graphCanvas;
+        private RenderSurface? _previewSurface;
         private Point _lastMousePosition;
         private bool _isDragging = false;
         private bool _isConnecting = false;
@@ -25,6 +32,7 @@ namespace PhoenixVisualizer.Editor.Views
         private Point _connectionStartPoint;
         private List<VisualNode> _visualNodes = new();
         private List<VisualConnection> _visualConnections = new();
+        private Shape? _connectionPreview;  // Connection preview field
 
         public EffectsGraphEditor()
         {
@@ -83,6 +91,42 @@ namespace PhoenixVisualizer.Editor.Views
             }
         }
 
+        #region Connection Preview Methods
+        private void CreateConnectionPreview(Point startPoint, Point endPoint)
+        {
+            if (_graphCanvas == null) return;
+
+            var line = new Line
+            {
+                StartPoint = startPoint,
+                EndPoint = endPoint,
+                Stroke = new SolidColorBrush(Colors.DodgerBlue),
+                StrokeThickness = 2,
+                StrokeDashArray = [5, 5],
+                IsHitTestVisible = false
+            };
+
+            _connectionPreview = line;
+            _graphCanvas.Children.Add(line);
+        }
+
+        private void UpdateConnectionPreview(Point endPoint)
+        {
+            if (_connectionPreview is Line line)
+            {
+                line.EndPoint = endPoint;
+            }
+        }
+
+        private void RemoveConnectionPreview()
+        {
+            if (_graphCanvas == null) return;
+            if (_connectionPreview == null) return;
+            _graphCanvas.Children.Remove(_connectionPreview);
+            _connectionPreview = null;
+        }
+        #endregion
+
         #region Event Handlers
 
         private void OnNodeDragStarted(object sender, PointerPressedEventArgs e)
@@ -97,6 +141,8 @@ namespace PhoenixVisualizer.Editor.Views
 
         private void OnCanvasPointerPressed(object sender, PointerPressedEventArgs e)
         {
+            if (_graphCanvas == null) return;
+
             var position = e.GetPosition(_graphCanvas);
             _lastMousePosition = position;
 
@@ -141,8 +187,10 @@ namespace PhoenixVisualizer.Editor.Views
             e.Handled = true;
         }
 
-        private void OnCanvasPointerMoved(object sender, PointerMovedEventArgs e)
+        private void OnCanvasPointerMoved(object sender, PointerEventArgs e)
         {
+            if (_graphCanvas == null) return;
+
             var position = e.GetPosition(_graphCanvas);
 
             if (_isDragging && _draggedNode != null)
@@ -278,16 +326,7 @@ namespace PhoenixVisualizer.Editor.Views
             _connectionStartPoint = startPoint;
             
             // Create connection preview
-            CreateConnectionPreview();
-        }
-
-        private void UpdateConnectionPreview(Point currentPoint)
-        {
-            // Update the preview connection line
-            if (_connectionPreview != null)
-            {
-                _connectionPreview.EndPoint = currentPoint;
-            }
+            CreateConnectionPreview(startPoint, startPoint); // Initial preview is just a point
         }
 
         private void CompleteConnection(VisualNode targetNode)
@@ -311,17 +350,10 @@ namespace PhoenixVisualizer.Editor.Views
             }
         }
 
-        private void RemoveConnectionPreview()
-        {
-            if (_connectionPreview != null)
-            {
-                _graphCanvas.Children.Remove(_connectionPreview);
-                _connectionPreview = null;
-            }
-        }
-
         private void AddConnectionToCanvas(VisualConnection connection)
         {
+            if (_graphCanvas == null) return;
+
             var line = new Avalonia.Controls.Shapes.Line
             {
                 StartPoint = connection.StartPoint,
@@ -329,7 +361,7 @@ namespace PhoenixVisualizer.Editor.Views
                 Stroke = new SolidColorBrush(Colors.Blue),
                 StrokeThickness = 2
             };
-            
+
             connection.VisualElement = line;
             _graphCanvas.Children.Add(line);
         }
@@ -457,6 +489,8 @@ namespace PhoenixVisualizer.Editor.Views
 
         private void AddNodeToCanvas(VisualNode node)
         {
+            if (_graphCanvas == null) return;
+
             // Create visual representation
             var border = new Border
             {
@@ -501,7 +535,7 @@ namespace PhoenixVisualizer.Editor.Views
 
         private void RemoveNode(VisualNode node)
         {
-            if (node.VisualElement != null)
+            if (_graphCanvas != null && node.VisualElement != null)
             {
                 _graphCanvas.Children.Remove(node.VisualElement);
             }
@@ -521,7 +555,7 @@ namespace PhoenixVisualizer.Editor.Views
 
         private void RemoveConnection(VisualConnection connection)
         {
-            if (connection.VisualElement != null)
+            if (_graphCanvas != null && connection.VisualElement != null)
             {
                 _graphCanvas.Children.Remove(connection.VisualElement);
             }
@@ -539,60 +573,6 @@ namespace PhoenixVisualizer.Editor.Views
             if (DataContext is EffectsGraphEditorViewModel vm)
             {
                 vm.UpdateGraphFromVisual(_visualNodes, _visualConnections);
-            }
-        }
-
-        #endregion
-
-        #region Helper Classes
-
-        private class VisualNode
-        {
-            public IEffectNode Node { get; set; }
-            public Point Position { get; set; }
-            public double Width { get; set; } = 120;
-            public double Height { get; set; } = 80;
-            public bool IsSelected { get; set; }
-            public Control? VisualElement { get; set; }
-
-            public VisualNode(IEffectNode node)
-            {
-                Node = node;
-                Position = new Point(100, 100);
-            }
-
-            public VisualNode Clone()
-            {
-                return new VisualNode(Node)
-                {
-                    Position = Position,
-                    Width = Width,
-                    Height = Height
-                };
-            }
-        }
-
-        private class VisualConnection
-        {
-            public VisualNode SourceNode { get; set; }
-            public VisualNode TargetNode { get; set; }
-            public Point StartPoint { get; set; }
-            public Point EndPoint { get; set; }
-            public bool IsSelected { get; set; }
-            public Control? VisualElement { get; set; }
-
-            public VisualConnection(VisualNode source, VisualNode target)
-            {
-                SourceNode = source;
-                TargetNode = target;
-                StartPoint = new Point(
-                    source.Position.X + source.Width / 2,
-                    source.Position.Y + source.Height / 2
-                );
-                EndPoint = new Point(
-                    target.Position.X + target.Width / 2,
-                    target.Position.Y + target.Height / 2
-                );
             }
         }
 
