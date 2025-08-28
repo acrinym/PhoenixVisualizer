@@ -1,7 +1,6 @@
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using PhoenixVisualizer.Core.Models;
 using System;
+using Avalonia.Media;
+using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.VFX;
 
@@ -15,7 +14,7 @@ public static class DrawingUtils
         while (true)
         {
             if (x1 >= 0 && x1 < buf.Width && y1 >= 0 && y1 < buf.Height)
-                buf[x1, y1] = c;
+                buf.SetPixel(x1, y1, c);
             if (x1 == x2 && y1 == y2) break;
             e2 = 2 * err;
             if (e2 >= dy) { err += dy; x1 += sx; }
@@ -40,7 +39,7 @@ public static class DrawingUtils
         void Plot(int px, int py)
         {
             if (px >= 0 && px < buf.Width && py >= 0 && py < buf.Height)
-                buf[px, py] = c;
+                buf.SetPixel(px, py, c);
         }
         Plot(cx + x, cy + y);
         Plot(cx + y, cy + x);
@@ -54,14 +53,13 @@ public static class DrawingUtils
 
     public static void DrawText(ImageBuffer buf, string text, Typeface typeface, int size, Color c, int x, int y)
     {
-        var ft = new FormattedText(text, typeface, size, TextAlignment.Left, TextWrapping.NoWrap, new SolidColorBrush(c));
-        buf.DrawText(ft, x, y);
+        buf.DrawText(text, typeface, size, c, new System.Drawing.Point(x, y));
     }
 }
 
 public class DrawingContextHelper
 {
-    public Typeface Typeface { get; set; } = new("Arial");
+    public Typeface Typeface { get; set; } = new Typeface(new FontFamily("Arial"));
     public bool Antialias { get; set; } = true;
 
     public void DrawText(ImageBuffer buf, string text, int size, Color c, int x, int y)

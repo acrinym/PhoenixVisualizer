@@ -8,11 +8,13 @@ namespace PhoenixVisualizer.Core.VFX
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class PhoenixVFXAttribute : Attribute
     {
+        public string Id { get; }
         public string Name { get; }
         public string Category { get; }
 
-        public PhoenixVFXAttribute(string name, string category = "General")
+        public PhoenixVFXAttribute(string id, string name, string category = "General")
         {
+            Id = id;
             Name = name;
             Category = category;
         }

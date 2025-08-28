@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Avalonia.Media;
-using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Core.Audio;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
 
