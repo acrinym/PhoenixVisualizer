@@ -1,7 +1,7 @@
 using System.Text.Json;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Models;
-using PhoenixVisualizer.PluginHost;
+// using PhoenixVisualizer.PluginHost; // Temporarily commented out to resolve circular dependency
 
 namespace PhoenixVisualizer.Core.Avs;
 
@@ -11,11 +11,11 @@ namespace PhoenixVisualizer.Core.Avs;
 /// </summary>
 public class CompleteAvsPresetLoader
 {
-    private readonly NsEelEvaluator _eelEvaluator;
+    // private readonly NsEelEvaluator _eelEvaluator; // Temporarily commented out
     
     public CompleteAvsPresetLoader()
     {
-        _eelEvaluator = new NsEelEvaluator();
+        // _eelEvaluator = new NsEelEvaluator(); // Temporarily commented out
     }
 
     /// <summary>
@@ -339,7 +339,7 @@ public class CompleteAvsPresetLoader
     /// <summary>
     /// Get AVS preset information without fully loading
     /// </summary>
-    public AvsPresetInfo GetPresetInfo(string avsFilePath)
+    public AvsPresetInfoExtended GetPresetInfo(string avsFilePath)
     {
         try
         {
@@ -347,7 +347,7 @@ public class CompleteAvsPresetLoader
             var presetData = JsonDocument.Parse(phoenixJson);
             var root = presetData.RootElement;
 
-            var info = new AvsPresetInfo
+            var info = new AvsPresetInfoExtended
             {
                 FilePath = avsFilePath,
                 FileName = Path.GetFileName(avsFilePath),
@@ -385,7 +385,7 @@ public class CompleteAvsPresetLoader
         }
         catch (Exception ex)
         {
-            return new AvsPresetInfo
+            return new AvsPresetInfoExtended
             {
                 FilePath = avsFilePath,
                 FileName = Path.GetFileName(avsFilePath),
@@ -410,7 +410,7 @@ public class PresetMetadata
 /// <summary>
 /// Information about an AVS preset without full loading
 /// </summary>
-public class AvsPresetInfo
+public class AvsPresetInfoExtended
 {
     public string FilePath { get; set; } = "";
     public string FileName { get; set; } = "";
