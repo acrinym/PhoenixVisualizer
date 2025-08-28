@@ -48,6 +48,9 @@ public sealed class RenderSurface : Control
     public event Action<double>? BpmChanged;
     public event Action<double, double>? PositionChanged;
 
+    // Public property to access current plugin
+    public IVisualizerPlugin? CurrentPlugin => _plugin;
+
     public RenderSurface()
     {
         // Default to VLC audio service

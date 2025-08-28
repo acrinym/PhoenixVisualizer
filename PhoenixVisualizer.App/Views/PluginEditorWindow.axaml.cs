@@ -98,10 +98,12 @@ public partial class PluginEditorWindow : Window
             Height = 400
         };
 
-        var list = new ListBox
+        var list = new ListBox();
+        var items = EffectRegistry.GetAll().Select(n => n.Name).ToList();
+        foreach (var item in items)
         {
-            Items = EffectRegistry.GetAll().Select(n => n.Name).ToList()
-        };
+            list.Items.Add(item);
+        }
 
         list.DoubleTapped += (s, e) =>
         {
@@ -149,7 +151,11 @@ public partial class PluginEditorWindow : Window
         var listBox = this.FindControl<ListBox>("EffectList");
         if (listBox != null)
         {
-            listBox.Items = _effects.ToList();
+            listBox.Items.Clear();
+            foreach (var effect in _effects)
+            {
+                listBox.Items.Add(effect);
+            }
         }
     }
 
