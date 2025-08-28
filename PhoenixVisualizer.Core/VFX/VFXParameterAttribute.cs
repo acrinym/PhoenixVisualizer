@@ -11,52 +11,75 @@ namespace PhoenixVisualizer.Core.VFX
         /// <summary>
         /// Unique identifier for the parameter
         /// </summary>
-        public string Id { get; }
+        public string Id { get; set; }
         
         /// <summary>
         /// Display name for the parameter
         /// </summary>
-        public string Name { get; }
+        public string Name { get; set; }
         
         /// <summary>
         /// Description of what the parameter does
         /// </summary>
-        public string Description { get; }
+        public string Description { get; set; }
         
         /// <summary>
         /// Minimum value (for numeric parameters)
         /// </summary>
-        public object? MinValue { get; }
+        public object? MinValue { get; set; }
         
         /// <summary>
         /// Maximum value (for numeric parameters)
         /// </summary>
-        public object? MaxValue { get; }
+        public object? MaxValue { get; set; }
         
         /// <summary>
         /// Default value for the parameter
         /// </summary>
-        public object? DefaultValue { get; }
+        public object? DefaultValue { get; set; }
         
         /// <summary>
         /// Whether the parameter can be animated
         /// </summary>
-        public bool IsAnimatable { get; }
+        public bool IsAnimatable { get; set; }
         
         /// <summary>
         /// Whether the parameter is visible in the UI
         /// </summary>
-        public bool IsVisible { get; }
+        public bool IsVisible { get; set; }
         
         /// <summary>
         /// Category for grouping related parameters
         /// </summary>
-        public string Category { get; }
+        public string Category { get; set; }
         
         /// <summary>
         /// Order for UI display (lower numbers appear first)
         /// </summary>
-        public int Order { get; }
+        public int Order { get; set; }
+        
+        /// <summary>
+        /// Enum values for dropdown parameters
+        /// </summary>
+        public string[]? EnumValues { get; set; }
+        
+        /// <summary>
+        /// Create a default VFX parameter attribute
+        /// </summary>
+        public VFXParameterAttribute()
+        {
+            Id = string.Empty;
+            Name = string.Empty;
+            Description = string.Empty;
+            MinValue = null;
+            MaxValue = null;
+            DefaultValue = null;
+            IsAnimatable = true;
+            IsVisible = true;
+            Category = "General";
+            Order = 0;
+            EnumValues = null;
+        }
         
         /// <summary>
         /// Create a new VFX parameter attribute

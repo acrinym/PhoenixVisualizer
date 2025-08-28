@@ -15,8 +15,8 @@ namespace PhoenixVisualizer.Core.VFX
         #region Fields
 
         private readonly PhoenixExpressionEngine _pel;
-        private VFXRenderContext? _context;
-        private AudioFeatures? _audio;
+        protected VFXRenderContext? _context;
+        protected AudioFeatures? _audio;
         private Dictionary<string, VFXParameter> _parameters = new();
         private readonly Dictionary<string, PropertyInfo> _parameterProperties = new();
         private bool _initialized;
