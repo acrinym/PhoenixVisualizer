@@ -50,13 +50,14 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            // If the effect is disabled, bail out gracefully ✨
+            if (!Enabled) return null;
 
             try
             {
-                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputData);
-                var outputImage = backgroundImage != null ? 
-                    new ImageBuffer(backgroundImage.Width, backgroundImage.Height) : 
+                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputs);
+                var outputImage = backgroundImage != null ?
+                    new ImageBuffer(backgroundImage.Width, backgroundImage.Height) :
                     new ImageBuffer(640, 480);
 
                 if (backgroundImage != null)
@@ -76,6 +77,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 System.Diagnostics.Debug.WriteLine($"[Starfield Effects] Error: {ex.Message}");
             }
+
+            // Something went wrong, so return null 🛠️
+            return null;
         }
 
         private void InitializeStars()

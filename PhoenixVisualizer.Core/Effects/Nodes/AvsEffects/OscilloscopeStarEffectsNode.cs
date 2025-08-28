@@ -36,12 +36,12 @@ public class OscilloscopeStarEffectsNode : BaseEffectNode
         target.Clear();
         for (int i = 0; i < _stars.Count; i++)
         {
-            var (x, y) = _stars[i];
-            int offset = (int)(Math.Sin(audio.Time + i) * 20);
-            int nx = (x + offset) % target.Width;
-            int ny = (y + offset) % target.Height;
-            if (nx >= 0 && nx < target.Width && ny >= 0 && ny < target.Height)
-                target[nx, ny] = StarColor;
+                var (x, y) = _stars[i];
+                int offset = (int)(Math.Sin(audio.Time + i) * 20);
+                int nx = (x + offset) % target.Width;
+                int ny = (y + offset) % target.Height;
+                if (nx >= 0 && nx < target.Width && ny >= 0 && ny < target.Height)
+                    target[nx, ny] = (int)(((uint)StarColor.A << 24) | ((uint)StarColor.R << 16) | ((uint)StarColor.G << 8) | StarColor.B);
         }
         
         return target;

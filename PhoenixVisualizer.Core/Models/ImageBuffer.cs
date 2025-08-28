@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using Avalonia.Media.Imaging;
 
 namespace PhoenixVisualizer.Core.Models
 {
@@ -94,6 +95,11 @@ namespace PhoenixVisualizer.Core.Models
         public void DrawText(string text, Typeface typeface, int fontSize, Color color, Point position)
         {
             // TODO: Implement text drawing using System.Drawing
+        }
+
+        public void DrawBitmap(Avalonia.Media.Imaging.Bitmap bitmap, int x, int y, int width, int height)
+        {
+            // TODO: Implement bitmap drawing if needed
         }
     }
 

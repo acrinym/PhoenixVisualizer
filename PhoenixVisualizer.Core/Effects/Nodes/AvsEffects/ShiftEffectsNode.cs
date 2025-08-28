@@ -457,9 +457,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             uint sA = (src >> 24) & 0xFF, sR = (src >> 16) & 0xFF, sG = (src >> 8) & 0xFF, sB = src & 0xFF;
 
             uint rA = Math.Max(dA, sA);
-            uint rR = Math.Max(0u, (int)dR - (int)sR);
-            uint rG = Math.Max(0u, (int)dG - (int)sG);
-            uint rB = Math.Max(0u, (int)dB - (int)sB);
+            uint rR = (uint)Math.Max(0, (int)dR - (int)sR);
+            uint rG = (uint)Math.Max(0, (int)dG - (int)sG);
+            uint rB = (uint)Math.Max(0, (int)dB - (int)sB);
 
             return (rA << 24) | (rR << 16) | (rG << 8) | rB;
         }
