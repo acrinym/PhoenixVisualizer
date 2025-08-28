@@ -46,13 +46,11 @@ namespace PhoenixVisualizer.Core.VFX
         /// <summary>
         /// Whether this VFX effect is currently enabled
         /// </summary>
-        [VFXParameter("enabled", "Effect Enabled", false, true, true)]
         public virtual bool Enabled { get; set; } = true;
 
         /// <summary>
         /// Opacity/Alpha for the effect output (0.0 to 1.0)
         /// </summary>
-        [VFXParameter("opacity", "Effect Opacity", 0.0f, 1.0f, 1.0f)]
         public virtual float Opacity { get; set; } = 1.0f;
 
         /// <summary>
@@ -427,6 +425,25 @@ namespace PhoenixVisualizer.Core.VFX
         protected virtual void OnParameterUpdateError(string parameterId, object value, Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[{Name}] Parameter Update Error ({parameterId}): {ex.Message}");
+        }
+
+        #endregion
+
+        #region IPhoenixVFX Interface Implementation
+
+        public void Initialize()
+        {
+            if (!_initialized)
+            {
+                OnInitialize(_context);
+                _initialized = true;
+            }
+        }
+
+        public void Render(VFXRenderContext context)
+        {
+            if (!Enabled) return;
+            ProcessFrame(context, _audio);
         }
 
         #endregion

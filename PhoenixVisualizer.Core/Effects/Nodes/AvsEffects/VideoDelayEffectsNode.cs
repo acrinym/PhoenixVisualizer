@@ -522,13 +522,3 @@ public class VideoDelayEffectsNode : BaseEffectNode
     }
 }
 
-/// <summary>
-/// Video delay effect modes
-/// </summary>
-public enum DelayMode
-{
-    Echo,       // Echo effect with fading
-    Trail,      // Trail effect with rotation
-    Multiply,   // Multiply effect with scaling
-    Overlay     // Overlay effect with blending
-}

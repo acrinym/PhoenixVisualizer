@@ -17,6 +17,11 @@ namespace PhoenixVisualizer.Core.Models
         public float[] Fft { get; init; } = Array.Empty<float>();
         public float[] Waveform { get; init; } = Array.Empty<float>();
         
+        // Additional properties for effect nodes
+        public float[] Spectrum { get; init; } = Array.Empty<float>();
+        public float BeatStrength { get; init; } = 0.0f;
+        public float RMS { get; init; } = 0.0f;
+        
         public float LeftChannel { get; init; } = 0.0f;
         public float RightChannel { get; init; } = 0.0f;
         public float CenterChannel { get; init; } = 0.0f;
@@ -29,6 +34,7 @@ namespace PhoenixVisualizer.Core.Models
             WaveformData = new float[512];
             Fft = new float[512];
             Waveform = new float[512];
+            Spectrum = new float[512];
         }
     }
 }
