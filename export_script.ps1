@@ -15,5 +15,10 @@ foreach ($file in $files) {
     }
 }
 
-$output | Out-File -FilePath "ritualos_project_dump.txt" -Encoding UTF8
-Write-Host "Project dump created: Phoenix_Visualizer_project_dump.txt with $($files.Count) files"
+# Generate filename with current date
+$date = Get-Date -Format "yyyy-MM-dd"
+$filename = "phoenix_visualizer_source_export_$date.txt"
+
+$output | Out-File -FilePath $filename -Encoding UTF8
+Write-Host "Project dump created: $filename with $($files.Count) files"
+Write-Host "This export serves as a backup/restore point for the Phoenix Visualizer project state."

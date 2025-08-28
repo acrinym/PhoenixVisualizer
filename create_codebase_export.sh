@@ -3,7 +3,9 @@
 # Phoenix Visualizer Complete Codebase Export Script
 # This script creates a comprehensive text export of the entire codebase
 
-EXPORT_FILE="/workspace/PhoenixVisualizer/COMPLETE_CODEBASE_EXPORT.txt"
+# Generate filename with current date
+DATE=$(date +%Y-%m-%d)
+EXPORT_FILE="/workspace/PhoenixVisualizer/phoenix_visualizer_source_export_$DATE.txt"
 
 # Function to add file content with header
 add_file_to_export() {
@@ -29,15 +31,18 @@ add_file_to_export() {
 }
 
 # Create header
-cat > "$EXPORT_FILE" << 'EOF'
+cat > "$EXPORT_FILE" << EOF
 ================================================================================
-PHOENIX VISUALIZER - COMPLETE CODEBASE EXPORT
+PHOENIX VISUALIZER - SOURCE EXPORT BACKUP
 ================================================================================
 Generated: $(date)
 Total Files: 441+
-Description: Complete text export of the entire PhoenixVisualizer codebase
+Description: Complete source code export of the entire PhoenixVisualizer codebase
              including all C# source files, project files, documentation,
              and configuration files.
+             
+             This export serves as a backup/restore point for the project state.
+             Generated automatically on: $DATE
 
 This export contains the complete implementation of:
 ✅ 27 missing AVS effects (100% completion - HISTORIC ACHIEVEMENT!)
