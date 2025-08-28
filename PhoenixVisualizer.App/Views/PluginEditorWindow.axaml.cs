@@ -152,6 +152,23 @@ public partial class PluginEditorWindow : Window
             listBox.Items = _effects.ToList();
         }
     }
+
+    private void OnExitClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void OnCompileClick(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement plugin compilation
+        System.Diagnostics.Debug.WriteLine("Plugin compilation not yet implemented");
+    }
+
+    private void OnValidateClick(object? sender, RoutedEventArgs e)
+    {
+        // TODO: Implement plugin validation
+        System.Diagnostics.Debug.WriteLine("Plugin validation not yet implemented");
+    }
 }
 
 public class EffectDescriptor

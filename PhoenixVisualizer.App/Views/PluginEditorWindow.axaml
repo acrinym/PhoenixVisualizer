@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="PhoenixVisualizer.Views.PluginEditorWindow"
+        Title="Phoenix Plugin Editor"
+        Width="1000" Height="700"
+        MinWidth="600" MinHeight="400">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- Menu Bar -->
+    <Menu Grid.Row="0">
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open" Click="OnOpenClick"/>
+        <MenuItem Header="_Save" Click="OnSaveClick"/>
+        <MenuItem Header="Save _As..." Click="OnSaveAsClick"/>
+        <Separator/>
+        <MenuItem Header="E_xit" Click="OnExitClick"/>
+      </MenuItem>
+      <MenuItem Header="_Edit">
+        <MenuItem Header="_Compile" Click="OnCompileClick"/>
+        <MenuItem Header="_Validate" Click="OnValidateClick"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- Main Content -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="250"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Code Editor -->
+      <ae:TextEditor Grid.Column="0" 
+                     Name="CodeEditor"
+                     FontFamily="Consolas,Monaco,Menlo,monospace"
+                     FontSize="12"
+                     ShowLineNumbers="True"
+                     Margin="5"/>
+
+      <!-- Splitter -->
+      <GridSplitter Grid.Column="1" 
+                    Background="Gray" 
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"/>
+
+      <!-- Effects Panel -->
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Text="Available Effects" 
+                   FontWeight="Bold" 
+                   Margin="5"/>
+
+        <ListBox Grid.Row="1" 
+                 Name="EffectList"
+                 Margin="5"/>
+      </Grid>
+    </Grid>
+  </Grid>
+
+</Window>
