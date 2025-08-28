@@ -125,55 +125,52 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Effect Processing
 
-        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
+        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            if (!Enabled) 
+                return GetDefaultOutput();
 
-            try
+            if (!inputs.TryGetValue("Image", out var input) || input is not ImageBuffer imageBuffer)
+                return GetDefaultOutput();
+
+            var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
+            
+            // Calculate effective brightness
+            float effectiveBrightness = BrightnessLevel;
+            
+            // Apply beat reactivity
+            if (BeatReactive && audioFeatures?.IsBeat == true)
             {
-                var sourceImage = GetInputValue<ImageBuffer>("Image", inputData);
-                if (sourceImage?.Data == null) return;
-
-                var outputImage = new ImageBuffer(sourceImage.Width, sourceImage.Height);
-
-                // Handle beat reactivity
-                if (BeatReactive && audioFeatures.Beat)
-                {
-                    _beatCounter = BEAT_DURATION;
-                }
-                else if (_beatCounter > 0)
-                {
-                    _beatCounter--;
-                }
-
-                // Auto-level adjustment
-                if (AutoLevel)
-                {
-                    UpdateAutoLevel(sourceImage);
-                }
-
-                // Update lookup table if needed
-                if (UseLookupTable && !_lookupTableValid)
-                {
-                    UpdateLookupTable();
-                }
-
-                // Apply brightness adjustment
-                if (UseLookupTable)
-                {
-                    ApplyBrightnessWithLUT(sourceImage, outputImage);
-                }
-                else
-                {
-                    ApplyBrightnessDirectly(sourceImage, outputImage);
-                }
-
-                outputData["Output"] = outputImage;
+                effectiveBrightness += BeatBrightnessBoost;
             }
-            catch (Exception ex)
+
+            // Apply brightness adjustment
+            for (int i = 0; i < output.Pixels.Length; i++)
             {
-                System.Diagnostics.Debug.WriteLine($"[Fast Brightness Effects] Error processing frame: {ex.Message}");
+                int pixel = imageBuffer.Pixels[i];
+                int r = (pixel >> 16) & 0xFF;
+                int g = (pixel >> 8) & 0xFF;
+                int b = pixel & 0xFF;
+
+                // Apply brightness with channel multipliers
+                r = (int)((r * RedMultiplier + effectiveBrightness * 255) * 0.5f);
+                g = (int)((g * GreenMultiplier + effectiveBrightness * 255) * 0.5f);
+                b = (int)((b * BlueMultiplier + effectiveBrightness * 255) * 0.5f);
+
+                // Clamp values
+                r = Math.Clamp(r, 0, 255);
+                g = Math.Clamp(g, 0, 255);
+                b = Math.Clamp(b, 0, 255);
+
+                output.Pixels[i] = (r << 16) | (g << 8) | b;
             }
+
+            return output;
+        }
+
+        public override object GetDefaultOutput()
+        {
+            return new ImageBuffer(800, 600);
         }
 
         #endregion
@@ -377,86 +374,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             return (uint)Math.Max(0, Math.Min(255, Math.Round(adjusted * 255)));
-        }
-
-        #endregion
-
-        #region Configuration
-
-        public override Dictionary<string, object> GetConfiguration()
-        {
-            return new Dictionary<string, object>
-            {
-                { "Enabled", Enabled },
-                { "BrightnessLevel", BrightnessLevel },
-                { "ProcessingMode", ProcessingMode },
-                { "UseLookupTable", UseLookupTable },
-                { "BeatReactive", BeatReactive },
-                { "BeatBrightnessBoost", BeatBrightnessBoost },
-                { "AutoLevel", AutoLevel },
-                { "TargetBrightness", TargetBrightness },
-                { "AdaptationSpeed", AdaptationSpeed },
-                { "PreserveHighlights", PreserveHighlights },
-                { "HighlightThreshold", HighlightThreshold },
-                { "ProcessChannelsSeparately", ProcessChannelsSeparately },
-                { "RedMultiplier", RedMultiplier },
-                { "GreenMultiplier", GreenMultiplier },
-                { "BlueMultiplier", BlueMultiplier }
-            };
-        }
-
-        public override void ApplyConfiguration(Dictionary<string, object> config)
-        {
-            if (config.TryGetValue("Enabled", out var enabled))
-                Enabled = Convert.ToBoolean(enabled);
-            
-            if (config.TryGetValue("BrightnessLevel", out var brightness))
-            {
-                BrightnessLevel = Convert.ToSingle(brightness);
-                _lookupTableValid = false;
-            }
-            
-            if (config.TryGetValue("ProcessingMode", out var mode))
-            {
-                ProcessingMode = Convert.ToInt32(mode);
-                _lookupTableValid = false;
-            }
-            
-            if (config.TryGetValue("UseLookupTable", out var useLUT))
-                UseLookupTable = Convert.ToBoolean(useLUT);
-            
-            if (config.TryGetValue("BeatReactive", out var beatReactive))
-                BeatReactive = Convert.ToBoolean(beatReactive);
-            
-            if (config.TryGetValue("BeatBrightnessBoost", out var beatBoost))
-                BeatBrightnessBoost = Convert.ToSingle(beatBoost);
-            
-            if (config.TryGetValue("AutoLevel", out var autoLevel))
-                AutoLevel = Convert.ToBoolean(autoLevel);
-            
-            if (config.TryGetValue("TargetBrightness", out var target))
-                TargetBrightness = Convert.ToSingle(target);
-            
-            if (config.TryGetValue("AdaptationSpeed", out var adaptation))
-                AdaptationSpeed = Convert.ToSingle(adaptation);
-            
-            if (config.TryGetValue("PreserveHighlights", out var preserve))
-                PreserveHighlights = Convert.ToBoolean(preserve);
-            
-            if (config.TryGetValue("HighlightThreshold", out var threshold))
-                HighlightThreshold = Convert.ToSingle(threshold);
-            
-            if (config.TryGetValue("ProcessChannelsSeparately", out var processChannels))
-                ProcessChannelsSeparately = Convert.ToBoolean(processChannels);
-            
-            if (config.TryGetValue("RedMultiplier", out var redMult))
-                RedMultiplier = Convert.ToSingle(redMult);
-            
-            if (config.TryGetValue("GreenMultiplier", out var greenMult))
-                GreenMultiplier = Convert.ToSingle(greenMult);
-            
-            if (config.TryGetValue("BlueMultiplier", out var blueMult))
-                BlueMultiplier = Convert.ToSingle(blueMult);
         }
 
         #endregion

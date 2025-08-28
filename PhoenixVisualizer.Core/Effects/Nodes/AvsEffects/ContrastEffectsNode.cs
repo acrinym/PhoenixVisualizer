@@ -1,55 +1,58 @@
 using System;
 using System.Collections.Generic;
-using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.Core.Effects.Models;
+using PhoenixVisualizer.Core.Models;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
-    /// <summary>
-    /// Adjusts image contrast by scaling pixel intensity relative to midpoint (128).
-    /// </summary>
     public class ContrastEffectsNode : BaseEffectNode
     {
-        public float Contrast { get; set; } = 1.2f; // >1 increases, <1 decreases
+        public float Contrast { get; set; } = 1.0f;
 
         public ContrastEffectsNode()
         {
             Name = "Contrast";
-            Description = "Adjusts image contrast";
-            Category = "AVS Effects";
+            Description = "Adjusts the contrast of an image";
+            Category = "Image Processing";
         }
 
         protected override void InitializePorts()
         {
-            _inputPorts.Add(new EffectPort("Input", typeof(ImageBuffer), true, null, "Input image"));
-            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Contrast adjusted output"));
+            // Input ports
+            _inputPorts.Add(new EffectPort("Image", typeof(ImageBuffer), true, null, "Input image to process"));
+            _inputPorts.Add(new EffectPort("Contrast", typeof(float), false, 1.0f, "Contrast multiplier (0.0 to 3.0)"));
+            
+            // Output ports
+            _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), true, null, "Contrast-adjusted output image"));
         }
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!inputs.TryGetValue("Input", out var input) || input is not ImageBuffer buffer)
+            if (!inputs.TryGetValue("Image", out var input) || input is not ImageBuffer image)
                 return GetDefaultOutput();
 
-            var output = new ImageBuffer(buffer.Width, buffer.Height);
-            Array.Copy(buffer.Pixels, output.Pixels, buffer.Pixels.Length);
+            // Get contrast value from input or use property
+            float contrast = Contrast;
+            if (inputs.TryGetValue("Contrast", out var contrastInput) && contrastInput is float contrastValue)
+            {
+                contrast = contrastValue;
+            }
+
+            var output = new ImageBuffer(image.Width, image.Height);
+            Array.Copy(image.Pixels, output.Pixels, image.Pixels.Length);
 
             for (int i = 0; i < output.Pixels.Length; i++)
             {
-                int pixel = output.Pixels[i];
-                int r = (pixel & 0xFF);
-                int g = (pixel >> 8) & 0xFF;
-                int b = (pixel >> 16) & 0xFF;
-
-                r = Math.Clamp((int)(((r - 128) * Contrast) + 128), 0, 255);
-                g = Math.Clamp((int)(((g - 128) * Contrast) + 128), 0, 255);
-                b = Math.Clamp((int)(((b - 128) * Contrast) + 128), 0, 255);
-
-                output.Pixels[i] = r | (g << 8) | (b << 16);
+                int c = output.Pixels[i];
+                int r = ((c >> 16) & 0xFF) - 128;
+                int g = ((c >> 8) & 0xFF) - 128;
+                int b = (c & 0xFF) - 128;
+                r = Math.Clamp((int)(r * contrast + 128), 0, 255);
+                g = Math.Clamp((int)(g * contrast + 128), 0, 255);
+                b = Math.Clamp((int)(b * contrast + 128), 0, 255);
+                output.Pixels[i] = (c & unchecked((int)0xFF000000)) | (r << 16) | (g << 8) | b;
             }
-
             return output;
         }
-
-        public override object GetDefaultOutput() => new ImageBuffer(800, 600);
     }
 }

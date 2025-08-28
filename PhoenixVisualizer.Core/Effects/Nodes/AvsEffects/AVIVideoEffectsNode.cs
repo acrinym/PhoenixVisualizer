@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Core.Utils;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
@@ -34,54 +35,28 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Video output"));
         }
 
-        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
+        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            if (!Enabled) 
+                return GetDefaultOutput();
             
-            var backgroundImage = GetInputValue<ImageBuffer>("Background", inputData);
-            var outputImage = backgroundImage != null ? 
-                new ImageBuffer(backgroundImage.Width, backgroundImage.Height) : 
-                new ImageBuffer(640, 480);
-
-            if (backgroundImage != null)
+            if (inputs.TryGetValue("Background", out var backgroundInput) && backgroundInput is ImageBuffer backgroundImage)
+            {
+                var outputImage = new ImageBuffer(backgroundImage.Width, backgroundImage.Height);
                 Array.Copy(backgroundImage.Data, outputImage.Data, backgroundImage.Data.Length);
 
-            // Simulate video playback (placeholder implementation)
-            _currentFrame += PlaybackSpeed;
-            
-            outputData["Output"] = outputImage;
+                // Simulate video playback (placeholder implementation)
+                _currentFrame += PlaybackSpeed;
+                
+                return outputImage;
+            }
+
+            return GetDefaultOutput();
         }
 
-        public override Dictionary<string, object> GetConfiguration()
+        public override object GetDefaultOutput()
         {
-            return new Dictionary<string, object>
-            {
-                { "Enabled", Enabled },
-                { "VideoPath", VideoPath },
-                { "PlaybackSpeed", PlaybackSpeed },
-                { "Loop", Loop },
-                { "BeatSync", BeatSync },
-                { "BlendMode", BlendMode },
-                { "Opacity", Opacity }
-            };
-        }
-
-        public override void ApplyConfiguration(Dictionary<string, object> config)
-        {
-            if (config.TryGetValue("Enabled", out var enabled))
-                Enabled = Convert.ToBoolean(enabled);
-            if (config.TryGetValue("VideoPath", out var path))
-                VideoPath = path.ToString();
-            if (config.TryGetValue("PlaybackSpeed", out var speed))
-                PlaybackSpeed = Convert.ToSingle(speed);
-            if (config.TryGetValue("Loop", out var loop))
-                Loop = Convert.ToBoolean(loop);
-            if (config.TryGetValue("BeatSync", out var beatSync))
-                BeatSync = Convert.ToBoolean(beatSync);
-            if (config.TryGetValue("BlendMode", out var blendMode))
-                BlendMode = Convert.ToInt32(blendMode);
-            if (config.TryGetValue("Opacity", out var opacity))
-                Opacity = Convert.ToSingle(opacity);
+            return new ImageBuffer(640, 480);
         }
     }
 }

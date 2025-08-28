@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Core.Utils;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
@@ -30,48 +31,24 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Playback output"));
         }
 
-        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
+        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            if (!Enabled) 
+                return GetDefaultOutput();
             
-            var backgroundImage = GetInputValue<ImageBuffer>("Background", inputData);
-            var outputImage = backgroundImage != null ? 
-                new ImageBuffer(backgroundImage.Width, backgroundImage.Height) : 
-                new ImageBuffer(640, 480);
-
-            if (backgroundImage != null)
-                Array.Copy(backgroundImage.Data, outputImage.Data, backgroundImage.Data.Length);
-
-            outputData["Output"] = outputImage;
-        }
-
-        public override Dictionary<string, object> GetConfiguration()
-        {
-            return new Dictionary<string, object>
+            if (inputs.TryGetValue("Background", out var backgroundInput) && backgroundInput is ImageBuffer backgroundImage)
             {
-                { "Enabled", Enabled },
-                { "VideoFile", VideoFile },
-                { "AutoPlay", AutoPlay },
-                { "Volume", Volume },
-                { "AudioSync", AudioSync },
-                { "ScalingMode", ScalingMode }
-            };
+                var outputImage = new ImageBuffer(backgroundImage.Width, backgroundImage.Height);
+                Array.Copy(backgroundImage.Data, outputImage.Data, backgroundImage.Data.Length);
+                return outputImage;
+            }
+
+            return GetDefaultOutput();
         }
 
-        public override void ApplyConfiguration(Dictionary<string, object> config)
+        public override object GetDefaultOutput()
         {
-            if (config.TryGetValue("Enabled", out var enabled))
-                Enabled = Convert.ToBoolean(enabled);
-            if (config.TryGetValue("VideoFile", out var file))
-                VideoFile = file.ToString();
-            if (config.TryGetValue("AutoPlay", out var autoPlay))
-                AutoPlay = Convert.ToBoolean(autoPlay);
-            if (config.TryGetValue("Volume", out var volume))
-                Volume = Convert.ToSingle(volume);
-            if (config.TryGetValue("AudioSync", out var audioSync))
-                AudioSync = Convert.ToBoolean(audioSync);
-            if (config.TryGetValue("ScalingMode", out var scalingMode))
-                ScalingMode = Convert.ToInt32(scalingMode);
+            return new ImageBuffer(640, 480);
         }
     }
 }
