@@ -1,5 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 
 namespace PhoenixVisualizer.Editor.ViewModels;
 
@@ -12,6 +13,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isPlaying = false;
     private double _currentTime = 0.0;
     private double _totalTime = 0.0;
+    private string _selectedTab = "Properties";
+    
+    // Project properties
+    private string _projectName = "Phoenix Visualizer Project";
+    private string _projectDescription = "A new Phoenix Visualizer project";
+    private string _projectAuthor = "User";
+    private string _projectVersion = "1.0.0";
+    private int _targetFPS = 60;
+    private string _resolution = "1920x1080";
+    private string _selectedItemName = "No item selected";
 
     public int Points
     {
@@ -55,6 +66,54 @@ public partial class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _totalTime, value);
     }
 
+    public string SelectedTab
+    {
+        get => _selectedTab;
+        set => SetProperty(ref _selectedTab, value);
+    }
+
+    public string ProjectName
+    {
+        get => _projectName;
+        set => SetProperty(ref _projectName, value);
+    }
+
+    public string ProjectDescription
+    {
+        get => _projectDescription;
+        set => SetProperty(ref _projectDescription, value);
+    }
+
+    public string ProjectAuthor
+    {
+        get => _projectAuthor;
+        set => SetProperty(ref _projectAuthor, value);
+    }
+
+    public string ProjectVersion
+    {
+        get => _projectVersion;
+        set => SetProperty(ref _projectVersion, value);
+    }
+
+    public int TargetFPS
+    {
+        get => _targetFPS;
+        set => SetProperty(ref _targetFPS, value);
+    }
+
+    public string Resolution
+    {
+        get => _resolution;
+        set => SetProperty(ref _resolution, value);
+    }
+
+    public string SelectedItemName
+    {
+        get => _selectedItemName;
+        set => SetProperty(ref _selectedItemName, value);
+    }
+
     public ObservableCollection<string> RecentPresets { get; } = new()
     {
         "points=256;mode=line;source=fft",
@@ -74,6 +133,11 @@ public partial class MainWindowViewModel : ViewModelBase
         "FFT", "Sine", "Square", "Triangle", "Sawtooth", "Noise"
     };
 
+    public ObservableCollection<string> AvailableResolutions { get; } = new()
+    {
+        "640x480", "800x600", "1024x768", "1280x720", "1920x1080", "2560x1440", "3840x2160"
+    };
+
     // Commands
     public ICommand LoadPresetCommand { get; }
     public ICommand SavePresetCommand { get; }
@@ -81,6 +145,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand PauseCommand { get; }
     public ICommand StopCommand { get; }
     public ICommand AddToRecentCommand { get; }
+    public ICommand SelectTabCommand { get; }
+    public ICommand SwitchToPresetEditorCommand { get; }
+    public ICommand SwitchToEffectsGraphEditorCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -90,6 +157,9 @@ public partial class MainWindowViewModel : ViewModelBase
         PauseCommand = new RelayCommand(Pause);
         StopCommand = new RelayCommand(Stop);
         AddToRecentCommand = new RelayCommand<string>(AddToRecent);
+        SelectTabCommand = new RelayCommand<string>(SelectTab);
+        SwitchToPresetEditorCommand = new RelayCommand(SwitchToPresetEditor);
+        SwitchToEffectsGraphEditorCommand = new RelayCommand(SwitchToEffectsGraphEditor);
 
         // Watch for property changes to update preset code
         PropertyChanged += OnPropertyChanged;
@@ -181,5 +251,25 @@ public partial class MainWindowViewModel : ViewModelBase
             if (RecentPresets.Count > 10)
                 RecentPresets.RemoveAt(RecentPresets.Count - 1);
         }
+    }
+
+    private void SelectTab(string? tabName)
+    {
+        if (!string.IsNullOrEmpty(tabName))
+        {
+            SelectedTab = tabName;
+        }
+    }
+
+    private void SwitchToPresetEditor()
+    {
+        // TODO: Switch to preset editor tab
+        System.Diagnostics.Debug.WriteLine("Switching to Preset Editor");
+    }
+
+    private void SwitchToEffectsGraphEditor()
+    {
+        // TODO: Switch to effects graph editor tab
+        System.Diagnostics.Debug.WriteLine("Switching to Effects Graph Editor");
     }
 }

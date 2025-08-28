@@ -2,13 +2,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
         xmlns:r="using:PhoenixVisualizer.Editor.Rendering"
+        xmlns:views="using:PhoenixVisualizer.Editor.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="PhoenixVisualizer.Editor.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="PhoenixVisualizer.Editor">
+        Title="PhoenixVisualizer.Editor"
+        Width="1200" Height="800">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -17,63 +19,224 @@
     </Design.DataContext>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250" MinWidth="200"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="300" MinWidth="250"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         
-        <!-- Left Panel: Preset Browser -->
-        <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="10">
-            <StackPanel>
-                <TextBlock Text="Preset Browser" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                <TextBox Name="PresetInput" Text="{Binding PresetCode}" Margin="0,0,0,10"/>
-                <Button Content="Load Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding LoadPresetCommand}"/>
-                <Button Content="Save Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding SavePresetCommand}"/>
-                <Separator Margin="0,10"/>
-                <TextBlock Text="Recent Presets" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
-                <ListBox Name="RecentPresets" Height="200" ItemsSource="{Binding RecentPresets}" 
-                         DoubleTapped="OnRecentPresetDoubleTapped">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+        <!-- Top Toolbar -->
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Background="#F0F0F0" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Phoenix Visualizer Editor" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Button Content="New Project" Padding="10,5"/>
+                <Button Content="Open Project" Padding="10,5"/>
+                <Button Content="Save Project" Padding="10,5"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Button Content="Settings" Padding="10,5"/>
+                <Button Content="Help" Padding="10,5"/>
             </StackPanel>
         </Border>
-        
-        <!-- Center: Visualization Canvas -->
-        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
-            <r:RenderSurface x:Name="RenderHost"/>
-        </Border>
-        
-        <!-- Right Panel: Properties -->
-        <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="10">
-            <StackPanel>
-                <TextBlock Text="Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                
-                <TextBlock Text="Points" FontWeight="Bold" Margin="0,10,0,5"/>
-                <Slider Name="PointsSlider" Minimum="16" Maximum="1024" Value="{Binding Points}" TickFrequency="64" IsSnapToTickEnabled="True"/>
-                <TextBlock Text="{Binding Points, StringFormat='{}{0:F0}'}" HorizontalAlignment="Center"/>
-                
-                <TextBlock Text="Mode" FontWeight="Bold" Margin="0,10,0,5"/>
-                <ComboBox Name="ModeCombo" SelectedItem="{Binding Mode}" ItemsSource="{Binding AvailableModes}"/>
-                
-                <TextBlock Text="Source" FontWeight="Bold" Margin="0,10,0,5"/>
-                <ComboBox Name="SourceCombo" SelectedItem="{Binding Source}" ItemsSource="{Binding AvailableSources}"/>
-                
-                <Separator Margin="0,20"/>
-                <TextBlock Text="Audio Controls" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Content="▶" Width="40" Height="30" Margin="2" Command="{Binding PlayCommand}"/>
-                    <Button Content="⏸" Width="40" Height="30" Margin="2" Command="{Binding PauseCommand}"/>
-                    <Button Content="⏹" Width="40" Height="30" Margin="2" Command="{Binding StopCommand}"/>
-                </StackPanel>
-                <TextBlock Text="{Binding CurrentTime, StringFormat='Time: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                <TextBlock Text="{Binding TotalTime, StringFormat='Total: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-            </StackPanel>
-        </Border>
-    </Grid>
 
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" MinWidth="200"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300" MinWidth="250"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel: Project Browser -->
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Background="#FAFAFA">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Project Info -->
+                    <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Project Browser" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <TextBlock Text="Phoenix Visualizer" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Version 1.0.0" FontSize="10" Foreground="Gray"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Project Structure -->
+                    <ScrollViewer Grid.Row="1" Padding="10">
+                        <StackPanel>
+                            <Expander Header="Visualizations" IsExpanded="True">
+                                <StackPanel Margin="10,0,0,0">
+                                    <Button Content="+ New Visualization" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Preset Editor" HorizontalAlignment="Stretch" Margin="0,2" 
+                                            Command="{Binding SwitchToPresetEditorCommand}"/>
+                                    <Button Content="Effects Graph Editor" HorizontalAlignment="Stretch" Margin="0,2"
+                                            Command="{Binding SwitchToEffectsGraphEditorCommand}"/>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <Expander Header="Assets" IsExpanded="False">
+                                <StackPanel Margin="10,0,0,0">
+                                    <Button Content="+ Import Asset" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Images" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Audio" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Video" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <Expander Header="Templates" IsExpanded="False">
+                                <StackPanel Margin="10,0,0,0">
+                                    <Button Content="+ Create Template" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Starfield" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Particle System" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                    <Button Content="Audio Visualizer" HorizontalAlignment="Stretch" Margin="0,2"/>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Center: Tabbed Editor Area -->
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <TabControl Name="EditorTabs">
+                    <!-- Preset Editor Tab -->
+                    <TabItem Header="Preset Editor">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="250" MinWidth="200"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="300" MinWidth="250"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Left Panel: Preset Browser -->
+                            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="Preset Browser" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <TextBox Name="PresetInput" Text="{Binding PresetCode}" Margin="0,0,0,10"/>
+                                    <Button Content="Load Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding LoadPresetCommand}"/>
+                                    <Button Content="Save Preset" HorizontalAlignment="Stretch" Margin="0,0,0,10" Command="{Binding SavePresetCommand}"/>
+                                    <Separator Margin="0,10"/>
+                                    <TextBlock Text="Recent Presets" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <ListBox Name="RecentPresets" Height="200" ItemsSource="{Binding RecentPresets}" 
+                                             DoubleTapped="OnRecentPresetDoubleTapped">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Center: Visualization Canvas -->
+                            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                                <r:RenderSurface x:Name="RenderHost"/>
+                            </Border>
+                            
+                            <!-- Right Panel: Properties -->
+                            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    
+                                    <TextBlock Text="Points" FontWeight="Bold" Margin="0,10,0,5"/>
+                                    <Slider Name="PointsSlider" Minimum="16" Maximum="1024" Value="{Binding Points}" TickFrequency="64" IsSnapToTickEnabled="True"/>
+                                    <TextBlock Text="{Binding Points, StringFormat='{}{0:F0}'}" HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="Mode" FontWeight="Bold" Margin="0,10,0,5"/>
+                                    <ComboBox Name="ModeCombo" SelectedItem="{Binding Mode}" ItemsSource="{Binding AvailableModes}"/>
+                                    
+                                    <TextBlock Text="Source" FontWeight="Bold" Margin="0,10,0,5"/>
+                                    <ComboBox Name="SourceCombo" SelectedItem="{Binding Source}" ItemsSource="{Binding AvailableSources}"/>
+                                    
+                                    <Separator Margin="0,20"/>
+                                    <TextBlock Text="Audio Controls" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Content="▶" Width="40" Height="30" Margin="2" Command="{Binding PlayCommand}"/>
+                                        <Button Content="⏸" Width="40" Height="30" Margin="2" Command="{Binding PauseCommand}"/>
+                                        <Button Content="⏹" Width="40" Height="30" Margin="2" Command="{Binding StopCommand}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding CurrentTime, StringFormat='Time: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                                    <TextBlock Text="{Binding TotalTime, StringFormat='Total: {0:mm\\:ss}'}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                    
+                    <!-- Effects Graph Editor Tab -->
+                    <TabItem Header="Effects Graph Editor">
+                        <views:EffectsGraphEditor/>
+                    </TabItem>
+                </TabControl>
+            </Border>
+
+            <!-- Right Panel: Properties & Inspector -->
+            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Background="#FAFAFA">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Tab Headers -->
+                    <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Background="#E0E0E0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Name="PropertiesTab" Content="Properties" Padding="15,8" 
+                                    Background="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Properties'}, ConverterParameter='#CCCCCC,Transparent'}"
+                                    Command="{Binding SelectTabCommand}" CommandParameter="Properties"/>
+                            <Button Name="InspectorTab" Content="Inspector" Padding="15,8"
+                                    Background="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Inspector'}, ConverterParameter='#CCCCCC,Transparent'}"
+                                    Command="{Binding SelectTabCommand}" CommandParameter="Inspector"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Tab Content -->
+                    <Grid Grid.Row="1">
+                        <!-- Properties Tab -->
+                        <ScrollViewer Name="PropertiesContent" IsVisible="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Properties'}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Project Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Project Name" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ProjectName}" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Description" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ProjectDescription}" Height="60" AcceptsReturn="True" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Author" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ProjectAuthor}" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Version" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ProjectVersion}" Margin="0,0,0,10"/>
+                                
+                                <Separator Margin="0,15"/>
+                                <TextBlock Text="Rendering Settings" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Target FPS" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <Slider Minimum="15" Maximum="120" Value="{Binding TargetFPS}" TickFrequency="15" IsSnapToTickEnabled="True"/>
+                                <TextBlock Text="{Binding TargetFPS, StringFormat='{}{0} FPS'}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Resolution" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <ComboBox SelectedItem="{Binding Resolution}" ItemsSource="{Binding AvailableResolutions}"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        
+                        <!-- Inspector Tab -->
+                        <ScrollViewer Name="InspectorContent" IsVisible="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Inspector'}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Project Inspector" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Selected Item" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBlock Text="{Binding SelectedItemName}" FontStyle="Italic" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Item Properties" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <TextBlock Text="No item selected" FontStyle="Italic" Foreground="Gray"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
 </Window>

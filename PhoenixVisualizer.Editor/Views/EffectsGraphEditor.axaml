@@ -1,0 +1,308 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
+             xmlns:r="using:PhoenixVisualizer.Editor.Rendering"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="PhoenixVisualizer.Editor.Views.EffectsGraphEditor"
+             x:DataType="vm:EffectsGraphEditorViewModel">
+
+    <Design.DataContext>
+        <vm:EffectsGraphEditorViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Top Toolbar -->
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Background="#F0F0F0" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="New Graph" Command="{Binding NewGraphCommand}" Padding="10,5"/>
+                <Button Content="Open Graph" Command="{Binding OpenGraphCommand}" Padding="10,5"/>
+                <Button Content="Save Graph" Command="{Binding SaveGraphCommand}" Padding="10,5"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Button Content="▶ Play" Command="{Binding PlayCommand}" Padding="10,5" 
+                        Background="{Binding IsPlaying, Converter={x:Static BoolConverters.True}, ConverterParameter='#FF4444,Transparent'}"/>
+                <Button Content="⏸ Pause" Command="{Binding PauseCommand}" Padding="10,5"/>
+                <Button Content="⏹ Stop" Command="{Binding StopCommand}" Padding="10,5"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
+                <Button Content="Validate" Command="{Binding ValidateGraphCommand}" Padding="10,5"/>
+                <Button Content="Clear" Command="{Binding ClearGraphCommand}" Padding="10,5"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
+                <TextBlock Text="Graph:" VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CurrentGraphName}" VerticalAlignment="Center" Margin="5,0"/>
+                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0"/>
+                <TextBlock Text="{Binding NodeCount, StringFormat='{}{0} nodes'}" VerticalAlignment="Center"/>
+                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0"/>
+                <TextBlock Text="{Binding ConnectionCount, StringFormat='{}{0} connections'}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" MinWidth="250"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300" MinWidth="250"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Node Palette -->
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0" Background="#FAFAFA">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Search Box -->
+                    <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Padding="10">
+                        <TextBox Name="NodeSearchBox" Text="{Binding NodeSearchText}" 
+                                 Watermark="Search effect nodes..." 
+                                 Margin="0,0,0,10"/>
+                    </Border>
+                    
+                    <!-- Node Categories -->
+                    <ScrollViewer Grid.Row="1" Padding="10">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="Effect Nodes" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                            
+                            <!-- Pattern Effects -->
+                            <Expander Header="Pattern Effects" IsExpanded="True">
+                                <ItemsControl ItemsSource="{Binding PatternEffectNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4"
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnNodeDragStarted">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                            
+                            <!-- Color Effects -->
+                            <Expander Header="Color Effects" IsExpanded="True">
+                                <ItemsControl ItemsSource="{Binding ColorEffectNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4"
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnNodeDragStarted">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                            
+                            <!-- Video Effects -->
+                            <Expander Header="Video Effects" IsExpanded="False">
+                                <ItemsControl ItemsSource="{Binding VideoEffectNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4"
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnNodeDragStarted">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                            
+                            <!-- Audio Effects -->
+                            <Expander Header="Audio Effects" IsExpanded="False">
+                                <ItemsControl ItemsSource="{Binding AudioEffectNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4"
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnNodeDragStarted">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                            
+                            <!-- Utility Effects -->
+                            <Expander Header="Utility Effects" IsExpanded="False">
+                                <ItemsControl ItemsSource="{Binding UtilityEffectNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4"
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnNodeDragStarted">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Center: Graph Canvas -->
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5" Background="White">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="200" MinHeight="150"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Graph Canvas -->
+                    <Border Grid.Row="0" BorderBrush="LightGray" BorderThickness="1" Margin="5">
+                        <Canvas Name="GraphCanvas" Background="#F8F8F8"
+                                PointerPressed="OnCanvasPointerPressed"
+                                PointerMoved="OnCanvasPointerMoved"
+                                PointerReleased="OnCanvasPointerReleased">
+                            <!-- Graph nodes and connections will be rendered here -->
+                        </Canvas>
+                    </Border>
+                    
+                    <!-- Live Preview -->
+                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Margin="5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Border Grid.Row="0" Background="#E0E0E0" Padding="5">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="Live Preview" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Button Content="Fullscreen" Command="{Binding ToggleFullscreenPreviewCommand}" Padding="5,2"/>
+                                    <TextBlock Text="{Binding PreviewFPS, StringFormat='{}{0} FPS'}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding PreviewResolution, StringFormat='{}{0}x{1}'}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                                <r:RenderSurface Name="PreviewSurface" Background="Black"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Right Panel: Properties & Inspector -->
+            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Background="#FAFAFA">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Tab Headers -->
+                    <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Background="#E0E0E0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Name="PropertiesTab" Content="Properties" Padding="15,8" 
+                                    Background="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Properties'}, ConverterParameter='#CCCCCC,Transparent'}"
+                                    Command="{Binding SelectTabCommand}" CommandParameter="Properties"/>
+                            <Button Name="InspectorTab" Content="Inspector" Padding="15,8"
+                                    Background="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Inspector'}, ConverterParameter='#CCCCCC,Transparent'}"
+                                    Command="{Binding SelectTabCommand}" CommandParameter="Inspector"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Tab Content -->
+                    <Grid Grid.Row="1">
+                        <!-- Properties Tab -->
+                        <ScrollViewer Name="PropertiesContent" IsVisible="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Properties'}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Graph Properties" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Name" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding GraphName}" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Description" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding GraphDescription}" Height="60" AcceptsReturn="True" Margin="0,0,0,10"/>
+                                
+                                <CheckBox Content="Enabled" IsChecked="{Binding GraphEnabled}" Margin="0,0,0,10"/>
+                                
+                                <Separator Margin="0,15"/>
+                                <TextBlock Text="Performance" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Target FPS" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <Slider Minimum="15" Maximum="120" Value="{Binding TargetFPS}" TickFrequency="15" IsSnapToTickEnabled="True"/>
+                                <TextBlock Text="{Binding TargetFPS, StringFormat='{}{0} FPS'}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                
+                                <TextBlock Text="Quality" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <ComboBox SelectedItem="{Binding QualityLevel}" ItemsSource="{Binding AvailableQualityLevels}"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        
+                        <!-- Inspector Tab -->
+                        <ScrollViewer Name="InspectorContent" IsVisible="{Binding SelectedTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='Inspector'}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Node Inspector" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Selected Node" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBlock Text="{Binding SelectedNodeName}" FontStyle="Italic" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Node Properties" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <ItemsControl ItemsSource="{Binding SelectedNodeProperties}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="120"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="Bold"/>
+                                                <TextBox Grid.Column="1" Text="{Binding Value}" IsReadOnly="{Binding IsReadOnly}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                
+                                <Separator Margin="0,15"/>
+                                <TextBlock Text="Connections" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <ItemsControl ItemsSource="{Binding SelectedNodeConnections}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White" BorderBrush="LightGray" BorderThickness="1" 
+                                                    Margin="0,2" Padding="8" CornerRadius="4">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Type}" FontSize="11" Foreground="Gray"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
