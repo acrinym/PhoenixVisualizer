@@ -147,11 +147,6 @@ public static class AvsCompatibilityTest
             Console.WriteLine($"   ℹ️  CompleteAvsPresetLoader test requires dependency injection");
             Console.WriteLine($"   ℹ️  Test will be run when proper DI container is available");
             return;
-
-            // Note: Complete workflow test requires dependency injection
-            // This will be implemented when DI container is available
-            Console.WriteLine($"   ℹ️  Complete workflow test requires dependency injection");
-            Console.WriteLine($"   ℹ️  Test will be run when proper DI container is available");
         }
         catch (Exception ex)
         {

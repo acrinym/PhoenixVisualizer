@@ -21,7 +21,7 @@ public class InterferencePatternsEffectsNode : BaseEffectNode
     {
         var src = GetInput<ImageBuffer>("Source");
         var dst = GetOutput<ImageBuffer>("Result");
-        if (src == null || dst == null) return dst;
+        if (src == null || dst == null) return null!;
 
         dst.Clear();
         for (int y = 0; y < src.Height; y++)

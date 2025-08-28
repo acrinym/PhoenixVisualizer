@@ -30,7 +30,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             public float Brightness;
         }
 
-        private StarData[] _stars;
+        private StarData[]? _stars;
         private int _beatCounter = 0;
         private readonly Random _random = new Random();
 
@@ -51,7 +51,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
             // If the effect is disabled, bail out gracefully ✨
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             if (!Enabled) return null;
+#pragma warning restore CS8603
 
             try
             {
@@ -79,7 +81,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             // Something went wrong, so return null 🛠️
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             return null;
+#pragma warning restore CS8603
         }
 
         private void InitializeStars()
@@ -105,9 +109,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             if (BeatReactive && _beatCounter > 0)
                 effectiveSpeed *= (1.0f + (BeatSpeedBoost - 1.0f) * (_beatCounter / 25.0f));
 
-            for (int i = 0; i < _stars.Length; i++)
+            for (int i = 0; i < _stars!.Length; i++)
             {
-                ref var star = ref _stars[i];
+                ref var star = ref _stars![i];
                 float depthFactor = DepthEffect ? (10.0f / star.Z) : 1.0f;
                 
                 star.X += star.VX * effectiveSpeed * depthFactor * 0.01f;
@@ -147,9 +151,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             int width = output.Width;
             int height = output.Height;
 
-            for (int i = 0; i < _stars.Length; i++)
+            for (int i = 0; i < _stars!.Length; i++)
             {
-                var star = _stars[i];
+                var star = _stars![i];
                 int x = (int)(star.X * width);
                 int y = (int)(star.Y * height);
                 

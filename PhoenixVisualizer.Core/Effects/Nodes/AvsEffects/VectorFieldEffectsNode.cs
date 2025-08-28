@@ -161,10 +161,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Fields
 
-        private Vector2D[,] _vectorField;
-        private FlowParticle[] _flowParticles;
-        private List<Streamline> _streamlines;
-        private ImageBuffer _persistenceBuffer;
+        private Vector2D[,]? _vectorField;
+        private FlowParticle[]? _flowParticles;
+        private List<Streamline>? _streamlines;
+        private ImageBuffer? _persistenceBuffer;
         private float _time = 0.0f;
         private int _beatCounter = 0;
         private readonly Random _random = new Random();
@@ -236,7 +236,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
             // Skip processing when disabled 🚫
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             if (!Enabled) return null;
+#pragma warning restore CS8603
 
             try
             {
@@ -292,14 +294,16 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             // Return null if something funky happens 🧪
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             return null;
+#pragma warning restore CS8603
         }
 
         #endregion
 
         #region Private Methods
 
-        private void UpdateVectorField(float time, AudioFeatures audioFeatures)
+        private void UpdateVectorField(float time, AudioFeatures? audioFeatures)
         {
             float effectiveStrength = CalculateEffectiveStrength(audioFeatures);
             
@@ -311,12 +315,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                     float normalizedY = y / (float)(FieldResolution - 1);
                     
                     Vector2D vector = CalculateVectorAtPosition(normalizedX, normalizedY, time, audioFeatures);
-                    _vectorField[y, x] = vector * effectiveStrength;
+                    _vectorField![y, x] = vector * effectiveStrength;
                 }
             }
         }
 
-        private float CalculateEffectiveStrength(AudioFeatures audioFeatures)
+        private float CalculateEffectiveStrength(AudioFeatures? audioFeatures)
         {
             float strength = FieldStrength;
             
@@ -336,7 +340,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             return strength;
         }
 
-        private Vector2D CalculateVectorAtPosition(float x, float y, float time, AudioFeatures audioFeatures)
+        private Vector2D CalculateVectorAtPosition(float x, float y, float time, AudioFeatures? audioFeatures)
         {
             switch (FieldType)
             {
@@ -418,7 +422,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             );
         }
 
-        private Vector2D CalculateCustomField(float x, float y, float time, AudioFeatures audioFeatures)
+        private Vector2D CalculateCustomField(float x, float y, float time, AudioFeatures? audioFeatures)
         {
             // Audio-reactive custom field
             float audioFactor = audioFeatures?.RMS ?? 0.5f;
@@ -473,7 +477,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 for (int x = 0; x < FieldResolution; x++)
                 {
-                    Vector2D vector = _vectorField[y, x];
+                    Vector2D vector = _vectorField![y, x];
                     
                     int screenX = x * stepX + stepX / 2;
                     int screenY = y * stepY + stepY / 2;
@@ -489,12 +493,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private void RenderStreamlines(ImageBuffer output)
         {
             // Update streamlines
-            for (int i = 0; i < _streamlines.Count; i++)
+            for (int i = 0; i < _streamlines!.Count; i++)
             {
-                if (_streamlines[i].Points.Count == 0 || _streamlines[i].Points.Count > StreamlineLength)
+                if (_streamlines![i].Points.Count == 0 || _streamlines![i].Points.Count > StreamlineLength)
                 {
                     // Start new streamline
-                    var streamline = _streamlines[i];
+                    var streamline = _streamlines![i];
                     streamline.Points.Clear();
                     
                     // Random starting position
@@ -535,9 +539,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void UpdateFlowParticles(ImageBuffer output)
         {
-            for (int i = 0; i < _flowParticles.Length; i++)
+            for (int i = 0; i < _flowParticles!.Length; i++)
             {
-                ref var particle = ref _flowParticles[i];
+                ref var particle = ref _flowParticles![i];
                 
                 if (!particle.Active)
                 {
@@ -586,7 +590,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             int width = output.Width;
             int height = output.Height;
             
-            foreach (var particle in _flowParticles)
+            foreach (var particle in _flowParticles!)
             {
                 if (!particle.Active) continue;
                 
@@ -699,10 +703,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             float wx = fx - x1;
             float wy = fy - y1;
             
-            Vector2D v1 = _vectorField[y1, x1];
-            Vector2D v2 = _vectorField[y1, x2];
-            Vector2D v3 = _vectorField[y2, x1];
-            Vector2D v4 = _vectorField[y2, x2];
+            Vector2D v1 = _vectorField![y1, x1];
+            Vector2D v2 = _vectorField![y1, x2];
+            Vector2D v3 = _vectorField![y2, x1];
+            Vector2D v4 = _vectorField![y2, x2];
             
             Vector2D top = new Vector2D(
                 v1.X * (1 - wx) + v2.X * wx,

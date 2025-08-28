@@ -331,14 +331,14 @@ namespace PhoenixVisualizer.Core.VFX
             {
                 try
                 {
-                    return (T)prop.GetValue(this);
+                    return (T)prop.GetValue(this)!;
                 }
                 catch
                 {
-                    return default(T);
+                    return default!;
                 }
             }
-            return default(T);
+            return default!;
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace PhoenixVisualizer.Core.VFX
             {
                 if (_parameterProperties.TryGetValue(param.Id, out var prop))
                 {
-                    result[param.Id] = prop.GetValue(this);
+                    result[param.Id] = prop.GetValue(this) ?? new object();
                 }
             }
             return result;

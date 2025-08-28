@@ -20,7 +20,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         public float Opacity { get; set; } = 1.0f;
 
         private float _currentFrame = 0;
-        private ImageBuffer _currentVideoFrame;
 
         public AVIVideoEffectsNode()
         {

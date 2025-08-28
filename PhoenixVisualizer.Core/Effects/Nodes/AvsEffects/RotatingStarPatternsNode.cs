@@ -21,7 +21,7 @@ public class RotatingStarPatternsNode : BaseEffectNode
     protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
     {
         var dst = GetOutput<ImageBuffer>("Result");
-        if (dst == null) return dst;
+        if (dst == null) return null!;
 
         dst.Clear();
         int cx = dst.Width / 2, cy = dst.Height / 2;

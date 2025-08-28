@@ -18,7 +18,7 @@ public class OscilloscopeRingEffectsNode : BaseEffectNode
     protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
     {
         var target = GetOutput<ImageBuffer>("Result");
-        if (target == null) return target;
+        if (target == null) return null!;
 
         target.Clear();
         float[] wave = audio.Waveform;

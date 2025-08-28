@@ -84,8 +84,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         #region Private Fields
 
-        private Particle[] _particles;
-        private Random _random;
+        private Particle[] _particles = Array.Empty<Particle>();
+        private Random _random = new Random();
         private Vector2 _swarmCenter;
         private float _time;
 
@@ -132,8 +132,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         private Particle CreateRandomParticle()
         {
-            var angle = (float)(_random.NextDouble() * Math.PI * 2.0);
-            var radius = (float)(_random.NextDouble() * SwarmRadius);
+            var angle = (float)(_random!.NextDouble() * Math.PI * 2.0);
+            var radius = (float)(_random!.NextDouble() * SwarmRadius);
             
             return new Particle
             {
@@ -142,15 +142,15 @@ namespace PhoenixVisualizer.Core.VFX.Effects
                     (float)Math.Sin(angle) * radius
                 ),
                 Velocity = new Vector2(
-                    (float)(_random.NextDouble() - 0.5) * SwarmSpeed,
-                    (float)(_random.NextDouble() - 0.5) * SwarmSpeed
+                    (float)(_random!.NextDouble() - 0.5) * SwarmSpeed,
+                    (float)(_random!.NextDouble() - 0.5) * SwarmSpeed
                 ),
-                Life = (float)(_random.NextDouble() * 0.5 + 0.5),
+                Life = (float)(_random!.NextDouble() * 0.5 + 0.5),
                 MaxLife = 1.0f,
-                Size = ParticleSize * (float)(_random.NextDouble() * 0.5 + 0.75),
-                Hue = ColorHue + (float)(_random.NextDouble() * 60.0 - 30.0),
-                Saturation = (float)(_random.NextDouble() * 0.3 + 0.7),
-                Value = (float)(_random.NextDouble() * 0.3 + 0.7)
+                Size = ParticleSize * (float)(_random!.NextDouble() * 0.5 + 0.75),
+                Hue = ColorHue + (float)(_random!.NextDouble() * 60.0 - 30.0),
+                Saturation = (float)(_random!.NextDouble() * 0.3 + 0.7),
+                Value = (float)(_random!.NextDouble() * 0.3 + 0.7)
             };
         }
 
@@ -205,8 +205,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             var rmsForce = rmsInfluence * 50.0f;
             
             particle.Velocity += new Vector2(
-                (float)(_random.NextDouble() - 0.5) * beatForce * context.DeltaTime,
-                (float)(_random.NextDouble() - 0.5) * rmsForce * context.DeltaTime
+                (float)(_random!.NextDouble() - 0.5) * beatForce * context.DeltaTime,
+                (float)(_random!.NextDouble() - 0.5) * rmsForce * context.DeltaTime
             );
             
             // Apply swarm behavior

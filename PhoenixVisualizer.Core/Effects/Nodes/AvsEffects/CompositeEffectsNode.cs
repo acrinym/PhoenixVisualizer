@@ -21,7 +21,7 @@ public class CompositeEffectsNode : BaseEffectNode
             var a = GetInput<ImageBuffer>("A");
             var b = GetInput<ImageBuffer>("B");
             var result = GetOutput<ImageBuffer>("Result");
-            if (a == null || b == null || result == null) return result;
+            if (a == null || b == null || result == null) return null!;
 
             for (int y = 0; y < result.Height; y++)
             for (int x = 0; x < result.Width; x++)

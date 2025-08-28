@@ -21,7 +21,7 @@ public class DDMEffectsNode : BaseEffectNode
     {
         var src = GetInput<ImageBuffer>("Source");
         var target = GetOutput<ImageBuffer>("Result");
-        if (src == null || target == null) return target;
+        if (src == null || target == null) return null!;
 
         target.Clear();
         for (int y = 0; y < src.Height; y++)

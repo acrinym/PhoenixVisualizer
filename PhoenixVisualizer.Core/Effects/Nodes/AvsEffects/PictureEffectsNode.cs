@@ -23,7 +23,7 @@ public class PictureEffectsNode : BaseEffectNode
     protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
     {
         var result = GetOutput<ImageBuffer>("Result");
-        if (result == null) return result;
+        if (result == null) return null!;
 
         if (_bmp == null && File.Exists(FilePath))
             _bmp = new Bitmap(FilePath);

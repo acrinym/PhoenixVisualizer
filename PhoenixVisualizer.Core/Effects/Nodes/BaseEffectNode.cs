@@ -64,10 +64,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         protected abstract object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures);
 
         // NEW: Additional methods that effects need
-        protected void AddInputPort(string name, Type type, bool required = false, object defaultValue = null, string description = "")
+        protected void AddInputPort(string name, Type type, bool required = false, object? defaultValue = null, string description = "")
             => _inputPorts.Add(new EffectPort(name, type, required, defaultValue, description));
 
-        protected void AddOutputPort(string name, Type type, bool required = false, object defaultValue = null, string description = "")
+        protected void AddOutputPort(string name, Type type, bool required = false, object? defaultValue = null, string description = "")
             => _outputPorts.Add(new EffectPort(name, type, required, defaultValue, description));
 
         protected T GetInputValue<T>(string portName, Dictionary<string, object> inputs)
@@ -80,8 +80,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         // NEW: Input/Output data access properties
         protected Dictionary<string, object> InputData { get; private set; } = new();
         protected Dictionary<string, object> OutputData { get; private set; } = new();
-        protected ImageBuffer InputBuffer { get; private set; }
-        protected ImageBuffer OutputBuffer { get; private set; }
+        protected ImageBuffer? InputBuffer { get; private set; }
+        protected ImageBuffer? OutputBuffer { get; private set; }
 
         // Legacy aliases for compatibility
         protected void AddInput(string name, Type type) => AddInputPort(name, type);
@@ -148,7 +148,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         protected virtual void OnReset() { }
         protected virtual void OnInitialize() { }
         protected virtual void OnProcessingError(Exception ex) { }
-        public virtual object GetDefaultOutput() { return null!; }
+        public virtual object GetDefaultOutput() { return new object(); }
 
         /// <summary>
         /// Bind a global expression engine to this node

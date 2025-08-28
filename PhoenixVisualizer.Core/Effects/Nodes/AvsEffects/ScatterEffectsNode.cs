@@ -62,8 +62,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private readonly Random _random = new Random();
         private int[] _fudgeTable;
-        private int _lastWidth = 0;
-        private int _lastHeight = 0;
 
         #endregion
 

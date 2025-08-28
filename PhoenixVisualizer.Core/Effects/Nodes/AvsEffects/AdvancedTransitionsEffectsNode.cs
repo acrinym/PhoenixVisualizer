@@ -15,8 +15,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures features)
         {
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             if (!ProcessHelpers.HasAudio(features))
                 return null;
+#pragma warning restore CS8603
 
             // Example: blend colors based on beat
             var c1 = ProcessHelpers.GetColor(inputs, "Color1", Colors.White);

@@ -37,8 +37,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private readonly Random _random = new Random();
 
         // AVS-style lookup tables
-        private byte[,] _colorTable;
-        private byte[] _clipTable;
+        private byte[,]? _colorTable;
+        private byte[]? _clipTable;
         private int[,] _transformMatrix;
 
         #endregion
@@ -227,12 +227,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             index = Math.Max(0, Math.Min(511, index + 255));
 
             // Get transformation type
-            byte transformType = _colorTable[index, 0];
+            byte transformType = _colorTable![index, 0];
 
             // Apply transformation using current fade positions
-            int newR = _clipTable[r + _transformMatrix[transformType, 0] + 40];
-            int newG = _clipTable[g + _transformMatrix[transformType, 1] + 40];
-            int newB = _clipTable[b + _transformMatrix[transformType, 2] + 40];
+            int newR = _clipTable![r + _transformMatrix![transformType, 0] + 40];
+            int newG = _clipTable![g + _transformMatrix![transformType, 1] + 40];
+            int newB = _clipTable![b + _transformMatrix![transformType, 2] + 40];
 
             return newR | (newG << 8) | (newB << 16);
         }

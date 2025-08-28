@@ -90,14 +90,14 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         #region Private Fields
 
-        private Vector2[] _waveformBuffer;
-        private Vector2[] _spectrumBuffer;
-        private Vector2[] _lissajousBuffer;
-        private Vector2[] _circularBuffer;
-        private Vector2[] _previousBuffer;
+        private Vector2[] _waveformBuffer = Array.Empty<Vector2>();
+        private Vector2[] _spectrumBuffer = Array.Empty<Vector2>();
+        private Vector2[] _lissajousBuffer = Array.Empty<Vector2>();
+        private Vector2[] _circularBuffer = Array.Empty<Vector2>();
+        private Vector2[] _previousBuffer = Array.Empty<Vector2>();
         private int _bufferSize;
         private float _time;
-        private Random _random;
+        private Random _random = new Random();
 
         #endregion
 
@@ -179,8 +179,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         private void UpdateWaveformBuffer(float centerX, float centerY, float scaleX, float scaleY)
         {
-            var leftChannel = _audio.LeftChannel;
-            var rightChannel = _audio.RightChannel;
+            var leftChannel = _audio!.LeftChannel;
+            var rightChannel = _audio!.RightChannel;
             
             for (int i = 0; i < _bufferSize; i++)
             {
@@ -194,13 +194,13 @@ namespace PhoenixVisualizer.Core.VFX.Effects
                 var x = centerX + (i - _bufferSize / 2.0f) * scaleX;
                 var y = centerY + mixedSample * scaleY;
                 
-                _waveformBuffer[i] = new Vector2(x, y);
+                _waveformBuffer![i] = new Vector2(x, y);
             }
         }
 
         private void UpdateSpectrumBuffer(float centerX, float centerY, float scaleX, float scaleY)
         {
-            var centerChannel = _audio.CenterChannel;
+            var centerChannel = _audio!.CenterChannel;
             
             for (int i = 0; i < _bufferSize; i++)
             {
@@ -213,14 +213,14 @@ namespace PhoenixVisualizer.Core.VFX.Effects
                 var x = centerX + (i - _bufferSize / 2.0f) * scaleX;
                 var y = centerY + sample * scaleY;
                 
-                _spectrumBuffer[i] = new Vector2(x, y);
+                _spectrumBuffer![i] = new Vector2(x, y);
             }
         }
 
         private void UpdateLissajousBuffer(float centerX, float centerY, float scaleX, float scaleY)
         {
-            var leftChannel = _audio.LeftChannel;
-            var rightChannel = _audio.RightChannel;
+            var leftChannel = _audio!.LeftChannel;
+            var rightChannel = _audio!.RightChannel;
             
             for (int i = 0; i < _bufferSize; i++)
             {
@@ -233,13 +233,13 @@ namespace PhoenixVisualizer.Core.VFX.Effects
                 var x = centerX + leftSample * scaleX;
                 var y = centerY + rightSample * scaleY;
                 
-                _lissajousBuffer[i] = new Vector2(x, y);
+                _lissajousBuffer![i] = new Vector2(x, y);
             }
         }
 
         private void UpdateCircularBuffer(float centerX, float centerY, float scaleX, float scaleY)
         {
-            var centerChannel = _audio.CenterChannel;
+            var centerChannel = _audio!.CenterChannel;
             
             for (int i = 0; i < _bufferSize; i++)
             {
@@ -253,7 +253,7 @@ namespace PhoenixVisualizer.Core.VFX.Effects
                 var x = centerX + (float)Math.Cos(angle) * radius;
                 var y = centerY + (float)Math.Sin(angle) * radius;
                 
-                _circularBuffer[i] = new Vector2(x, y);
+                _circularBuffer![i] = new Vector2(x, y);
             }
         }
 
@@ -264,8 +264,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             
             for (int i = 0; i < _bufferSize; i++)
             {
-                var smoothed = Vector2.Lerp(_previousBuffer[i], currentBuffer[i], Smoothing);
-                _previousBuffer[i] = smoothed;
+                var smoothed = Vector2.Lerp(_previousBuffer![i], currentBuffer[i], Smoothing);
+                _previousBuffer![i] = smoothed;
             }
         }
 
@@ -276,7 +276,7 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             
             for (int i = 0; i < _bufferSize; i++)
             {
-                _previousBuffer[i] = currentBuffer[i];
+                _previousBuffer![i] = currentBuffer[i];
             }
         }
 

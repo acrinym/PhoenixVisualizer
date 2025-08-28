@@ -95,7 +95,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         #region Private Fields
 
         private float[] _lookupTable = new float[256];
-        private bool _lookupTableValid = false;
         private int _beatCounter = 0;
         private float _currentAutoLevel = 0.0f;
         private const int BEAT_DURATION = 15;
@@ -214,8 +213,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 float adjusted = ApplyBrightnessFunction(normalized, effectiveBrightness);
                 _lookupTable[i] = Math.Max(0.0f, Math.Min(1.0f, adjusted));
             }
-
-            _lookupTableValid = true;
         }
 
         private float CalculateEffectiveBrightness()

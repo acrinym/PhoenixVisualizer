@@ -27,7 +27,7 @@ public class ParticleSwarmEffectsNode : BaseEffectNode
     protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
     {
         var dst = GetOutput<ImageBuffer>("Result");
-        if (dst == null) return dst;
+        if (dst == null) return null!;
         
         dst.Clear();
 

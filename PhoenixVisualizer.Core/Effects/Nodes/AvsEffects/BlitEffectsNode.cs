@@ -17,7 +17,7 @@ public class BlitEffectsNode : BaseEffectNode
     {
         var src = GetInput<ImageBuffer>("Source");
         var dst = GetOutput<ImageBuffer>("Result");
-        if (src == null || dst == null) return dst;
+        if (src == null || dst == null) return null!;
         
         dst.Blit(src);
         

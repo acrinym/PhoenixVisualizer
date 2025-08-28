@@ -81,7 +81,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private readonly Random _random = new Random();
         private int _currentLayerIndex = 0;
         private float _beatAlphaMultiplier = 1.0f;
-        private int _fadeCounter = 0;
 
         private const int MAX_FRAME_HISTORY = 10;
 

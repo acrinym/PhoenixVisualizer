@@ -78,7 +78,7 @@ namespace PhoenixVisualizer.Core.Models
 
         public void SetPixel(int x, int y, Avalonia.Media.Color color)
         {
-            SetPixel(x, y, unchecked((int)color.ToUint32()));
+            SetPixel(x, y, unchecked((int)color.ToUInt32()));
         }
 
         public void CopyTo(ImageBuffer destination)

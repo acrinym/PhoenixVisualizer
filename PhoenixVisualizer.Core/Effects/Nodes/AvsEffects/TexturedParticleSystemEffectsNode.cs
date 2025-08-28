@@ -89,8 +89,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Fields
 
-        private Particle[] _particles;
-        private Attractor[] _attractors;
+        private Particle[]? _particles;
+        private Attractor[]? _attractors;
         private int _activeParticleCount = 0;
         private float _emissionAccumulator = 0.0f;
         private int _beatCounter = 0;
@@ -179,7 +179,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
             // Early exit if we're not supposed to render anything 🌙
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             if (!Enabled) return null;
+#pragma warning restore CS8603
 
             try
             {
@@ -218,7 +220,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
 
             // In case of errors, return null so callers can handle gracefully 🛠️
+#pragma warning disable CS8603 // Possible null reference return - acceptable for effect nodes
             return null;
+#pragma warning restore CS8603
         }
 
         #endregion
@@ -244,11 +248,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void UpdateParticles(float deltaTime, int width, int height, AudioFeatures audioFeatures)
         {
-            for (int i = 0; i < _particles.Length; i++)
+            for (int i = 0; i < _particles!.Length; i++)
             {
-                if (!_particles[i].Active) continue;
-                
-                ref var particle = ref _particles[i];
+                if (!_particles![i].Active) continue;
+
+                ref var particle = ref _particles![i];
                 
                 // Update age and life
                 particle.Age += deltaTime;
@@ -328,11 +332,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private void ApplyAttractors(ref Particle particle, int width, int height)
         {
-            for (int i = 0; i < _attractors.Length; i++)
+            for (int i = 0; i < _attractors!.Length; i++)
             {
-                if (!_attractors[i].Active) continue;
-                
-                var attractor = _attractors[i];
+                if (!_attractors![i].Active) continue;
+
+                var attractor = _attractors![i];
                 float dx = attractor.X - particle.X;
                 float dy = attractor.Y - particle.Y;
                 float distance = (float)Math.Sqrt(dx * dx + dy * dy);
@@ -409,11 +413,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private void EmitParticle(int width, int height)
         {
             // Find inactive particle slot
-            for (int i = 0; i < _particles.Length; i++)
+            for (int i = 0; i < _particles!.Length; i++)
             {
-                if (!_particles[i].Active)
+                if (!_particles![i].Active)
                 {
-                    ref var particle = ref _particles[i];
+                    ref var particle = ref _particles![i];
                     
                     // Set initial position based on emitter shape
                     SetEmitterPosition(ref particle);
@@ -471,9 +475,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private void UpdateAttractors(float deltaTime, AudioFeatures audioFeatures)
         {
             // Simple attractor movement
-            for (int i = 0; i < _attractors.Length; i++)
+            for (int i = 0; i < _attractors!.Length; i++)
             {
-                ref var attractor = ref _attractors[i];
+                ref var attractor = ref _attractors![i];
                 
                 // Circular movement
                 float angle = (float)(DateTime.Now.Ticks / 10000000.0) * (i + 1) * 0.5f;
@@ -493,11 +497,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             int width = output.Width;
             int height = output.Height;
             
-            for (int i = 0; i < _particles.Length; i++)
+            for (int i = 0; i < _particles!.Length; i++)
             {
-                if (!_particles[i].Active) continue;
-                
-                var particle = _particles[i];
+                if (!_particles![i].Active) continue;
+
+                var particle = _particles![i];
                 
                 // Convert to screen coordinates
                 int screenX = (int)(particle.X * width);

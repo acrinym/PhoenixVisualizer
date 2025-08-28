@@ -170,7 +170,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Methods
 
-        private void UpdateDynamicReference(AudioFeatures audioFeatures)
+        private void UpdateDynamicReference(AudioFeatures? audioFeatures)
         {
             if (DynamicReference)
             {
@@ -190,7 +190,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
         }
 
-        private void ApplyDistanceModification(ImageBuffer source, ImageBuffer output, AudioFeatures audioFeatures)
+        private void ApplyDistanceModification(ImageBuffer source, ImageBuffer output, AudioFeatures? audioFeatures)
         {
             int width = source.Width;
             int height = source.Height;

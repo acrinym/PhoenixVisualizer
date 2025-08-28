@@ -21,7 +21,7 @@ public class GodRaysEffectsNode : BaseEffectNode
         {
             var src = GetInput<ImageBuffer>("Source");
             var dst = GetOutput<ImageBuffer>("Result");
-            if (src == null || dst == null) return dst;
+            if (src == null || dst == null) return null!;
 
             dst.Clear();
             int cx = dst.Width / 2, cy = dst.Height / 2;

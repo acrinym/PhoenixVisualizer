@@ -19,7 +19,7 @@ public class OnetoneEffectsNode : BaseEffectNode
     {
             var src = GetInput<ImageBuffer>("Source");
             var dst = GetOutput<ImageBuffer>("Result");
-            if (src == null || dst == null) return dst;
+            if (src == null || dst == null) return null!;
 
             for (int y = 0; y < src.Height; y++)
             for (int x = 0; x < src.Width; x++)

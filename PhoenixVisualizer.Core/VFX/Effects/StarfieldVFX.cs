@@ -94,8 +94,8 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         #region Private Fields
 
-        private Star[] _stars;
-        private Random _random;
+        private Star[] _stars = Array.Empty<Star>();
+        private Random _random = new Random();
         private float _time;
         private int _activeStarCount;
 
@@ -163,26 +163,26 @@ namespace PhoenixVisualizer.Core.VFX.Effects
 
         private Star CreateRandomStar()
         {
-            var depthLayer = _random.Next(DepthLayers);
+            var depthLayer = _random!.Next(DepthLayers);
             var depthFactor = 1.0f - (float)depthLayer / DepthLayers;
             
             return new Star
             {
                 Position = new Vector2(
-                    (float)(_random.NextDouble() * _context.Width),
-                    (float)(_random.NextDouble() * _context.Height)
+                    (float)(_random!.NextDouble() * _context!.Width),
+                    (float)(_random!.NextDouble() * _context!.Height)
                 ),
                 Velocity = new Vector2(
-                    (float)(_random.NextDouble() - 0.5) * StarSpeed * depthFactor,
-                    (float)(_random.NextDouble() - 0.5) * StarSpeed * depthFactor
+                    (float)(_random!.NextDouble() - 0.5) * StarSpeed * depthFactor,
+                    (float)(_random!.NextDouble() - 0.5) * StarSpeed * depthFactor
                 ),
-                Size = (float)(_random.NextDouble() * StarSizeRange + 0.5f) * depthFactor,
-                Brightness = (float)(_random.NextDouble() * 0.5f + 0.5f),
-                TwinklePhase = (float)(_random.NextDouble() * Math.PI * 2.0),
-                TwinkleSpeed = TwinkleSpeed * (float)(_random.NextDouble() * 0.5f + 0.75f),
+                Size = (float)(_random!.NextDouble() * StarSizeRange + 0.5f) * depthFactor,
+                Brightness = (float)(_random!.NextDouble() * 0.5f + 0.5f),
+                TwinklePhase = (float)(_random!.NextDouble() * Math.PI * 2.0),
+                TwinkleSpeed = TwinkleSpeed * (float)(_random!.NextDouble() * 0.5f + 0.75f),
                 Hue = GetStarColor(depthLayer),
-                Saturation = (float)(_random.NextDouble() * 0.2f + 0.8f),
-                Value = (float)(_random.NextDouble() * 0.3f + 0.7f),
+                Saturation = (float)(_random!.NextDouble() * 0.2f + 0.8f),
+                Value = (float)(_random!.NextDouble() * 0.3f + 0.7f),
                 DepthLayer = depthLayer,
                 IsActive = true
             };
@@ -227,7 +227,7 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             
             var spawnChance = (beatInfluence + rmsInfluence) * context.DeltaTime;
             
-            if (_random.NextDouble() < spawnChance)
+            if (_random!.NextDouble() < spawnChance)
             {
                 SpawnStar();
             }
@@ -259,17 +259,17 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             star.Position += star.Velocity * movementSpeed * context.DeltaTime;
             
             // Wrap around screen edges
-            if (star.Position.X < -currentSize) star.Position.X = _context.Width + currentSize;
-            if (star.Position.X > _context.Width + currentSize) star.Position.X = -currentSize;
-            if (star.Position.Y < -currentSize) star.Position.Y = _context.Height + currentSize;
-            if (star.Position.Y > _context.Height + currentSize) star.Position.Y = -currentSize;
+            if (star.Position.X < -currentSize) star.Position.X = _context!.Width + currentSize;
+            if (star.Position.X > _context!.Width + currentSize) star.Position.X = -currentSize;
+            if (star.Position.Y < -currentSize) star.Position.Y = _context!.Height + currentSize;
+            if (star.Position.Y > _context!.Height + currentSize) star.Position.Y = -currentSize;
             
             // Update color based on audio
             star.Hue = GetStarColor(star.DepthLayer) + beatInfluence * 20.0f;
             star.Value = 0.7f + rmsInfluence * 0.3f;
             
             // Randomly deactivate star for variety
-            if (_random.NextDouble() < 0.001f) // 0.1% chance per frame
+            if (_random!.NextDouble() < 0.001f) // 0.1% chance per frame
             {
                 star.IsActive = false;
                 _activeStarCount--;
