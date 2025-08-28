@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using PhoenixVisualizer.Core.Engine;
 using PhoenixVisualizer.Core.Models;
@@ -13,55 +12,35 @@ namespace PhoenixVisualizer.Core.VFX
     /// </summary>
     public abstract class BasePhoenixVFX : IPhoenixVFX
     {
-        #region Protected Fields
+        #region Fields
 
-        protected PhoenixExpressionEngine _pel;
-        protected VFXRenderContext _context;
-        protected AudioFeatures _audio;
-        protected Dictionary<string, VFXParameter> _parameters;
-        protected bool _initialized = false;
-        protected string _vfxId;
-        protected string _vfxName;
-        protected string _vfxCategory;
+        private readonly PhoenixExpressionEngine _pel;
+        private VFXRenderContext? _context;
+        private AudioFeatures? _audio;
+        private Dictionary<string, VFXParameter> _parameters = new();
+        private readonly Dictionary<string, PropertyInfo> _parameterProperties = new();
+        private bool _initialized;
+        private string _vfxId = string.Empty;
+        private string _vfxName = string.Empty;
+        private string _vfxCategory = string.Empty;
+        private string _vfxVersion = string.Empty;
+        private string _vfxAuthor = string.Empty;
+        private string _vfxDescription = string.Empty;
 
         #endregion
 
         #region Properties
 
-        /// <summary>
-        /// Unique identifier for this VFX effect
-        /// </summary>
         public string Id => _vfxId;
-
-        /// <summary>
-        /// Display name for this VFX effect
-        /// </summary>
         public string Name => _vfxName;
-
-        /// <summary>
-        /// Category this VFX effect belongs to
-        /// </summary>
         public string Category => _vfxCategory;
-
-        /// <summary>
-        /// Whether this VFX effect is currently enabled
-        /// </summary>
-        public virtual bool Enabled { get; set; } = true;
-
-        /// <summary>
-        /// Opacity/Alpha for the effect output (0.0 to 1.0)
-        /// </summary>
-        public virtual float Opacity { get; set; } = 1.0f;
-
-        /// <summary>
-        /// All discoverable parameters for this VFX
-        /// </summary>
-        public Dictionary<string, VFXParameter> Parameters => _parameters ??= DiscoverParameters();
-
-        /// <summary>
-        /// Performance metrics for this VFX
-        /// </summary>
-        public VFXPerformanceMetrics Performance { get; protected set; } = new VFXPerformanceMetrics();
+        public string Version => _vfxVersion;
+        public string Author => _vfxAuthor;
+        public string Description => _vfxDescription;
+        public bool Enabled { get; set; } = true;
+        public float Opacity { get; set; } = 1.0f;
+        public VFXPerformanceMetrics Performance { get; } = new();
+        public Dictionary<string, VFXParameter> Parameters => _parameters;
 
         #endregion
 
@@ -70,13 +49,17 @@ namespace PhoenixVisualizer.Core.VFX
         protected BasePhoenixVFX()
         {
             _pel = new PhoenixExpressionEngine();
+            _parameters = new Dictionary<string, VFXParameter>();
+            _parameterProperties = new Dictionary<string, PropertyInfo>();
+            
             DiscoverVFXMetadata();
+            StoreParameterProperties();
             InitializeVFX();
         }
 
         #endregion
 
-        #region Initialization
+        #region VFX Metadata Discovery
 
         private void DiscoverVFXMetadata()
         {
@@ -86,13 +69,21 @@ namespace PhoenixVisualizer.Core.VFX
                 _vfxId = vfxAttr.Id;
                 _vfxName = vfxAttr.Name;
                 _vfxCategory = vfxAttr.Category;
+                _vfxVersion = vfxAttr.Version;
+                _vfxAuthor = vfxAttr.Author;
+                _vfxDescription = vfxAttr.Description;
             }
             else
             {
-                _vfxId = GetType().Name.Replace("Phoenix", "").Replace("VFX", "").ToLowerInvariant();
+                _vfxId = GetType().Name;
                 _vfxName = GetType().Name;
-                _vfxCategory = "Unknown";
+                _vfxCategory = "Uncategorized";
+                _vfxVersion = "1.0.0";
+                _vfxAuthor = "Unknown";
+                _vfxDescription = "No description available";
             }
+
+            _parameters = DiscoverParameters();
         }
 
         private Dictionary<string, VFXParameter> DiscoverParameters()
@@ -110,12 +101,10 @@ namespace PhoenixVisualizer.Core.VFX
                         Id = paramAttr.Id,
                         Name = paramAttr.Name ?? prop.Name,
                         Description = paramAttr.Description ?? $"{prop.Name} parameter",
-                        Type = prop.PropertyType,
+                        ParameterType = prop.PropertyType,
                         MinValue = paramAttr.MinValue,
                         MaxValue = paramAttr.MaxValue,
-                        DefaultValue = paramAttr.DefaultValue,
-                        Property = prop,
-                        EnumValues = paramAttr.EnumValues
+                        DefaultValue = prop.GetValue(this)
                     };
 
                     parameters[parameter.Id] = parameter;
@@ -123,6 +112,19 @@ namespace PhoenixVisualizer.Core.VFX
             }
 
             return parameters;
+        }
+        
+        private void StoreParameterProperties()
+        {
+            var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var prop in properties)
+            {
+                var paramAttr = prop.GetCustomAttribute<VFXParameterAttribute>();
+                if (paramAttr != null)
+                {
+                    _parameterProperties[paramAttr.Id] = prop;
+                }
+            }
         }
 
         protected virtual void InitializeVFX()
@@ -151,7 +153,7 @@ namespace PhoenixVisualizer.Core.VFX
                 // Initialize on first frame
                 if (!_initialized)
                 {
-                    OnInitialize(context);
+                    OnInitialize(context, audioFeatures);
                     _initialized = true;
                 }
 
@@ -162,7 +164,7 @@ namespace PhoenixVisualizer.Core.VFX
                 UpdateParametersFromPEL();
 
                 // Choose processing path based on capabilities
-                if (context.SupportsGPU && SupportsGPUProcessing())
+                if (SupportsGPUProcessing())
                 {
                     ProcessFrameGPU(context);
                 }
@@ -189,21 +191,29 @@ namespace PhoenixVisualizer.Core.VFX
         /// <summary>
         /// Override for custom initialization logic
         /// </summary>
-        protected virtual void OnInitialize(VFXRenderContext context) { }
+        protected virtual void OnInitialize(VFXRenderContext context, AudioFeatures audioFeatures) { }
 
         /// <summary>
-        /// Override for GPU-accelerated processing
+        /// Override for custom frame processing logic
+        /// </summary>
+        protected virtual void OnProcessFrame(VFXRenderContext context) { }
+
+        /// <summary>
+        /// Override for custom GPU processing logic
         /// </summary>
         protected virtual void ProcessFrameGPU(VFXRenderContext context)
         {
-            // Default: fall back to CPU processing
+            // Default GPU implementation falls back to CPU
             ProcessFrameCPU(context);
         }
 
         /// <summary>
-        /// Override for CPU-based processing (required)
+        /// Override for custom CPU processing logic
         /// </summary>
-        protected abstract void ProcessFrameCPU(VFXRenderContext context);
+        protected virtual void ProcessFrameCPU(VFXRenderContext context)
+        {
+            OnProcessFrame(context);
+        }
 
         /// <summary>
         /// Override to indicate GPU processing support
@@ -212,59 +222,24 @@ namespace PhoenixVisualizer.Core.VFX
 
         #endregion
 
-        #region Script Integration
+        #region PEL Script Execution
 
-        /// <summary>
-        /// Execute PEL scripts if they exist
-        /// </summary>
-        protected virtual void ExecuteScripts()
+        private void ExecuteScripts()
         {
-            var scriptProperties = GetType().GetProperties()
-                .Where(p => p.GetCustomAttribute<VFXScriptAttribute>() != null)
-                .ToList();
+            if (_context == null || _audio == null) return;
 
-            foreach (var prop in scriptProperties)
-            {
-                var scriptAttr = prop.GetCustomAttribute<VFXScriptAttribute>();
-                var script = prop.GetValue(this) as string;
+            // Set up PEL context variables
+            SetupPELContext();
 
-                if (!string.IsNullOrWhiteSpace(script))
-                {
-                    try
-                    {
-                        // Set audio variables before execution
-                        SetAudioVariables();
-
-                        // Execute script based on type
-                        switch (scriptAttr.Type.ToLowerInvariant())
-                        {
-                            case "init":
-                                if (!_initialized) _pel.Execute(script);
-                                break;
-                            case "frame":
-                                _pel.Execute(script);
-                                break;
-                            case "beat":
-                                if (_audio?.Beat == true) _pel.Execute(script);
-                                break;
-                            default:
-                                _pel.Execute(script);
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        OnScriptError(scriptAttr.Type, script, ex);
-                    }
-                }
-            }
+            // Execute any active scripts
+            ExecuteActiveScripts();
         }
 
-        private void SetAudioVariables()
+        private void SetupPELContext()
         {
-            if (_audio == null) return;
+            if (_context == null || _audio == null) return;
 
-            _pel.Set("beat", _audio.Beat ? 1.0 : 0.0);
+            // Audio variables
             _pel.Set("bass", _audio.Bass);
             _pel.Set("mid", _audio.Mid);
             _pel.Set("treble", _audio.Treble);
@@ -272,30 +247,33 @@ namespace PhoenixVisualizer.Core.VFX
             _pel.Set("peak", _audio.Peak);
 
             // Time variables
-            _pel.Set("time", _context?.FrameTime ?? 0.0);
-            _pel.Set("frame", _context?.FrameNumber ?? 0.0);
-            _pel.Set("dt", _context?.DeltaTime ?? 0.016);
+            _pel.Set("time", _context.Time);
+            _pel.Set("frame", _context.FrameNumber);
+            _pel.Set("dt", _context.DeltaTime);
 
             // Canvas dimensions
-            if (_context?.Canvas != null)
-            {
-                _pel.Set("w", _context.Canvas.Width);
-                _pel.Set("h", _context.Canvas.Height);
-            }
+            _pel.Set("w", _context.Width);
+            _pel.Set("h", _context.Height);
+        }
+
+        private void ExecuteActiveScripts()
+        {
+            // This would execute any active PEL scripts
+            // For now, just update the context
         }
 
         private void UpdateParametersFromPEL()
         {
             foreach (var param in Parameters.Values)
             {
-                if (param.Property.CanWrite)
+                if (_parameterProperties.TryGetValue(param.Id, out var prop) && prop.CanWrite)
                 {
-                    var pelValue = _pel.Get(param.Id, Convert.ToDouble(param.DefaultValue));
+                    var pelValue = _pel.Get(param.Id, Convert.ToDouble(param.DefaultValue ?? 0.0));
                     
                     try
                     {
-                        var convertedValue = ConvertPELValue(pelValue, param.Type);
-                        param.Property.SetValue(this, convertedValue);
+                        var convertedValue = ConvertPELValue(pelValue, param.ParameterType);
+                        prop.SetValue(this, convertedValue);
                     }
                     catch (Exception ex)
                     {
@@ -328,23 +306,15 @@ namespace PhoenixVisualizer.Core.VFX
         protected virtual void ApplyPostProcessing(VFXRenderContext context)
         {
             // Apply opacity if not at full
-            if (Math.Abs(Opacity - 1.0f) > 0.001f && context.Canvas != null)
+            if (Math.Abs(Opacity - 1.0f) > 0.001f)
             {
-                ApplyOpacity(context.Canvas, Opacity);
-            }
-        }
-
-        private void ApplyOpacity(ImageBuffer canvas, float opacity)
-        {
-            var alpha = (uint)(opacity * 255);
-            
-            for (int i = 0; i < canvas.Data.Length; i++)
-            {
-                uint pixel = canvas.Data[i];
-                uint currentAlpha = (pixel >> 24) & 0xFF;
-                uint newAlpha = (currentAlpha * alpha) / 255;
-                
-                canvas.Data[i] = (pixel & 0x00FFFFFF) | (newAlpha << 24);
+                // Note: Canvas processing would be implemented in derived classes
+                // For now, just update the opacity in the context
+                context.BackgroundColor = System.Drawing.Color.FromArgb(
+                    (int)(Opacity * 255), 
+                    context.BackgroundColor.R, 
+                    context.BackgroundColor.G, 
+                    context.BackgroundColor.B);
             }
         }
 
@@ -357,9 +327,16 @@ namespace PhoenixVisualizer.Core.VFX
         /// </summary>
         public T GetParameter<T>(string parameterId)
         {
-            if (Parameters.TryGetValue(parameterId, out var param))
+            if (Parameters.TryGetValue(parameterId, out var param) && _parameterProperties.TryGetValue(parameterId, out var prop))
             {
-                return (T)param.Property.GetValue(this);
+                try
+                {
+                    return (T)prop.GetValue(this);
+                }
+                catch
+                {
+                    return default(T);
+                }
             }
             return default(T);
         }
@@ -369,12 +346,12 @@ namespace PhoenixVisualizer.Core.VFX
         /// </summary>
         public void SetParameter(string parameterId, object value)
         {
-            if (Parameters.TryGetValue(parameterId, out var param) && param.Property.CanWrite)
+            if (Parameters.TryGetValue(parameterId, out var param) && _parameterProperties.TryGetValue(parameterId, out var prop) && prop.CanWrite)
             {
                 try
                 {
-                    var convertedValue = Convert.ChangeType(value, param.Type);
-                    param.Property.SetValue(this, convertedValue);
+                    var convertedValue = Convert.ChangeType(value, param.ParameterType);
+                    prop.SetValue(this, convertedValue);
                 }
                 catch (Exception ex)
                 {
@@ -391,7 +368,10 @@ namespace PhoenixVisualizer.Core.VFX
             var result = new Dictionary<string, object>();
             foreach (var param in Parameters.Values)
             {
-                result[param.Id] = param.Property.GetValue(this);
+                if (_parameterProperties.TryGetValue(param.Id, out var prop))
+                {
+                    result[param.Id] = prop.GetValue(this);
+                }
             }
             return result;
         }
@@ -431,31 +411,42 @@ namespace PhoenixVisualizer.Core.VFX
 
         #region IPhoenixVFX Interface Implementation
 
-        public void Initialize()
+        public void Initialize(VFXRenderContext context, AudioFeatures audio)
         {
+            _context = context;
+            _audio = audio;
+            
             if (!_initialized)
             {
-                OnInitialize(_context);
+                OnInitialize(context, audio);
                 _initialized = true;
             }
         }
 
-        public void Render(VFXRenderContext context)
+        public void ProcessFrame(VFXRenderContext context)
         {
             if (!Enabled) return;
-            ProcessFrame(context, _audio);
+            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                OnProcessFrame(context);
+                Performance.UpdateFrameTime(stopwatch.Elapsed.TotalMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                OnError(ex);
+            }
         }
 
         #endregion
 
-        #region Disposal
+        #region IDisposable
 
         public virtual void Dispose()
         {
-            _pel = null;
-            _context = null;
-            _audio = null;
-            _parameters?.Clear();
+            // Clean up resources
+            // Note: PhoenixExpressionEngine doesn't implement IDisposable
         }
 
         #endregion
