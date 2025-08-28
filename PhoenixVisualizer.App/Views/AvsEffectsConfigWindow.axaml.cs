@@ -286,7 +286,8 @@ public partial class AvsEffectsConfigWindow : Window
                          $"Effect Names:\n{string.Join("\n", effectNames.Take(20))}" +
                          (effectNames.Count > 20 ? $"\n... and {effectNames.Count - 20} more" : "");
             
-            var messageBox = MessageBox.Show(message, "AVS Effects Discovery Debug", MessageBoxButtons.OK);
+            // Show message via debug console instead of MessageBox (Avalonia doesn't have built-in MessageBox)
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Discovery Debug]\n{message}");
             
             // Refresh the UI
             PopulateEffectsList();
@@ -297,7 +298,8 @@ public partial class AvsEffectsConfigWindow : Window
         {
             UpdateStatusText($"❌ Debug error: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"[AVS Effects Config] Error in debug discovery: {ex.Message}");
-            MessageBox.Show($"Debug Discovery Error: {ex.Message}", "Error", MessageBoxButtons.OK);
+            // Show error via debug console instead of MessageBox (Avalonia doesn't have built-in MessageBox)
+            System.Diagnostics.Debug.WriteLine($"[AVS Effects Discovery Error] {ex.Message}");
         }
     }
 
@@ -483,7 +485,7 @@ public partial class AvsEffectsConfigWindow : Window
         }
     }
 
-    private void OnMaxEffectsChanged(object? sender, RoutedPropertyChangedEventArgs<double> e)
+    private void OnMaxEffectsChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
     {
         if (sender is Slider slider)
         {
@@ -491,7 +493,7 @@ public partial class AvsEffectsConfigWindow : Window
         }
     }
 
-    private void OnRotationSpeedChanged(object? sender, RoutedPropertyChangedEventArgs<double> e)
+    private void OnRotationSpeedChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
     {
         if (sender is Slider slider)
         {
@@ -499,7 +501,7 @@ public partial class AvsEffectsConfigWindow : Window
         }
     }
 
-    private void OnSpacingChanged(object? sender, RoutedPropertyChangedEventArgs<double> e)
+    private void OnSpacingChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
     {
         if (sender is Slider slider)
         {
@@ -732,31 +734,4 @@ public partial class AvsEffectsConfigWindow : Window
     }
 }
 
-// Data models
-public class EffectItem
-{
-    public string Name { get; set; } = string.Empty;
-    public string DisplayName { get; set; } = string.Empty;
-    public bool IsSelected { get; set; }
-    public string Category { get; set; } = string.Empty;
-}
-
-public class ActiveEffectItem
-{
-    public string DisplayName { get; set; } = string.Empty;
-    public int Index { get; set; }
-}
-
-public class AvsEffectsPreset
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public int MaxActiveEffects { get; set; } = 8;
-    public bool AutoRotateEffects { get; set; } = true;
-    public float RotationSpeed { get; set; } = 1.0f;
-    public bool BeatReactive { get; set; } = true;
-    public bool ShowEffectNames { get; set; } = true;
-    public bool ShowEffectGrid { get; set; } = true;
-    public float EffectSpacing { get; set; } = 20.0f;
-    public List<string> SelectedEffects { get; set; } = new List<string>();
-}
+// Data models are now defined in EffectItem.cs
