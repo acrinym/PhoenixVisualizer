@@ -353,15 +353,32 @@ namespace PhoenixVisualizer.Core.VFX.Effects
             var x = c * (1 - Math.Abs((h / 60.0f) % 2 - 1));
             var m = v - c;
             
-            (double r, double g, double b) = h switch
+            double r, g, b;
+            
+            if (h >= 0 && h < 60)
             {
-                >= 0 and < 60 => (c, x, 0.0),
-                >= 60 and < 120 => (x, c, 0.0),
-                >= 120 and < 180 => (0.0, c, x),
-                >= 180 and < 240 => (0.0, x, c),
-                >= 240 and < 300 => (x, 0.0, c),
-                _ => (c, 0.0, x)
-            };
+                r = c; g = x; b = 0.0;
+            }
+            else if (h >= 60 && h < 120)
+            {
+                r = x; g = c; b = 0.0;
+            }
+            else if (h >= 120 && h < 180)
+            {
+                r = 0.0; g = c; b = x;
+            }
+            else if (h >= 180 && h < 240)
+            {
+                r = 0.0; g = x; b = c;
+            }
+            else if (h >= 240 && h < 300)
+            {
+                r = x; g = 0.0; b = c;
+            }
+            else
+            {
+                r = c; g = 0.0; b = x;
+            }
             
             return System.Drawing.Color.FromArgb(
                 (int)((r + m) * 255),
