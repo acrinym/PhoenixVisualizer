@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using PhoenixVisualizer.Core.Effects.Models;
@@ -233,7 +233,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Effect Processing
 
-        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
         {
             if (!Enabled) return;
 
@@ -283,7 +283,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 // Visualize vector field
                 VisualizeVectorField(outputImage, audioFeatures);
 
-                return outputImage;
+                outputData["Output"] = outputImage;
             }
             catch (Exception ex)
             {
@@ -885,6 +885,40 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         #endregion
 
         #region Configuration
+
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "FieldType", FieldType },
+                { "FieldResolution", FieldResolution },
+                { "FieldStrength", FieldStrength },
+                { "AnimationSpeed", AnimationSpeed },
+                { "VisualizationMode", VisualizationMode },
+                { "ColorMode", ColorMode },
+                { "BaseColor", BaseColor },
+                { "SecondaryColor", SecondaryColor },
+                { "BeatReactive", BeatReactive },
+                { "BeatStrengthMultiplier", BeatStrengthMultiplier },
+                { "AudioReactiveField", AudioReactiveField },
+                { "AudioSensitivity", AudioSensitivity },
+                { "StreamlineCount", StreamlineCount },
+                { "StreamlineLength", StreamlineLength },
+                { "ParticleCount", ParticleCount },
+                { "ParticleLifetime", ParticleLifetime },
+                { "FieldScale", FieldScale },
+                { "NoiseScale", NoiseScale },
+                { "EnablePersistence", EnablePersistence },
+                { "PersistenceDecay", PersistenceDecay }
+            };
+        }
+
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            // Implementation of configuration application
+            // (Full implementation would include all properties)
+        }
 
         #endregion
     }

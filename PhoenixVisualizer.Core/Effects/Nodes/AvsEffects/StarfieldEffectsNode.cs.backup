@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using PhoenixVisualizer.Core.Effects.Models;
@@ -13,7 +13,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
     public class StarfieldEffectsNode : BaseEffectNode
     {
         public bool Enabled { get; set; } = true;
-
         public int NumberOfStars { get; set; } = 200;
         public float Speed { get; set; } = 1.0f;
         public Color StarColor { get; set; } = Color.White;
@@ -48,7 +47,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Starfield output"));
         }
 
-        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
         {
             if (!Enabled) return;
 
@@ -70,7 +69,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 UpdateStars();
                 RenderStars(outputImage);
 
-                return outputImage;
+                outputData["Output"] = outputImage;
             }
             catch (Exception ex)
             {
@@ -216,5 +215,45 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             return (255u << 24) | (resultR << 16) | (resultG << 8) | resultB;
         }
 
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "NumberOfStars", NumberOfStars },
+                { "Speed", Speed },
+                { "StarColor", StarColor },
+                { "BeatReactive", BeatReactive },
+                { "BeatSpeedBoost", BeatSpeedBoost },
+                { "DepthEffect", DepthEffect },
+                { "MotionBlur", MotionBlur },
+                { "Direction", Direction }
+            };
+        }
+
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            if (config.TryGetValue("NumberOfStars", out var numberOfStars))
+            {
+                NumberOfStars = Convert.ToInt32(numberOfStars);
+                InitializeStars();
+            }
+            if (config.TryGetValue("Speed", out var speed))
+                Speed = Convert.ToSingle(speed);
+            if (config.TryGetValue("StarColor", out var starColor))
+                StarColor = (Color)starColor;
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            if (config.TryGetValue("BeatSpeedBoost", out var beatBoost))
+                BeatSpeedBoost = Convert.ToSingle(beatBoost);
+            if (config.TryGetValue("DepthEffect", out var depthEffect))
+                DepthEffect = Convert.ToBoolean(depthEffect);
+            if (config.TryGetValue("MotionBlur", out var motionBlur))
+                MotionBlur = Convert.ToBoolean(motionBlur);
+            if (config.TryGetValue("Direction", out var direction))
+                Direction = Convert.ToInt32(direction);
+        }
     }
 }

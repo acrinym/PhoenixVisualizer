@@ -367,6 +367,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #endregion
 
-        
+        #region Configuration
+
+
+
+
+
+        #endregion
     }
 }

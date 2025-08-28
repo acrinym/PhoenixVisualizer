@@ -63,6 +63,34 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         protected abstract void InitializePorts();
         protected abstract object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures);
 
+        // NEW: Additional methods that effects need
+        protected void AddInputPort(string name, Type type, bool required = false, object defaultValue = null, string description = "")
+            => _inputPorts.Add(new EffectPort(name, type, required, defaultValue, description));
+
+        protected void AddOutputPort(string name, Type type, bool required = false, object defaultValue = null, string description = "")
+            => _outputPorts.Add(new EffectPort(name, type, required, defaultValue, description));
+
+        protected T GetInputValue<T>(string portName, Dictionary<string, object> inputs)
+        {
+            if (inputs.TryGetValue(portName, out var value) && value is T typedValue)
+                return typedValue;
+            return default!;
+        }
+
+        // NEW: Input/Output data access properties
+        protected Dictionary<string, object> InputData { get; private set; } = new();
+        protected Dictionary<string, object> OutputData { get; private set; } = new();
+        protected ImageBuffer InputBuffer { get; private set; }
+        protected ImageBuffer OutputBuffer { get; private set; }
+
+        // Legacy aliases for compatibility
+        protected void AddInput(string name, Type type) => AddInputPort(name, type);
+        protected void AddOutput(string name, Type type) => AddOutputPort(name, type);
+        protected void AddInput(string name) => AddInputPort(name, typeof(object));
+        protected void AddOutput(string name) => AddOutputPort(name, typeof(object));
+        protected T GetInput<T>(string name) => GetInputValue<T>(name, InputData);
+        protected T GetOutput<T>(string name) => GetInputValue<T>(name, OutputData);
+
         #endregion
 
         #region Public Methods

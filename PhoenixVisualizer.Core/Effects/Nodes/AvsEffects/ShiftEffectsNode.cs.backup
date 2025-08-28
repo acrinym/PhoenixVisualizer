@@ -468,9 +468,71 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Configuration
 
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "DisplacementX", DisplacementX },
+                { "DisplacementY", DisplacementY },
+                { "BlendingMode", BlendingMode },
+                { "SubpixelPrecision", SubpixelPrecision },
+                { "BilinearInterpolation", BilinearInterpolation },
+                { "BeatReactive", BeatReactive },
+                { "BeatMultiplier", BeatMultiplier },
+                { "BeatDisplacementX", BeatDisplacementX },
+                { "BeatDisplacementY", BeatDisplacementY },
+                { "EdgeMode", EdgeMode },
+                { "DisplacementMode", DisplacementMode },
+                { "MovementSpeed", MovementSpeed },
+                { "AudioSensitivity", AudioSensitivity }
+            };
+        }
 
-
-
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            
+            if (config.TryGetValue("DisplacementX", out var displacementX))
+                DisplacementX = Convert.ToSingle(displacementX);
+            
+            if (config.TryGetValue("DisplacementY", out var displacementY))
+                DisplacementY = Convert.ToSingle(displacementY);
+            
+            if (config.TryGetValue("BlendingMode", out var blendingMode))
+                BlendingMode = Convert.ToInt32(blendingMode);
+            
+            if (config.TryGetValue("SubpixelPrecision", out var subpixel))
+                SubpixelPrecision = Convert.ToBoolean(subpixel);
+            
+            if (config.TryGetValue("BilinearInterpolation", out var bilinear))
+                BilinearInterpolation = Convert.ToBoolean(bilinear);
+            
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            
+            if (config.TryGetValue("BeatMultiplier", out var beatMultiplier))
+                BeatMultiplier = Convert.ToSingle(beatMultiplier);
+            
+            if (config.TryGetValue("BeatDisplacementX", out var beatDispX))
+                BeatDisplacementX = Convert.ToSingle(beatDispX);
+            
+            if (config.TryGetValue("BeatDisplacementY", out var beatDispY))
+                BeatDisplacementY = Convert.ToSingle(beatDispY);
+            
+            if (config.TryGetValue("EdgeMode", out var edgeMode))
+                EdgeMode = Convert.ToInt32(edgeMode);
+            
+            if (config.TryGetValue("DisplacementMode", out var dispMode))
+                DisplacementMode = Convert.ToInt32(dispMode);
+            
+            if (config.TryGetValue("MovementSpeed", out var speed))
+                MovementSpeed = Convert.ToSingle(speed);
+            
+            if (config.TryGetValue("AudioSensitivity", out var sensitivity))
+                AudioSensitivity = Convert.ToSingle(sensitivity);
+        }
 
         #endregion
     }

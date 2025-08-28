@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.9.4" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>

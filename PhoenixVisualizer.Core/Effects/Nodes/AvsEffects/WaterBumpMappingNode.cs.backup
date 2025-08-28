@@ -39,26 +39,31 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Water effect output"));
         }
 
-        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
         {
-            if (!inputs.TryGetValue("Image", out var input) || input is not ImageBuffer imageBuffer)
-                return GetDefaultOutput();
+            if (!Enabled) return;
 
-            var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // TODO: Implement actual effect logic here
-            // For now, just copy input to output
-            for (int i = 0; i < output.Pixels.Length; i++)
+            try
             {
-                output.Pixels[i] = imageBuffer.Pixels[i];
-            }
-            
-            return output;
-        }
+                var sourceImage = GetInputValue<ImageBuffer>("Image", inputData);
+                if (sourceImage?.Data == null) return;
 
-        public override object GetDefaultOutput()
-        {
-            return new ImageBuffer(800, 600);
+                var outputImage = new ImageBuffer(sourceImage.Width, sourceImage.Height);
+
+                if (BeatReactive && audioFeatures.Beat)
+                    _beatCounter = 20;
+                else if (_beatCounter > 0)
+                    _beatCounter--;
+
+                UpdateWater();
+                ApplyWaterEffect(sourceImage, outputImage);
+
+                outputData["Output"] = outputImage;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Water Bump Mapping] Error: {ex.Message}");
+            }
         }
 
         private void UpdateWater()
@@ -144,8 +149,45 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             return (a << 24) | (r << 16) | (g << 8) | b;
         }
 
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "WaveHeight", WaveHeight },
+                { "WaveSpeed", WaveSpeed },
+                { "WaveFrequency", WaveFrequency },
+                { "BeatReactive", BeatReactive },
+                { "BeatWaveBoost", BeatWaveBoost },
+                { "RippleCount", RippleCount },
+                { "RippleSpeed", RippleSpeed },
+                { "Refraction", Refraction },
+                { "ReflectionEffect", ReflectionEffect }
+            };
+        }
 
-
-
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            if (config.TryGetValue("WaveHeight", out var waveHeight))
+                WaveHeight = Convert.ToSingle(waveHeight);
+            if (config.TryGetValue("WaveSpeed", out var waveSpeed))
+                WaveSpeed = Convert.ToSingle(waveSpeed);
+            if (config.TryGetValue("WaveFrequency", out var waveFreq))
+                WaveFrequency = Convert.ToSingle(waveFreq);
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            if (config.TryGetValue("BeatWaveBoost", out var beatBoost))
+                BeatWaveBoost = Convert.ToSingle(beatBoost);
+            if (config.TryGetValue("RippleCount", out var rippleCount))
+                RippleCount = Convert.ToInt32(rippleCount);
+            if (config.TryGetValue("RippleSpeed", out var rippleSpeed))
+                RippleSpeed = Convert.ToSingle(rippleSpeed);
+            if (config.TryGetValue("Refraction", out var refraction))
+                Refraction = Convert.ToSingle(refraction);
+            if (config.TryGetValue("ReflectionEffect", out var reflection))
+                ReflectionEffect = Convert.ToBoolean(reflection);
+        }
     }
 }

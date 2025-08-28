@@ -132,43 +132,38 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             _outputPorts.Add(new EffectPort("Output", typeof(ImageBuffer), false, null, "Distance modified output image"));
         }
 
-        #endregion
-
-        #region Effect Processing
-
-        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
+        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            if (!Enabled) 
+                return GetDefaultOutput();
 
-            try
+            if (!inputs.TryGetValue("Image", out var input) || input is not ImageBuffer imageBuffer)
+                return GetDefaultOutput();
+
+            var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
+
+            // Handle beat reactivity
+            if (BeatReactive && audioFeatures?.IsBeat == true)
             {
-                var sourceImage = GetInputValue<ImageBuffer>("Image", inputData);
-                if (sourceImage?.Data == null) return;
-
-                var outputImage = new ImageBuffer(sourceImage.Width, sourceImage.Height);
-
-                // Handle beat reactivity
-                if (BeatReactive && audioFeatures.Beat)
-                {
-                    _beatCounter = BEAT_DURATION;
-                }
-                else if (_beatCounter > 0)
-                {
-                    _beatCounter--;
-                }
-
-                // Update dynamic reference point
-                UpdateDynamicReference(audioFeatures);
-
-                // Apply distance modification
-                ApplyDistanceModification(sourceImage, outputImage, audioFeatures);
-
-                outputData["Output"] = outputImage;
+                _beatCounter = BEAT_DURATION;
             }
-            catch (Exception ex)
+            else if (_beatCounter > 0)
             {
-                System.Diagnostics.Debug.WriteLine($"[Dynamic Distance Modifier] Error processing frame: {ex.Message}");
+                _beatCounter--;
             }
+
+            // Update dynamic reference point
+            UpdateDynamicReference(audioFeatures);
+
+            // Apply distance modification
+            ApplyDistanceModification(imageBuffer, output, audioFeatures);
+
+            return output;
+        }
+
+        public override object GetDefaultOutput()
+        {
+            return new ImageBuffer(800, 600);
         }
 
         #endregion
@@ -413,88 +408,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 (uint)Math.Max(0, Math.Min(255, Math.Round(newG))),
                 (uint)Math.Max(0, Math.Min(255, Math.Round(newB)))
             );
-        }
-
-        #endregion
-
-        #region Configuration
-
-        public override Dictionary<string, object> GetConfiguration()
-        {
-            return new Dictionary<string, object>
-            {
-                { "Enabled", Enabled },
-                { "DistanceType", DistanceType },
-                { "ModificationType", ModificationType },
-                { "DistanceRange", DistanceRange },
-                { "BeatReactive", BeatReactive },
-                { "DistanceEffect", DistanceEffect },
-                { "ModificationOpacity", ModificationOpacity },
-                { "ReferenceX", ReferenceX },
-                { "ReferenceY", ReferenceY },
-                { "Parameter1", Parameter1 },
-                { "Parameter2", Parameter2 },
-                { "Parameter3", Parameter3 },
-                { "MinkowskiP", MinkowskiP },
-                { "InvertDistance", InvertDistance },
-                { "BeatMultiplier", BeatMultiplier },
-                { "DynamicReference", DynamicReference },
-                { "ReferenceSpeed", ReferenceSpeed }
-            };
-        }
-
-        public override void ApplyConfiguration(Dictionary<string, object> config)
-        {
-            if (config.TryGetValue("Enabled", out var enabled))
-                Enabled = Convert.ToBoolean(enabled);
-            
-            if (config.TryGetValue("DistanceType", out var distanceType))
-                DistanceType = Convert.ToInt32(distanceType);
-            
-            if (config.TryGetValue("ModificationType", out var modType))
-                ModificationType = Convert.ToInt32(modType);
-            
-            if (config.TryGetValue("DistanceRange", out var range))
-                DistanceRange = Convert.ToSingle(range);
-            
-            if (config.TryGetValue("BeatReactive", out var beatReactive))
-                BeatReactive = Convert.ToBoolean(beatReactive);
-            
-            if (config.TryGetValue("DistanceEffect", out var effect))
-                DistanceEffect = Convert.ToInt32(effect);
-            
-            if (config.TryGetValue("ModificationOpacity", out var opacity))
-                ModificationOpacity = Convert.ToSingle(opacity);
-            
-            if (config.TryGetValue("ReferenceX", out var refX))
-                ReferenceX = Convert.ToSingle(refX);
-            
-            if (config.TryGetValue("ReferenceY", out var refY))
-                ReferenceY = Convert.ToSingle(refY);
-            
-            if (config.TryGetValue("Parameter1", out var param1))
-                Parameter1 = Convert.ToSingle(param1);
-            
-            if (config.TryGetValue("Parameter2", out var param2))
-                Parameter2 = Convert.ToSingle(param2);
-            
-            if (config.TryGetValue("Parameter3", out var param3))
-                Parameter3 = Convert.ToSingle(param3);
-            
-            if (config.TryGetValue("MinkowskiP", out var minkowskiP))
-                MinkowskiP = Convert.ToSingle(minkowskiP);
-            
-            if (config.TryGetValue("InvertDistance", out var invert))
-                InvertDistance = Convert.ToBoolean(invert);
-            
-            if (config.TryGetValue("BeatMultiplier", out var beatMult))
-                BeatMultiplier = Convert.ToSingle(beatMult);
-            
-            if (config.TryGetValue("DynamicReference", out var dynamic))
-                DynamicReference = Convert.ToBoolean(dynamic);
-            
-            if (config.TryGetValue("ReferenceSpeed", out var speed))
-                ReferenceSpeed = Convert.ToSingle(speed);
         }
 
         #endregion

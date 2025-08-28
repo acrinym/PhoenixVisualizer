@@ -1,12 +1,18 @@
 using System.Drawing;
 
-namespace PhoenixVisualizer.Core.VFX;
-
-public class VFXRenderContext
+namespace PhoenixVisualizer.Core.VFX
 {
-    public object? Target { get; set; }
-    public object? Audio { get; set; }
-    public double DeltaTime { get; set; }
-    public long FrameCount { get; set; }
-    public bool SupportsGPU { get; set; } = false;
+    public class VFXRenderContext
+    {
+        public float FrameTime { get; set; }
+        public int FrameNumber { get; set; }
+        public Canvas Canvas { get; set; } = new();
+    }
+
+    public enum OscilloscopeChannel { Left, Right, Stereo }
+    public enum OscilloscopePosition { Top, Center, Bottom }
+    public enum AudioSourceType { Waveform, Spectrum, Beat }
+
+    public class Canvas { }
+    public class Typeface { }
 }

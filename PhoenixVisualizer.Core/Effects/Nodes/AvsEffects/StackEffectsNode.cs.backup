@@ -113,26 +113,69 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Effect Processing
 
-        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
+        public override void ProcessFrame(Dictionary<string, object> inputData, Dictionary<string, object> outputData, AudioFeatures audioFeatures)
         {
-            if (!inputs.TryGetValue("Image", out var input) || input is not ImageBuffer imageBuffer)
-                return GetDefaultOutput();
+            if (!Enabled) return;
 
-            var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // TODO: Implement actual effect logic here
-            // For now, just copy input to output
-            for (int i = 0; i < output.Pixels.Length; i++)
+            try
             {
-                output.Pixels[i] = imageBuffer.Pixels[i];
-            }
-            
-            return output;
-        }
+                var primaryImage = GetInputValue<ImageBuffer>("Image", inputData);
+                if (primaryImage?.Data == null) return;
 
-        public override object GetDefaultOutput()
-        {
-            return new ImageBuffer(800, 600);
+                // Update frame history if using historical frames
+                if (UseHistoricalFrames)
+                {
+                    var historyCopy = new ImageBuffer(primaryImage.Width, primaryImage.Height);
+                    Array.Copy(primaryImage.Data, historyCopy.Data, primaryImage.Data.Length);
+                    
+                    _frameHistory.Enqueue(historyCopy);
+                    if (_frameHistory.Count > MAX_FRAME_HISTORY)
+                    {
+                        _frameHistory.Dequeue();
+                    }
+                }
+
+                // Handle beat reactivity
+                if (BeatReactive && audioFeatures.Beat)
+                {
+                    _beatAlphaMultiplier = BeatAlpha;
+                    _fadeCounter = FadeTime;
+                    
+                    if (StackMode == 2) // Random mode - change layer on beat
+                    {
+                        _currentLayerIndex = _random.Next(LayerCount);
+                    }
+                    else if (StackMode == 3) // Sequence mode - advance layer on beat
+                    {
+                        _currentLayerIndex = (_currentLayerIndex + 1) % LayerCount;
+                    }
+                }
+                else if (_fadeCounter > 0)
+                {
+                    _fadeCounter--;
+                    _beatAlphaMultiplier = 1.0f + (BeatAlpha - 1.0f) * (_fadeCounter / (float)FadeTime);
+                }
+                else
+                {
+                    _beatAlphaMultiplier = 1.0f;
+                }
+
+                // Create output image
+                var outputImage = new ImageBuffer(primaryImage.Width, primaryImage.Height);
+                Array.Copy(primaryImage.Data, outputImage.Data, primaryImage.Data.Length);
+
+                // Collect layers to stack
+                var layers = CollectLayers(inputData, primaryImage);
+
+                // Apply stacking
+                ApplyStacking(outputImage, layers);
+
+                outputData["Output"] = outputImage;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Stack Effects] Error processing frame: {ex.Message}");
+            }
         }
 
         #endregion
@@ -330,9 +373,59 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Configuration
 
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Enabled", Enabled },
+                { "StackMode", StackMode },
+                { "LayerCount", LayerCount },
+                { "BlendMode", BlendMode },
+                { "LayerOrder", LayerOrder },
+                { "BaseAlpha", BaseAlpha },
+                { "BeatReactive", BeatReactive },
+                { "BeatAlpha", BeatAlpha },
+                { "FadeTime", FadeTime },
+                { "LayerOffset", LayerOffset },
+                { "UseHistoricalFrames", UseHistoricalFrames }
+            };
+        }
 
-
-
+        public override void ApplyConfiguration(Dictionary<string, object> config)
+        {
+            if (config.TryGetValue("Enabled", out var enabled))
+                Enabled = Convert.ToBoolean(enabled);
+            
+            if (config.TryGetValue("StackMode", out var stackMode))
+                StackMode = Convert.ToInt32(stackMode);
+            
+            if (config.TryGetValue("LayerCount", out var layerCount))
+                LayerCount = Convert.ToInt32(layerCount);
+            
+            if (config.TryGetValue("BlendMode", out var blendMode))
+                BlendMode = Convert.ToInt32(blendMode);
+            
+            if (config.TryGetValue("LayerOrder", out var layerOrder))
+                LayerOrder = Convert.ToInt32(layerOrder);
+            
+            if (config.TryGetValue("BaseAlpha", out var baseAlpha))
+                BaseAlpha = Convert.ToSingle(baseAlpha);
+            
+            if (config.TryGetValue("BeatReactive", out var beatReactive))
+                BeatReactive = Convert.ToBoolean(beatReactive);
+            
+            if (config.TryGetValue("BeatAlpha", out var beatAlpha))
+                BeatAlpha = Convert.ToSingle(beatAlpha);
+            
+            if (config.TryGetValue("FadeTime", out var fadeTime))
+                FadeTime = Convert.ToInt32(fadeTime);
+            
+            if (config.TryGetValue("LayerOffset", out var layerOffset))
+                LayerOffset = Convert.ToInt32(layerOffset);
+            
+            if (config.TryGetValue("UseHistoricalFrames", out var useHistorical))
+                UseHistoricalFrames = Convert.ToBoolean(useHistorical);
+        }
 
         #endregion
     }
