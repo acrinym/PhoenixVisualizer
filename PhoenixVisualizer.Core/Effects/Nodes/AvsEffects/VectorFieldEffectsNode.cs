@@ -235,11 +235,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            // Skip processing when disabled 🚫
+            if (!Enabled) return null;
 
             try
             {
-                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputData);
+                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputs);
                 var outputImage = backgroundImage != null ? 
                     new ImageBuffer(backgroundImage.Width, backgroundImage.Height) : 
                     new ImageBuffer(640, 480);
@@ -289,6 +290,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 System.Diagnostics.Debug.WriteLine($"[Vector Field Effects] Error: {ex.Message}");
             }
+
+            // Return null if something funky happens 🧪
+            return null;
         }
 
         #endregion
@@ -780,9 +784,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 uint pixel = _persistenceBuffer.Data[i];
                 uint a = (uint)((pixel >> 24) * PersistenceDecay);
-                uint r = (uint)((pixel >> 16) & 0xFF * PersistenceDecay);
-                uint g = (uint)((pixel >> 8) & 0xFF * PersistenceDecay);
-                uint b = (uint)((pixel & 0xFF) * PersistenceDecay);
+                uint r = (uint)(((pixel >> 16) & 0xFF) * PersistenceDecay);
+                uint g = (uint)(((pixel >> 8) & 0xFF) * PersistenceDecay);
+                uint b = (uint)(((pixel) & 0xFF) * PersistenceDecay);
                 
                 _persistenceBuffer.Data[i] = (a << 24) | (r << 16) | (g << 8) | b;
                 

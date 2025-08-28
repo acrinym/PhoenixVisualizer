@@ -178,13 +178,14 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audioFeatures)
         {
-            if (!Enabled) return;
+            // Early exit if we're not supposed to render anything 🌙
+            if (!Enabled) return null;
 
             try
             {
-                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputData);
-                var outputImage = backgroundImage != null ? 
-                    new ImageBuffer(backgroundImage.Width, backgroundImage.Height) : 
+                var backgroundImage = GetInputValue<ImageBuffer>("Background", inputs);
+                var outputImage = backgroundImage != null ?
+                    new ImageBuffer(backgroundImage.Width, backgroundImage.Height) :
                     new ImageBuffer(640, 480);
 
                 // Copy background
@@ -205,7 +206,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
                 // Update particle system
                 UpdateParticleSystem(outputImage.Width, outputImage.Height, audioFeatures);
-                
+
                 // Render particles
                 RenderParticles(outputImage, audioFeatures);
 
@@ -215,6 +216,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             {
                 System.Diagnostics.Debug.WriteLine($"[Textured Particle System] Error: {ex.Message}");
             }
+
+            // In case of errors, return null so callers can handle gracefully 🛠️
+            return null;
         }
 
         #endregion
@@ -415,7 +419,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                     SetEmitterPosition(ref particle);
                     
                     // Set initial velocity
-                    float angle = (float)_random.NextDouble() * VelocityAngleSpread * Math.PI / 180.0f;
+                    // Generate a launch angle in radians 🎯
+                    float angle = (float)(_random.NextDouble() * VelocityAngleSpread * Math.PI / 180.0);
                     float speed = InitialVelocityMin + (float)_random.NextDouble() * (InitialVelocityMax - InitialVelocityMin);
                     particle.VX = (float)Math.Cos(angle) * speed;
                     particle.VY = (float)Math.Sin(angle) * speed;
@@ -445,7 +450,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                     break;
                     
                 case 1: // Circle
-                    float angle = (float)_random.NextDouble() * 2 * Math.PI;
+                    float angle = (float)(_random.NextDouble() * 2 * Math.PI);
                     float radius = (float)_random.NextDouble() * EmitterRadius;
                     particle.X = EmitterX + (float)Math.Cos(angle) * radius;
                     particle.Y = EmitterY + (float)Math.Sin(angle) * radius;

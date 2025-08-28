@@ -17,25 +17,26 @@ public class OnetoneEffectsNode : BaseEffectNode
 
     protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
     {
-        var src = GetInput<ImageBuffer>("Source");
-        var dst = GetOutput<ImageBuffer>("Result");
-        if (src == null || dst == null) return dst;
+            var src = GetInput<ImageBuffer>("Source");
+            var dst = GetOutput<ImageBuffer>("Result");
+            if (src == null || dst == null) return dst;
 
-        for (int y = 0; y < src.Height; y++)
-        for (int x = 0; x < src.Width; x++)
-        {
-            var c = src[x, y];
-            dst[x, y] = Channel switch
+            for (int y = 0; y < src.Height; y++)
+            for (int x = 0; x < src.Width; x++)
             {
-                "R" => Color.FromRgb(c.R, 0, 0),
-                "G" => Color.FromRgb(0, c.G, 0),
-                "B" => Color.FromRgb(0, 0, c.B),
-                _ => Gray(c)
-            };
+                var c = Color.FromUInt32((uint)src[x, y]);
+                var nc = Channel switch
+                {
+                    "R" => Color.FromRgb(c.R, 0, 0),
+                    "G" => Color.FromRgb(0, c.G, 0),
+                    "B" => Color.FromRgb(0, 0, c.B),
+                    _ => Gray(c)
+                };
+                dst[x, y] = (int)(((uint)nc.A << 24) | ((uint)nc.R << 16) | ((uint)nc.G << 8) | nc.B);
+            }
+
+            return dst;
         }
-        
-        return dst;
-    }
 
     private Color Gray(Color c)
     {

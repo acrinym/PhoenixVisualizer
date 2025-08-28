@@ -16,23 +16,25 @@ public class CompositeEffectsNode : BaseEffectNode
         AddOutput("Result");
     }
 
-    protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
-    {
-        var a = GetInput<ImageBuffer>("A");
-        var b = GetInput<ImageBuffer>("B");
-        var result = GetOutput<ImageBuffer>("Result");
-        if (a == null || b == null || result == null) return result;
-
-        for (int y = 0; y < result.Height; y++)
-        for (int x = 0; x < result.Width; x++)
+        protected override object ProcessCore(Dictionary<string, object> inputs, AudioFeatures audio)
         {
-            var ca = a[x, y];
-            var cb = b[x, y];
-            result[x, y] = Blend(ca, cb);
+            var a = GetInput<ImageBuffer>("A");
+            var b = GetInput<ImageBuffer>("B");
+            var result = GetOutput<ImageBuffer>("Result");
+            if (a == null || b == null || result == null) return result;
+
+            for (int y = 0; y < result.Height; y++)
+            for (int x = 0; x < result.Width; x++)
+            {
+                // Convert raw pixels to Avalonia colors for blending
+                var ca = Color.FromUInt32((uint)a[x, y]);
+                var cb = Color.FromUInt32((uint)b[x, y]);
+                var blended = Blend(ca, cb);
+                result[x, y] = (int)(((uint)blended.A << 24) | ((uint)blended.R << 16) | ((uint)blended.G << 8) | blended.B);
+            }
+
+            return result;
         }
-        
-        return result;
-    }
 
     private Color Blend(Color a, Color b)
     {
