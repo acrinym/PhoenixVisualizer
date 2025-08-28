@@ -1,6 +1,7 @@
 <!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/AvsEffectsConfigWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:PhoenixVisualizer.Views"
         x:Class="PhoenixVisualizer.Views.AvsEffectsConfigWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="AVS Effects Engine Configuration"
@@ -58,7 +59,7 @@
                     <TextBlock Text="Effects:" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <ListBox x:Name="EffectsListBox" Height="300" SelectionChanged="OnEffectSelectionChanged">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate DataType="{x:Type views:EffectItem}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <CheckBox x:Name="EffectCheckBox" 
                                               IsChecked="{Binding IsSelected}" 
@@ -92,14 +93,14 @@
                         <StackPanel Margin="10">
                             <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,5">
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Max Active Effects:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Slider Grid.Row="0" Grid.Column="1" x:Name="MaxEffectsSlider" Minimum="1" Maximum="16" Value="8" ValueChanged="OnMaxEffectsChanged"/>
+                                <Slider Grid.Row="0" Grid.Column="1" x:Name="MaxEffectsSlider" Minimum="1" Maximum="16" Value="8"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Value, ElementName=MaxEffectsSlider}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto Rotate Effects:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox Grid.Row="1" Grid.Column="1" x:Name="AutoRotateCheckBox" IsChecked="True"/>
                                 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation Speed:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Slider Grid.Row="2" Grid.Column="1" x:Name="RotationSpeedSlider" Minimum="0" Maximum="5" Value="1" ValueChanged="OnRotationSpeedChanged"/>
+                                <Slider Grid.Row="2" Grid.Column="1" x:Name="RotationSpeedSlider" Minimum="0" Maximum="5" Value="1"/>
                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Value, ElementName=RotationSpeedSlider, StringFormat='{}{0:F1}'}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Beat Reactive:" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -119,7 +120,7 @@
                                 <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ShowGridCheckBox" IsChecked="True"/>
                                 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Effect Spacing:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <Slider Grid.Row="2" Grid.Column="1" x:Name="SpacingSlider" Minimum="10" Maximum="50" Value="20" ValueChanged="OnSpacingChanged"/>
+                                <Slider Grid.Row="2" Grid.Column="1" x:Name="SpacingSlider" Minimum="10" Maximum="50" Value="20"/>
                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Value, ElementName=SpacingSlider}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </StackPanel>
@@ -131,7 +132,7 @@
                             <TextBlock Text="Current Effect Chain:" FontWeight="SemiBold" Margin="0,0,0,5"/>
                             <ListBox x:Name="ActiveEffectsListBox" Height="120" Margin="0,0,0,10">
                                 <ListBox.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate DataType="{x:Type views:ActiveEffectItem}">
                                         <Grid ColumnDefinitions="*,Auto">
                                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center"/>
                                             <Button Grid.Column="1" Content="Remove" Click="OnRemoveEffect" Tag="{Binding Index}" Margin="5,0,0,0"/>

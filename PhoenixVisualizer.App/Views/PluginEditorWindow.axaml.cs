@@ -66,13 +66,18 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
 
     private async void OnOpenClick(object? _, RoutedEventArgs __)
     {
+        #pragma warning disable CS0618 // Using obsolete file dialog API - will be updated to StorageProvider in future
         var dlg = new OpenFileDialog { Title = "Open Plugin" };
         dlg.Filters.Add(new FileDialogFilter { Name = "Phoenix Plugins", Extensions = { "phx", "avs", "txt" } });
         var result = await dlg.ShowAsync(this);
-        if (result is { Length: > 0 })
+        #pragma warning restore CS0618
+        if (result is { Length: > 0 } && !string.IsNullOrEmpty(result[0]))
         {
             var text = File.ReadAllText(result[0]);
-            _editor.Text = text;
+            if (_editor != null)
+            {
+                _editor.Text = text;
+            }
             _currentFile = result[0];
             this.Title = $"Phoenix Plugin Editor - {Path.GetFileName(_currentFile)}";
         }
@@ -84,8 +89,10 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
         var path = _currentFile;
         if (string.IsNullOrEmpty(path))
         {
+            #pragma warning disable CS0618 // Using obsolete file dialog API - will be updated to StorageProvider in future
             var dlg = new SaveFileDialog { Title = "Save Plugin As..." };
             path = await dlg.ShowAsync(this);
+            #pragma warning restore CS0618
         }
         if (!string.IsNullOrEmpty(path))
         {
@@ -97,10 +104,12 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
 
     private async void OnSaveAsClick(object? _, RoutedEventArgs __)
     {
+        #pragma warning disable CS0618 // Using obsolete file dialog API - will be updated to StorageProvider in future
         var dlg = new SaveFileDialog { Title = "Save Plugin As..." };
         dlg.Filters.Add(new FileDialogFilter { Name = "Phoenix Plugin", Extensions = { "phx" } });
         dlg.Filters.Add(new FileDialogFilter { Name = "Winamp AVS Preset", Extensions = { "avs" } });
         var path = await dlg.ShowAsync(this);
+        #pragma warning restore CS0618
         if (!string.IsNullOrEmpty(path))
         {
             if (path.EndsWith(".avs", StringComparison.OrdinalIgnoreCase))

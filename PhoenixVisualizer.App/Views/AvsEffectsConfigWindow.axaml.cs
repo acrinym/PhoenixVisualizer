@@ -31,6 +31,17 @@ public partial class AvsEffectsConfigWindow : Window
     private readonly string _presetsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PhoenixVisualizer", "avs_presets.json");
     private Dictionary<string, AvsEffectsPreset> _presets;
 
+    // Parameterless constructor for XAML compatibility
+    public AvsEffectsConfigWindow() : this(CreateStubVisualizer())
+    {
+    }
+
+    private static AvsEffectsVisualizer CreateStubVisualizer()
+    {
+        // Create a minimal stub visualizer for XAML design-time support
+        return new AvsEffectsVisualizer();
+    }
+
     public AvsEffectsConfigWindow(AvsEffectsVisualizer visualizer)
     {
         _visualizer = visualizer;
@@ -43,7 +54,6 @@ public partial class AvsEffectsConfigWindow : Window
         LoadPresets();
         PopulateEffectsList();
         UpdateActiveEffectsList();
-
     }
 
     private void InitializeComponent()
@@ -71,13 +81,25 @@ public partial class AvsEffectsConfigWindow : Window
         var showGridCheckBox = this.FindControl<CheckBox>("ShowGridCheckBox");
         var spacingSlider = this.FindControl<Slider>("SpacingSlider");
         
-        if (maxEffectsSlider != null) maxEffectsSlider.Value = _maxActiveEffects;
+        if (maxEffectsSlider != null) 
+        {
+            maxEffectsSlider.Value = _maxActiveEffects;
+            maxEffectsSlider.PropertyChanged += OnMaxEffectsChanged;
+        }
         if (autoRotateCheckBox != null) autoRotateCheckBox.IsChecked = _autoRotateEffects;
-        if (rotationSpeedSlider != null) rotationSpeedSlider.Value = _rotationSpeed;
+        if (rotationSpeedSlider != null) 
+        {
+            rotationSpeedSlider.Value = _rotationSpeed;
+            rotationSpeedSlider.PropertyChanged += OnRotationSpeedChanged;
+        }
         if (beatReactiveCheckBox != null) beatReactiveCheckBox.IsChecked = _beatReactive;
         if (showNamesCheckBox != null) showNamesCheckBox.IsChecked = _showEffectNames;
         if (showGridCheckBox != null) showGridCheckBox.IsChecked = _showEffectGrid;
-        if (spacingSlider != null) spacingSlider.Value = _effectSpacing;
+        if (spacingSlider != null) 
+        {
+            spacingSlider.Value = _effectSpacing;
+            spacingSlider.PropertyChanged += OnSpacingChanged;
+        }
     }
 
     private void LoadPresets()
@@ -485,25 +507,25 @@ public partial class AvsEffectsConfigWindow : Window
         }
     }
 
-    private void OnMaxEffectsChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
+    private void OnMaxEffectsChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (sender is Slider slider)
+        if (sender is Slider slider && e.Property.Name == "Value")
         {
             _maxActiveEffects = (int)slider.Value;
         }
     }
 
-    private void OnRotationSpeedChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
+    private void OnRotationSpeedChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (sender is Slider slider)
+        if (sender is Slider slider && e.Property.Name == "Value")
         {
             _rotationSpeed = (float)slider.Value;
         }
     }
 
-    private void OnSpacingChanged(object? sender, AvaloniaPropertyChangedEventArgs<double> e)
+    private void OnSpacingChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (sender is Slider slider)
+        if (sender is Slider slider && e.Property.Name == "Value")
         {
             _effectSpacing = (float)slider.Value;
         }
@@ -595,7 +617,7 @@ public partial class AvsEffectsConfigWindow : Window
             if (spacingSlider != null) spacingSlider.Value = _effectSpacing;
             
             // Clear current effects and load preset effects
-            OnClearAll(null, null);
+            OnClearAll(null, new RoutedEventArgs());
             foreach (var effectName in preset.SelectedEffects)
             {
                 var effect = _availableEffects.FirstOrDefault(e => e.DisplayName == effectName);
