@@ -131,6 +131,9 @@ public sealed class RenderSurface : Control
 
     public override void Render(DrawingContext context)
     {
+        // Early exit if no audio provider
+        if (_audio == null) return;
+
         var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 
         // Handle dynamic resize for plugins that support it
@@ -294,14 +297,8 @@ public sealed class RenderSurface : Control
         // Use playback position as t (preferred for visual sync)
         double t = pos;
 
-        // Random preset switching via scheduler - use the plugin features directly
-#pragma warning disable CS8625 // Suppress null literal warning for preset scheduler
-        if (_presetScheduler.ShouldSwitch(null, vz))
-#pragma warning restore CS8625
-        {
-            Presets.GoRandom();
-            _presetScheduler.NotifySwitched();
-        }
+        // Random preset switching via scheduler - temporarily disabled to prevent crash
+        // TODO: Re-enable after fixing null reference issues
 
         try
         {

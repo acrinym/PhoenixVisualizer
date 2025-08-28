@@ -11,8 +11,11 @@ public sealed class PresetScheduler
     private int _beatCount;
     private int _barCount;
 
-    public bool ShouldSwitch(AudioFeatures features, VisualizerSettings s)
+    public bool ShouldSwitch(AudioFeatures? features, VisualizerSettings? s)
     {
+        // Null check for safety
+        if (features == null || s == null) return false;
+
         // skip when silent unless allowed
         if (!s.RandomWhenSilent && features.Rms < s.SilenceRmsGate)
         {
