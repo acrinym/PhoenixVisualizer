@@ -1,8 +1,9 @@
 namespace PhoenixVisualizer.Core.Effects.Interfaces;
 
 /// <summary>
-/// Comprehensive interface for NS-EEL expression evaluation
+/// Comprehensive interface for NS-EEL/PEL expression evaluation
 /// This breaks the circular dependency between Core and PluginHost projects
+/// Uses the existing PhoenixExpressionEngine for full PEL support
 /// </summary>
 public interface INsEelEvaluator : IDisposable
 {
@@ -10,28 +11,26 @@ public interface INsEelEvaluator : IDisposable
     /// <summary>
     /// Evaluate a mathematical expression
     /// </summary>
-    /// <param name="expression">NS-EEL expression string</param>
+    /// <param name="expression">NS-EEL/PEL expression string</param>
     /// <returns>Result of the evaluation</returns>
     double Evaluate(string expression);
     
     /// <summary>
-    /// Evaluate an expression with custom variables
+    /// Execute a script with multiple expressions
     /// </summary>
-    /// <param name="expression">NS-EEL expression string</param>
-    /// <param name="variables">Custom variables to use</param>
-    /// <returns>Result of the evaluation</returns>
-    double Evaluate(string expression, Dictionary<string, double> variables);
+    /// <param name="script">Multi-line script with semicolon-separated expressions</param>
+    void Execute(string script);
     
     // Variable management
     /// <summary>
-    /// Set a global variable
+    /// Set a variable value
     /// </summary>
-    void SetVariable(string name, double value);
+    void Set(string name, double value);
     
     /// <summary>
-    /// Get a variable value
+    /// Get a variable value with default
     /// </summary>
-    double GetVariable(string name);
+    double Get(string name, double defaultValue = 0.0);
     
     /// <summary>
     /// Check if a variable exists
@@ -39,84 +38,76 @@ public interface INsEelEvaluator : IDisposable
     bool HasVariable(string name);
     
     /// <summary>
-    /// Remove a variable
+    /// Reset all variables to defaults
     /// </summary>
-    void RemoveVariable(string name);
+    void Reset();
+    
+    // PEL-specific variables and context
+    /// <summary>
+    /// Set frame context variables
+    /// </summary>
+    void SetFrameContext(int frame, double frameTime, double deltaTime);
     
     /// <summary>
-    /// Clear all variables
+    /// Set audio context variables
     /// </summary>
-    void ClearVariables();
-    
-    // Per-frame variables (reset each frame)
-    /// <summary>
-    /// Set a per-frame variable
-    /// </summary>
-    void SetPerFrameVariable(string name, double value);
+    void SetAudioContext(double bass, double mid, double treble, double rms, double peak, bool beat);
     
     /// <summary>
-    /// Get a per-frame variable
+    /// Set canvas context variables
     /// </summary>
-    double GetPerFrameVariable(string name);
+    void SetCanvasContext(double width, double height);
     
     /// <summary>
-    /// Clear all per-frame variables
-    /// </summary>
-    void ClearPerFrameVariables();
-    
-    // Per-point variables (reset each point)
-    /// <summary>
-    /// Set a per-point variable
-    /// </summary>
-    void SetPerPointVariable(string name, double value);
-    
-    /// <summary>
-    /// Get a per-point variable
-    /// </summary>
-    double GetPerPointVariable(string name);
-    
-    /// <summary>
-    /// Clear all per-point variables
-    /// </summary>
-    void ClearPerPointVariables();
-    
-    // Context management
-    /// <summary>
-    /// Set the current frame context
-    /// </summary>
-    void SetFrameContext(int frame, double frameTime, double beatTime);
-    
-    /// <summary>
-    /// Set the current point context
+    /// Set point context variables
     /// </summary>
     void SetPointContext(int point, int totalPoints, double x, double y);
     
+    // Built-in PEL variables access
     /// <summary>
-    /// Reset all context variables
+    /// Get current time variable
     /// </summary>
-    void ResetContext();
-    
-    // Audio analysis (simplified interface)
-    /// <summary>
-    /// Set audio data for the current frame
-    /// </summary>
-    void SetAudioData(double bass, double mid, double treble, double volume, bool isBeat);
-    
-    // Function management
-    /// <summary>
-    /// Register a custom function
-    /// </summary>
-    void RegisterFunction(string name, Func<double[], double> function);
+    double Time { get; }
     
     /// <summary>
-    /// Unregister a custom function
+    /// Get current frame variable
     /// </summary>
-    void UnregisterFunction(string name);
+    int Frame { get; }
     
     /// <summary>
-    /// Check if a function exists
+    /// Get delta time variable
     /// </summary>
-    bool HasFunction(string name);
+    double DeltaTime { get; }
+    
+    /// <summary>
+    /// Get audio beat state
+    /// </summary>
+    bool Beat { get; }
+    
+    /// <summary>
+    /// Get bass level
+    /// </summary>
+    double Bass { get; }
+    
+    /// <summary>
+    /// Get mid level
+    /// </summary>
+    double Mid { get; }
+    
+    /// <summary>
+    /// Get treble level
+    /// </summary>
+    double Treble { get; }
+    
+    /// <summary>
+    /// Get RMS level
+    /// </summary>
+    double RMS { get; }
+    
+    /// <summary>
+    /// Get peak level
+    /// </summary>
+    double Peak { get; }
     
     // Expression compilation and caching
     /// <summary>

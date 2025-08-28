@@ -292,7 +292,7 @@ public class CompleteAvsPresetLoader
         try
         {
             // Set up NS-EEL evaluator with global variables
-            _eelEvaluator.SetVariable("clearEveryFrame", metadata.ClearEveryFrame ? 1.0 : 0.0);
+            _eelEvaluator.Set("clearEveryFrame", metadata.ClearEveryFrame ? 1.0 : 0.0);
             
             // Compile and validate init script
             if (!string.IsNullOrWhiteSpace(metadata.InitScript))
