@@ -469,45 +469,89 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
 
     private void RenderCatHead(ISkiaCanvas canvas)
     {
-        float headSize = CAT_HEIGHT * 0.8f;
+        float headWidth = CAT_HEIGHT * 0.7f;
+        float headHeight = CAT_HEIGHT * 0.8f;
         float headX = _catX + CAT_WIDTH * 0.3f;
         float headY = _catY;
 
-        // Cat head (tan color)
+        // Cat head (rounded rectangle shape - more cat-like)
         uint headColor = 0xFFD2B48C;
-        canvas.FillCircle(headX, headY, headSize * 0.5f, headColor);
+        DrawRoundedRectangle(canvas, headX - headWidth * 0.5f, headY - headHeight * 0.5f,
+                           headWidth, headHeight, headWidth * 0.3f, headColor);
 
-        // Cat ears
+        // Cat ears (triangular and prominent)
         uint earColor = 0xFFC4A484;
-        float earOffset = headSize * 0.3f;
-
-        canvas.FillCircle(headX - earOffset, headY - earOffset, headSize * 0.2f, earColor);
-        canvas.FillCircle(headX + earOffset, headY - earOffset, headSize * 0.2f, earColor);
-
-        // Inner ears
         uint innerEarColor = 0xFFFF69B4;
-        canvas.FillCircle(headX - earOffset, headY - earOffset, headSize * 0.1f, innerEarColor);
-        canvas.FillCircle(headX + earOffset, headY - earOffset, headSize * 0.1f, innerEarColor);
 
-        // Eyes
+        // Left ear
+        var leftEarPoints = new (float x, float y)[]
+        {
+            (headX - headWidth * 0.3f, headY - headHeight * 0.4f), // Base left
+            (headX - headWidth * 0.1f, headY - headHeight * 0.4f), // Base right
+            (headX - headWidth * 0.2f, headY - headHeight * 0.7f)  // Tip
+        };
+        DrawTriangle(canvas, (leftEarPoints[0].x, leftEarPoints[0].y), (leftEarPoints[1].x, leftEarPoints[1].y), (leftEarPoints[2].x, leftEarPoints[2].y), earColor);
+        DrawTriangle(canvas, (leftEarPoints[0].x, leftEarPoints[0].y), (leftEarPoints[1].x, leftEarPoints[1].y),
+                    ((leftEarPoints[0].x + leftEarPoints[1].x) * 0.5f, (leftEarPoints[0].y + leftEarPoints[2].y) * 0.5f - headHeight * 0.05f), innerEarColor);
+
+        // Right ear
+        var rightEarPoints = new (float x, float y)[]
+        {
+            (headX + headWidth * 0.1f, headY - headHeight * 0.4f),  // Base left
+            (headX + headWidth * 0.3f, headY - headHeight * 0.4f),  // Base right
+            (headX + headWidth * 0.2f, headY - headHeight * 0.7f)   // Tip
+        };
+        DrawTriangle(canvas, (rightEarPoints[0].x, rightEarPoints[0].y), (rightEarPoints[1].x, rightEarPoints[1].y), (rightEarPoints[2].x, rightEarPoints[2].y), earColor);
+        DrawTriangle(canvas, (rightEarPoints[0].x, rightEarPoints[0].y), (rightEarPoints[1].x, rightEarPoints[1].y),
+                    ((rightEarPoints[0].x + rightEarPoints[1].x) * 0.5f, (rightEarPoints[0].y + rightEarPoints[2].y) * 0.5f - headHeight * 0.05f), innerEarColor);
+
+        // Eyes (larger and more expressive)
         uint eyeColor = 0xFF000000;
-        float eyeOffset = headSize * 0.2f;
-        canvas.FillCircle(headX - eyeOffset, headY - headSize * 0.1f, 3f, eyeColor);
-        canvas.FillCircle(headX + eyeOffset, headY - headSize * 0.1f, 3f, eyeColor);
+        float eyeSize = 4f;
+        float eyeOffset = headWidth * 0.15f;
+        float eyeY = headY - headHeight * 0.1f;
 
-        // Nose
+        // Left eye with white shine
+        canvas.FillCircle(headX - eyeOffset, eyeY, eyeSize, eyeColor);
+        canvas.FillCircle(headX - eyeOffset - 1, eyeY - 1, 1.5f, 0xFFFFFFFF);
+
+        // Right eye with white shine
+        canvas.FillCircle(headX + eyeOffset, eyeY, eyeSize, eyeColor);
+        canvas.FillCircle(headX + eyeOffset - 1, eyeY - 1, 1.5f, 0xFFFFFFFF);
+
+        // Nose (inverted triangle shape)
         uint noseColor = 0xFFFF69B4;
-        canvas.FillCircle(headX, headY + headSize * 0.1f, 2f, noseColor);
+        var nosePoints = new (float x, float y)[]
+        {
+            (headX, headY + headHeight * 0.1f),         // Top
+            (headX - 3, headY + headHeight * 0.2f),     // Bottom left
+            (headX + 3, headY + headHeight * 0.2f)      // Bottom right
+        };
+        DrawTriangle(canvas, (nosePoints[0].x, nosePoints[0].y), (nosePoints[1].x, nosePoints[1].y), (nosePoints[2].x, nosePoints[2].y), noseColor);
 
-        // Mouth
+        // Mouth (w-shape for cat smile)
         uint mouthColor = 0xFF000000;
-        canvas.DrawLine(headX - 3, headY + headSize * 0.15f, headX + 3, headY + headSize * 0.15f, mouthColor, 1f);
+        float mouthY = headY + headHeight * 0.25f;
+        canvas.DrawLine(headX - 4, mouthY, headX - 2, mouthY + 2, mouthColor, 1.5f);
+        canvas.DrawLine(headX - 2, mouthY + 2, headX, mouthY, mouthColor, 1.5f);
+        canvas.DrawLine(headX, mouthY, headX + 2, mouthY + 2, mouthColor, 1.5f);
+        canvas.DrawLine(headX + 2, mouthY + 2, headX + 4, mouthY, mouthColor, 1.5f);
 
-        // Whiskers
-        canvas.DrawLine(headX - headSize * 0.4f, headY - headSize * 0.05f, headX - headSize * 0.2f, headY - headSize * 0.1f, mouthColor, 1f);
-        canvas.DrawLine(headX - headSize * 0.4f, headY + headSize * 0.05f, headX - headSize * 0.2f, headY + headSize * 0.1f, mouthColor, 1f);
-        canvas.DrawLine(headX + headSize * 0.4f, headY - headSize * 0.05f, headX + headSize * 0.2f, headY - headSize * 0.1f, mouthColor, 1f);
-        canvas.DrawLine(headX + headSize * 0.4f, headY + headSize * 0.05f, headX + headSize * 0.2f, headY + headSize * 0.1f, mouthColor, 1f);
+        // Whiskers (longer and more cat-like)
+        float whiskerLength = headWidth * 0.4f;
+        canvas.DrawLine(headX - headWidth * 0.3f, headY - headHeight * 0.05f,
+                      headX - headWidth * 0.3f - whiskerLength, headY - headHeight * 0.1f, mouthColor, 1f);
+        canvas.DrawLine(headX - headWidth * 0.3f, headY + headHeight * 0.05f,
+                      headX - headWidth * 0.3f - whiskerLength, headY + headHeight * 0.1f, mouthColor, 1f);
+        canvas.DrawLine(headX + headWidth * 0.3f, headY - headHeight * 0.05f,
+                      headX + headWidth * 0.3f + whiskerLength, headY - headHeight * 0.1f, mouthColor, 1f);
+        canvas.DrawLine(headX + headWidth * 0.3f, headY + headHeight * 0.05f,
+                      headX + headWidth * 0.3f + whiskerLength, headY + headHeight * 0.1f, mouthColor, 1f);
+
+        // Add some cheek blush
+        uint blushColor = 0x44FFAAAA;
+        canvas.FillCircle(headX - headWidth * 0.2f, headY + headHeight * 0.05f, 3f, blushColor);
+        canvas.FillCircle(headX + headWidth * 0.2f, headY + headHeight * 0.05f, 3f, blushColor);
     }
 
     private void RenderTrailConnection(ISkiaCanvas canvas)
@@ -604,6 +648,168 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
             Y = y;
             Size = size;
             Life = life;
+        }
+    }
+
+    private void DrawRoundedRectangle(ISkiaCanvas canvas, float x, float y, float width, float height, float radius, uint color)
+    {
+        // Draw a rounded rectangle using circles and rectangles
+        // Corners
+        canvas.FillCircle(x + radius, y + radius, radius, color);
+        canvas.FillCircle(x + width - radius, y + radius, radius, color);
+        canvas.FillCircle(x + radius, y + height - radius, radius, color);
+        canvas.FillCircle(x + width - radius, y + height - radius, radius, color);
+
+        // Sides
+        canvas.DrawLine(x + radius, y, x + width - radius, y, color, radius * 2); // Top
+        canvas.DrawLine(x + radius, y + height, x + width - radius, y + height, color, radius * 2); // Bottom
+        canvas.DrawLine(x, y + radius, x, y + height - radius, color, radius * 2); // Left
+        canvas.DrawLine(x + width, y + radius, x + width, y + height - radius, color, radius * 2); // Right
+
+        // Center fill
+        canvas.DrawLine(x + radius, y + radius, x + width - radius, y + height - radius, color, (height - radius * 2));
+    }
+
+    private void DrawTriangle(ISkiaCanvas canvas, (float x, float y) p1, (float x, float y) p2, (float x, float y) p3, uint color)
+    {
+        // Simple triangle fill using horizontal lines
+        var points = new[] { p1, p2, p3 };
+        Array.Sort(points, (a, b) => a.y.CompareTo(b.y));
+
+        var top = points[0];
+        var middle = points[1];
+        var bottom = points[2];
+
+        // If middle and bottom are at same height, handle as flat bottom
+        if (Math.Abs(middle.y - bottom.y) < 0.1f)
+        {
+            FillFlatBottomTriangle2D(canvas, top, middle, bottom, color);
+        }
+        // If top and middle are at same height, handle as flat top
+        else if (Math.Abs(top.y - middle.y) < 0.1f)
+        {
+            FillFlatTopTriangle2D(canvas, top, middle, bottom, color);
+        }
+        // General case - split into flat bottom and flat top
+        else
+        {
+            // Find intermediate point on longer edge
+            float t = (middle.y - top.y) / (bottom.y - top.y);
+            var intermediate = (
+                top.x + t * (bottom.x - top.x),
+                middle.y
+            );
+
+            FillFlatBottomTriangle2D(canvas, top, middle, intermediate, color);
+            FillFlatTopTriangle2D(canvas, intermediate, middle, bottom, color);
+        }
+    }
+
+    private void FillFlatBottomTriangle(ISkiaCanvas canvas, (float x, float y, float z) v1, (float x, float y, float z) v2, (float x, float y, float z) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is below
+        float invSlope1 = (v2.x - v1.x) / (v2.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+
+        float curX1 = v1.x;
+        float curX2 = v1.x;
+
+        for (float y = v1.y; y <= v2.y; y++)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 += invSlope1;
+            curX2 += invSlope2;
+        }
+    }
+
+    private void FillFlatTopTriangle(ISkiaCanvas canvas, (float x, float y, float z) v1, (float x, float y, float z) v2, (float x, float y, float z) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is above
+        float invSlope1 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v2.x) / (v3.y - v2.y + 0.001f);
+
+        float curX1 = v3.x;
+        float curX2 = v3.x;
+
+        for (float y = v3.y; y >= v1.y; y--)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 -= invSlope1;
+            curX2 -= invSlope2;
+        }
+    }
+
+    private void FillFlatBottomTriangle2D(ISkiaCanvas canvas, (float x, float y) v1, (float x, float y) v2, (float x, float y) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is below
+        float invSlope1 = (v2.x - v1.x) / (v2.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+
+        float curX1 = v1.x;
+        float curX2 = v1.x;
+
+        for (float y = v1.y; y <= v2.y; y++)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 += invSlope1;
+            curX2 += invSlope2;
+        }
+    }
+
+    private void FillFlatTopTriangle2D(ISkiaCanvas canvas, (float x, float y) v1, (float x, float y) v2, (float x, float y) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is above
+        float invSlope1 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v2.x) / (v3.y - v2.y + 0.001f);
+
+        float curX1 = v3.x;
+        float curX2 = v3.x;
+
+        for (float y = v3.y; y >= v1.y; y--)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 -= invSlope1;
+            curX2 -= invSlope2;
         }
     }
 }

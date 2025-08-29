@@ -54,10 +54,22 @@ public sealed class Win2KMaze : IVisualizerPlugin
     // Colors inspired by the original maze
     private readonly uint[] _wallColors = new uint[]
     {
-        0xFF404040, // Dark gray walls
-        0xFF606060, // Medium gray
-        0xFF808080, // Light gray
-        0xFFA0A0A0  // Very light gray
+        0xFF4A90E2, // Blue
+        0xFFE94B3C, // Red
+        0xFF50C878, // Green
+        0xFFFFD700, // Gold
+        0xFF9B59B6, // Purple
+        0xFFFF6B6B, // Coral
+        0xFF4ECDC4, // Teal
+        0xFFFFA07A, // Light Salmon
+        0xFF98D8C8, // Mint
+        0xFFF7DC6F, // Light Yellow
+        0xFFBB8FCE, // Light Purple
+        0xFF85C1E9, // Light Blue
+        0xFFF8C471, // Orange
+        0xFF82E0AA, // Light Green
+        0xFFF1948A, // Light Red
+        0xFFABEBC6  // Pale Green
     };
 
 
@@ -248,7 +260,10 @@ public sealed class Win2KMaze : IVisualizerPlugin
             if (start3D.z > near && end3D.z > near && start3D.z < far && end3D.z < far)
             {
                 float alpha = Math.Max(0.1f, 1f - start3D.z / far);
-                uint color = (uint)((uint)(alpha * 255) << 24 | 0x00404040);
+                // Dynamic floor color based on position and time
+                float hue = (worldZ * 0.01f + _time * 0.1f) % 1.0f;
+                uint baseColor = HsvToRgb(hue, 0.3f, 0.4f);
+                uint color = (uint)((uint)(alpha * 255) << 24 | (baseColor & 0x00FFFFFF));
                 canvas.DrawLine(start3D.x, start3D.y, end3D.x, end3D.y, color, 1f);
             }
         }
@@ -266,7 +281,10 @@ public sealed class Win2KMaze : IVisualizerPlugin
             if (start3D.z > near && end3D.z > near && start3D.z < far && end3D.z < far)
             {
                 float alpha = Math.Max(0.05f, 1f - start3D.z / far);
-                uint color = (uint)((uint)(alpha * 255) << 24 | 0x00202020);
+                // Dynamic ceiling color (darker than floor)
+                float hue = (worldZ * 0.01f + _time * 0.05f + 0.5f) % 1.0f; // Offset hue for different color
+                uint baseColor = HsvToRgb(hue, 0.2f, 0.2f);
+                uint color = (uint)((uint)(alpha * 255) << 24 | (baseColor & 0x00FFFFFF));
                 canvas.DrawLine(start3D.x, start3D.y, end3D.x, end3D.y, color, 1f);
             }
         }
@@ -438,5 +456,33 @@ public sealed class Win2KMaze : IVisualizerPlugin
         b = (byte)Math.Min(255, b * factor);
 
         return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
+    }
+
+    private uint HsvToRgb(float h, float s, float v)
+    {
+        float r, g, b;
+
+        int i = (int)(h * 6);
+        float f = h * 6 - i;
+        float p = v * (1 - s);
+        float q = v * (1 - f * s);
+        float t = v * (1 - (1 - f) * s);
+
+        switch (i % 6)
+        {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+            default: r = v; g = p; b = q; break;
+        }
+
+        byte rb = (byte)(r * 255);
+        byte gb = (byte)(g * 255);
+        byte bb = (byte)(b * 255);
+
+        return (uint)((uint)rb << 16 | (uint)gb << 8 | (uint)bb);
     }
 }

@@ -48,46 +48,71 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             float t = i / (float)_numPoints;
             float angle = t * (float)Math.PI * 2;
 
-            // Create proper cat face outline with ears
+            // Create more cat-like face outline with proper ears
             float x, y;
 
-            if (t < 0.25f) // Left side of face (more circular)
+            // Create a more cat-like face shape
+            if (t < 0.2f || t > 0.8f) // Sides of face (more rounded)
             {
-                float radius = 0.45f;
+                float radius = 0.4f;
+                x = (float)Math.Cos(angle) * radius;
+                y = (float)Math.Sin(angle) * radius * 0.9f; // Slightly oval
+            }
+            else if (t < 0.4f) // Left cheek area (slightly indented)
+            {
+                float radius = 0.38f;
                 x = (float)Math.Cos(angle) * radius;
                 y = (float)Math.Sin(angle) * radius;
             }
-            else if (t < 0.75f) // Bottom of face (flatter)
+            else if (t < 0.6f) // Chin and mouth area (flatter)
             {
-                float radius = 0.45f + 0.1f * (float)Math.Sin(angle); // Slight bulge
+                float radius = 0.35f + 0.05f * (float)Math.Sin(angle * 2); // Slight curve for mouth
                 x = (float)Math.Cos(angle) * radius;
                 y = (float)Math.Sin(angle) * radius;
             }
-            else // Right side of face (more circular)
+            else // Right cheek area (slightly indented)
             {
-                float radius = 0.45f;
+                float radius = 0.38f;
                 x = (float)Math.Cos(angle) * radius;
                 y = (float)Math.Sin(angle) * radius;
             }
 
-            // Add ear shapes at the top
-            if (t > 0.8f || t < 0.2f)
+            // Add proper triangular cat ears
+            if (t > 0.85f || t < 0.15f) // Ear areas
             {
-                // Position ears slightly above the head
-                float earOffset = 0.08f;
-                if (t > 0.8f) // Right ear
+                // Calculate ear base position
+                float earAngle = angle;
+                float earRadius = 0.45f;
+
+                // Ear base
+                float baseX = (float)Math.Cos(earAngle) * earRadius;
+                float baseY = (float)Math.Sin(earAngle) * earRadius;
+
+                // Ear tip (pointed upward)
+                float tipOffset = 0.12f;
+                float earTipX = baseX + (float)Math.Cos(earAngle) * tipOffset * 0.5f;
+                float earTipY = baseY - tipOffset;
+
+                // Ear width
+                float earWidth = tipOffset * 0.6f;
+                float sideX = baseX + (float)Math.Cos(earAngle + Math.PI/2) * earWidth;
+
+                // Interpolate along ear shape
+                float earT = (t < 0.15f) ? (t / 0.15f) : ((t - 0.85f) / 0.15f);
+                if (t < 0.15f) earT = 1 - earT; // Mirror for left ear
+
+                // Create ear outline
+                x = baseX + (earTipX - baseX) * earT;
+                y = baseY + (earTipY - baseY) * earT;
+
+                // Add slight curve to ear
+                if (earT > 0.3f && earT < 0.7f)
                 {
-                    x += earOffset;
-                    y -= earOffset;
-                }
-                else // Left ear
-                {
-                    x -= earOffset;
-                    y -= earOffset;
+                    y += 0.02f * (float)Math.Sin(earT * Math.PI * 2);
                 }
 
-                // Add ear animation
-                y += 0.05f * (float)Math.Sin(_time * 3 + angle * 2);
+                // Add ear animation (twitching)
+                y += 0.03f * (float)Math.Sin(_time * 4 + earAngle * 3);
             }
 
             // Add subtle breathing animation to the whole face
@@ -116,18 +141,52 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             canvas.DrawLine(points[^1].x, points[^1].y, points[0].x, points[0].y, color, 2.0f);
         }
         
-        // Draw cat eyes
-        float eyeSize = 8.0f;
-        // Avoid green for idle
-        uint eyeColor = beat ? 0xFFFF0000 : 0xFFFFCC00; // Red on beat, yellow otherwise
-        
-        // Left eye
-        canvas.FillCircle(_width * 0.4f, _height * 0.45f, eyeSize, eyeColor);
-        // Right eye
-        canvas.FillCircle(_width * 0.6f, _height * 0.45f, eyeSize, eyeColor);
-        
-        // Draw nose
-        canvas.FillCircle(_width * 0.5f, _height * 0.55f, 4.0f, 0xFFFF69B4);
+        // Draw cat eyes with pupils
+        float eyeSize = 6.0f;
+        uint eyeColor = beat ? 0xFFFF6600 : 0xFFFFAA00; // Orange on beat, gold otherwise
+        uint pupilColor = 0xFF000000; // Black pupils
+
+        // Left eye (almond-shaped)
+        canvas.FillCircle(_width * 0.42f, _height * 0.48f, eyeSize, eyeColor);
+        canvas.FillCircle(_width * 0.42f, _height * 0.48f, eyeSize * 0.6f, pupilColor);
+
+        // Right eye (almond-shaped)
+        canvas.FillCircle(_width * 0.58f, _height * 0.48f, eyeSize, eyeColor);
+        canvas.FillCircle(_width * 0.58f, _height * 0.48f, eyeSize * 0.6f, pupilColor);
+
+        // Add eye shine effect
+        uint shineColor = 0xFFFFFFFF;
+        canvas.FillCircle(_width * 0.41f, _height * 0.47f, 1.5f, shineColor);
+        canvas.FillCircle(_width * 0.57f, _height * 0.47f, 1.5f, shineColor);
+
+        // Draw nose (inverted heart shape)
+        canvas.FillCircle(_width * 0.5f, _height * 0.55f, 3.0f, 0xFFFF69B4);
+        canvas.FillCircle(_width * 0.495f, _height * 0.56f, 1.5f, 0xFFFF69B4);
+        canvas.FillCircle(_width * 0.505f, _height * 0.56f, 1.5f, 0xFFFF69B4);
+
+        // Draw whiskers
+        uint whiskerColor = 0xFFCCCCCC;
+        float whiskerLength = 25.0f;
+
+        // Left whiskers
+        for (int i = 0; i < 3; i++)
+        {
+            float yOffset = (i - 1) * 8.0f;
+            canvas.DrawLine(_width * 0.35f, _height * 0.5f + yOffset,
+                          _width * 0.35f - whiskerLength, _height * 0.5f + yOffset, whiskerColor, 1.0f);
+        }
+
+        // Right whiskers
+        for (int i = 0; i < 3; i++)
+        {
+            float yOffset = (i - 1) * 8.0f;
+            canvas.DrawLine(_width * 0.65f, _height * 0.5f + yOffset,
+                          _width * 0.65f + whiskerLength, _height * 0.5f + yOffset, whiskerColor, 1.0f);
+        }
+
+        // Draw mouth (simple curved line)
+        float mouthY = _height * 0.58f;
+        canvas.DrawLine(_width * 0.48f, mouthY, _width * 0.52f, mouthY, 0xFF333333, 2.0f);
     }
 
     public void Dispose()

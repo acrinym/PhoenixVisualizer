@@ -44,7 +44,6 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
     private enum TrackStyle { Wooden, Metallic, Neon, HellRail }
     private enum CameraMode { FollowCart, InsideCart, Overhead, SideView }
     private TrackStyle _currentTrackStyle;
-    private CameraMode _cameraMode;
     private int _maxCarts = 3;
     private float _speedMultiplier = 1.0f;
     private float _trackCurvature = 1.0f;
@@ -114,7 +113,6 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         _trackOffset = 0;
         _nextSegmentId = 0;
         _currentTrackStyle = TrackStyle.Wooden;
-        _cameraMode = CameraMode.FollowCart;
 
         // Initialize track
         _trackSegments = new List<TrackSegment>();
@@ -419,11 +417,11 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
     {
         // Get cart world position
         TrackSegment? foundSegment = null;
-        foreach (var segment in _trackSegments)
+        foreach (var seg in _trackSegments)
         {
-            if (segment.Id == cart.SegmentId)
+            if (seg.Id == cart.SegmentId)
             {
-                foundSegment = segment;
+                foundSegment = seg;
                 break;
             }
         }
@@ -459,11 +457,11 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
     private void CreateBeatParticles(Minecart cart)
     {
         TrackSegment? foundSegment = null;
-        foreach (var segment in _trackSegments)
+        foreach (var seg in _trackSegments)
         {
-            if (segment.Id == cart.SegmentId)
+            if (seg.Id == cart.SegmentId)
             {
-                foundSegment = segment;
+                foundSegment = seg;
                 break;
             }
         }
@@ -611,11 +609,11 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         foreach (var cart in _carts)
         {
             TrackSegment? foundSegment = null;
-            foreach (var segment in _trackSegments)
+            foreach (var seg in _trackSegments)
             {
-                if (segment.Id == cart.SegmentId)
+                if (seg.Id == cart.SegmentId)
                 {
-                    foundSegment = segment;
+                    foundSegment = seg;
                     break;
                 }
             }

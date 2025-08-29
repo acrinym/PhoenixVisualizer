@@ -146,14 +146,14 @@ public sealed class Win95Beziers : IVisualizerPlugin
         curve.ControlPoints[1] = (cp1x, cp1y);
 
         // Control point 2 (second handle) - similar direction but some variation
-        float cp2Angle = angle + (float)(_random.NextDouble() - 0.5f) * Math.PI * 0.5f;
+        float cp2Angle = angle + (float)(_random.NextDouble() - 0.5f) * (float)Math.PI * 0.5f;
         float cp2Distance = maxExtent * (0.3f + (float)_random.NextDouble() * 0.4f);
         float cp2x = (float)Math.Cos(cp2Angle) * cp2Distance;
         float cp2y = (float)Math.Sin(cp2Angle) * cp2Distance;
         curve.ControlPoints[2] = (cp2x, cp2y);
 
         // End point - continue in similar direction
-        float endAngle = (angle + cp2Angle) * 0.5f + (float)(_random.NextDouble() - 0.5f) * Math.PI * 0.3f;
+        float endAngle = (angle + cp2Angle) * 0.5f + (float)(_random.NextDouble() - 0.5f) * (float)Math.PI * 0.3f;
         float endDistance = maxExtent * (0.5f + (float)_random.NextDouble() * 0.5f) * curve.Length;
         float endX = (float)Math.Cos(endAngle) * endDistance;
         float endY = (float)Math.Sin(endAngle) * endDistance;

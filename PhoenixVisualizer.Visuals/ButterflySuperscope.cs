@@ -47,41 +47,54 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
         {
             float t = i / (float)_numPoints;
 
-            // Butterfly formula from AVS: s=floor(i*5); p=i*5-s; s==0?(x=-0.35*cos(p*$PI); y=0.2*sin(p*$PI)):s==1?(x=-0.2*cos(p*$PI); y=0.4*sin(p*$PI)):s==2?(x=0.2*cos(p*$PI); y=0.4*sin(p*$PI)):s==3?(x=0.35*cos(p*$PI); y=0.2*sin(p*$PI)):(x=0; y=0.25-0.5*p);
-            int segment = (int)(t * 5);
-            float segmentT = t * 5 - segment;
+            // Improved butterfly formula - more defined wings
+            int segment = (int)(t * 6); // 6 segments for better definition
+            float segmentT = t * 6 - segment;
 
             float x, y;
 
             switch (segment)
             {
-                case 0: // Left wing tip
-                    x = -0.35f * (float)Math.Cos(segmentT * (float)Math.PI);
-                    y = 0.2f * (float)Math.Sin(segmentT * (float)Math.PI);
+                case 0: // Left wing lower
+                    x = -0.4f * (float)Math.Sin(segmentT * (float)Math.PI * 2);
+                    y = -0.1f + 0.3f * (float)Math.Cos(segmentT * (float)Math.PI);
                     break;
-                case 1: // Left wing
-                    x = -0.2f * (float)Math.Cos(segmentT * (float)Math.PI);
-                    y = 0.4f * (float)Math.Sin(segmentT * (float)Math.PI);
+                case 1: // Left wing upper
+                    x = -0.25f * (float)Math.Sin(segmentT * (float)Math.PI * 2);
+                    y = 0.1f + 0.4f * (float)Math.Cos(segmentT * (float)Math.PI);
                     break;
-                case 2: // Right wing
-                    x = 0.2f * (float)Math.Cos(segmentT * (float)Math.PI);
-                    y = 0.4f * (float)Math.Sin(segmentT * (float)Math.PI);
+                case 2: // Right wing upper
+                    x = 0.25f * (float)Math.Sin(segmentT * (float)Math.PI * 2);
+                    y = 0.1f + 0.4f * (float)Math.Cos(segmentT * (float)Math.PI);
                     break;
-                case 3: // Right wing tip
-                    x = 0.35f * (float)Math.Cos(segmentT * (float)Math.PI);
-                    y = 0.2f * (float)Math.Sin(segmentT * (float)Math.PI);
+                case 3: // Right wing lower
+                    x = 0.4f * (float)Math.Sin(segmentT * (float)Math.PI * 2);
+                    y = -0.1f + 0.3f * (float)Math.Cos(segmentT * (float)Math.PI);
                     break;
-                default: // Body
-                    x = 0;
-                    y = 0.25f - 0.5f * segmentT;
+                case 4: // Body left
+                    x = -0.05f * (1 - segmentT);
+                    y = 0.2f - 0.6f * segmentT;
+                    break;
+                default: // Body right
+                    x = 0.05f * segmentT;
+                    y = 0.2f - 0.6f * (1 - segmentT);
                     break;
             }
 
-            // Add wing flapping animation
+            // Add wing flapping animation with audio reactivity
             if (segment < 4) // Wings only
             {
-                float flap = (float)Math.Sin(_time * 2) * 0.1f;
-                y += flap;
+                float baseFlap = (float)Math.Sin(_time * 3 + segmentT * Math.PI * 2) * 0.08f;
+                float audioFlap = volume * (float)Math.Sin(_time * 6) * 0.05f;
+                float beatFlap = beat ? (float)Math.Sin(_time * 10) * 0.03f : 0;
+
+                y += baseFlap + audioFlap + beatFlap;
+
+                // Add slight wing curvature based on audio
+                if (segment == 0 || segment == 3) // Lower wings
+                    y -= volume * 0.02f;
+                else // Upper wings
+                    y += volume * 0.02f;
             }
 
             // Convert from AVS coordinate system (-1 to 1) to screen coordinates
@@ -95,31 +108,131 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
             points.Add((x, y));
         }
         
-        // Draw the butterfly with rainbow colors
-        canvas.SetLineWidth(1.0f);
-        
-        // Draw each segment with rainbow colors
+        // Draw the butterfly with enhanced visuals
+        canvas.SetLineWidth(2.0f);
+
+        // Draw wing outlines with gradient colors
         for (int i = 0; i < points.Count - 1; i++)
         {
-            // Simple rainbow based on position
-            float hue = (i / (float)points.Count + _time * 0.1f) % 1.0f;
-            uint color = GetRainbowColor(hue);
-            canvas.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, color, 1.0f);
+            int segment = (int)((i / (float)points.Count) * 6);
+
+            // Different colors for different parts
+            uint color;
+            if (segment < 4) // Wings
+            {
+                float hue = ((i / (float)points.Count) * 0.8f + _time * 0.2f) % 1.0f;
+                color = GetRainbowColor(hue);
+                // Make wings brighter and more vibrant
+                color = AdjustBrightness(color, 1.2f);
+            }
+            else // Body
+            {
+                // Body is more subdued - warm brown/tan
+                color = beat ? 0xFFFFAA44 : 0xFFAA7744;
+            }
+
+            canvas.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, color, 2.0f);
         }
 
-        // Close the shape for better continuity
-        if (points.Count > 2)
-        {
-            float hue = ((points.Count - 1) / (float)points.Count + _time * 0.1f) % 1.0f;
-            uint color = GetRainbowColor(hue);
-            canvas.DrawLine(points[^1].x, points[^1].y, points[0].x, points[0].y, color, 1.0f);
-        }
+        // Draw wing fills for more solid appearance
+        DrawWingFills(canvas, points, volume, beat);
         
         // Draw antennae
         // Avoid green; use warm phoenix tones
         uint antennaColor = beat ? 0xFFFFDD00 : 0xFFFF8800;
         canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.4f, _height * 0.2f, antennaColor, 2.0f);
         canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.6f, _height * 0.2f, antennaColor, 2.0f);
+    }
+
+    private void DrawWingFills(ISkiaCanvas canvas, System.Collections.Generic.List<(float x, float y)> points, float volume, bool beat)
+    {
+        // Find wing segments and draw simple fills
+        var leftWingPoints = new System.Collections.Generic.List<(float x, float y)>();
+        var rightWingPoints = new System.Collections.Generic.List<(float x, float y)>();
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            int segment = (int)((i / (float)points.Count) * 6);
+            if (segment == 0 || segment == 1) // Left wing
+                leftWingPoints.Add(points[i]);
+            else if (segment == 2 || segment == 3) // Right wing
+                rightWingPoints.Add(points[i]);
+        }
+
+        // Draw translucent wing fills
+        if (leftWingPoints.Count > 2)
+        {
+            uint fillColor = 0x44FFAAAA; // Light pink with transparency
+            DrawFilledShape(canvas, leftWingPoints, fillColor);
+        }
+
+        if (rightWingPoints.Count > 2)
+        {
+            uint fillColor = 0x44AAAAFF; // Light blue with transparency
+            DrawFilledShape(canvas, rightWingPoints, fillColor);
+        }
+    }
+
+    private void DrawFilledShape(ISkiaCanvas canvas, System.Collections.Generic.List<(float x, float y)> shapePoints, uint color)
+    {
+        if (shapePoints.Count < 3) return;
+
+        // Simple shape fill using horizontal lines
+        // Find min and max Y bounds
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
+
+        foreach (var point in shapePoints)
+        {
+            minY = Math.Min(minY, point.y);
+            maxY = Math.Max(maxY, point.y);
+        }
+
+        // For each horizontal line, find intersections with shape edges
+        for (float y = minY; y <= maxY; y += 1f)
+        {
+            var intersections = new System.Collections.Generic.List<float>();
+
+            // Find intersections with all edges
+            for (int i = 0; i < shapePoints.Count; i++)
+            {
+                var p1 = shapePoints[i];
+                var p2 = shapePoints[(i + 1) % shapePoints.Count];
+
+                if ((p1.y <= y && p2.y > y) || (p2.y <= y && p1.y > y))
+                {
+                    if (p1.y != p2.y)
+                    {
+                        float t = (y - p1.y) / (p2.y - p1.y);
+                        float x = p1.x + t * (p2.x - p1.x);
+                        intersections.Add(x);
+                    }
+                }
+            }
+
+            // Sort intersections and draw lines between pairs
+            intersections.Sort();
+            for (int i = 0; i < intersections.Count - 1; i += 2)
+            {
+                if (i + 1 < intersections.Count)
+                {
+                    canvas.DrawLine(intersections[i], y, intersections[i + 1], y, color, 1f);
+                }
+            }
+        }
+    }
+
+    private uint AdjustBrightness(uint color, float factor)
+    {
+        byte r = (byte)((color >> 16) & 0xFF);
+        byte g = (byte)((color >> 8) & 0xFF);
+        byte b = (byte)(color & 0xFF);
+
+        r = (byte)Math.Min(255, r * factor);
+        g = (byte)Math.Min(255, g * factor);
+        b = (byte)Math.Min(255, b * factor);
+
+        return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 
     private uint GetRainbowColor(float hue)

@@ -189,8 +189,9 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
 
     private void TriggerBirdFlaps(float intensity)
     {
-        foreach (var bird in _birds)
+        for (int i = 0; i < _birds.Count; i++)
         {
+            var bird = _birds[i];
             if (bird.Active && bird.FlapCooldown <= 0)
             {
                 // Flap with audio-reactive force
@@ -199,6 +200,8 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
 
                 // Create flap particles
                 CreateFlapParticles(bird.X, bird.Y, bird.Color, intensity);
+
+                _birds[i] = bird; // Update the bird in the list
             }
         }
     }
