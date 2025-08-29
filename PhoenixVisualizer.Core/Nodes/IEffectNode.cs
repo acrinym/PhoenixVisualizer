@@ -15,18 +15,25 @@ public interface IEffectNode
 public class EffectParam
 {
     public string Label { get; set; } = "";
-    public string Type { get; set; } = "slider"; // slider, checkbox, color
+    public string Type { get; set; } = "slider"; // slider, checkbox, color, dropdown
     public float FloatValue { get; set; }
     public bool BoolValue { get; set; }
+    public string StringValue { get; set; } = "";
     public string ColorValue { get; set; } = "#FFFFFF";
     public float Min { get; set; } = 0;
     public float Max { get; set; } = 1;
+    public List<string> Options { get; set; } = new(); // For dropdown types
 }
 
 public class RenderContext
 {
     public int Width { get; set; }
     public int Height { get; set; }
+    public float Time { get; set; }
+    public bool Beat { get; set; }
+    public float Volume { get; set; }
+    public float[] Waveform { get; set; } = Array.Empty<float>();
+    public float[] Spectrum { get; set; } = Array.Empty<float>();
     // TODO: add SkiaSharp/GL surface handles
 }
 

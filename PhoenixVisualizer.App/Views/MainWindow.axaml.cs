@@ -856,7 +856,7 @@ public partial class MainWindow : Window
 
         private void OnPhxEditorClick(object? sender, RoutedEventArgs e)
         {
-            var phxEditor = new Views.PluginEditorWindow();
+            var phxEditor = new PhxEditorWindow();
             phxEditor.Show();
         }
 

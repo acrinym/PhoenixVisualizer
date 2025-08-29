@@ -5,11 +5,22 @@ namespace PhoenixVisualizer.Views;
 public class EffectItem : INotifyPropertyChanged
 {
     private bool _isSelected;
-    
+
     public string Name { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
-    
+
+    // Add parameterless constructor for inheritance
+    public EffectItem() { }
+
+    // Keep existing constructor for backward compatibility
+    public EffectItem(string name, string category) : this()
+    {
+        Name = name;
+        Category = category;
+        DisplayName = $"{Name} ({Category})";
+    }
+
     public bool IsSelected
     {
         get => _isSelected;
