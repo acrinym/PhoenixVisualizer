@@ -390,7 +390,7 @@ public sealed class Win2K3DText : IVisualizerPlugin
         g = (byte)Math.Min(255, g * factor);
         b = (byte)Math.Min(255, b * factor);
 
-        return (uint)(0xFF000000 | r << 16 | g << 8 | b);
+        return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 
     private uint InterpolateColor(uint color1, uint color2, float t)
@@ -407,6 +407,6 @@ public sealed class Win2K3DText : IVisualizerPlugin
         byte g = (byte)(g1 + (g2 - g1) * t);
         byte b = (byte)(b1 + (b2 - b1) * t);
 
-        return (uint)(0xFF000000 | r << 16 | g << 8 | b);
+        return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 }

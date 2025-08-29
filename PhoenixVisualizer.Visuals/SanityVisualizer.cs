@@ -241,7 +241,7 @@ public sealed class SanityVisualizer : IVisualizerPlugin
         else if (h < 5f / 6f) { r = x; g = 0f; b = c; }
         else { r = c; g = 0f; b = x; }
         byte R = (byte)((r + m) * 255f); byte G = (byte)((g + m) * 255f); byte B = (byte)((b + m) * 255f);
-        return (uint)(0xFF000000 | R << 16 | G << 8 | B);
+        return (uint)(0xFF000000 | ((uint)R << 16) | ((uint)G << 8) | (uint)B);
     }
 
     public void Dispose() { }

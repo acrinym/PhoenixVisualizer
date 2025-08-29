@@ -290,6 +290,6 @@ public sealed class Win953DTwister : IVisualizerPlugin
         g = (byte)Math.Min(255, g * factor);
         b = (byte)Math.Min(255, b * factor);
 
-        return (uint)(0xFF000000 | r << 16 | g << 8 | b);
+        return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 }

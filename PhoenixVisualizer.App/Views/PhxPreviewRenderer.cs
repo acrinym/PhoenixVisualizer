@@ -214,7 +214,7 @@ public class PhxPreviewRenderer
             "Phoenix" => GetPhoenixEffect(effectItem.Name),
             "AVS" => GetAvsEffect(effectItem.Name),
             "Research" => GetResearchEffect(effectItem.Name),
-            _ => null
+            _ => null!
         };
     }
 
@@ -227,7 +227,7 @@ public class PhxPreviewRenderer
             "Sacred Geometry" => new SacredGeometryNode(),
             "Godrays" => new GodraysNode(),
             "Particle Swarm" => new ParticleSwarmNode(),
-            _ => null
+            _ => null!
         };
     }
 
@@ -235,13 +235,13 @@ public class PhxPreviewRenderer
     {
         // TODO: Implement AVS effect conversion
         // For now, return a basic effect
-        return null;
+        return null!;
     }
 
     private IEffectNode GetResearchEffect(string name)
     {
         // TODO: Implement research effects
-        return null;
+        return null!;
     }
 
     private unsafe void RenderEffectToBuffer(IEffectNode effect, Dictionary<string, CoreEffectParam> parameters,
@@ -414,7 +414,7 @@ public class PhxPreviewRenderer
         byte blendedG = (byte)(existingG * (1 - alpha) + newG * alpha);
         byte blendedB = (byte)(existingB * (1 - alpha) + newB * alpha);
 
-        return (uint)((existing & 0xFF000000) | (blendedB << 16) | (blendedG << 8) | blendedR);
+        return (uint)((existing & 0xFF000000) | ((uint)blendedB << 16) | ((uint)blendedG << 8) | (uint)blendedR);
     }
 
     private void RenderDefaultPattern()
@@ -468,7 +468,7 @@ public class PhxPreviewRenderer
         byte green = (byte)((g + m) * 255);
         byte blue = (byte)((b + m) * 255);
 
-        return (uint)(0xFF000000 | (blue << 16) | (green << 8) | red);
+        return (uint)(0xFF000000 | ((uint)blue << 16) | ((uint)green << 8) | (uint)red);
     }
 
     private void UpdateAudioData()
