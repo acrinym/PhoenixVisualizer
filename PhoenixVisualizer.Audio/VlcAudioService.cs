@@ -22,6 +22,11 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
     private readonly float[] _waveformData = new float[2048];
     private readonly object _audioLock = new object();
 
+    // Frequency retuning system
+    private float _fundamentalFrequency = 440f; // Standard concert pitch A4 = 440Hz
+    private IAudioService.FrequencyPreset _currentPreset = IAudioService.FrequencyPreset.Standard440Hz;
+    private readonly float _standardFrequency = 440f; // Reference frequency for calculations
+
     public bool IsPlaying => _isPlaying;
 
     public VlcAudioService()
@@ -198,7 +203,7 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
     public void SetTempo(float tempo)
     {
         if (_isDisposed || _mediaPlayer == null) return;
-        
+
         try
         {
             // VLC doesn't have direct tempo control, but we can approximate with rate
@@ -210,6 +215,63 @@ public class VlcAudioService : IAudioService, IAudioProvider, IDisposable
         catch (Exception ex)
         {
             Debug.WriteLine($"[VlcAudioService] Failed to set tempo: {ex.Message}");
+        }
+    }
+
+    // Frequency retuning implementation
+    public void SetFundamentalFrequency(float frequency)
+    {
+        if (frequency <= 0) return;
+
+        _fundamentalFrequency = frequency;
+        _currentPreset = IAudioService.FrequencyPreset.Custom;
+
+        // Calculate the required rate change to achieve the target frequency
+        float rateChange = frequency / _standardFrequency;
+        ApplyFrequencyShift(rateChange);
+
+        Debug.WriteLine($"[VlcAudioService] Fundamental frequency set to: {frequency:F1}Hz (rate: {rateChange:F3})");
+    }
+
+    public float GetFundamentalFrequency()
+    {
+        return _fundamentalFrequency;
+    }
+
+    public void SetFrequencyPreset(IAudioService.FrequencyPreset preset)
+    {
+        if (preset == IAudioService.FrequencyPreset.Custom) return;
+
+        _currentPreset = preset;
+        _fundamentalFrequency = (float)preset;
+
+        // Calculate the required rate change from standard frequency
+        float rateChange = _fundamentalFrequency / _standardFrequency;
+        ApplyFrequencyShift(rateChange);
+
+        Debug.WriteLine($"[VlcAudioService] Frequency preset set to: {preset} ({_fundamentalFrequency:F1}Hz, rate: {rateChange:F3})");
+    }
+
+    public IAudioService.FrequencyPreset GetCurrentPreset()
+    {
+        return _currentPreset;
+    }
+
+    private void ApplyFrequencyShift(float rateChange)
+    {
+        if (_isDisposed || _mediaPlayer == null) return;
+
+        try
+        {
+            // VLC's SetRate method applies a frequency shift to the entire audio
+            // This changes the fundamental frequency while maintaining relative pitch relationships
+            _mediaPlayer.SetRate(rateChange);
+
+            Debug.WriteLine($"[VlcAudioService] Applied frequency shift rate: {rateChange:F3}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VlcAudioService] Failed to apply frequency shift: {ex.Message}");
         }
     }
 

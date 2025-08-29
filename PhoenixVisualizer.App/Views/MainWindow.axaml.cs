@@ -327,11 +327,13 @@ public partial class MainWindow : Window
         var btnTempoPitch = this.FindControl<Button>("BtnTempoPitch");
         var btnSettings = this.FindControl<Button>("BtnSettings");
         var btnEditor = this.FindControl<Button>("BtnEditor");
+        var btnPhxEditor = this.FindControl<Button>("BtnPhxEditor");
         var btnLoadPreset = this.FindControl<Button>("BtnLoadPreset");
         var btnExecutePreset = this.FindControl<Button>("BtnExecutePreset");
         var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
         var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
         var btnPluginSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
+        var btnWinampPlugins = this.FindControl<Button>("BtnWinampPlugins");
 
 
         if (btnOpen != null) btnOpen.Click += OnOpenClick;
@@ -341,11 +343,13 @@ public partial class MainWindow : Window
         if (btnTempoPitch != null) btnTempoPitch.Click += OnTempoPitchClick;
         if (btnSettings != null) btnSettings.Click += OnSettingsClick;
         if (btnEditor != null) btnEditor.Click += OnAvsEditorClick;
+        if (btnPhxEditor != null) btnPhxEditor.Click += OnPhxEditorClick;
         if (btnLoadPreset != null) btnLoadPreset.Click += OnLoadPreset;
         if (btnExecutePreset != null) btnExecutePreset.Click += OnExecutePreset;
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
         if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
         if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
+        if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
 
     }
 
@@ -839,15 +843,31 @@ public partial class MainWindow : Window
         private void OnAvsEditorClick(object? sender, RoutedEventArgs e)
         {
             var avsEditor = new Views.AvsEditor();
-            
+
             // Subscribe to the AVS content import event
             avsEditor.AvsContentImported += (avsContent) =>
             {
                 // Handle the AVS content in the main window
                 HandleAvsContentFromEditor(avsContent);
             };
-            
+
             avsEditor.Show();
+        }
+
+        private void OnPhxEditorClick(object? sender, RoutedEventArgs e)
+        {
+            var phxEditor = new Views.PluginEditorWindow();
+            phxEditor.Show();
+        }
+
+        private void OnWinampPluginsClick(object? sender, RoutedEventArgs e)
+        {
+            // TODO: Implement Winamp plugins management window
+            System.Diagnostics.Debug.WriteLine("Winamp plugins management clicked - feature not yet implemented");
+            // For now, just show a debug message. In the future, this would open a window to:
+            // • Browse and install Winamp .dll plugins
+            // • Configure plugin settings
+            // • Switch between built-in and Winamp visualizers
         }
 
         private void HandleAvsContentFromEditor(string avsContent)

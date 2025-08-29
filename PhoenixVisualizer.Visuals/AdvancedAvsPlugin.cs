@@ -6,6 +6,7 @@ namespace PhoenixVisualizer.Visuals;
 
 /// <summary>
 /// Advanced AVS plugin that uses the new AVS effects system
+/// Optimized for GPU efficiency with reduced pixel operations
 /// </summary>
 public class AdvancedAvsPlugin : IVisualizerPlugin
 {
@@ -21,11 +22,30 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
     private int _width = 800;
     private int _height = 600;
 
+    // Optimization variables
+    private float _lastFrameTime = 0f;
+    private const float TARGET_FRAME_TIME = 1f / 30f; // 30 FPS limit
+    private int _frameCount = 0;
+    private bool _needsRedraw = true;
+
+    // Mandelbrot optimization
+    private uint[]? _mandelbrotCache;
+    private int _lastZoomIteration = 0;
+    private const int MANDELBROT_GRID_SIZE = 80; // Reduced from pixel-by-pixel
+
+    // Plasma optimization
+    private uint[]? _plasmaCache;
+    private const int PLASMA_GRID_SIZE = 60; // Reduced grid size
+
     public void Initialize(int width, int height)
     {
         _width = width;
         _height = height;
-        
+
+        // Initialize optimization caches
+        _mandelbrotCache = new uint[MANDELBROT_GRID_SIZE * MANDELBROT_GRID_SIZE];
+        _plasmaCache = new uint[PLASMA_GRID_SIZE * PLASMA_GRID_SIZE];
+
         // Initialize starfield
         for (int i = 0; i < 100; i++)
         {
@@ -45,6 +65,17 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
+        // Frame rate limiting
+        _frameCount++;
+        float currentTime = _time;
+        if (currentTime - _lastFrameTime < TARGET_FRAME_TIME)
+        {
+            // Skip frame to maintain target FPS
+            return;
+        }
+        _lastFrameTime = currentTime;
+        _needsRedraw = true;
+
         // Update audio context
         _scopeContext.Time = _time;
         _scopeContext.AudioData = features.Waveform ?? Array.Empty<float>();
@@ -60,7 +91,11 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
         {
             _effectIndex = (_effectIndex + 1) % 7;
             _effectTimer = 0f;
+            _needsRedraw = true; // Force redraw on effect change
         }
+
+        // Only redraw if needed
+        if (!_needsRedraw) return;
 
         // Clear canvas
         canvas.Clear(0xFF000000); // Black
@@ -69,7 +104,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
         switch (_effectIndex)
         {
             case 0:
-                RenderPlasma(canvas);
+                RenderPlasmaOptimized(canvas);
                 break;
             case 1:
                 RenderSuperScope(canvas);
@@ -78,7 +113,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
                 RenderStarfield(canvas);
                 break;
             case 3:
-                RenderMandelbrot(canvas);
+                RenderMandelbrotOptimized(canvas);
                 break;
             case 4:
                 RenderMatrixRain(canvas);
@@ -90,31 +125,54 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
                 RenderTunnel(canvas);
                 break;
         }
+
+        _needsRedraw = false;
+    }
+
+    private void RenderPlasmaOptimized(ISkiaCanvas canvas)
+    {
+        // Optimized plasma effect using cached grid instead of pixel-by-pixel
+        if (_plasmaCache == null) return;
+
+        float dx = (float)canvas.Width / (PLASMA_GRID_SIZE - 1);
+        float dy = (float)canvas.Height / (PLASMA_GRID_SIZE - 1);
+
+        // Calculate plasma values on reduced grid
+        for (int gy = 0; gy < PLASMA_GRID_SIZE; gy++)
+        {
+            for (int gx = 0; gx < PLASMA_GRID_SIZE; gx++)
+            {
+                float nx = (float)gx / (PLASMA_GRID_SIZE - 1);
+                float ny = (float)gy / (PLASMA_GRID_SIZE - 1);
+
+                float plasma = MathF.Sin(nx * 10f + _time) +
+                              MathF.Sin(ny * 10f + _time * 1.3f) +
+                              MathF.Sin((nx + ny) * 8f + _time * 0.7f) +
+                              MathF.Sin(MathF.Sqrt(nx * nx + ny * ny) * 12f + _time * 2f);
+
+                plasma = (plasma + 4f) / 8f; // Normalize to 0-1
+                float hue = plasma % 1f;
+                _plasmaCache[gy * PLASMA_GRID_SIZE + gx] = HsvToRgb(hue, 1f, 1f);
+            }
+        }
+
+        // Render as larger blocks for better performance
+        for (int gy = 0; gy < PLASMA_GRID_SIZE - 1; gy++)
+        {
+            for (int gx = 0; gx < PLASMA_GRID_SIZE - 1; gx++)
+            {
+                float x = gx * dx;
+                float y = gy * dy;
+                uint color = _plasmaCache[gy * PLASMA_GRID_SIZE + gx];
+                canvas.FillRect(x, y, dx + 1, dy + 1, color);
+            }
+        }
     }
 
     private void RenderPlasma(ISkiaCanvas canvas)
     {
-        // Simple plasma effect using canvas drawing
-        for (int y = 0; y < canvas.Height; y += 4)
-        {
-            for (int x = 0; x < canvas.Width; x += 4)
-            {
-                var nx = (float)x / canvas.Width;
-                var ny = (float)y / canvas.Height;
-                
-                var plasma = MathF.Sin(nx * 10f + _time) +
-                            MathF.Sin(ny * 10f + _time * 1.3f) +
-                            MathF.Sin((nx + ny) * 8f + _time * 0.7f) +
-                            MathF.Sin(MathF.Sqrt(nx * nx + ny * ny) * 12f + _time * 2f);
-                
-                plasma = (plasma + 4f) / 8f; // Normalize to 0-1
-                
-                var hue = plasma % 1f;
-                var color = HsvToRgb(hue, 1f, 1f);
-                
-                canvas.FillRect(x, y, 4, 4, color);
-            }
-        }
+        // Legacy method - kept for compatibility but not used
+        RenderPlasmaOptimized(canvas);
     }
 
     private void RenderSuperScope(ISkiaCanvas canvas)
@@ -161,40 +219,84 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
         }
     }
 
-    private void RenderMandelbrot(ISkiaCanvas canvas)
+    private void RenderMandelbrotOptimized(ISkiaCanvas canvas)
     {
-        var zoom = 1f + _time * 0.1f + _scopeContext.BeatIntensity * 2f;
+        if (_mandelbrotCache == null) return;
+
+        var zoom = 1f + (_time * 0.1f + _scopeContext.BeatIntensity * 2f);
         var centerX = -0.5f;
         var centerY = 0f;
-        var maxIterations = 60;
-        
-        for (int py = 0; py < canvas.Height; py += 2)
+        var maxIterations = 30; // Reduced for performance
+
+        // Use cached values when possible
+        int currentIteration = (int)(_time * 10f);
+        bool useCache = currentIteration == _lastZoomIteration && currentIteration % 5 != 0;
+
+        if (!useCache)
         {
-            for (int px = 0; px < canvas.Width; px += 2)
+            // Calculate Mandelbrot on reduced grid
+            float dx = (float)canvas.Width / (MANDELBROT_GRID_SIZE - 1);
+            float dy = (float)canvas.Height / (MANDELBROT_GRID_SIZE - 1);
+
+            for (int gy = 0; gy < MANDELBROT_GRID_SIZE; gy++)
             {
-                var x0 = (px - canvas.Width * 0.5f) / (canvas.Width * 0.25f * zoom) + centerX;
-                var y0 = (py - canvas.Height * 0.5f) / (canvas.Height * 0.25f * zoom) + centerY;
-                
-                var x = 0f;
-                var y = 0f;
-                var iteration = 0;
-                
-                while (x * x + y * y <= 4f && iteration < maxIterations)
+                for (int gx = 0; gx < MANDELBROT_GRID_SIZE; gx++)
                 {
-                    var xtemp = x * x - y * y + x0;
-                    y = 2f * x * y + y0;
-                    x = xtemp;
-                    iteration++;
+                    int px = (int)(gx * dx);
+                    int py = (int)(gy * dy);
+
+                    var x0 = (px - canvas.Width * 0.5f) / (canvas.Width * 0.25f * zoom) + centerX;
+                    var y0 = (py - canvas.Height * 0.5f) / (canvas.Height * 0.25f * zoom) + centerY;
+
+                    var x = 0f;
+                    var y = 0f;
+                    var iteration = 0;
+
+                    while (x * x + y * y <= 4f && iteration < maxIterations)
+                    {
+                        var xtemp = x * x - y * y + x0;
+                        y = 2f * x * y + y0;
+                        x = xtemp;
+                        iteration++;
+                    }
+
+                    if (iteration < maxIterations)
+                    {
+                        var hue = (float)iteration / maxIterations;
+                        _mandelbrotCache[gy * MANDELBROT_GRID_SIZE + gx] = HsvToRgb(hue, 1f, 1f);
+                    }
+                    else
+                    {
+                        _mandelbrotCache[gy * MANDELBROT_GRID_SIZE + gx] = 0xFF000000; // Black for points in set
+                    }
                 }
-                
-                if (iteration < maxIterations)
+            }
+            _lastZoomIteration = currentIteration;
+        }
+
+        // Render cached values as larger blocks
+        float renderDx = (float)canvas.Width / (MANDELBROT_GRID_SIZE - 1);
+        float renderDy = (float)canvas.Height / (MANDELBROT_GRID_SIZE - 1);
+
+        for (int gy = 0; gy < MANDELBROT_GRID_SIZE - 1; gy++)
+        {
+            for (int gx = 0; gx < MANDELBROT_GRID_SIZE - 1; gx++)
+            {
+                uint color = _mandelbrotCache[gy * MANDELBROT_GRID_SIZE + gx];
+                if (color != 0xFF000000) // Only render colorful points
                 {
-                    var hue = (float)iteration / maxIterations;
-                    var color = HsvToRgb(hue, 1f, 1f);
-                    canvas.FillRect(px, py, 2, 2, color);
+                    float x = gx * renderDx;
+                    float y = gy * renderDy;
+                    canvas.FillRect(x, y, renderDx + 1, renderDy + 1, color);
                 }
             }
         }
+    }
+
+    private void RenderMandelbrot(ISkiaCanvas canvas)
+    {
+        // Legacy method - kept for compatibility but not used
+        RenderMandelbrotOptimized(canvas);
     }
 
     private void RenderMatrixRain(ISkiaCanvas canvas)

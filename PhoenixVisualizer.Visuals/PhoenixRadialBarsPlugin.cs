@@ -55,47 +55,58 @@ public sealed class PhoenixRadialBarsPlugin : IVisualizerPlugin
         var glowColor = (uint)(((byte)(features.Bass * 100)) << 24 | 0xFFFF4400);
         canvas.FillCircle(centerX, centerY, glowRadius, glowColor);
 
-        // Draw radial bars
-        for (int i = 0; i < _numBars; i++)
+        // Pre-calculate FFT data for efficiency
+        if (features.Fft?.Length > 0)
         {
-            var angle = (i / (float)_numBars) * Math.PI * 2f + _rotation;
-            
-            // Get FFT data for this bar (map circular to linear)
-            if (features.Fft?.Length > 0)
+            // Draw radial bars (optimized)
+            for (int i = 0; i < _numBars; i++)
             {
-                var fftIndex = (int)((i / (float)_numBars) * features.Fft.Length);
+                // Pre-calculate angle and trig functions
+                var angle = (i / (float)_numBars) * Math.PI * 2f + _rotation;
+                var cosAngle = (float)Math.Cos(angle);
+                var sinAngle = (float)Math.Sin(angle);
+
+                // Optimized FFT index calculation with better frequency mapping
+                var fftIndex = (int)((i / (float)_numBars) * features.Fft.Length * 0.7f); // Focus on lower frequencies
                 if (fftIndex >= features.Fft.Length) fftIndex = features.Fft.Length - 1;
-                
-                var magnitude = MathF.Min(1f, features.Fft[fftIndex] * 3f); // Boost sensitivity
-                
-                // Bass boost for lower frequencies
-                var bassBoost = i < _numBars / 4 ? 1.5f : 1.0f;
+
+                var rawMagnitude = MathF.Abs(features.Fft[fftIndex]);
+
+                // Improved magnitude calculation with better scaling
+                var magnitude = MathF.Min(1f, rawMagnitude * 4f); // Boost sensitivity
+
+                // Frequency-dependent boost (bass gets more emphasis)
+                var frequencyRatio = (float)i / _numBars;
+                var bassBoost = 1f + (1f - frequencyRatio) * 0.5f; // More boost for lower frequencies
                 magnitude *= bassBoost;
-                
+
+                // Smooth magnitude with simple temporal smoothing
+                magnitude = MathF.Pow(magnitude, 0.8f); // Gamma correction for better visual response
+
                 // Calculate bar length and position
                 var barLength = magnitude * radius * _maxRadius;
                 var startRadius = 30f; // Start from inner glow
-                
-                var startX = centerX + (float)Math.Cos(angle) * startRadius;
-                var startY = centerY + (float)Math.Sin(angle) * startRadius;
-                var endX = centerX + (float)Math.Cos(angle) * (startRadius + barLength);
-                var endY = centerY + (float)Math.Sin(angle) * (startRadius + barLength);
+
+                // Use pre-calculated trig functions
+                var startX = centerX + cosAngle * startRadius;
+                var startY = centerY + sinAngle * startRadius;
+                var endX = centerX + cosAngle * (startRadius + barLength);
+                var endY = centerY + sinAngle * (startRadius + barLength);
 
                 // Get color based on frequency and intensity
                 var color = GetPhoenixColor(magnitude, i, _numBars);
-                
-                // Add alpha based on magnitude
-                var alpha = (byte)(magnitude * 255);
+
+                // Add alpha based on magnitude with better scaling
+                var alpha = (byte)(magnitude * 220 + 35); // Ensure minimum visibility
                 color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
 
                 // Draw the bar with thickness
-                canvas.SetLineWidth(_barWidth);
                 canvas.DrawLine(startX, startY, endX, endY, color, _barWidth);
 
-                // Add sparkle effect on strong hits
-                if (magnitude > 0.8f)
+                // Add sparkle effect on strong hits (optimized)
+                if (magnitude > 0.6f)
                 {
-                    var sparkleRadius = 3f + magnitude * 5f;
+                    var sparkleRadius = 2f + magnitude * 4f;
                     var sparkleColor = (color & 0x00FFFFFF) | 0xFF000000; // Full alpha
                     canvas.FillCircle(endX, endY, sparkleRadius, sparkleColor);
                 }

@@ -171,6 +171,40 @@
                                 <ComboBoxItem Content="2048 samples"/>
                             </ComboBox>
                         </Grid>
+
+                        <!-- Frequency Retuning Section -->
+                        <Border BorderBrush="LightBlue" BorderThickness="1" Padding="10" CornerRadius="3" Margin="0,10,0,0">
+                            <StackPanel>
+                                <TextBlock Text="🎵 Frequency Retuning" FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="Adjust the fundamental frequency of audio playback:" FontSize="12" Foreground="Gray" Margin="0,0,0,10"/>
+
+                                <!-- Preset Buttons -->
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+                                    <Button x:Name="Btn432Hz" Content="432Hz 🎶" Background="LightGreen" Foreground="DarkGreen" Padding="12,6"/>
+                                    <Button x:Name="Btn440Hz" Content="440Hz 🎵" Background="LightBlue" Foreground="DarkBlue" Padding="12,6"/>
+                                    <Button x:Name="Btn528Hz" Content="528Hz 💚" Background="LightCoral" Foreground="DarkRed" Padding="12,6"/>
+                                </StackPanel>
+
+                                <!-- Custom Frequency Input -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+                                    <TextBlock Grid.Column="0" Text="Custom (Hz):" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBox x:Name="FrequencyTextBox" Grid.Column="1" Text="440" Watermark="Enter frequency in Hz"/>
+                                    <Button x:Name="BtnApplyFrequency" Grid.Column="2" Content="Apply" Margin="8,0,0,0" Padding="8,4"/>
+                                </Grid>
+
+                                <!-- Current Frequency Display -->
+                                <Border BorderBrush="LightGray" BorderThickness="1" Padding="8" CornerRadius="2">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Grid.Column="0" Text="Current:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock x:Name="CurrentFrequencyText" Grid.Column="1" Text="440.0 Hz (Standard 440Hz)" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Frequency Info -->
+                                <TextBlock Text="💡 432Hz: 'Miracle frequency' - Natural resonance&#x0a;💡 528Hz: 'Love frequency' - DNA repair&#x0a;💡 440Hz: Standard concert pitch"
+                                           FontSize="11" Foreground="Gray" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 

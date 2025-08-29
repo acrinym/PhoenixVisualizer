@@ -53,15 +53,30 @@ public sealed class BarsVisualizer : IVisualizerPlugin
 
         for (int i = 0; i < n; i++)
         {
-            // log-ish scale + clamp
-            float v = f.Fft[i];
-            float mag = MathF.Min(1f, (float)Math.Log(1 + 8 * Math.Max(0, v)));
-            float h = mag * (_h - 10);
+            // Proper FFT magnitude calculation (handle negative values correctly)
+            float v = MathF.Abs(f.Fft[i]);
 
+            // Improved logarithmic scaling with better sensitivity
+            float mag = MathF.Min(1f, MathF.Log(1 + 12 * v) / MathF.Log(13));
+
+            // Scale height with proper screen coordinate system
+            float h = mag * (_h * 0.8f); // Use 80% of screen height
+
+            // Calculate bar position with proper centering
             float x = i * barW;
-            seg[0] = (x + barW * 0.5f, _h - 5);
-            seg[1] = (x + barW * 0.5f, _h - 5 - h);
-            canvas.DrawLines(seg, Math.Max(1f, barW * 0.6f), 0xFF40C4FF);
+            float barCenterX = x + barW * 0.5f;
+            float barBottomY = _h * 0.9f; // Leave 10% margin at bottom
+            float barTopY = barBottomY - h;
+
+            // Ensure bars don't go off-screen
+            barTopY = MathF.Max(0, barTopY);
+
+            seg[0] = (barCenterX, barBottomY);
+            seg[1] = (barCenterX, barTopY);
+
+            // Dynamic bar thickness based on magnitude
+            float thickness = MathF.Max(1f, barW * (0.4f + mag * 0.4f));
+            canvas.DrawLines(seg, thickness, 0xFF40C4FF);
         }
     }
 

@@ -68,47 +68,50 @@ public sealed class PhoenixKaleidoscopePlugin : IVisualizerPlugin
             canvas.DrawLine(centerX, centerY, endX, endY, boundaryColor, 1f);
         }
 
-        // Draw particles in each segment
+        // Draw particles in each segment (optimized)
         for (int i = 0; i < _numParticles; i++)
         {
             var t = i / (float)_numParticles;
-            
-            // Create base particle position
+
+            // Pre-calculate base position for efficiency
             var angle = t * Math.PI * 4f + _time * 0.5f;
-            var radius = t * maxRadius * 0.8f;
-            
-            // Add some spiral motion
-            var spiral = (float)Math.Sin(t * 10f + _time * 2f) * 0.1f;
-            radius += spiral * maxRadius * 0.2f;
-            
-            var baseX = centerX + (float)Math.Cos(angle) * radius;
-            var baseY = centerY + (float)Math.Sin(angle) * radius;
-            
+            var cosAngle = (float)Math.Cos(angle);
+            var sinAngle = (float)Math.Sin(angle);
+
+            var baseRadius = t * maxRadius * 0.8f;
+            var spiralOffset = (float)Math.Sin(t * 10f + _time * 2f) * maxRadius * 0.02f;
+            var finalRadius = baseRadius + spiralOffset;
+
+            var baseX = centerX + cosAngle * finalRadius;
+            var baseY = centerY + sinAngle * finalRadius;
+
+            // Pre-calculate relative position for rotation
+            var relX = baseX - centerX;
+            var relY = baseY - centerY;
+
+            // Get color once per particle (not per segment)
+            var color = GetKaleidoscopeColor(t, finalRadius, maxRadius, midEnergy, trebleEnergy);
+            var alpha = (byte)((1f - t) * 255);
+            color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
+            var particleSize = 2f + (1f - t) * 4f;
+
             // Mirror the particle across all segments
             for (int segment = 0; segment < _numSegments; segment++)
             {
                 var segmentAngle = (segment / (float)_numSegments) * Math.PI * 2f + _rotation;
-                
-                // Rotate particle to segment
-                var dx = baseX - centerX;
-                var dy = baseY - centerY;
-                
-                var cos = (float)Math.Cos(segmentAngle);
-                var sin = (float)Math.Sin(segmentAngle);
-                
-                var rotatedX = centerX + dx * cos - dy * sin;
-                var rotatedY = centerY + dx * sin + dy * cos;
-                
-                // Get color based on position and audio
-                var color = GetKaleidoscopeColor(t, radius, maxRadius, midEnergy, trebleEnergy);
-                
-                // Add alpha based on distance from center
-                var alpha = (byte)((1f - t) * 255);
-                color = (color & 0x00FFFFFF) | ((uint)alpha << 24);
-                
-                // Draw particle
-                var particleSize = 2f + (1f - t) * 4f;
-                canvas.FillCircle(rotatedX, rotatedY, particleSize, color);
+                var cosSeg = (float)Math.Cos(segmentAngle);
+                var sinSeg = (float)Math.Sin(segmentAngle);
+
+                // Optimized rotation matrix application
+                var rotatedX = centerX + relX * cosSeg - relY * sinSeg;
+                var rotatedY = centerY + relX * sinSeg + relY * cosSeg;
+
+                // Only draw if within reasonable bounds
+                if (rotatedX >= -maxRadius && rotatedX <= _w + maxRadius &&
+                    rotatedY >= -maxRadius && rotatedY <= _h + maxRadius)
+                {
+                    canvas.FillCircle(rotatedX, rotatedY, particleSize, color);
+                }
             }
         }
 

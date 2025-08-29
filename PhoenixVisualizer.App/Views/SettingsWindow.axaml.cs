@@ -17,6 +17,10 @@ public partial class SettingsWindow : Window
     public bool   StartFullscreen    { get; private set; } = false;
     public bool   AutoHideUI         { get; private set; } = true;
 
+    // Frequency retuning settings
+    public float  FundamentalFrequency { get; private set; } = 440f;
+    public string FrequencyPreset       { get; private set; } = "Standard440Hz";
+
     // Visualizer settings 📊
     private readonly VisualizerSettings _vz = VisualizerSettings.Load();
 
@@ -28,6 +32,14 @@ public partial class SettingsWindow : Window
     private CheckBox?    VsyncCheckControl      => this.FindControl<CheckBox>("VsyncCheck");
     private CheckBox?    FullscreenCheckControl => this.FindControl<CheckBox>("FullscreenCheck");
     private CheckBox?    AutoHideUICheckControl => this.FindControl<CheckBox>("AutoHideUICheck");
+
+    // Frequency retuning controls
+    private Button?      Btn432HzControl        => this.FindControl<Button>("Btn432Hz");
+    private Button?      Btn440HzControl        => this.FindControl<Button>("Btn440Hz");
+    private Button?      Btn528HzControl        => this.FindControl<Button>("Btn528Hz");
+    private TextBox?     FrequencyTextBoxControl => this.FindControl<TextBox>("FrequencyTextBox");
+    private Button?      BtnApplyFrequencyControl => this.FindControl<Button>("BtnApplyFrequency");
+    private TextBlock?   CurrentFrequencyTextControl => this.FindControl<TextBlock>("CurrentFrequencyText");
 
     // Plugin Manager controls
     private ListBox?     PluginListBoxControl       => this.FindControl<ListBox>("PluginListBox");
@@ -73,6 +85,12 @@ public partial class SettingsWindow : Window
         var btnCancel = this.FindControl<Button>("BtnCancel");
         var btnApply = this.FindControl<Button>("BtnApply");
 
+        // Frequency retuning buttons
+        var btn432Hz = this.FindControl<Button>("Btn432Hz");
+        var btn440Hz = this.FindControl<Button>("Btn440Hz");
+        var btn528Hz = this.FindControl<Button>("Btn528Hz");
+        var btnApplyFrequency = this.FindControl<Button>("BtnApplyFrequency");
+
         if (btnBrowsePlugin != null) btnBrowsePlugin.Click += BrowseForPlugin;
         if (btnInstallPlugin != null) btnInstallPlugin.Click += InstallPlugin;
         if (btnInstallationWizard != null) btnInstallationWizard.Click += OnInstallationWizardClick;
@@ -84,6 +102,12 @@ public partial class SettingsWindow : Window
         if (btnPerformanceMonitor != null) btnPerformanceMonitor.Click += OnPerformanceMonitorClick;
         if (btnCancel != null) btnCancel.Click += OnCancelClick;
         if (btnApply != null) btnApply.Click += OnApplyClick;
+
+        // Frequency retuning event handlers
+        if (btn432Hz != null) btn432Hz.Click += On432HzClick;
+        if (btn440Hz != null) btn440Hz.Click += On440HzClick;
+        if (btn528Hz != null) btn528Hz.Click += On528HzClick;
+        if (btnApplyFrequency != null) btnApplyFrequency.Click += OnApplyFrequencyClick;
     }
 
     private void InitializeComponent()
@@ -890,6 +914,95 @@ public partial class SettingsWindow : Window
             // Fallback to console output - status message not displayed
         }
     }
+
+    #region Frequency Retuning Event Handlers
+
+    private void On432HzClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SetFrequency(432f, "Healing432Hz");
+    }
+
+    private void On440HzClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SetFrequency(440f, "Standard440Hz");
+    }
+
+    private void On528HzClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SetFrequency(528f, "Love528Hz");
+    }
+
+    private void OnApplyFrequencyClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (FrequencyTextBoxControl?.Text != null &&
+            float.TryParse(FrequencyTextBoxControl.Text, out float frequency))
+        {
+            if (frequency >= 200f && frequency <= 1000f) // Reasonable frequency range
+            {
+                SetFrequency(frequency, "Custom");
+            }
+            else
+            {
+                ShowStatusMessage($"Frequency {frequency:F1}Hz is outside the valid range (200-1000Hz)");
+            }
+        }
+        else
+        {
+            ShowStatusMessage("Please enter a valid frequency value");
+        }
+    }
+
+    private void SetFrequency(float frequency, string presetName)
+    {
+        FundamentalFrequency = frequency;
+        FrequencyPreset = presetName;
+
+        // Update the current frequency display
+        UpdateCurrentFrequencyDisplay();
+
+        // Apply the frequency change to the audio service
+        ApplyFrequencyToAudioService(frequency, presetName);
+
+        ShowStatusMessage($"Frequency set to {frequency:F1}Hz ({presetName})");
+    }
+
+    private void UpdateCurrentFrequencyDisplay()
+    {
+        if (CurrentFrequencyTextControl != null)
+        {
+            string displayText = $"{FundamentalFrequency:F1} Hz";
+            string presetDescription = FrequencyPreset switch
+            {
+                "Healing432Hz" => " (432Hz - Miracle Frequency)",
+                "Love528Hz" => " (528Hz - Love Frequency)",
+                "Standard440Hz" => " (440Hz - Standard Pitch)",
+                "Custom" => " (Custom)",
+                _ => ""
+            };
+            CurrentFrequencyTextControl.Text = displayText + presetDescription;
+        }
+    }
+
+    private void ApplyFrequencyToAudioService(float frequency, string presetName)
+    {
+        // TODO: Get access to the audio service and apply the frequency change
+        // This would typically involve:
+        // 1. Getting the main audio service from the application
+        // 2. Calling SetFundamentalFrequency or SetFrequencyPreset
+        // 3. The audio service would then apply the frequency shift using VLC's rate control
+
+        // For now, we'll just log the change
+        System.Diagnostics.Debug.WriteLine($"[SettingsWindow] Frequency change requested: {frequency:F1}Hz ({presetName})");
+
+        // TODO: Implement actual audio service integration
+        // var audioService = GetAudioService();
+        // if (presetName == "Custom")
+        //     audioService.SetFundamentalFrequency(frequency);
+        // else
+        //     audioService.SetFrequencyPreset(Enum.Parse<IAudioService.FrequencyPreset>(presetName));
+    }
+
+    #endregion
 
     #endregion
 }

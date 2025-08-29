@@ -48,12 +48,12 @@ public sealed class PongSuperscope : IVisualizerPlugin
         // Update ball physics
         _ballX += _ballVX;
         _ballY += _ballVY;
-        
-        // Ball collision with walls
+
+        // Ball collision with walls (using proper AVS coordinate system -1 to 1)
         if (_ballX > 0.9f) _ballVX = -Math.Abs(_ballVX);
         if (_ballX < -0.9f) _ballVX = Math.Abs(_ballVX);
-        if (_ballY > 0.8f) _ballVY = -Math.Abs(_ballVY);
-        if (_ballY < -0.8f) _ballVY = Math.Abs(_ballVY);
+        if (_ballY > 0.9f) _ballVY = -Math.Abs(_ballVY);
+        if (_ballY < -0.9f) _ballVY = Math.Abs(_ballVY);
         
         // Update paddle positions (follow ball with some lag)
         _paddleLeftY = _paddleLeftY * 0.8f + _ballY * 0.2f;
@@ -75,18 +75,30 @@ public sealed class PongSuperscope : IVisualizerPlugin
             float t = i / 40.0f;
             float x = -0.9f;
             float y = _paddleLeftY + 0.6f * (t - 0.5f);
-            points.Add((x, y));
+            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
+            float screenX = (x + 1.0f) * _width * 0.5f;
+            float screenY = (y + 1.0f) * _height * 0.5f;
+            // Clamp to screen bounds
+            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
+            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
+            points.Add((screenX, screenY));
         }
-        
+
         // Draw right paddle
         for (int i = 0; i < 40; i++)
         {
             float t = i / 40.0f;
             float x = 0.9f;
             float y = _paddleRightY + 0.6f * (t - 0.5f);
-            points.Add((x, y));
+            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
+            float screenX = (x + 1.0f) * _width * 0.5f;
+            float screenY = (y + 1.0f) * _height * 0.5f;
+            // Clamp to screen bounds
+            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
+            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
+            points.Add((screenX, screenY));
         }
-        
+
         // Draw ball
         for (int i = 0; i < 20; i++)
         {
@@ -94,34 +106,31 @@ public sealed class PongSuperscope : IVisualizerPlugin
             float angle = t * 6.283f;
             float x = _ballX + 0.05f * (float)Math.Cos(angle);
             float y = _ballY + 0.05f * (float)Math.Sin(angle);
-            points.Add((x, y));
-        }
-        
-        // Scale and center all points
-        var scaledPoints = new System.Collections.Generic.List<(float x, float y)>();
-        foreach (var point in points)
-        {
-            float x = point.x * _width * 0.4f + _width * 0.5f;
-            float y = point.y * _height * 0.4f + _height * 0.5f;
-            scaledPoints.Add((x, y));
+            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
+            float screenX = (x + 1.0f) * _width * 0.5f;
+            float screenY = (y + 1.0f) * _height * 0.5f;
+            // Clamp to screen bounds
+            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
+            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
+            points.Add((screenX, screenY));
         }
         
         // Draw the pong game elements
         uint color = beat ? 0xFFFF00FF : 0xFF00FFFF; // Magenta on beat, cyan otherwise
         canvas.SetLineWidth(2.0f);
-        
+
         // Draw paddles
         for (int i = 0; i < 39; i++)
         {
-            canvas.DrawLine(scaledPoints[i].x, scaledPoints[i].y, 
-                           scaledPoints[i + 1].x, scaledPoints[i + 1].y, color, 2.0f);
+            canvas.DrawLine(points[i].x, points[i].y,
+                           points[i + 1].x, points[i + 1].y, color, 2.0f);
         }
-        
+
         // Draw ball
-        for (int i = 40; i < 59; i++)
+        for (int i = 40; i < 99; i++)
         {
-            canvas.DrawLine(scaledPoints[i].x, scaledPoints[i].y, 
-                           scaledPoints[(i + 1) % 60].x, scaledPoints[(i + 1) % 60].y, color, 2.0f);
+            canvas.DrawLine(points[i].x, points[i].y,
+                           points[(i + 1) % 100].x, points[(i + 1) % 100].y, color, 2.0f);
         }
         
         // Draw score or time

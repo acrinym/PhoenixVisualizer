@@ -46,23 +46,63 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
         for (int i = 0; i < _numPoints; i++)
         {
             float t = i / (float)_numPoints;
-            
-            // Cat face formula from AVS: r=i*$PI*2; d=0.45; x=cos(r)*d; y=sin(r)*d; y=y+(i>0.75?0.2*sin(t*4):0);
-            float r = t * (float)Math.PI * 2;
-            float d = 0.45f;
-            float x = (float)Math.Cos(r) * d;
-            float y = (float)Math.Sin(r) * d;
-            
-            // Add ear movement for the top part
-            if (t > 0.75f)
+            float angle = t * (float)Math.PI * 2;
+
+            // Create proper cat face outline with ears
+            float x, y;
+
+            if (t < 0.25f) // Left side of face (more circular)
             {
-                y += 0.2f * (float)Math.Sin(_time * 4);
+                float radius = 0.45f;
+                x = (float)Math.Cos(angle) * radius;
+                y = (float)Math.Sin(angle) * radius;
             }
-            
-            // Scale and center
-            x = x * _width * 0.4f + _width * 0.5f;
-            y = y * _height * 0.4f + _height * 0.5f;
-            
+            else if (t < 0.75f) // Bottom of face (flatter)
+            {
+                float radius = 0.45f + 0.1f * (float)Math.Sin(angle); // Slight bulge
+                x = (float)Math.Cos(angle) * radius;
+                y = (float)Math.Sin(angle) * radius;
+            }
+            else // Right side of face (more circular)
+            {
+                float radius = 0.45f;
+                x = (float)Math.Cos(angle) * radius;
+                y = (float)Math.Sin(angle) * radius;
+            }
+
+            // Add ear shapes at the top
+            if (t > 0.8f || t < 0.2f)
+            {
+                // Position ears slightly above the head
+                float earOffset = 0.08f;
+                if (t > 0.8f) // Right ear
+                {
+                    x += earOffset;
+                    y -= earOffset;
+                }
+                else // Left ear
+                {
+                    x -= earOffset;
+                    y -= earOffset;
+                }
+
+                // Add ear animation
+                y += 0.05f * (float)Math.Sin(_time * 3 + angle * 2);
+            }
+
+            // Add subtle breathing animation to the whole face
+            float breathingScale = 1f + 0.02f * (float)Math.Sin(_time * 2);
+            x *= breathingScale;
+            y *= breathingScale;
+
+            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
+            x = (x + 1.0f) * _width * 0.5f;
+            y = (y + 1.0f) * _height * 0.5f;
+
+            // Clamp to screen bounds to prevent drawing outside
+            x = Math.Max(0, Math.Min(_width - 1, x));
+            y = Math.Max(0, Math.Min(_height - 1, y));
+
             points.Add((x, y));
         }
         
