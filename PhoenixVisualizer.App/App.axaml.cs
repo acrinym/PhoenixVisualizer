@@ -101,6 +101,9 @@ public partial class App : Application
             // --- Ancient Architecture ---
             PluginRegistry.Register("pyramid_crumble", "🏜️ Pyramid Crumble", () => new PyramidCrumbleVisualizer(), "3D pyramid that crumbles to bass hits with physics-based falling blocks", "1.0", "Phoenix Team");
 
+            // New visualizers
+            PluginRegistry.Register("flappy_bird", "🐤 Flappy Beats", () => new FlappyBirdVisualizer(), "Audio-reactive Flappy Bird with multiple birds, collision detection, and particle effects", "1.0", "Phoenix Team");
+
             // ============================================================================
             // 🐱 MEME & CULTURE VISUALIZERS
             // ============================================================================
