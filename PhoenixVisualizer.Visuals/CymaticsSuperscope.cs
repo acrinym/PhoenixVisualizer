@@ -16,6 +16,13 @@ public sealed class CymaticsSuperscope : IVisualizerPlugin
     private int _numPoints = 360;
     private float _frequency = 174.0f; // Start with 174Hz (Solfeggio frequency)
 
+    // User-adjustable parameters
+    private float _amplitude = 1.0f;
+    private float _waveSpeed = 1.0f;
+    private int _waveType = 0; // 0=sine, 1=square, 2=triangle, 3=sawtooth
+    private float _colorShift = 0.0f;
+    private bool _autoFrequency = true;
+
     public void Initialize(int width, int height)
     {
         _width = width;
@@ -41,13 +48,17 @@ public sealed class CymaticsSuperscope : IVisualizerPlugin
         float volume = features.Volume;
         bool beat = features.Beat;
         
-        // Handle beat events - cycle through different frequencies
-        if (beat)
+        // Handle beat events and audio-reactive frequency changes
+        if (_autoFrequency && beat)
         {
             // Cycle through Solfeggio frequencies
             float[] frequencies = { 174.0f, 285.0f, 396.0f, 417.0f, 528.0f, 639.0f, 741.0f, 852.0f, 963.0f };
             _frequency = frequencies[Random.Shared.Next(frequencies.Length)];
         }
+
+        // Audio-reactive parameter adjustments
+        _amplitude = 0.5f + volume * 1.5f;
+        _colorShift += (features.Bass - features.Treble) * 0.01f;
         
         // Create points array for the cymatics pattern
         var points = new System.Collections.Generic.List<(float x, float y)>();
@@ -56,9 +67,13 @@ public sealed class CymaticsSuperscope : IVisualizerPlugin
         {
             float t = i / (float)_numPoints;
             
-            // Cymatics formula from AVS: r=i*$PI*2; d=0.35+0.05*sin(freq*t+r*freq); x=cos(r)*d; y=sin(r)*d
+            // Enhanced cymatics with different wave types
             float r = t * (float)Math.PI * 2;
-            float d = 0.35f + 0.05f * (float)Math.Sin(_frequency * _time + r * _frequency);
+
+            // Generate wave based on selected type
+            float waveValue = GenerateWave(_frequency * _time * _waveSpeed + r * _frequency * 0.1f, _waveType);
+            float d = 0.35f + 0.05f * waveValue * _amplitude;
+
             float x = (float)Math.Cos(r) * d;
             float y = (float)Math.Sin(r) * d;
             
@@ -88,6 +103,23 @@ public sealed class CymaticsSuperscope : IVisualizerPlugin
         // Draw frequency indicator
         uint textColor = beat ? 0xFFFFFF00 : 0xFF00FFFF;
         canvas.DrawText($"{_frequency:F0}Hz", 10, 30, textColor, 16.0f);
+    }
+
+    private float GenerateWave(float phase, int waveType)
+    {
+        switch (waveType)
+        {
+            case 0: // Sine wave
+                return (float)Math.Sin(phase);
+            case 1: // Square wave
+                return Math.Sign(Math.Sin(phase));
+            case 2: // Triangle wave
+                return (float)(2f / Math.PI * Math.Asin(Math.Sin(phase)));
+            case 3: // Sawtooth wave
+                return (float)(2f / Math.PI * Math.Atan(Math.Tan(phase * 0.5f)));
+            default:
+                return (float)Math.Sin(phase);
+        }
     }
 
     public void Dispose()
