@@ -380,14 +380,52 @@ public sealed class FlameFractal : IVisualizerPlugin
         float brightness = 0.5f + _audioModulation * 0.5f;
         color = ModulateBrightness(color, brightness);
 
+        // Enhanced flame rendering with density-based blending
+        var densityMap = new int[_width, _height];
+
+        // Accumulate points into density map
         for (int i = 0; i < _numPoints; i++)
         {
             var point = _points[i];
             if (point.x >= 0 && point.x < _width && point.y >= 0 && point.y < _height)
             {
-                // Draw point with scale
-                int size = _scale;
-                canvas.FillCircle(point.x, point.y, size, color);
+                int px = (int)point.x;
+                int py = (int)point.y;
+
+                // Add to density map with gaussian-like distribution
+                for (int dx = -2; dx <= 2; dx++)
+                {
+                    for (int dy = -2; dy <= 2; dy++)
+                    {
+                        int nx = px + dx;
+                        int ny = py + dy;
+                        if (nx >= 0 && nx < _width && ny >= 0 && ny < _height)
+                        {
+                            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+                            int density = (int)(4 / (1 + dist));
+                            densityMap[nx, ny] += density;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render density-based flame
+        for (int x = 0; x < _width; x++)
+        {
+            for (int y = 0; y < _height; y++)
+            {
+                int density = densityMap[x, y];
+                if (density > 0)
+                {
+                    // Create flame-like color based on density and position
+                    float intensity = Math.Min(density / 8.0f, 1.0f);
+                    float hue = 0.05f + (y / (float)_height) * 0.1f; // Red to orange gradient
+                    uint flameColor = HsvToRgb(hue, 0.8f, intensity);
+
+                    // Blend with background
+                    canvas.FillRect(x, y, 1, 1, flameColor);
+                }
             }
         }
     }
