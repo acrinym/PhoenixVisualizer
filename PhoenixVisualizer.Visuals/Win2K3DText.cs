@@ -282,6 +282,9 @@ public sealed class Win2K3DText : IVisualizerPlugin
             color = AdjustBrightness(color, lightingFactor);
         }
 
+        // Sort triangles by depth (back to front) for proper rendering
+        var sortedTriangles = new List<(int a, int b, int c, float depth)>();
+
         foreach (var triangle in textChar.Triangles)
         {
             var v1 = textChar.Vertices[triangle.a];
@@ -298,19 +301,51 @@ public sealed class Win2K3DText : IVisualizerPlugin
             var p2 = Project3D(tv2.x, tv2.y, tv2.z, centerX, centerY, fov, near, far);
             var p3 = Project3D(tv3.x, tv3.y, tv3.z, centerX, centerY, fov, near, far);
 
+            // Calculate average depth for sorting
+            float avgDepth = (p1.z + p2.z + p3.z) / 3f;
+            sortedTriangles.Add((triangle.a, triangle.b, triangle.c, avgDepth));
+        }
+
+        // Sort by depth (farthest first)
+        sortedTriangles.Sort((a, b) => b.depth.CompareTo(a.depth));
+
+        // Render sorted triangles
+        foreach (var (a, b, c, depth) in sortedTriangles)
+        {
+            var v1 = textChar.Vertices[a];
+            var v2 = textChar.Vertices[b];
+            var v3 = textChar.Vertices[c];
+
+            // Transform vertices
+            var tv1 = TransformVertex(v1.x, v1.y, v1.z);
+            var tv2 = TransformVertex(v2.x, v2.y, v2.z);
+            var tv3 = TransformVertex(v3.x, v3.y, v3.z);
+
+            // Project to screen coordinates
+            var p1 = Project3D(tv1.x, tv1.y, tv1.z, centerX, centerY, fov, near, far);
+            var p2 = Project3D(tv2.x, tv2.y, tv2.z, centerX, centerY, fov, near, far);
+            var p3 = Project3D(tv3.x, tv3.y, tv3.z, centerX, centerY, fov, near, far);
+
+            // Back-face culling (don't render triangles facing away)
+            var normal = CalculateNormal(tv1, tv2, tv3);
+            if (normal.z < 0) continue; // Triangle is facing away from camera
+
             // Only render if all points are visible
             if (p1.z > near && p2.z > near && p3.z > near &&
                 p1.z < far && p2.z < far && p3.z < far)
             {
                 // Distance-based alpha
-                float avgZ = (p1.z + p2.z + p3.z) / 3f;
-                float alpha = Math.Max(0.3f, 1f - avgZ / far);
+                float alpha = Math.Max(0.4f, 1f - depth / far);
                 uint fadedColor = (uint)((uint)(alpha * 255) << 24 | (color & 0x00FFFFFF));
 
-                // Draw triangle edges
-                canvas.DrawLine(p1.x, p1.y, p2.x, p2.y, fadedColor, 2f);
-                canvas.DrawLine(p2.x, p2.y, p3.x, p3.y, fadedColor, 2f);
-                canvas.DrawLine(p3.x, p3.y, p1.x, p1.y, fadedColor, 2f);
+                // Fill triangle instead of just drawing edges
+                FillTriangle(canvas, p1, p2, p3, fadedColor);
+
+                // Draw subtle edges for definition
+                uint edgeColor = AdjustBrightness(fadedColor, 0.7f);
+                canvas.DrawLine(p1.x, p1.y, p2.x, p2.y, edgeColor, 1f);
+                canvas.DrawLine(p2.x, p2.y, p3.x, p3.y, edgeColor, 1f);
+                canvas.DrawLine(p3.x, p3.y, p1.x, p1.y, edgeColor, 1f);
             }
         }
     }
@@ -378,6 +413,124 @@ public sealed class Win2K3DText : IVisualizerPlugin
         float screenY = centerY + (worldY / worldZ) * (centerY / (float)Math.Tan(fov * 0.5));
 
         return (screenX, screenY, worldZ);
+    }
+
+    private (float x, float y, float z) CalculateNormal((float x, float y, float z) v1, (float x, float y, float z) v2, (float x, float y, float z) v3)
+    {
+        // Calculate surface normal using cross product
+        float ux = v2.x - v1.x;
+        float uy = v2.y - v1.y;
+        float uz = v2.z - v1.z;
+
+        float vx = v3.x - v1.x;
+        float vy = v3.y - v1.y;
+        float vz = v3.z - v1.z;
+
+        float nx = uy * vz - uz * vy;
+        float ny = uz * vx - ux * vz;
+        float nz = ux * vy - uy * vx;
+
+        // Normalize
+        float length = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
+        if (length > 0)
+        {
+            nx /= length;
+            ny /= length;
+            nz /= length;
+        }
+
+        return (nx, ny, nz);
+    }
+
+    private void FillTriangle(ISkiaCanvas canvas, (float x, float y, float z) p1, (float x, float y, float z) p2, (float x, float y, float z) p3, uint color)
+    {
+        // Simple triangle filling by drawing horizontal lines
+        // Sort points by Y coordinate
+        var points = new[] { p1, p2, p3 };
+        Array.Sort(points, (a, b) => a.y.CompareTo(b.y));
+
+        var top = points[0];
+        var middle = points[1];
+        var bottom = points[2];
+
+        // If middle and bottom are at same height, handle as flat bottom
+        if (Math.Abs(middle.y - bottom.y) < 0.1f)
+        {
+            FillFlatBottomTriangle(canvas, top, middle, bottom, color);
+        }
+        // If top and middle are at same height, handle as flat top
+        else if (Math.Abs(top.y - middle.y) < 0.1f)
+        {
+            FillFlatTopTriangle(canvas, top, middle, bottom, color);
+        }
+        // General case - split into flat bottom and flat top
+        else
+        {
+            // Find intermediate point on longer edge
+            float t = (middle.y - top.y) / (bottom.y - top.y);
+            var intermediate = (
+                top.x + t * (bottom.x - top.x),
+                middle.y,
+                top.z + t * (bottom.z - top.z)
+            );
+
+            FillFlatBottomTriangle(canvas, top, intermediate, middle, color);
+            FillFlatTopTriangle(canvas, intermediate, middle, bottom, color);
+        }
+    }
+
+    private void FillFlatBottomTriangle(ISkiaCanvas canvas, (float x, float y, float z) v1, (float x, float y, float z) v2, (float x, float y, float z) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is below
+        float invSlope1 = (v2.x - v1.x) / (v2.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+
+        float curX1 = v1.x;
+        float curX2 = v1.x;
+
+        for (float y = v1.y; y <= v2.y; y++)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 += invSlope1;
+            curX2 += invSlope2;
+        }
+    }
+
+    private void FillFlatTopTriangle(ISkiaCanvas canvas, (float x, float y, float z) v1, (float x, float y, float z) v2, (float x, float y, float z) v3, uint color)
+    {
+        // v1 and v2 are at the same Y, v3 is above
+        float invSlope1 = (v3.x - v1.x) / (v3.y - v1.y + 0.001f);
+        float invSlope2 = (v3.x - v2.x) / (v3.y - v2.y + 0.001f);
+
+        float curX1 = v3.x;
+        float curX2 = v3.x;
+
+        for (float y = v3.y; y >= v1.y; y--)
+        {
+            if (y >= 0 && y < _height)
+            {
+                int startX = (int)Math.Max(0, Math.Min(curX1, curX2));
+                int endX = (int)Math.Min(_width - 1, Math.Max(curX1, curX2));
+
+                if (startX < endX)
+                {
+                    canvas.DrawLine(startX, y, endX, y, color, 1f);
+                }
+            }
+
+            curX1 -= invSlope1;
+            curX2 -= invSlope2;
+        }
     }
 
     private uint AdjustBrightness(uint color, float factor)
