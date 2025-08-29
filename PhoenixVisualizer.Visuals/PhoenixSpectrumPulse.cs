@@ -81,23 +81,23 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
             // Smooth magnitude changes
             _previousMagnitudes[i] = _previousMagnitudes[i] * DECAY_FACTOR + magnitude * (1 - DECAY_FACTOR);
 
-            // Calculate bar dimensions
-            float barHeight = _previousMagnitudes[i] * _height * 0.8f; // Use 80% of screen height
-            float barX = i * barWidth;
-            float barY = centerY - barHeight * 0.5f; // Center the bars vertically
+            // Calculate bar dimensions with better uniformity
+            float barHeight = _previousMagnitudes[i] * _height * 0.75f; // Use 75% of screen height for better centering
+            float barX = i * barWidth + barWidth * 0.1f; // Add small gap between bars
+            float barY = _height * 0.9f - barHeight; // Align to bottom with consistent baseline
 
             // Enhanced color calculation
             uint barColor = CalculateBarColor(frequencyRatio, _previousMagnitudes[i], f.Volume, i);
 
             // Add pulse effect
             float pulseFactor = CalculatePulseEffect(i, _previousMagnitudes[i], f.Beat);
-            float effectiveWidth = barWidth * (0.7f + pulseFactor * 0.5f);
+            float effectiveWidth = (barWidth * 0.8f) * (0.8f + pulseFactor * 0.4f); // Account for gaps, narrower bars
             float effectiveHeight = barHeight * (1f + pulseFactor * 0.3f);
 
-            // Draw the main bar
+            // Draw the main bar with better positioning
             canvas.FillRect(
-                barX + (barWidth - effectiveWidth) * 0.5f,
-                barY + (barHeight - effectiveHeight) * 0.5f,
+                barX,
+                barY,
                 effectiveWidth,
                 effectiveHeight,
                 barColor
@@ -139,13 +139,35 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
 
     private uint CalculateBarColor(float frequencyRatio, float magnitude, float volume, int barIndex)
     {
-        // Enhanced HSV-based color calculation
-        float hue = frequencyRatio * 300f; // 0-300 degrees (red to magenta range)
-        float saturation = 0.8f + magnitude * 0.2f;
-        float brightness = 0.4f + magnitude * 0.6f + volume * 0.2f;
+        // Create uniform rainbow spectrum mapping
+        // Map frequency ratio to full rainbow spectrum (0-360 degrees)
+        float hue = frequencyRatio * 360f;
 
-        // Add time-based color cycling for dynamic effect
-        hue += (float)Math.Sin(_time * 0.5f + barIndex * 0.1f) * 30f;
+        // Ensure uniform distribution across the spectrum
+        // Use perceptual uniformity by adjusting hue distribution
+        if (frequencyRatio < 0.5f)
+        {
+            // Lower frequencies (red to green): expand range
+            hue = frequencyRatio * 2f * 120f; // 0-120 degrees (red to green)
+        }
+        else
+        {
+            // Higher frequencies (green to purple): expand range
+            hue = 120f + (frequencyRatio - 0.5f) * 2f * 240f; // 120-360 degrees (green to purple)
+        }
+
+        // High saturation for vibrant colors
+        float saturation = 0.9f + magnitude * 0.1f;
+
+        // Brightness based on magnitude with good contrast
+        float brightness = 0.3f + magnitude * 0.7f + volume * 0.3f;
+
+        // Add subtle time-based variation for liveliness
+        float timeVariation = (float)Math.Sin(_time * 0.3f + barIndex * 0.05f) * 15f;
+        hue = (hue + timeVariation) % 360f;
+
+        // Ensure hue stays in valid range
+        if (hue < 0) hue += 360f;
 
         // Convert HSV to RGB
         return HsvToRgb(hue, saturation, brightness);

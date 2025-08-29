@@ -22,11 +22,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
     private int _width = 800;
     private int _height = 600;
 
-    // Optimization variables
-    private float _lastFrameTime = 0f;
-    private const float TARGET_FRAME_TIME = 1f / 30f; // 30 FPS limit
-    private int _frameCount = 0;
-    private bool _needsRedraw = true;
+    // Optimization variables (removed unused frame limiting for continuous rendering)
 
     // Mandelbrot optimization
     private uint[]? _mandelbrotCache;
@@ -65,18 +61,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
-        // Frame rate limiting
-        _frameCount++;
-        float currentTime = _time;
-        if (currentTime - _lastFrameTime < TARGET_FRAME_TIME)
-        {
-            // Skip frame to maintain target FPS
-            return;
-        }
-        _lastFrameTime = currentTime;
-        _needsRedraw = true;
-
-        // Update audio context
+        // Update audio context every frame for continuous rendering
         _scopeContext.Time = _time;
         _scopeContext.AudioData = features.Waveform ?? Array.Empty<float>();
         _scopeContext.SpectrumData = features.Fft ?? Array.Empty<float>();
@@ -91,11 +76,7 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
         {
             _effectIndex = (_effectIndex + 1) % 7;
             _effectTimer = 0f;
-            _needsRedraw = true; // Force redraw on effect change
         }
-
-        // Only redraw if needed
-        if (!_needsRedraw) return;
 
         // Clear canvas
         canvas.Clear(0xFF000000); // Black
@@ -125,8 +106,6 @@ public class AdvancedAvsPlugin : IVisualizerPlugin
                 RenderTunnel(canvas);
                 break;
         }
-
-        _needsRedraw = false;
     }
 
     private void RenderPlasmaOptimized(ISkiaCanvas canvas)
