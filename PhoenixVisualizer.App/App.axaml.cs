@@ -103,6 +103,7 @@ public partial class App : Application
 
             // New visualizers
             PluginRegistry.Register("flappy_bird", "🐤 Flappy Beats", () => new FlappyBirdVisualizer(), "Audio-reactive Flappy Bird with multiple birds, collision detection, and particle effects", "1.0", "Phoenix Team");
+            PluginRegistry.Register("minecart_rollercoaster", "🛤️ Phoenix Cart Ride", () => new MinecartRollercoasterVisualizer(), "Procedural track generation with audio-reactive physics and multiple carts", "1.0", "Phoenix Team");
 
             // ============================================================================
             // 🐱 MEME & CULTURE VISUALIZERS
