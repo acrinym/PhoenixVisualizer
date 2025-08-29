@@ -118,8 +118,22 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
             CreateFlyingObject();
         }
 
-        // Remove objects that are too far
-        _flyingObjects.RemoveAll(obj => obj.Z > 20f);
+        // Handle objects that go out of bounds
+        for (int i = _flyingObjects.Count - 1; i >= 0; i--)
+        {
+            var obj = _flyingObjects[i];
+
+            // Respawn objects that are too far away or behind camera
+            if (obj.Z > 25f || obj.Z < 2f)
+            {
+                _flyingObjects.RemoveAt(i);
+                // Create a new object to maintain count
+                if (_flyingObjects.Count < MAX_SHAPES)
+                {
+                    CreateFlyingObject();
+                }
+            }
+        }
     }
 
     private void CreateFlyingObject()
@@ -127,15 +141,15 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
         var obj = new FlyingObject
         {
             Type = (ShapeType)_random.Next(Enum.GetValues(typeof(ShapeType)).Length),
-            X = (float)(_random.NextDouble() * 10 - 5),
-            Y = (float)(_random.NextDouble() * 10 - 5),
-            Z = (float)(_random.NextDouble() * 10 + 5),
+            X = (float)(_random.NextDouble() * 16 - 8), // -8 to +8 range
+            Y = (float)(_random.NextDouble() * 16 - 8), // -8 to +8 range
+            Z = (float)(_random.NextDouble() * 12 + 5), // 5 to 17 range (comfortable viewing distance)
             RotX = (float)(_random.NextDouble() * Math.PI * 2),
             RotY = (float)(_random.NextDouble() * Math.PI * 2),
             RotZ = (float)(_random.NextDouble() * Math.PI * 2),
-            VelX = (float)(_random.NextDouble() * 0.1f - 0.05f),
-            VelY = (float)(_random.NextDouble() * 0.1f - 0.05f),
-            VelZ = (float)(_random.NextDouble() * 0.05 - 0.1), // Move toward camera
+            VelX = (float)(_random.NextDouble() * 0.08f - 0.04f), // Slower X movement
+            VelY = (float)(_random.NextDouble() * 0.08f - 0.04f), // Slower Y movement
+            VelZ = (float)(_random.NextDouble() * 0.03f - 0.06f), // Controlled Z movement
             Scale = 0.5f + (float)_random.NextDouble(),
             Color = _shapeColors[_random.Next(_shapeColors.Length)],
             MorphPhase = (float)(_random.NextDouble() * Math.PI * 2),
@@ -469,16 +483,28 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
             obj.MorphPhase += MORPH_SPEED * (1f + f.Volume);
             obj.AudioInfluence = f.Volume;
 
-            // Bounce off boundaries
-            if (Math.Abs(obj.X) > 15f)
+            // Bounce off X/Y boundaries
+            if (Math.Abs(obj.X) > 12f)
             {
-                obj.VelX = -obj.VelX;
-                obj.X = Math.Sign(obj.X) * 15f;
+                obj.VelX = -obj.VelX * 0.8f; // Add some energy loss
+                obj.X = Math.Sign(obj.X) * 12f;
             }
-            if (Math.Abs(obj.Y) > 15f)
+            if (Math.Abs(obj.Y) > 12f)
             {
-                obj.VelY = -obj.VelY;
-                obj.Y = Math.Sign(obj.Y) * 15f;
+                obj.VelY = -obj.VelY * 0.8f; // Add some energy loss
+                obj.Y = Math.Sign(obj.Y) * 12f;
+            }
+
+            // Handle Z boundaries - reverse direction instead of removing
+            if (obj.Z > 20f)
+            {
+                obj.VelZ = -Math.Abs(obj.VelZ); // Always move toward camera
+                obj.Z = 20f;
+            }
+            if (obj.Z < 3f)
+            {
+                obj.VelZ = Math.Abs(obj.VelZ); // Always move away from camera
+                obj.Z = 3f;
             }
 
             // Update geometry for morphing shapes

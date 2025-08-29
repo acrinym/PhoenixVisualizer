@@ -266,28 +266,10 @@ public sealed class Win953DTwister : IVisualizerPlugin
     private (float x, float y, float z) Project3D(float worldX, float worldY, float worldZ,
                                                  float centerX, float centerY, float fov, float near, float far)
     {
-        // Simple 3D projection with rotation for dynamic viewing
-        float rotX = _time * 0.1f;
-        float rotY = _time * 0.15f;
-
-        // Apply rotations
-        float cosX = (float)Math.Cos(rotX), sinX = (float)Math.Sin(rotX);
-        float cosY = (float)Math.Cos(rotY), sinY = (float)Math.Sin(rotY);
-
+        // Fixed camera position looking at the twister center
         float x = worldX;
         float y = worldY;
-        float z = worldZ + 10f; // Push back from camera
-
-        // Rotate around Y axis
-        float tempX = x * cosY - z * sinY;
-        float tempZ = x * sinY + z * cosY;
-        x = tempX;
-        z = tempZ;
-
-        // Rotate around X axis
-        float tempY = y * cosX - z * sinX;
-        z = y * sinX + z * cosX;
-        y = tempY;
+        float z = worldZ + 8f; // Push back from camera (reduced from 10f)
 
         // Perspective projection
         if (z <= near) z = near + 0.1f;

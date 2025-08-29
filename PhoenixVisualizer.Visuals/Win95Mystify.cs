@@ -19,7 +19,7 @@ public sealed class Win95Mystify : IVisualizerPlugin
 
     // Mystify system constants (based on original Win95 implementation)
     private const int MAX_SHAPES = 6;
-    private const int MAX_VERTICES = 8;
+    private const int MAX_VERTICES = 10; // Increased to accommodate Star shape (10 vertices)
     private const int TRAIL_LENGTH = 20;
     private const float BASE_SPEED = 2.0f;
     private const float MAX_SPEED = 8.0f;
@@ -147,6 +147,13 @@ public sealed class Win95Mystify : IVisualizerPlugin
     private void GenerateShapeGeometry(MystifyShape shape)
     {
         int vertexCount = GetVertexCount(shape.Type);
+
+        // Ensure vertices array is large enough
+        if (shape.Vertices == null || shape.Vertices.Length < vertexCount * 2)
+        {
+            shape.Vertices = new float[vertexCount * 2];
+        }
+
         float angleStep = (float)(Math.PI * 2 / vertexCount);
 
         for (int i = 0; i < vertexCount; i++)

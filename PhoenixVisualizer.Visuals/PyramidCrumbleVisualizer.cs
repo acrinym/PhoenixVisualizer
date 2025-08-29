@@ -60,6 +60,10 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
         _groundBlocks = new List<GroundBlock>();
         _pyramid = new PyramidStructure();
         _currentStyle = PyramidStyle.Classic;
+
+        // Initialize Vector3 fields
+        _sunPosition = new Vector3(-200, -100, 300);
+        _sunColor = new Vector3(1.0f, 0.9f, 0.7f);
     }
 
     public void Initialize(int width, int height)
@@ -97,6 +101,12 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
     {
         _time += 0.016f;
 
+        // Ensure we always have a pyramid
+        if (_pyramid.Blocks.Count == 0 && _fallingBlocks.Count == 0 && _groundBlocks.Count == 0)
+        {
+            GeneratePyramid();
+        }
+
         // Update audio-reactive systems
         UpdateAudioReactivity(f);
 
@@ -119,13 +129,13 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
         _bassAccumulator = _bassAccumulator * 0.9f + f.Bass * 0.1f;
 
         // Beat detection
-        if (f.Beat && _time - _lastBeatTime > 0.2f)
+        if (f.Beat && _time - _lastBeatTime > 0.15f) // More responsive beat detection
         {
             _lastBeatTime = _time;
             _beatCount++;
 
-            // Trigger crumble on strong bass
-            if (_bassAccumulator > 0.6f)
+            // Trigger crumble on strong bass or regular beats
+            if (_bassAccumulator > 0.4f || _beatCount % 4 == 0) // Trigger every 4th beat or on strong bass
             {
                 TriggerCrumble(f.Bass);
             }
@@ -196,12 +206,9 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
         // Check for regeneration trigger
         if (_regenerationTimer >= REGENERATION_INTERVAL || GetRemainingBlocks() < 10)
         {
-            if (_pyramid.Blocks.Count > 0 || _fallingBlocks.Count > 0)
-            {
-                // Start regeneration
-                RegeneratePyramid();
-                _regenerationTimer = 0;
-            }
+            // Always attempt regeneration when conditions are met
+            RegeneratePyramid();
+            _regenerationTimer = 0;
         }
     }
 
@@ -368,24 +375,28 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
 
     private void RegeneratePyramid()
     {
-        // Clear existing blocks
-        _pyramid.Blocks.Clear();
-        _fallingBlocks.Clear();
-
-        // Move ground blocks to rising animation
+        // Move ground blocks to rising animation with a delay
         foreach (var groundBlock in _groundBlocks)
         {
             var risingBlock = new FallingBlock(
                 groundBlock.X, groundBlock.Y, groundBlock.Z, groundBlock.Color
             );
-            risingBlock.VelocityY = -2f; // Rise up
+            risingBlock.VelocityY = -3f; // Rise up faster
+            risingBlock.VelocityX = (float)(_random.NextDouble() - 0.5) * 2f; // Add some horizontal movement
+            risingBlock.VelocityZ = (float)(_random.NextDouble() - 0.5) * 2f;
             _fallingBlocks.Add(risingBlock);
         }
 
         _groundBlocks.Clear();
 
-        // Schedule pyramid regeneration after blocks have risen
-        // This will be handled by the main update loop
+        // Generate a new pyramid immediately
+        GeneratePyramid();
+
+        // Change pyramid style occasionally
+        if (_random.NextDouble() < 0.3) // 30% chance to change style
+        {
+            _currentStyle = (PyramidStyle)_random.Next(Enum.GetValues(typeof(PyramidStyle)).Length);
+        }
     }
 
     private uint GetPyramidBlockColor(int level, int maxLevels)

@@ -60,6 +60,11 @@ public sealed class Win2K3DText : IVisualizerPlugin
 
     private List<TextChar> _currentText;
 
+    public Win2K3DText()
+    {
+        _currentText = new List<TextChar>();
+    }
+
     // Colors inspired by the original
     private readonly uint[] _textColors = new uint[]
     {

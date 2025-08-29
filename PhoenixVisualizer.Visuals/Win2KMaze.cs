@@ -46,6 +46,11 @@ public sealed class Win2KMaze : IVisualizerPlugin
     private float _cameraRot;
     private float _viewAngle;
 
+    public Win2KMaze()
+    {
+        _maze = new MazeCell[MAZE_GRID, MAZE_GRID];
+    }
+
     // Colors inspired by the original maze
     private readonly uint[] _wallColors = new uint[]
     {
@@ -55,8 +60,7 @@ public sealed class Win2KMaze : IVisualizerPlugin
         0xFFA0A0A0  // Very light gray
     };
 
-    private readonly uint _floorColor = 0xFF202020;
-    private readonly uint _ceilingColor = 0xFF101010;
+
 
     public void Initialize(int width, int height)
     {

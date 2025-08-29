@@ -227,7 +227,8 @@ public class PhxCodeEngine
                 if (func is Delegate del)
                 {
                     var args = ParseArguments(argsStr, localVars, globalVars);
-                    return del.DynamicInvoke(args.ToArray());
+                    var result = del.DynamicInvoke(args.ToArray());
+                    return result ?? 0f;
                 }
             }
         }
@@ -356,7 +357,7 @@ public class PhxCodeEngine
     /// </summary>
     public object GetGlobalVariable(string name)
     {
-        return _globalVariables.ContainsKey(name) ? _globalVariables[name] : null;
+        return _globalVariables.ContainsKey(name) ? _globalVariables[name] : 0f;
     }
 }
 

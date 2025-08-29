@@ -15,6 +15,7 @@ public sealed class MatrixRainVisualizer : IVisualizerPlugin
     private int _desiredCols = 64;
     private float _amplitude;
     private int _width, _height;
+    private float _lastFrameTime;
 
     public void Initialize(int width, int height)
     {
@@ -34,6 +35,11 @@ public sealed class MatrixRainVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
+        // Calculate delta time for frame-rate independent animation
+        float currentTime = (float)(DateTime.Now.Ticks / 10000000.0); // Current time in seconds
+        float deltaTime = _lastFrameTime == 0 ? 0.016f : Math.Min(currentTime - _lastFrameTime, 0.033f); // Cap at ~30 FPS equivalent
+        _lastFrameTime = currentTime;
+
         // Clear with black background
         canvas.Clear(0xFF000000);
 
@@ -63,21 +69,21 @@ public sealed class MatrixRainVisualizer : IVisualizerPlugin
             {
                 float yy = (y - i * seg + _height) % _height;
                 float alpha = 1.0f - i / (float)maxLen;
-                uint color = i == 0 ? brightGreen : (uint)(0xFF << 24 | (int)(128 * alpha) << 8 | (int)(255 * alpha));
+                uint color = i == 0 ? brightGreen : (uint)(0xFF << 24 | (int)(68 * alpha) << 8 | (int)(136 * alpha));
 
-                // Draw rectangle for this segment
+                // Draw rectangle for this segment using efficient fill
                 float rectX = x * colWidth + 1;
                 float rectY = yy;
                 float rectW = colWidth - 2;
                 float rectH = seg - 1;
 
-                // Draw filled rectangle
-                DrawFilledRect(canvas, rectX, rectY, rectW, rectH, color);
+                // Use FillRect instead of inefficient line-by-line drawing
+                canvas.FillRect(rectX, rectY, rectW, rectH, color);
             }
 
-            // Advance column
+            // Advance column with proper delta time
             float speed = _speed![x] * (0.5f + _amplitude);
-            _y[x] = (y + speed * 0.033f) % _height;
+            _y[x] = (y + speed * deltaTime) % _height;
         }
     }
 
@@ -94,12 +100,5 @@ public sealed class MatrixRainVisualizer : IVisualizerPlugin
         }
     }
 
-    private void DrawFilledRect(ISkiaCanvas canvas, float x, float y, float w, float h, uint color)
-    {
-        // Draw rectangle by drawing four lines (filled)
-        for (float yy = y; yy < y + h; yy++)
-        {
-            canvas.DrawLine(x, yy, x + w, yy, color, 1.0f);
-        }
-    }
+
 }

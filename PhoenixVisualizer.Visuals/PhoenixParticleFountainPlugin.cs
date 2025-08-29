@@ -70,11 +70,22 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         var treble = features.Treble;
         var beat = features.Beat;
 
-        // Emit new particles based on energy
-        var emissionRate = energy * 20f; // 0-20 particles per frame
-        if (beat) emissionRate *= 2f; // Double emission on beat
+        // Continuous emission with energy boost
+        var baseEmissionRate = 8f; // Always emit some particles
+        var energyEmissionRate = energy * 15f; // Energy-driven emission
+        var totalEmissionRate = baseEmissionRate + energyEmissionRate;
 
-        for (int i = 0; i < emissionRate && _activeParticles < _maxParticles; i++)
+        if (beat) totalEmissionRate *= 1.5f; // Boost on beat
+
+        // Emit particles based on accumulated emission
+        var particlesToEmit = (int)totalEmissionRate;
+        var fractionalEmission = totalEmissionRate - particlesToEmit;
+
+        // Handle fractional emission probabilistically
+        if (Random.Shared.NextSingle() < fractionalEmission)
+            particlesToEmit++;
+
+        for (int i = 0; i < particlesToEmit && _activeParticles < _maxParticles; i++)
         {
             EmitParticle(features);
         }
@@ -124,16 +135,16 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 
                 _particles[i] = new Particle
                 {
-                    x = baseX + (Random.Shared.NextSingle() - 0.5f) * 20f,
+                    x = baseX + (Random.Shared.NextSingle() - 0.5f) * 30f, // Wider emission area
                     y = baseY,
                     z = 0f,
-                    vx = (float)Math.Cos(angle) * speed * 0.3f,
+                    vx = (float)Math.Cos(angle) * speed * 0.3f + (Random.Shared.NextSingle() - 0.5f) * 20f, // Add horizontal spread
                     vy = -(float)Math.Sin(angle) * speed,
-                    vz = zSpeed,
+                    vz = zSpeed + (Random.Shared.NextSingle() - 0.5f) * 30f, // Add Z variation
                     life = 1f,
-                    maxLife = 1f + features.Energy * 2f, // Life from energy
+                    maxLife = 2f + features.Energy * 3f + Random.Shared.NextSingle() * 2f, // Longer, more varied life
                     color = GetRainbowColor(Random.Shared.NextSingle(), features.Treble),
-                    size = 3f + Random.Shared.NextSingle() * 4f,
+                    size = 2f + Random.Shared.NextSingle() * 6f, // More size variation
                     active = true
                 };
 
@@ -145,8 +156,9 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 
     private void UpdateParticles(AudioFeatures features)
     {
-        var gravity = 400f; // Gravity strength
-        var drag = 0.98f;   // Air resistance
+        var gravity = 300f; // Reduced gravity for higher arcs
+        var drag = 0.995f;  // Less air resistance for longer flight
+        var windStrength = features.Mid * 50f; // Wind from mid frequencies
 
         for (int i = 0; i < _maxParticles; i++)
         {
@@ -154,10 +166,11 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 
             var p = _particles[i];
 
-            // Apply physics
+            // Apply physics with wind
             p.vx *= drag;
+            p.vx += windStrength * 0.001f; // Gentle wind effect
             p.vy += gravity * 0.016f; // 60 FPS assumed
-            p.vz *= 0.99f; // Z drag
+            p.vz *= 0.995f; // Z drag
 
             // Update position
             p.x += p.vx * 0.016f;

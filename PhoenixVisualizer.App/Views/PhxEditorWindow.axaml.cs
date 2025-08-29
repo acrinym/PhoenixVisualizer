@@ -42,8 +42,10 @@ public partial class PhxEditorWindow : Window
         InitializeComponent();
         ViewModel = new PhxEditorViewModel();
 
-        // Initialize code engine
+        // Initialize required fields
         _codeEngine = new PhxCodeEngine();
+        _previewRenderer = null!;
+        _parameterEditor = null!;
 
         // Set up the preview rendering
         SetupPreviewRendering();
@@ -254,6 +256,10 @@ public class PhxEditorViewModel : ReactiveObject
 
     public PhxEditorViewModel()
     {
+        // Initialize reactive properties
+        SelectedEffect = null!;
+        SelectedLibraryEffect = null!;
+
         // Initialize commands first
         InitializeCommands();
 

@@ -55,6 +55,12 @@ public class PhxPreviewRenderer
         _frameTimer = new Stopwatch();
         _frameTimes = new List<double>();
 
+        // Initialize required fields
+        _bitmap = null!;
+        _waveformBuffer = Array.Empty<float>();
+        _spectrumBuffer = Array.Empty<float>();
+        _audioFeatures = new AudioFeaturesImpl();
+
         InitializeRenderer();
         SetupAudioIntegration();
         StartRendering();
@@ -106,7 +112,7 @@ public class PhxPreviewRenderer
         _frameTimer.Start();
     }
 
-    private void RenderFrame(object sender, EventArgs e)
+    private void RenderFrame(object? sender, EventArgs e)
     {
         if (_isRendering || _bitmap == null) return;
 

@@ -50,14 +50,52 @@ public sealed class PongSuperscope : IVisualizerPlugin
         _ballY += _ballVY;
 
         // Ball collision with walls (using proper AVS coordinate system -1 to 1)
-        if (_ballX > 0.9f) _ballVX = -Math.Abs(_ballVX);
-        if (_ballX < -0.9f) _ballVX = Math.Abs(_ballVX);
-        if (_ballY > 0.9f) _ballVY = -Math.Abs(_ballVY);
-        if (_ballY < -0.9f) _ballVY = Math.Abs(_ballVY);
+        if (_ballX > 0.85f) // Right wall - bounce left
+        {
+            _ballX = 0.85f; // Keep ball in bounds
+            _ballVX = -Math.Abs(_ballVX); // Ensure it goes left
+        }
+        if (_ballX < -0.85f) // Left wall - bounce right
+        {
+            _ballX = -0.85f; // Keep ball in bounds
+            _ballVX = Math.Abs(_ballVX); // Ensure it goes right
+        }
+        if (_ballY > 0.85f) // Top wall - bounce down
+        {
+            _ballY = 0.85f; // Keep ball in bounds
+            _ballVY = -Math.Abs(_ballVY); // Ensure it goes down
+        }
+        if (_ballY < -0.85f) // Bottom wall - bounce up
+        {
+            _ballY = -0.85f; // Keep ball in bounds
+            _ballVY = Math.Abs(_ballVY); // Ensure it goes up
+        }
         
         // Update paddle positions (follow ball with some lag)
         _paddleLeftY = _paddleLeftY * 0.8f + _ballY * 0.2f;
         _paddleRightY = _paddleRightY * 0.8f + _ballY * 0.2f;
+
+        // Paddle collision detection
+        float paddleWidth = 0.05f; // Paddle width in AVS coordinates
+        float paddleHeight = 0.6f;  // Paddle height in AVS coordinates
+
+        // Left paddle collision
+        if (_ballX < -0.85f + paddleWidth && _ballX > -0.9f &&
+            _ballY > _paddleLeftY - paddleHeight/2 && _ballY < _paddleLeftY + paddleHeight/2)
+        {
+            _ballX = -0.85f + paddleWidth; // Move ball to paddle edge
+            _ballVX = Math.Abs(_ballVX); // Bounce right
+            _ballVY += (_ballY - _paddleLeftY) * 0.3f; // Add spin based on where ball hits paddle
+        }
+
+        // Right paddle collision
+        if (_ballX > 0.85f - paddleWidth && _ballX < 0.9f &&
+            _ballY > _paddleRightY - paddleHeight/2 && _ballY < _paddleRightY + paddleHeight/2)
+        {
+            _ballX = 0.85f - paddleWidth; // Move ball to paddle edge
+            _ballVX = -Math.Abs(_ballVX); // Bounce left
+            _ballVY += (_ballY - _paddleRightY) * 0.3f; // Add spin based on where ball hits paddle
+        }
         
         // Handle beat events - speed up ball
         if (beat)
@@ -66,72 +104,26 @@ public sealed class PongSuperscope : IVisualizerPlugin
             _ballVY *= 1.05f;
         }
         
-        // Create points array for the pong game
-        var points = new System.Collections.Generic.List<(float x, float y)>();
-        
-        // Draw left paddle
-        for (int i = 0; i < 40; i++)
-        {
-            float t = i / 40.0f;
-            float x = -0.9f;
-            float y = _paddleLeftY + 0.6f * (t - 0.5f);
-            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
-            float screenX = (x + 1.0f) * _width * 0.5f;
-            float screenY = (y + 1.0f) * _height * 0.5f;
-            // Clamp to screen bounds
-            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
-            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
-            points.Add((screenX, screenY));
-        }
-
-        // Draw right paddle
-        for (int i = 0; i < 40; i++)
-        {
-            float t = i / 40.0f;
-            float x = 0.9f;
-            float y = _paddleRightY + 0.6f * (t - 0.5f);
-            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
-            float screenX = (x + 1.0f) * _width * 0.5f;
-            float screenY = (y + 1.0f) * _height * 0.5f;
-            // Clamp to screen bounds
-            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
-            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
-            points.Add((screenX, screenY));
-        }
-
-        // Draw ball
-        for (int i = 0; i < 20; i++)
-        {
-            float t = i / 20.0f;
-            float angle = t * 6.283f;
-            float x = _ballX + 0.05f * (float)Math.Cos(angle);
-            float y = _ballY + 0.05f * (float)Math.Sin(angle);
-            // Convert from AVS coordinate system (-1 to 1) to screen coordinates
-            float screenX = (x + 1.0f) * _width * 0.5f;
-            float screenY = (y + 1.0f) * _height * 0.5f;
-            // Clamp to screen bounds
-            screenX = Math.Max(0, Math.Min(_width - 1, screenX));
-            screenY = Math.Max(0, Math.Min(_height - 1, screenY));
-            points.Add((screenX, screenY));
-        }
-        
         // Draw the pong game elements
         uint color = beat ? 0xFFFF00FF : 0xFF00FFFF; // Magenta on beat, cyan otherwise
-        canvas.SetLineWidth(2.0f);
 
-        // Draw paddles
-        for (int i = 0; i < 39; i++)
-        {
-            canvas.DrawLine(points[i].x, points[i].y,
-                           points[i + 1].x, points[i + 1].y, color, 2.0f);
-        }
+        // Draw left paddle as a solid rectangle
+        float leftPaddleX = (-0.9f + 1.0f) * _width * 0.5f;
+        float leftPaddleTop = (_paddleLeftY - 0.3f + 1.0f) * _height * 0.5f;
+        float leftPaddleBottom = (_paddleLeftY + 0.3f + 1.0f) * _height * 0.5f;
+        canvas.FillRect(leftPaddleX - 3, leftPaddleTop, 6, leftPaddleBottom - leftPaddleTop, color);
 
-        // Draw ball
-        for (int i = 40; i < 99; i++)
-        {
-            canvas.DrawLine(points[i].x, points[i].y,
-                           points[(i + 1) % 100].x, points[(i + 1) % 100].y, color, 2.0f);
-        }
+        // Draw right paddle as a solid rectangle
+        float rightPaddleX = (0.9f + 1.0f) * _width * 0.5f;
+        float rightPaddleTop = (_paddleRightY - 0.3f + 1.0f) * _height * 0.5f;
+        float rightPaddleBottom = (_paddleRightY + 0.3f + 1.0f) * _height * 0.5f;
+        canvas.FillRect(rightPaddleX - 3, rightPaddleTop, 6, rightPaddleBottom - rightPaddleTop, color);
+
+        // Draw ball as a solid circle
+        float ballScreenX = (_ballX + 1.0f) * _width * 0.5f;
+        float ballScreenY = (_ballY + 1.0f) * _height * 0.5f;
+        float ballRadius = Math.Min(_width, _height) * 0.03f;
+        canvas.FillCircle(ballScreenX, ballScreenY, ballRadius, color);
         
         // Draw score or time
         uint textColor = beat ? 0xFFFFFF00 : 0xFF00FF00;
