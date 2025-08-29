@@ -569,10 +569,12 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
 
     private void RenderTrack(ISkiaCanvas canvas, AudioFeatures f)
     {
-        foreach (var segment in _trackSegments)
+        // Sort track segments by Z for proper rendering order
+        var visibleSegments = _trackSegments.Where(s => s.Z >= -50).OrderByDescending(s => s.Z).ToList();
+
+        for (int i = 0; i < visibleSegments.Count; i++)
         {
-            // Skip segments that are too far back
-            if (segment.Z < -50) continue;
+            var segment = visibleSegments[i];
 
             float screenX = _width * 0.5f + segment.X;
             float screenY = _height * 0.8f - segment.Y - segment.Z * 0.1f;
@@ -581,25 +583,56 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
             screenX += (float)Math.Sin(_time * 20) * _cameraShake;
             screenY += (float)Math.Cos(_time * 18) * _cameraShake * 0.5f;
 
-            // Render track rails
+            // Render track rails with proper connections
             uint railColor = segment.Color;
             float railWidth = TRACK_WIDTH;
 
-            // Add glow effect
+            // Add glow effect for energy
             if (segment.GlowIntensity > 0.1f)
             {
                 uint glowColor = AdjustBrightness(railColor, 2.0f);
-                canvas.FillRect(screenX - railWidth * 0.6f, screenY - 2, railWidth * 1.2f, 4, glowColor);
+                canvas.FillRect(screenX - railWidth * 0.7f, screenY - 3, railWidth * 1.4f, 6, glowColor);
             }
 
-            // Main rails
-            canvas.FillRect(screenX - railWidth * 0.5f, screenY - 1, railWidth, 2, railColor);
+            // Main rails with thickness based on Z-depth
+            float railThickness = Math.Max(1, 3 - Math.Abs(segment.Z) * 0.05f);
+            canvas.FillRect(screenX - railWidth * 0.5f, screenY - railThickness * 0.5f, railWidth, railThickness, railColor);
 
-            // Rail ties
-            for (int i = -2; i <= 2; i++)
+            // Connect to next segment for continuity
+            if (i < visibleSegments.Count - 1)
             {
-                float tieX = screenX + i * railWidth * 0.3f;
-                canvas.FillRect(tieX - 2, screenY + 3, 4, 8, AdjustBrightness(railColor, 0.6f));
+                var nextSegment = visibleSegments[i + 1];
+                float nextScreenX = _width * 0.5f + nextSegment.X;
+                float nextScreenY = _height * 0.8f - nextSegment.Y - nextSegment.Z * 0.1f;
+
+                nextScreenX += (float)Math.Sin(_time * 20) * _cameraShake;
+                nextScreenY += (float)Math.Cos(_time * 18) * _cameraShake * 0.5f;
+
+                // Draw connecting rail segments
+                canvas.DrawLine(screenX - railWidth * 0.5f, screenY, nextScreenX - railWidth * 0.5f, nextScreenY, railColor, railThickness);
+                canvas.DrawLine(screenX + railWidth * 0.5f, screenY, nextScreenX + railWidth * 0.5f, nextScreenY, railColor, railThickness);
+            }
+
+            // Rail ties - spaced and connected
+            float tieSpacing = SEGMENT_LENGTH / 3f;
+            for (int t = 0; t < 3; t++)
+            {
+                float tieZ = segment.Z + t * tieSpacing;
+                float tieScreenY = _height * 0.8f - segment.Y - tieZ * 0.1f;
+
+                if (tieZ >= -50 && tieZ <= 50)
+                {
+                    uint tieColor = AdjustBrightness(railColor, 0.4f);
+                    canvas.FillRect(screenX - railWidth * 0.6f, tieScreenY + 2, railWidth * 1.2f, 6, tieColor);
+                }
+            }
+
+            // Add track supports/pillars for elevated sections
+            if (segment.Y > 10)
+            {
+                float pillarHeight = segment.Y * 0.8f;
+                uint pillarColor = AdjustBrightness(railColor, 0.3f);
+                canvas.FillRect(screenX - 3, screenY + railThickness, 6, pillarHeight, pillarColor);
             }
         }
     }
@@ -636,15 +669,33 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
             screenX += (float)Math.Sin(_time * 20) * _cameraShake;
             screenY += (float)Math.Cos(_time * 18) * _cameraShake * 0.5f;
 
-            // Render cart body
+            // Render cart body (more detailed minecart shape)
             float cartW = CART_SIZE;
             float cartH = CART_SIZE * 0.6f;
-            canvas.FillRect(screenX - cartW * 0.5f, screenY - cartH * 0.5f, cartW, cartH, cart.Color);
 
-            // Render cart wheels
-            uint wheelColor = 0xFF333333;
-            canvas.FillCircle(screenX - cartW * 0.3f, screenY + cartH * 0.3f, 3, wheelColor);
-            canvas.FillCircle(screenX + cartW * 0.3f, screenY + cartH * 0.3f, 3, wheelColor);
+            // Main cart body
+            canvas.FillRect(screenX - cartW * 0.4f, screenY - cartH * 0.3f, cartW * 0.8f, cartH * 0.6f, cart.Color);
+
+            // Cart sides (angled for 3D effect)
+            canvas.FillRect(screenX - cartW * 0.5f, screenY - cartH * 0.2f, cartW * 0.1f, cartH * 0.4f, AdjustBrightness(cart.Color, 0.8f));
+            canvas.FillRect(screenX + cartW * 0.4f, screenY - cartH * 0.2f, cartW * 0.1f, cartH * 0.4f, AdjustBrightness(cart.Color, 0.8f));
+
+            // Cart front and back
+            canvas.FillRect(screenX - cartW * 0.45f, screenY - cartH * 0.4f, cartW * 0.05f, cartH * 0.5f, AdjustBrightness(cart.Color, 0.9f));
+            canvas.FillRect(screenX + cartW * 0.4f, screenY - cartH * 0.4f, cartW * 0.05f, cartH * 0.5f, AdjustBrightness(cart.Color, 0.9f));
+
+            // Render cart wheels with proper positioning
+            uint wheelColor = 0xFF222222;
+            float wheelRadius = 4;
+            canvas.FillCircle(screenX - cartW * 0.25f, screenY + cartH * 0.2f, wheelRadius, wheelColor);
+            canvas.FillCircle(screenX + cartW * 0.25f, screenY + cartH * 0.2f, wheelRadius, wheelColor);
+
+            // Wheel centers
+            canvas.FillCircle(screenX - cartW * 0.25f, screenY + cartH * 0.2f, wheelRadius * 0.4f, 0xFF444444);
+            canvas.FillCircle(screenX + cartW * 0.25f, screenY + cartH * 0.2f, wheelRadius * 0.4f, 0xFF444444);
+
+            // Add cart details (rails on top)
+            canvas.FillRect(screenX - cartW * 0.35f, screenY - cartH * 0.45f, cartW * 0.7f, 2, AdjustBrightness(cart.Color, 1.2f));
 
             // Add speed lines for fast carts
             if (cart.Speed > 250f)
