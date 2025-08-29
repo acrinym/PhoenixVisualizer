@@ -108,10 +108,12 @@ public sealed class Win95Beziers : IVisualizerPlugin
 
     private void CreateBezierCurve()
     {
+        // Start curves in safe positions away from edges
+        int margin = 100;
         var curve = new BezierCurve
         {
-            X = _random.Next(_width),
-            Y = _random.Next(_height),
+            X = _random.Next(margin, _width - margin),
+            Y = _random.Next(margin, _height - margin),
             VelX = (float)(_random.NextDouble() * CURVE_SPEED * 2 - CURVE_SPEED),
             VelY = (float)(_random.NextDouble() * CURVE_SPEED * 2 - CURVE_SPEED),
             ControlPoints = new (float x, float y)[4],
@@ -133,19 +135,28 @@ public sealed class Win95Beziers : IVisualizerPlugin
         // Start point (relative to curve position)
         curve.ControlPoints[0] = (0, 0);
 
-        // Control point 1 (first handle)
-        float cp1x = (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE - CONTROL_POINT_VARIANCE * 0.5f);
-        float cp1y = (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE - CONTROL_POINT_VARIANCE * 0.5f);
+        // Generate smoother, more screen-appropriate curves
+        float maxExtent = Math.Min(_width, _height) * 0.3f; // Keep curves reasonably sized
+        float angle = (float)(_random.NextDouble() * Math.PI * 2); // Random direction
+
+        // Control point 1 (first handle) - moderate distance
+        float cp1Distance = maxExtent * (0.2f + (float)_random.NextDouble() * 0.3f);
+        float cp1x = (float)Math.Cos(angle) * cp1Distance;
+        float cp1y = (float)Math.Sin(angle) * cp1Distance;
         curve.ControlPoints[1] = (cp1x, cp1y);
 
-        // Control point 2 (second handle)
-        float cp2x = cp1x + (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE - CONTROL_POINT_VARIANCE * 0.5f);
-        float cp2y = cp1y + (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE - CONTROL_POINT_VARIANCE * 0.5f);
+        // Control point 2 (second handle) - similar direction but some variation
+        float cp2Angle = angle + (float)(_random.NextDouble() - 0.5f) * Math.PI * 0.5f;
+        float cp2Distance = maxExtent * (0.3f + (float)_random.NextDouble() * 0.4f);
+        float cp2x = (float)Math.Cos(cp2Angle) * cp2Distance;
+        float cp2y = (float)Math.Sin(cp2Angle) * cp2Distance;
         curve.ControlPoints[2] = (cp2x, cp2y);
 
-        // End point
-        float endX = cp2x + (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE * curve.Length);
-        float endY = cp2y + (float)(_random.NextDouble() * CONTROL_POINT_VARIANCE * curve.Length);
+        // End point - continue in similar direction
+        float endAngle = (angle + cp2Angle) * 0.5f + (float)(_random.NextDouble() - 0.5f) * Math.PI * 0.3f;
+        float endDistance = maxExtent * (0.5f + (float)_random.NextDouble() * 0.5f) * curve.Length;
+        float endX = (float)Math.Cos(endAngle) * endDistance;
+        float endY = (float)Math.Sin(endAngle) * endDistance;
         curve.ControlPoints[3] = (endX, endY);
     }
 
@@ -162,23 +173,26 @@ public sealed class Win95Beziers : IVisualizerPlugin
             // Update phase for animation
             curve.Phase += 0.02f * (1f + f.Mid * 0.5f);
 
-            // Bounce off walls
-            if (curve.X <= -200 || curve.X >= _width + 200)
-            {
-                curve.VelX = -curve.VelX;
-                curve.X = Math.Max(-200, Math.Min(_width + 200, curve.X));
+            // Bounce off walls with proper bounds checking
+            bool bounced = false;
 
-                // Regenerate control points for variety
-                GenerateControlPoints(curve);
-                curve.Color = _bezierColors[_random.Next(_bezierColors.Length)];
+            if (curve.X <= -100 || curve.X >= _width + 100)
+            {
+                curve.VelX = -curve.VelX * 0.9f; // Add some energy loss
+                curve.X = Math.Max(-50, Math.Min(_width + 50, curve.X));
+                bounced = true;
             }
 
-            if (curve.Y <= -200 || curve.Y >= _height + 200)
+            if (curve.Y <= -100 || curve.Y >= _height + 100)
             {
-                curve.VelY = -curve.VelY;
-                curve.Y = Math.Max(-200, Math.Min(_height + 200, curve.Y));
+                curve.VelY = -curve.VelY * 0.9f; // Add some energy loss
+                curve.Y = Math.Max(-50, Math.Min(_height + 50, curve.Y));
+                bounced = true;
+            }
 
-                // Regenerate control points for variety
+            // Only regenerate occasionally to maintain visual continuity
+            if (bounced && _random.NextDouble() < 0.3f)
+            {
                 GenerateControlPoints(curve);
                 curve.Color = _bezierColors[_random.Next(_bezierColors.Length)];
             }
@@ -326,7 +340,14 @@ public sealed class Win95Beziers : IVisualizerPlugin
             float waveX = (float)Math.Sin(t * Math.PI * 4 + curve.Phase) * 5f;
             float waveY = (float)Math.Cos(t * Math.PI * 3 + curve.Phase * 0.7f) * 3f;
 
-            points[i] = (curve.X + x + waveX, curve.Y + y + waveY);
+            float finalX = curve.X + x + waveX;
+            float finalY = curve.Y + y + waveY;
+
+            // Ensure points stay within reasonable bounds
+            finalX = Math.Max(-200, Math.Min(_width + 200, finalX));
+            finalY = Math.Max(-200, Math.Min(_height + 200, finalY));
+
+            points[i] = (finalX, finalY);
         }
 
         return points;
