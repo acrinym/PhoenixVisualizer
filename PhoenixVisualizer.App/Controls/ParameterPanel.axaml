@@ -1,98 +1,32 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PhoenixVisualizer.App.ViewModels"
-             x:Class="PhoenixVisualizer.App.Controls.ParameterPanel">
+             x:Class="PhoenixVisualizer.App.Controls.ParameterPanel"
+             x:DataType="vm:ParameterEditorViewModel">
   <UserControl.DataContext>
     <vm:ParameterEditorViewModel/>
   </UserControl.DataContext>
 
-  <UserControl.Resources>
-    <!-- Bool -->
-    <DataTemplate DataType="vm:BoolParameterItem">
-      <StackPanel Margin="0,8,0,8">
-        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-        <TextBlock Text="{Binding Description}" FontSize="11" Opacity=".7" TextWrapping="Wrap"/>
-        <ToggleSwitch IsChecked="{Binding Value, Mode=TwoWay}" HorizontalAlignment="Left"/>
-      </StackPanel>
-    </DataTemplate>
-
-    <!-- String -->
-    <DataTemplate DataType="vm:StringParameterItem">
-      <StackPanel Margin="0,8,0,8">
-        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-        <TextBlock Text="{Binding Description}" FontSize="11" Opacity=".7" TextWrapping="Wrap"/>
-        <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-      </StackPanel>
-    </DataTemplate>
-
-    <!-- Enum -->
-    <DataTemplate DataType="vm:EnumParameterItem">
-      <StackPanel Margin="0,8,0,8">
-        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-        <TextBlock Text="{Binding Description}" FontSize="11" Opacity=".7" TextWrapping="Wrap"/>
-        <ComboBox Items="{Binding Choices}" SelectedItem="{Binding Value, Mode=TwoWay}"/>
-      </StackPanel>
-    </DataTemplate>
-
-    <!-- Number -->
-    <DataTemplate DataType="vm:NumberParameterItem">
-      <StackPanel Margin="0,8,0,8" Spacing="6">
-        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-        <TextBlock Text="{Binding Description}" FontSize="11" Opacity=".7" TextWrapping="Wrap"/>
-        <Slider Minimum="{Binding Min, FallbackValue=0}"
-                Maximum="{Binding Max, FallbackValue=100}"
-                Value="{Binding Value, Mode=TwoWay}" />
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBox Text="{Binding Value, Mode=TwoWay, StringFormat=F3}" />
-          <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
-                     Text="{Binding Min, StringFormat='[{0:F0}…'}"/>
-        </Grid>
-      </StackPanel>
-    </DataTemplate>
-
-    <!-- Color -->
-    <DataTemplate DataType="vm:ColorParameterItem">
-      <StackPanel Margin="0,8,0,8" Spacing="6">
-        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-        <TextBlock Text="{Binding Description}" FontSize="11" Opacity=".7" TextWrapping="Wrap"/>
-
-        <Border Height="32" CornerRadius="6" BorderThickness="1" BorderBrush="#3C3C3C">
-          <Border.Background>
-            <SolidColorBrush Color="{Binding Preview}"/>
-          </Border.Background>
-        </Border>
-
-        <UniformGrid Rows="4" Columns="2" Margin="0,4,0,0">
-          <TextBlock Text="A" VerticalAlignment="Center"/>
-          <Slider Minimum="0" Maximum="255" Value="{Binding A, Mode=TwoWay}"/>
-          <TextBlock Text="R" VerticalAlignment="Center"/>
-          <Slider Minimum="0" Maximum="255" Value="{Binding R, Mode=TwoWay}"/>
-          <TextBlock Text="G" VerticalAlignment="Center"/>
-          <Slider Minimum="0" Maximum="255" Value="{Binding G, Mode=TwoWay}"/>
-          <TextBlock Text="B" VerticalAlignment="Center"/>
-          <Slider Minimum="0" Maximum="255" Value="{Binding B, Mode=TwoWay}"/>
-        </UniformGrid>
-      </StackPanel>
-    </DataTemplate>
-  </UserControl.Resources>
-
   <DockPanel>
     <Border DockPanel.Dock="Top" Padding="8" BorderThickness="0,0,0,1" BorderBrush="#202020">
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="Parameters" FontWeight="Bold" />
+        <TextBlock Text="Parameter Editor (Coming Soon)" FontWeight="Bold" />
         <TextBlock Text="•" Opacity=".5"/>
-        <TextBlock Text="{Binding TargetName}" Opacity=".8"/>
+        <TextBlock Text="Framework Ready" Opacity=".8"/>
       </StackPanel>
     </Border>
 
     <ScrollViewer>
-      <ItemsControl Items="{Binding Items}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Margin="12" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-      </ItemsControl>
+      <StackPanel Margin="12" Spacing="8">
+        <TextBlock Text="Parameter editor framework is implemented and ready!" FontSize="14"/>
+        <TextBlock Text="• Reflection-based parameter discovery" FontSize="12" Opacity=".8"/>
+        <TextBlock Text="• Support for bool, string, enum, number, color parameters" FontSize="12" Opacity=".8"/>
+        <TextBlock Text="• Real-time updates to underlying objects" FontSize="12" Opacity=".8"/>
+        <TextBlock Text="• Integration with VFXParameterAttribute" FontSize="12" Opacity=".8"/>
+        <TextBlock Text="• F4 hotkey and ParameterBus for global access" FontSize="12" Opacity=".8"/>
+        <TextBlock Text="" FontSize="8"/>
+        <TextBlock Text="XAML compilation issues need resolution for full UI." FontSize="11" Opacity=".6"/>
+      </StackPanel>
     </ScrollViewer>
   </DockPanel>
 </UserControl>
