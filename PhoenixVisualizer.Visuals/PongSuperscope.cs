@@ -38,14 +38,14 @@ public sealed class PongSuperscope : IVisualizerPlugin
         // Clear with dark background
         canvas.Clear(0xFF000000);
         
-        // Update time
-        _time += 0.02f;
+        // Update time with proper frame rate (60 FPS = 0.016f)
+        _time += 0.016f;
         
         // Get audio data
         float volume = features.Volume;
         bool beat = features.Beat;
         
-        // Update ball physics
+        // Update ball physics with proper bounds checking
         _ballX += _ballVX;
         _ballY += _ballVY;
 
@@ -54,26 +54,40 @@ public sealed class PongSuperscope : IVisualizerPlugin
         {
             _ballX = 0.85f; // Keep ball in bounds
             _ballVX = -Math.Abs(_ballVX); // Ensure it goes left
+            // Add slight randomization to prevent getting stuck
+            _ballVY += (Random.Shared.NextSingle() - 0.5f) * 0.01f;
         }
         if (_ballX < -0.85f) // Left wall - bounce right
         {
             _ballX = -0.85f; // Keep ball in bounds
             _ballVX = Math.Abs(_ballVX); // Ensure it goes right
+            // Add slight randomization to prevent getting stuck
+            _ballVY += (Random.Shared.NextSingle() - 0.5f) * 0.01f;
         }
         if (_ballY > 0.85f) // Top wall - bounce down
         {
             _ballY = 0.85f; // Keep ball in bounds
             _ballVY = -Math.Abs(_ballVY); // Ensure it goes down
+            // Add slight randomization to prevent getting stuck
+            _ballVX += (Random.Shared.NextSingle() - 0.5f) * 0.01f;
         }
         if (_ballY < -0.85f) // Bottom wall - bounce up
         {
             _ballY = -0.85f; // Keep ball in bounds
             _ballVY = Math.Abs(_ballVY); // Ensure it goes up
+            // Add slight randomization to prevent getting stuck
+            _ballVX += (Random.Shared.NextSingle() - 0.5f) * 0.01f;
         }
         
-        // Update paddle positions (follow ball with some lag)
-        _paddleLeftY = _paddleLeftY * 0.8f + _ballY * 0.2f;
-        _paddleRightY = _paddleRightY * 0.8f + _ballY * 0.2f;
+        // Prevent ball from getting completely stuck by ensuring minimum velocity
+        float minVelocity = 0.005f;
+        if (Math.Abs(_ballVX) < minVelocity) _ballVX = minVelocity * Math.Sign(_ballVX);
+        if (Math.Abs(_ballVY) < minVelocity) _ballVY = minVelocity * Math.Sign(_ballVY);
+        
+        // Update paddle positions (follow ball with some lag, but ALWAYS move)
+        float paddleSpeed = 0.3f; // Increased from 0.2f for more responsive movement
+        _paddleLeftY = _paddleLeftY * (1f - paddleSpeed) + _ballY * paddleSpeed;
+        _paddleRightY = _paddleRightY * (1f - paddleSpeed) + _ballY * paddleSpeed;
 
         // Paddle collision detection
         float paddleWidth = 0.05f; // Paddle width in AVS coordinates
@@ -97,11 +111,16 @@ public sealed class PongSuperscope : IVisualizerPlugin
             _ballVY += (_ballY - _paddleRightY) * 0.3f; // Add spin based on where ball hits paddle
         }
         
-        // Handle beat events - speed up ball
+        // Handle beat events - moderate speed increase (not hyperspeed)
         if (beat)
         {
-            _ballVX *= 1.05f;
-            _ballVY *= 1.05f;
+            _ballVX *= 1.02f; // Reduced from 1.05f to prevent hyperspeed
+            _ballVY *= 1.02f; // Reduced from 1.05f to prevent hyperspeed
+            
+            // Cap maximum speed to prevent hyperspeed
+            float maxSpeed = 0.1f;
+            if (Math.Abs(_ballVX) > maxSpeed) _ballVX = maxSpeed * Math.Sign(_ballVX);
+            if (Math.Abs(_ballVY) > maxSpeed) _ballVY = maxSpeed * Math.Sign(_ballVY);
         }
         
         // Draw the pong game elements
@@ -129,6 +148,8 @@ public sealed class PongSuperscope : IVisualizerPlugin
         uint textColor = beat ? 0xFFFFFF00 : 0xFF00FF00;
         canvas.DrawText($"Time: {_time:F1}s", 10, 30, textColor, 14.0f);
         canvas.DrawText($"Speed: {Math.Sqrt(_ballVX * _ballVX + _ballVY * _ballVY):F3}", 10, 50, textColor, 14.0f);
+        canvas.DrawText($"Ball: ({_ballX:F2}, {_ballY:F2})", 10, 70, textColor, 14.0f);
+        canvas.DrawText($"Paddles: L({_paddleLeftY:F2}) R({_paddleRightY:F2})", 10, 90, textColor, 14.0f);
     }
 
     public void Dispose()

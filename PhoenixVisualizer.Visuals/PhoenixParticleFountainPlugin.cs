@@ -70,12 +70,12 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         var treble = features.Treble;
         var beat = features.Beat;
 
-        // Continuous emission with energy boost
-        var baseEmissionRate = 8f; // Always emit some particles
-        var energyEmissionRate = energy * 15f; // Energy-driven emission
+        // Continuous emission with energy boost - ALWAYS emit particles
+        var baseEmissionRate = 12f; // Increased base emission
+        var energyEmissionRate = energy * 20f; // Increased energy-driven emission
         var totalEmissionRate = baseEmissionRate + energyEmissionRate;
 
-        if (beat) totalEmissionRate *= 1.5f; // Boost on beat
+        if (beat) totalEmissionRate *= 2.0f; // Increased beat boost
 
         // Emit particles based on accumulated emission
         var particlesToEmit = (int)totalEmissionRate;
@@ -85,7 +85,10 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         if (Random.Shared.NextSingle() < fractionalEmission)
             particlesToEmit++;
 
-        for (int i = 0; i < particlesToEmit && _activeParticles < _maxParticles; i++)
+        // Always emit at least some particles, even if we're at max
+        particlesToEmit = Math.Max(3, particlesToEmit);
+
+        for (int i = 0; i < particlesToEmit; i++)
         {
             EmitParticle(features);
         }
@@ -118,38 +121,63 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 
     private void EmitParticle(AudioFeatures features)
     {
-        // Find inactive particle
+        int particleIndex = -1;
+        
+        // First try to find an inactive particle
         for (int i = 0; i < _maxParticles; i++)
         {
             if (!_particles[i].active)
             {
-                var baseX = _w / 2f;
-                var baseY = _h * 0.8f;
-
-                // Random emission angle (mostly upward with some spread)
-                var angle = (float)(Math.PI * 0.5f + (Random.Shared.NextDouble() - 0.5f) * 0.6f);
-                var speed = 100f + features.Energy * 200f; // Speed from energy
-
-                // Z-speed from bass (affects particle height)
-                var zSpeed = features.Bass * 150f + 50f;
-
-                _particles[i] = new Particle
-                {
-                    x = baseX + (Random.Shared.NextSingle() - 0.5f) * 30f, // Wider emission area
-                    y = baseY,
-                    z = 0f,
-                    vx = (float)Math.Cos(angle) * speed * 0.3f + (Random.Shared.NextSingle() - 0.5f) * 20f, // Add horizontal spread
-                    vy = -(float)Math.Sin(angle) * speed,
-                    vz = zSpeed + (Random.Shared.NextSingle() - 0.5f) * 30f, // Add Z variation
-                    life = 1f,
-                    maxLife = 2f + features.Energy * 3f + Random.Shared.NextSingle() * 2f, // Longer, more varied life
-                    color = GetRainbowColor(Random.Shared.NextSingle(), features.Treble),
-                    size = 2f + Random.Shared.NextSingle() * 6f, // More size variation
-                    active = true
-                };
-
-                _activeParticles++;
+                particleIndex = i;
                 break;
+            }
+        }
+        
+        // If no inactive particles, recycle the oldest one (lowest life)
+        if (particleIndex == -1)
+        {
+            float lowestLife = float.MaxValue;
+            for (int i = 0; i < _maxParticles; i++)
+            {
+                if (_particles[i].life < lowestLife)
+                {
+                    lowestLife = _particles[i].life;
+                    particleIndex = i;
+                }
+            }
+        }
+        
+        if (particleIndex != -1)
+        {
+            var baseX = _w / 2f;
+            var baseY = _h * 0.8f;
+
+            // Random emission angle (mostly upward with some spread)
+            var angle = (float)(Math.PI * 0.5f + (Random.Shared.NextDouble() - 0.5f) * 0.6f);
+            var speed = 100f + features.Energy * 200f; // Speed from energy
+
+            // Z-speed from bass (affects particle height)
+            var zSpeed = features.Bass * 150f + 50f;
+
+            _particles[particleIndex] = new Particle
+            {
+                x = baseX + (Random.Shared.NextSingle() - 0.5f) * 30f, // Wider emission area
+                y = baseY,
+                z = 0f,
+                vx = (float)Math.Cos(angle) * speed * 0.3f + (Random.Shared.NextSingle() - 0.5f) * 20f, // Add horizontal spread
+                vy = -(float)Math.Sin(angle) * speed,
+                vz = zSpeed + (Random.Shared.NextSingle() - 0.5f) * 30f, // Add Z variation
+                life = 1f,
+                maxLife = 3f + features.Energy * 4f + Random.Shared.NextSingle() * 3f, // Longer, more varied life
+                color = GetRainbowColor(Random.Shared.NextSingle(), features.Treble),
+                size = 2f + Random.Shared.NextSingle() * 6f, // More size variation
+                active = true
+            };
+
+            // Only increment active count if this was a truly inactive particle
+            if (!_particles[particleIndex].active)
+            {
+                _activeParticles++;
             }
         }
     }

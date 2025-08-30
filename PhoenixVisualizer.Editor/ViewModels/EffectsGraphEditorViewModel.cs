@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Avalonia.Media;
+using Avalonia.Layout;
 using PhoenixVisualizer.Core.Effects.Graph;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
@@ -37,6 +39,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
         private int _targetFPS = 60;
         private string _qualityLevel = "High";
         private string _statusMessage = "Ready";
+        private Window? _previewWindow;
 
         #endregion
 
@@ -132,6 +135,11 @@ namespace PhoenixVisualizer.Editor.ViewModels
         }
 
         public string SelectedNodeName => _selectedNode?.Name ?? "No Node Selected";
+        public bool IsFullscreenPreviewActive
+        {
+            get => _previewWindow != null;
+            private set => OnPropertyChanged(nameof(IsFullscreenPreviewActive));
+        }
 
         #endregion
 
@@ -645,17 +653,101 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         private AudioFeatures CreateMockAudioFeatures()
         {
+            // Generate dynamic mock audio data that changes over time
+            var time = (float)(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) * 0.001f;
+
+            // Create realistic audio data arrays
+            var leftChannel = new float[1024];
+            var rightChannel = new float[1024];
+            var centerChannel = new float[1024];
+            var fftData = new float[512];
+
+            // Generate sine wave with some harmonics
+            float baseFrequency = 440f; // A4 note
+            for (int i = 0; i < 1024; i++)
+            {
+                float t = i / 44100f; // Sample at 44.1kHz
+
+                // Generate a mix of frequencies
+                float sample = (float)(
+                    Math.Sin(2 * Math.PI * baseFrequency * t) * 0.5f +           // Fundamental
+                    Math.Sin(2 * Math.PI * baseFrequency * 2 * t) * 0.3f +       // Octave
+                    Math.Sin(2 * Math.PI * baseFrequency * 3 * t) * 0.2f +       // Fifth
+                    Math.Sin(2 * Math.PI * baseFrequency * 4 * t) * 0.1f         // Third octave
+                );
+
+                // Add some noise for realism
+                sample += (float)(Random.Shared.NextDouble() - 0.5) * 0.05f;
+
+                // Apply envelope (attack/decay)
+                float envelope = Math.Min(t * 10f, 1f - (t - 0.1f) * 2f);
+                envelope = Math.Max(0, envelope);
+                sample *= envelope;
+
+                leftChannel[i] = sample;
+                rightChannel[i] = sample * 0.8f; // Slight stereo difference
+                centerChannel[i] = sample * 0.6f;
+            }
+
+            // Generate FFT data
+            for (int i = 0; i < 512; i++)
+            {
+                float frequency = i * 44100f / 1024f;
+                float magnitude = 0f;
+
+                // Add peaks at harmonic frequencies
+                if (Math.Abs(frequency - baseFrequency) < 10f) magnitude = 0.8f;
+                else if (Math.Abs(frequency - baseFrequency * 2) < 10f) magnitude = 0.6f;
+                else if (Math.Abs(frequency - baseFrequency * 3) < 10f) magnitude = 0.4f;
+                else if (Math.Abs(frequency - baseFrequency * 4) < 10f) magnitude = 0.2f;
+
+                // Add some random variation
+                magnitude += (float)Random.Shared.NextDouble() * 0.1f;
+                fftData[i] = Math.Max(0, magnitude);
+            }
+
+            // Calculate derived values
+            float rms = 0f, bass = 0f, mid = 0f, treble = 0f;
+            for (int i = 0; i < 1024; i++)
+            {
+                rms += leftChannel[i] * leftChannel[i];
+            }
+            rms = (float)Math.Sqrt(rms / 1024f);
+
+            // Frequency band analysis
+            for (int i = 0; i < 512; i++)
+            {
+                float frequency = i * 44100f / 1024f;
+                if (frequency < 250) bass += fftData[i];
+                else if (frequency < 2000) mid += fftData[i];
+                else treble += fftData[i];
+            }
+
+            bass = Math.Min(1f, bass / 50f);
+            mid = Math.Min(1f, mid / 100f);
+            treble = Math.Min(1f, treble / 200f);
+
+            // Dynamic beat detection
+            bool beat = Math.Sin(time * 2f) > 0.7f;
+            float beatIntensity = beat ? (float)(0.5f + 0.5f * Math.Sin(time * 4f)) : 0f;
+
             return new AudioFeatures
             {
-                Beat = true,
-                BeatIntensity = 0.8f,
-                RMS = 0.6f,
-                Bass = 0.7f,
-                Mid = 0.5f,
-                Treble = 0.4f,
-                LeftChannel = new float[1024],
-                RightChannel = new float[1024],
-                CenterChannel = new float[1024]
+                Beat = beat,
+                BeatIntensity = beatIntensity,
+                RMS = rms,
+                Bass = bass,
+                Mid = mid,
+                Treble = treble,
+                LeftChannel = leftChannel,
+                RightChannel = rightChannel,
+                CenterChannel = centerChannel,
+                BPM = 120.0f,
+                SampleRate = 44100,
+                Volume = rms,
+                IsPlaying = true,
+                PlaybackPosition = 0f,
+                TotalDuration = 60f
             };
         }
 
@@ -684,8 +776,47 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         private void ToggleFullscreenPreview()
         {
-            // TODO: Implement fullscreen preview
-            System.Diagnostics.Debug.WriteLine("Toggle fullscreen preview");
+            // Implement fullscreen preview
+            if (_previewWindow == null)
+            {
+                // Create fullscreen preview window
+                _previewWindow = new Window
+                {
+                    Title = "Effects Graph Preview - Fullscreen",
+                    WindowState = WindowState.FullScreen,
+                    CanResize = false,
+                    ShowInTaskbar = false
+                };
+                
+                // Create preview content
+                var previewContent = new Border
+                {
+                    Background = new SolidColorBrush(Colors.Black),
+                    Child = new TextBlock
+                    {
+                        Text = "Fullscreen Preview Mode",
+                        Foreground = new SolidColorBrush(Colors.White),
+                        FontSize = 24,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    }
+                };
+                
+                _previewWindow.Content = previewContent;
+                _previewWindow.Show();
+                
+                // Update UI state
+                IsFullscreenPreviewActive = true;
+            }
+            else
+            {
+                // Close fullscreen preview
+                _previewWindow.Close();
+                _previewWindow = null;
+                
+                // Update UI state
+                IsFullscreenPreviewActive = false;
+            }
         }
 
         #endregion

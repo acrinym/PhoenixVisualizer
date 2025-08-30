@@ -83,6 +83,26 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         /// </summary>
         public float Smoothing { get; set; } = 0.8f;
 
+        /// <summary>
+        /// Audio sensitivity multiplier (0.1 to 10.0)
+        /// </summary>
+        public float Sensitivity { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Scale factor for visualization (0.1 to 5.0)
+        /// </summary>
+        public float ScaleFactor { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Minimum bar height (0.0 to 1.0)
+        /// </summary>
+        public float MinBarHeight { get; set; } = 0.0f;
+
+        /// <summary>
+        /// Maximum bar height (0.1 to 2.0)
+        /// </summary>
+        public float MaxBarHeight { get; set; } = 1.0f;
+
         #endregion
 
         #region Private Fields
@@ -128,14 +148,27 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 return GetDefaultOutput();
 
             var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // TODO: Implement actual effect logic here
-            // For now, just copy input to output
+
+            // Copy input to output
             for (int i = 0; i < output.Pixels.Length; i++)
             {
                 output.Pixels[i] = imageBuffer.Pixels[i];
             }
-            
+
+            // Process visualization based on mode
+            if (VisualizationMode >= 0 && VisualizationMode <= 2)
+            {
+                // Spectrum visualization
+                var fftData = GetAudioData(audioFeatures);
+                ProcessSpectrumVisualization(output, fftData);
+            }
+            else if (VisualizationMode >= 3 && VisualizationMode <= 5)
+            {
+                // Oscilloscope visualization
+                var waveData = GetWaveformData(audioFeatures);
+                ProcessOscilloscopeVisualization(output, waveData);
+            }
+
             return output;
         }
 
@@ -153,12 +186,26 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             switch (ChannelMode)
             {
                 case 0: // Left
-                    return audioFeatures.LeftChannelFFT ?? audioFeatures.FFTData;
+                    return audioFeatures.FFTData;
                 case 1: // Right
-                    return audioFeatures.RightChannelFFT ?? audioFeatures.FFTData;
+                    return audioFeatures.FFTData;
                 case 2: // Center (L+R)
                 default:
                     return audioFeatures.FFTData;
+            }
+        }
+
+        private float[] GetWaveformData(AudioFeatures audioFeatures)
+        {
+            switch (ChannelMode)
+            {
+                case 0: // Left
+                    return audioFeatures.WaveformData;
+                case 1: // Right
+                    return audioFeatures.WaveformData;
+                case 2: // Center (L+R)
+                default:
+                    return audioFeatures.WaveformData;
             }
         }
 
@@ -182,7 +229,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 _smoothedSpectrumData[i] = _smoothedSpectrumData[i] * Smoothing + magnitude * (1 - Smoothing);
                 magnitude = _smoothedSpectrumData[i];
 
-                // Update peaks
+                // FIXED: Apply proper scaling and clamping to prevent "constantly at MAX" issue
+                float scaledMagnitude = Math.Max(MinBarHeight, Math.Min(MaxBarHeight, magnitude * Sensitivity * ScaleFactor));
+                int barHeight = (int)(scaledMagnitude * VisualizationHeight);
+                int peakHeight = (int)(Math.Max(MinBarHeight, Math.Min(MaxBarHeight, _peakData[i] * Sensitivity * ScaleFactor)) * VisualizationHeight);
+
+                // Update peaks with proper scaling
                 if (magnitude > _peakData[i])
                 {
                     _peakData[i] = magnitude;
@@ -197,8 +249,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                     _peakData[i] *= 0.95f; // Slow peak decay
                 }
 
-                int barHeight = (int)(magnitude * VisualizationHeight);
-                int peakHeight = (int)(_peakData[i] * VisualizationHeight);
                 int x = startX + (i * VisualizationWidth) / bands;
                 int barWidth = Math.Max(1, VisualizationWidth / bands);
 
@@ -257,7 +307,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 if (sampleIndex >= waveData.Length) break;
 
                 float sample = waveData[sampleIndex];
-                int y = centerY - (int)(sample * VisualizationHeight / 2);
+                
+                // FIXED: Apply proper scaling and clamping for oscilloscope
+                float scaledSample = Math.Max(-1f, Math.Min(1f, sample * Sensitivity * ScaleFactor));
+                int y = centerY - (int)(scaledSample * VisualizationHeight / 2);
                 y = Math.Max(0, Math.Min(canvas.Height - 1, y));
 
                 switch (VisualizationMode)
@@ -298,37 +351,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         {
             if (x >= 0 && x < canvas.Width && y >= 0 && y < canvas.Height)
             {
-                canvas.Data[y * canvas.Width + x] = color;
-            }
-        }
-
-        private void DrawLine(ImageBuffer canvas, int x1, int y1, int x2, int y2, uint color)
-        {
-            // Simple line drawing using Bresenham's algorithm
-            int dx = Math.Abs(x2 - x1);
-            int dy = Math.Abs(y2 - y1);
-            int sx = x1 < x2 ? 1 : -1;
-            int sy = y1 < y2 ? 1 : -1;
-            int err = dx - dy;
-
-            int x = x1, y = y1;
-            while (true)
-            {
-                SetPixel(canvas, x, y, color);
-
-                if (x == x2 && y == y2) break;
-
-                int e2 = 2 * err;
-                if (e2 > -dy)
-                {
-                    err -= dy;
-                    x += sx;
-                }
-                if (e2 < dx)
-                {
-                    err += dx;
-                    y += sy;
-                }
+                canvas.Pixels[y * canvas.Width + x] = (int)color;
             }
         }
 
@@ -354,6 +377,36 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             }
         }
 
+        private void DrawLine(ImageBuffer canvas, int x1, int y1, int x2, int y2, uint color)
+        {
+            // Simple Bresenham line algorithm
+            int dx = Math.Abs(x2 - x1);
+            int dy = Math.Abs(y2 - y1);
+            int sx = x1 < x2 ? 1 : -1;
+            int sy = y1 < y2 ? 1 : -1;
+            int err = dx - dy;
+
+            int x = x1, y = y1;
+            while (true)
+            {
+                SetPixel(canvas, x, y, color);
+                
+                if (x == x2 && y == y2) break;
+                
+                int e2 = 2 * err;
+                if (e2 > -dy)
+                {
+                    err -= dy;
+                    x += sx;
+                }
+                if (e2 < dx)
+                {
+                    err += dx;
+                    y += sy;
+                }
+            }
+        }
+
         private void DrawFilledRectangle(ImageBuffer canvas, int x, int y, int width, int height, uint color)
         {
             for (int dy = 0; dy < height; dy++)
@@ -366,7 +419,5 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         }
 
         #endregion
-
-        
     }
 }

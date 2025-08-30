@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using PhoenixVisualizer.Core.Interfaces;
 
 namespace PhoenixVisualizer.Core.Nodes;
 
@@ -25,16 +26,20 @@ public class EffectParam
     public List<string> Options { get; set; } = new(); // For dropdown types
 }
 
+/// <summary>
+/// Rendering context passed to effect nodes
+/// Contains surface information and audio data
+/// </summary>
 public class RenderContext
 {
     public int Width { get; set; }
     public int Height { get; set; }
+    public float[] Waveform { get; set; } = Array.Empty<float>();
+    public float[] Spectrum { get; set; } = Array.Empty<float>();
     public float Time { get; set; }
     public bool Beat { get; set; }
     public float Volume { get; set; }
-    public float[] Waveform { get; set; } = Array.Empty<float>();
-    public float[] Spectrum { get; set; } = Array.Empty<float>();
-    // TODO: add SkiaSharp/GL surface handles
+    public ISkiaCanvas? Canvas { get; set; } // SkiaSharp canvas for actual rendering
 }
 
 public static class EffectRegistry

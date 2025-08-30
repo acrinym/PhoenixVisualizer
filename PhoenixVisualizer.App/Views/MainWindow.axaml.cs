@@ -10,6 +10,7 @@ using PhoenixVisualizer.App.Controls;
 using PhoenixVisualizer.Core.Diagnostics;
 using PhoenixVisualizer.App.Utils;
 using System.Text;
+using System.Text.Json;
 
 namespace PhoenixVisualizer.Views;
 
@@ -428,12 +429,91 @@ public partial class MainWindow : Window
 
     private void InitializePlugin()
     {
-        // Set default plugin after controls are ready
-        // TODO: Load from settings/config file
+        // Load plugin from settings/config file
         if (RenderSurfaceControl is not null)
         {
-            var plugin = new AvsVisualizerPlugin(); // Default to AVS Engine
-            RenderSurfaceControl.SetPlugin(plugin);
+            try
+            {
+                var settings = LoadApplicationSettings();
+                var plugin = CreatePluginFromSettings(settings);
+                RenderSurfaceControl.SetPlugin(plugin);
+            }
+            catch (Exception ex)
+            {
+                // Fallback to default plugin if settings loading fails
+                System.Diagnostics.Debug.WriteLine($"Error loading settings: {ex.Message}");
+                var plugin = new AvsVisualizerPlugin(); // Default to AVS Engine
+                RenderSurfaceControl.SetPlugin(plugin);
+            }
+        }
+    }
+
+    private ApplicationSettings LoadApplicationSettings()
+    {
+        var settingsPath = GetSettingsFilePath();
+
+        if (File.Exists(settingsPath))
+        {
+            try
+            {
+                var json = File.ReadAllText(settingsPath);
+                return JsonSerializer.Deserialize<ApplicationSettings>(json) ?? new ApplicationSettings();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading settings file: {ex.Message}");
+            }
+        }
+
+        // Return default settings if file doesn't exist or loading failed
+        return new ApplicationSettings
+        {
+            DefaultPlugin = "AvsVisualizerPlugin",
+            WindowWidth = 1200,
+            WindowHeight = 800,
+            EnableDebugLogging = false,
+            Theme = "Dark",
+            AudioDevice = "Default",
+            LastOpenedFile = null
+        };
+    }
+
+    private IVisualizerPlugin CreatePluginFromSettings(ApplicationSettings settings)
+    {
+        // For now, use the default AVS plugin since other plugin types may not be available
+        return new AvsVisualizerPlugin();
+    }
+
+    private string GetSettingsFilePath()
+    {
+        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var phoenixPath = Path.Combine(appDataPath, "PhoenixVisualizer");
+        Directory.CreateDirectory(phoenixPath);
+        return Path.Combine(phoenixPath, "settings.json");
+    }
+
+    private async void SaveApplicationSettings()
+    {
+        try
+        {
+            var settings = new ApplicationSettings
+            {
+                DefaultPlugin = RenderSurfaceControl?.CurrentPlugin?.GetType().Name ?? "AvsVisualizerPlugin",
+                WindowWidth = (int)Width,
+                WindowHeight = (int)Height,
+                EnableDebugLogging = false, // This could be a UI setting
+                Theme = "Dark", // This could be a UI setting
+                AudioDevice = "Default",
+                LastOpenedFile = null
+            };
+
+            var settingsPath = GetSettingsFilePath();
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(settingsPath, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving settings: {ex.Message}");
         }
     }
 
@@ -1340,4 +1420,18 @@ public partial class MainWindow : Window
 
     private void LogError(string context, Exception ex)
         => Console.Error.WriteLine($"[PhoenixVisualizer] {context}: {ex.Message}");
+}
+
+/// <summary>
+/// Application settings for persistence
+/// </summary>
+public class ApplicationSettings
+{
+    public string DefaultPlugin { get; set; } = "AvsVisualizerPlugin";
+    public int WindowWidth { get; set; } = 1200;
+    public int WindowHeight { get; set; } = 800;
+    public bool EnableDebugLogging { get; set; } = false;
+    public string Theme { get; set; } = "Dark";
+    public string AudioDevice { get; set; } = "Default";
+    public string? LastOpenedFile { get; set; }
 }
