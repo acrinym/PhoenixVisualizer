@@ -99,23 +99,34 @@ namespace PhoenixVisualizer.App.ViewModels
             int order = 0;
             var at = attr.GetType();
 
-            display = TryGet<string>(at, attr, "DisplayName") ?? TryGet<string>(at, attr, "Name") ?? p.Name;
-            desc    = TryGet<string>(at, attr, "Description") ?? "";
+            display = TryGetString(at, attr, "DisplayName") ?? TryGetString(at, attr, "Name") ?? p.Name;
+            desc    = TryGetString(at, attr, "Description") ?? "";
 
             min  = TryGetDouble(at, attr, "Min");
             max  = TryGetDouble(at, attr, "Max");
             step = TryGetDouble(at, attr, "Step");
-            order = TryGet<int>(at, attr, "Order") ?? 0;
+            var orderValue = TryGet<int>(at, attr, "Order");
+            order = orderValue.HasValue ? orderValue.Value : 0;
 
             return (display, desc, min, max, step, order);
         }
 
         private static TOut? TryGet<TOut>(Type t, object instance, string propName)
+            where TOut : struct
         {
             var p = t.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (p == null) return default;
-            if (!typeof(TOut).IsAssignableFrom(p.PropertyType)) return default;
-            return (TOut?)p.GetValue(instance);
+            if (p == null) return null;
+            if (!typeof(TOut).IsAssignableFrom(p.PropertyType)) return null;
+            var value = p.GetValue(instance);
+            return value == null ? null : (TOut?)value;
+        }
+
+        private static string? TryGetString(Type t, object instance, string propName)
+        {
+            var p = t.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (p == null) return null;
+            if (!typeof(string).IsAssignableFrom(p.PropertyType)) return null;
+            return (string?)p.GetValue(instance);
         }
 
         private static double? TryGetDouble(Type t, object instance, string propName)
