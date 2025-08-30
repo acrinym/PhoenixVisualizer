@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,7 +20,6 @@ using PhoenixVisualizer.Core.Nodes;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive.Linq;
-using System.Diagnostics;
 
 // Reference classes from the App.Views namespace
 using PhxPreviewRenderer = PhoenixVisualizer.App.Views.PhxPreviewRenderer;
@@ -434,6 +435,16 @@ public class PhxEditorViewModel : ReactiveObject
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
 
+    // Performance Monitoring
+    private readonly Stopwatch _fpsStopwatch = new();
+    private readonly Stopwatch _renderStopwatch = new();
+    private PerformanceCounter? _cpuCounter = null;
+    private PerformanceCounter? _memoryCounter = null;
+    private int _frameCount = 0;
+    private double _lastFpsUpdate = 0;
+    private Timer? _performanceUpdateTimer = null;
+    private readonly StringBuilder _performanceLog = new();
+
     public PhxEditorViewModel()
     {
         // Initialize preset service
@@ -443,14 +454,194 @@ public class PhxEditorViewModel : ReactiveObject
         SelectedEffect = null!;
         SelectedLibraryEffect = null!;
 
+        // Initialize performance monitoring
+        InitializePerformanceMonitoring();
+
         // Load effect library
         LoadEffectLibrary();
 
         // Initialize default preset
         InitializeDefaultPreset();
-        
+
         // Initialize all commands
         InitializeCommands();
+    }
+
+    private void InitializePerformanceMonitoring()
+    {
+        try
+        {
+            // Initialize performance counters (Windows only, fallback for other platforms)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                    _memoryCounter = new PerformanceCounter("Memory", "Available MBytes");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to initialize performance counters: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Performance counters not available: {ex.Message}");
+        }
+
+        // Start FPS monitoring
+        _fpsStopwatch.Start();
+
+        // Initialize performance update timer (updates every 500ms)
+        _performanceUpdateTimer = new Timer(UpdatePerformanceStats, null, 0, 500);
+        _performanceUpdateTimer.Change(0, 500); // Start immediately, update every 500ms
+
+        // Log initial performance data
+        LogPerformanceEvent("Performance monitoring initialized");
+    }
+
+    private void UpdatePerformanceStats(object? state)
+    {
+        try
+        {
+            // Update FPS counter
+            _frameCount++;
+            var elapsed = _fpsStopwatch.Elapsed.TotalSeconds;
+
+            if (elapsed - _lastFpsUpdate >= 1.0)
+            {
+                var fps = _frameCount / (elapsed - _lastFpsUpdate);
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    FpsCounter = $"{fps:F1} FPS";
+                });
+
+                _frameCount = 0;
+                _lastFpsUpdate = elapsed;
+            }
+
+            // Update CPU usage
+            string cpuUsage = "N/A";
+            if (_cpuCounter != null)
+            {
+                try
+                {
+                    cpuUsage = $"{_cpuCounter.NextValue():F1}%";
+                }
+                catch
+                {
+                    cpuUsage = "N/A";
+                }
+            }
+
+            // Update memory usage
+            string memoryUsage = "N/A";
+            if (_memoryCounter != null)
+            {
+                try
+                {
+                    var availableMB = _memoryCounter.NextValue();
+                    var totalMemory = GC.GetTotalMemory(false) / (1024 * 1024);
+                    var usedMemory = totalMemory - availableMB;
+                    memoryUsage = $"{usedMemory:F0} MB";
+                }
+                catch
+                {
+                    memoryUsage = $"{GC.GetTotalMemory(false) / (1024 * 1024):F0} MB";
+                }
+            }
+
+            // Update render time (estimate based on frame time)
+            var renderTime = "N/A";
+            if (_renderStopwatch.IsRunning)
+            {
+                renderTime = $"{_renderStopwatch.ElapsedMilliseconds:F1}ms";
+                _renderStopwatch.Restart();
+            }
+            else
+            {
+                _renderStopwatch.Start();
+                renderTime = "16.7ms"; // Default 60 FPS
+            }
+
+            // Update UI on main thread
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                CpuUsage = cpuUsage;
+                MemoryUsage = memoryUsage;
+                RenderTime = renderTime;
+                EffectCount = $"{EffectStack.Count} effects";
+            });
+
+            // Log performance data if debug logging is enabled
+            if (EnableDebugLogging)
+            {
+                LogPerformanceEvent($"FPS: {FpsCounter}, CPU: {cpuUsage}, Memory: {memoryUsage}, Render: {renderTime}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error updating performance stats: {ex.Message}");
+        }
+    }
+
+    private void LogPerformanceEvent(string message)
+    {
+        var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+        var logEntry = $"[{timestamp}] {message}";
+
+        _performanceLog.AppendLine(logEntry);
+
+        // Keep log size manageable (last 1000 lines)
+        if (_performanceLog.Length > 50000)
+        {
+            var lines = _performanceLog.ToString().Split('\n');
+            if (lines.Length > 1000)
+            {
+                _performanceLog.Clear();
+                for (int i = lines.Length - 1000; i < lines.Length; i++)
+                {
+                    _performanceLog.AppendLine(lines[i]);
+                }
+            }
+        }
+
+        Debug.WriteLine($"[Performance] {message}");
+    }
+
+    public void RecordFrameTime(long milliseconds)
+    {
+        // This method can be called from rendering code to record actual frame times
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            RenderTime = $"{milliseconds:F1}ms";
+        });
+    }
+
+    public string GetPerformanceReport()
+    {
+        var report = new StringBuilder();
+        report.AppendLine("=== Phoenix Visualizer Performance Report ===");
+        report.AppendLine($"Generated: {DateTime.Now}");
+        report.AppendLine();
+        report.AppendLine("Current Stats:");
+        report.AppendLine($"  FPS: {FpsCounter}");
+        report.AppendLine($"  CPU Usage: {CpuUsage}");
+        report.AppendLine($"  Memory Usage: {MemoryUsage}");
+        report.AppendLine($"  Render Time: {RenderTime}");
+        report.AppendLine($"  Effect Count: {EffectCount}");
+        report.AppendLine();
+        report.AppendLine("System Information:");
+        report.AppendLine($"  .NET Version: {Environment.Version}");
+        report.AppendLine($"  OS: {Environment.OSVersion}");
+        report.AppendLine($"  Processor Count: {Environment.ProcessorCount}");
+        report.AppendLine($"  Total Memory: {GC.GetTotalMemory(false) / (1024 * 1024):F0} MB");
+        report.AppendLine();
+        report.AppendLine("Performance Log (Last 1000 entries):");
+        report.AppendLine(_performanceLog.ToString());
+
+        return report.ToString();
     }
     
     // Command handler methods
@@ -1185,6 +1376,14 @@ public class PhxEditorViewModel : ReactiveObject
 
     private void ResetPerformanceStats()
     {
+        // Reset counters and timers
+        _frameCount = 0;
+        _lastFpsUpdate = 0;
+        _fpsStopwatch.Restart();
+        _renderStopwatch.Reset();
+        _performanceLog.Clear();
+
+        // Reset UI values
         FpsCounter = "60 FPS";
         MemoryUsage = "128 MB";
         CpuUsage = "5%";
@@ -1192,6 +1391,9 @@ public class PhxEditorViewModel : ReactiveObject
         EffectCount = $"{EffectStack.Count} effects";
         StatusMessage = "Performance stats reset";
         DebugInfo = "Debug: Stats reset";
+
+        // Log the reset event
+        LogPerformanceEvent("Performance stats manually reset");
     }
 
     private void ExportPerformanceLog()
@@ -1207,20 +1409,12 @@ public class PhxEditorViewModel : ReactiveObject
                 Directory.CreateDirectory(logDirectory);
             }
 
-            var logContent = new StringBuilder();
-            logContent.AppendLine("=== PHX Editor Performance Log ===");
-            logContent.AppendLine($"Timestamp: {DateTime.Now}");
-            logContent.AppendLine($"FPS: {FpsCounter}");
-            logContent.AppendLine($"Memory Usage: {MemoryUsage}");
-            logContent.AppendLine($"CPU Usage: {CpuUsage}");
-            logContent.AppendLine($"Render Time: {RenderTime}");
-            logContent.AppendLine($"Effect Count: {EffectCount}");
-            logContent.AppendLine($"Preset: {PresetName}");
-            logContent.AppendLine($"Debug Info: {DebugInfo}");
-            logContent.AppendLine();
+            // Use the comprehensive performance report
+            var logContent = GetPerformanceReport();
+            File.WriteAllText(logPath, logContent);
 
-            File.WriteAllText(logPath, logContent.ToString());
             StatusMessage = $"Performance log exported: {Path.GetFileName(logPath)}";
+            LogPerformanceEvent($"Performance log exported to: {logPath}");
         }
         catch (Exception ex)
         {
@@ -1364,6 +1558,20 @@ public class PhxEditorViewModel : ReactiveObject
             Debug.WriteLine($"PHX Debug: {message}");
         }
     }
+
+    public void Dispose()
+    {
+        // Clean up performance monitoring resources
+        _performanceUpdateTimer?.Dispose();
+        _fpsStopwatch.Stop();
+        _renderStopwatch.Stop();
+
+        // Dispose performance counters
+        _cpuCounter?.Dispose();
+        _memoryCounter?.Dispose();
+
+        LogPerformanceEvent("Performance monitoring disposed");
+    }
 }
 
 /// <summary>
@@ -1428,6 +1636,8 @@ public class PresetService
         Directory.CreateDirectory(_presetsDirectory);
         RefreshPresetCache();
     }
+
+
 
     public void RefreshPresetCache()
     {

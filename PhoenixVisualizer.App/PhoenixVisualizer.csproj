@@ -55,5 +55,11 @@
     <PackageReference Include="AvaloniaEdit" Version="0.10.12" />
     <PackageReference Include="ReactiveUI" Version="19.5.41" />
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+    <!-- Roslyn for plugin compilation -->
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <!-- Performance monitoring -->
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
   </ItemGroup>
 </Project>
