@@ -7,26 +7,114 @@
     <vm:ParameterEditorViewModel/>
   </UserControl.DataContext>
 
+  <UserControl.Resources>
+    <!-- Section header style -->
+    <Style x:Key="SectionHeader" Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,16,0,8"/>
+      <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+    <Style x:Key="LabelText" Selector="TextBlock.label">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+  </UserControl.Resources>
+
   <DockPanel>
     <Border DockPanel.Dock="Top" Padding="8" BorderThickness="0,0,0,1" BorderBrush="#202020">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="Parameter Editor (Coming Soon)" FontWeight="Bold" />
-        <TextBlock Text="•" Opacity=".5"/>
-        <TextBlock Text="Framework Ready" Opacity=".8"/>
-      </StackPanel>
+      <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="Parameter Editor" FontWeight="Bold" />
+          <TextBlock Text="·" Opacity=".4"/>
+          <TextBlock Text="{Binding TargetTypeName}" Opacity=".8"/>
+        </StackPanel>
+        <Button Grid.Column="1" Content="Refresh" Command="{Binding RefreshCommand}" />
+      </Grid>
     </Border>
 
     <ScrollViewer>
-      <StackPanel Margin="12" Spacing="8">
-        <TextBlock Text="Parameter editor framework is implemented and ready!" FontSize="14"/>
-        <TextBlock Text="• Reflection-based parameter discovery" FontSize="12" Opacity=".8"/>
-        <TextBlock Text="• Support for bool, string, enum, number, color parameters" FontSize="12" Opacity=".8"/>
-        <TextBlock Text="• Real-time updates to underlying objects" FontSize="12" Opacity=".8"/>
-        <TextBlock Text="• Integration with VFXParameterAttribute" FontSize="12" Opacity=".8"/>
-        <TextBlock Text="• F4 hotkey and ParameterBus for global access" FontSize="12" Opacity=".8"/>
-        <TextBlock Text="" FontSize="8"/>
-        <TextBlock Text="XAML compilation issues need resolution for full UI." FontSize="11" Opacity=".6"/>
-      </StackPanel>
+      <ItemsControl ItemsSource="{Binding Sections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ParameterSection">
+            <StackPanel Margin="12,6">
+              <TextBlock Classes="section" Text="{Binding Title}" />
+
+              <!-- Parameter editors -->
+              <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ParamVM">
+                    <!-- Switch on concrete VM type via derived templates -->
+                    <ContentControl>
+                      <ContentControl.DataTemplates>
+                        <!-- Number -->
+                        <DataTemplate x:DataType="vm:NumberParamVM">
+                          <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Margin="0,4">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                              <TextBox Width="80" Text="{Binding ValueText, Mode=TwoWay}"/>
+                              <TextBlock Text="{Binding Suffix}" Opacity=".6" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                                    Minimum="{Binding Min}" Maximum="{Binding Max}"
+                                    Value="{Binding Value, Mode=TwoWay}"
+                                    TickFrequency="{Binding Step}" IsSnapToTickEnabled="True"/>
+                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,22,0,0"
+                                       Text="{Binding Description}" Opacity=".55" FontSize="11"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Bool -->
+                        <DataTemplate x:DataType="vm:BoolParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding Value, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Enum -->
+                        <DataTemplate x:DataType="vm:EnumParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding Choices}"
+                                      SelectedItem="{Binding SelectedChoice, Mode=TwoWay}"
+                                      MinWidth="160"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Color -->
+                        <DataTemplate x:DataType="vm:ColorParamVM">
+                          <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <Border Grid.Column="1" Width="28" Height="22" CornerRadius="4"
+                                    BorderThickness="1" BorderBrush="#333">
+                              <Border.Background>
+                                <SolidColorBrush Color="{Binding Value}"/>
+                              </Border.Background>
+                            </Border>
+                            <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0"
+                                     Watermark="#RRGGBB or #AARRGGBB"
+                                     Text="{Binding Hex, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Text -->
+                        <DataTemplate x:DataType="vm:TextParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <TextBox Grid.Column="1" Width="220" Text="{Binding Value, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ContentControl.DataTemplates>
+                    </ContentControl>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </ScrollViewer>
   </DockPanel>
 </UserControl>

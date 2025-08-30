@@ -1,275 +1,313 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Avalonia.Media;
 
-// We read your Core attribute via reflection to avoid tight compile coupling.
-using PVCoreVfx = PhoenixVisualizer.Core.VFX;
+namespace PhoenixVisualizer.App.ViewModels;
 
-namespace PhoenixVisualizer.App.ViewModels
-{
-    public sealed class ParameterEditorViewModel : INotifyPropertyChanged
+public sealed partial class ParameterEditorViewModel : ObservableObject
     {
         private object? _target;
-        public object? Target
+        private string _targetTypeName = "—";
+
+        public string TargetTypeName
         {
-            get => _target;
-            private set
-            {
-                if (!ReferenceEquals(_target, value))
-                {
-                    _target = value;
-                    OnPropertyChanged(nameof(Target));
-                    OnPropertyChanged(nameof(TargetName));
-                }
-            }
+            get => _targetTypeName;
+            private set => SetProperty(ref _targetTypeName, value);
         }
 
-        public string TargetName => Target == null ? "No target" : Target.GetType().Name;
+        public ObservableCollection<ParameterSection> Sections { get; } = new();
 
-        public ObservableCollection<ParameterItemVM> Items { get; } = new();
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        public void SetTarget(object? target)
+        public void SetTarget(object? obj)
         {
-            Target = target;
-            Items.Clear();
-            if (target == null) return;
+            _target = obj;
+            TargetTypeName = obj?.GetType().Name ?? "—";
+            RebuildFromTarget();
+        }
 
-            var t = target.GetType();
+        [RelayCommand]
+        private void Refresh() => RebuildFromTarget();
+
+        private void RebuildFromTarget()
+        {
+            Sections.Clear();
+            if (_target == null) return;
+
+            var t = _target.GetType();
+            // Collect properties that are writable and look like parameters
             var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                         .Where(p => p.CanRead && p.CanWrite);
+                         .Where(p => p.CanRead && p.CanWrite)
+                         .Select(p => new ReflectedParam(p, ReadParamMeta(p)))
+                         .Where(rp => rp.Meta.IsParameterCandidate)
+                         .ToList();
 
-            foreach (var p in props)
+            // Build view-model items grouped by meta.Group (or default group)
+            var groups = props.GroupBy(p => p.Meta.Group ?? "General")
+                              .OrderBy(g => g.Min(x => x.Meta.Order));
+
+            foreach (var group in groups)
             {
-                var attr = GetVfxParamAttribute(p);
-                if (attr == null) continue; // only expose properties explicitly marked as VFX parameters
-
-                var (displayName, description, min, max, step, order) = ReadCommonMetadata(attr, p);
-                var pt = p.PropertyType;
-
-                if (pt == typeof(bool))
+                var section = new ParameterSection(group.Key);
+                foreach (var rp in group.OrderBy(x => x.Meta.Order))
                 {
-                    Items.Add(new BoolParameterItem(target, p, displayName, description, order));
+                    var item = CreateItemVM(_target, rp);
+                    if (item != null) section.Items.Add(item);
                 }
-                else if (pt == typeof(string))
-                {
-                    Items.Add(new StringParameterItem(target, p, displayName, description, order));
-                }
-                else if (pt.IsEnum)
-                {
-                    Items.Add(new EnumParameterItem(target, p, displayName, description, order));
-                }
-                else if (pt == typeof(int) || pt == typeof(float) || pt == typeof(double))
-                {
-                    Items.Add(new NumberParameterItem(target, p, displayName, description, order, min, max, step));
-                }
-                else if (pt == typeof(Color))
-                {
-                    Items.Add(new ColorParameterItem(target, p, displayName, description, order));
-                }
-                // If you want to support vectors, points, etc., add branches here.
+                Sections.Add(section);
             }
-
-            foreach (var sorted in Items.OrderBy(i => i.Order).ToArray()) { /* already added in order */ }
         }
 
-        private static object? GetVfxParamAttribute(PropertyInfo p)
+        private static ParamVM? CreateItemVM(object target, ReflectedParam rp)
         {
-            // Accept either VFXParameterAttribute or any attribute whose name matches to avoid versioning pain.
-            var attrs = p.GetCustomAttributes(inherit: true);
-            return attrs.FirstOrDefault(a =>
+            var p = rp.Property;
+            var label = rp.Meta.DisplayName ?? p.Name;
+            var desc  = rp.Meta.Description ?? string.Empty;
+
+            var type = p.PropertyType;
+            try
             {
-                var n = a.GetType().Name;
-                return n == "VFXParameterAttribute" || n == "VFXParameter";
-            });
-        }
-
-        private static (string display, string desc, double? min, double? max, double? step, int order)
-            ReadCommonMetadata(object attr, PropertyInfo p)
-        {
-            string display = p.Name;
-            string desc = "";
-            double? min = null, max = null, step = null;
-            int order = 0;
-            var at = attr.GetType();
-
-            display = TryGetString(at, attr, "DisplayName") ?? TryGetString(at, attr, "Name") ?? p.Name;
-            desc    = TryGetString(at, attr, "Description") ?? "";
-
-            min  = TryGetDouble(at, attr, "Min");
-            max  = TryGetDouble(at, attr, "Max");
-            step = TryGetDouble(at, attr, "Step");
-            var orderValue = TryGet<int>(at, attr, "Order");
-            order = orderValue.HasValue ? orderValue.Value : 0;
-
-            return (display, desc, min, max, step, order);
-        }
-
-        private static TOut? TryGet<TOut>(Type t, object instance, string propName)
-            where TOut : struct
-        {
-            var p = t.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (p == null) return null;
-            if (!typeof(TOut).IsAssignableFrom(p.PropertyType)) return null;
-            var value = p.GetValue(instance);
-            return value == null ? null : (TOut?)value;
-        }
-
-        private static string? TryGetString(Type t, object instance, string propName)
-        {
-            var p = t.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (p == null) return null;
-            if (!typeof(string).IsAssignableFrom(p.PropertyType)) return null;
-            return (string?)p.GetValue(instance);
-        }
-
-        private static double? TryGetDouble(Type t, object instance, string propName)
-        {
-            var p = t.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (p == null) return null;
-            var v = p.GetValue(instance);
-            if (v == null) return null;
-            if (v is double d) return d;
-            if (v is float f) return f;
-            if (v is int i) return i;
-            if (double.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
-                return parsed;
+                if (type == typeof(bool))
+                {
+                    var vm = new BoolParamVM(label, desc, rp) { Value = (bool)(p.GetValue(target) ?? false) };
+                    vm.ValueChanged = v => p.SetValue(target, v);
+                    return vm;
+                }
+                if (type.IsEnum)
+                {
+                    var values = Enum.GetValues(type).Cast<object>().ToArray();
+                    var current = p.GetValue(target) ?? values.FirstOrDefault()!;
+                    var vm = new EnumParamVM(label, desc, rp, values) { SelectedChoice = current };
+                    vm.SelectionChanged = v => p.SetValue(target, v);
+                    return vm;
+                }
+                if (type == typeof(string))
+                {
+                    var vm = new TextParamVM(label, desc, rp) { Value = (string?)p.GetValue(target) ?? string.Empty };
+                    vm.ValueChanged = v => p.SetValue(target, v ?? string.Empty);
+                    return vm;
+                }
+                if (type == typeof(Color))
+                {
+                    var c = (Color)(p.GetValue(target) ?? Colors.White);
+                    var vm = new ColorParamVM(label, desc, rp) { Value = c };
+                    vm.ColorChanged = v => p.SetValue(target, v);
+                    return vm;
+                }
+                if (IsNumeric(type))
+                {
+                    // normalize to double in VM; convert back on set
+                    var d = Convert.ToDouble(p.GetValue(target) ?? 0.0, CultureInfo.InvariantCulture);
+                    var vm = new NumberParamVM(label, desc, rp,
+                                               rp.Meta.Min ?? 0.0,
+                                               rp.Meta.Max ?? 1.0,
+                                               rp.Meta.Step ?? GuessStepFromRange(rp.Meta.Min, rp.Meta.Max),
+                                               rp.Meta.Suffix)
+                    { Value = d };
+                    vm.NumberChanged = v => p.SetValue(target, ConvertBackNumber(v, type));
+                    return vm;
+                }
+            }
+            catch
+            {
+                // ignore a bad property rather than throwing
+            }
             return null;
         }
+
+        private static bool IsNumeric(Type t)
+            => t == typeof(int) || t == typeof(float) || t == typeof(double)
+            || t == typeof(long) || t == typeof(uint) || t == typeof(short) || t == typeof(byte);
+
+        private static object ConvertBackNumber(double v, Type t)
+        {
+            if (t == typeof(int)) return (int)Math.Round(v);
+            if (t == typeof(float)) return (float)v;
+            if (t == typeof(long)) return (long)Math.Round(v);
+            if (t == typeof(uint)) return (uint)Math.Max(0, Math.Round(v));
+            if (t == typeof(short)) return (short)Math.Round(v);
+            if (t == typeof(byte)) return (byte)Math.Clamp(Math.Round(v), 0, 255);
+            return v; // double
+        }
+
+        private static double GuessStepFromRange(double? min, double? max)
+        {
+            var range = (max ?? 1.0) - (min ?? 0.0);
+            if (range <= 0) return 0.01;
+            if (range >= 1000) return 1;
+            if (range >= 100) return 0.5;
+            if (range >= 10) return 0.1;
+            return 0.01;
+        }
+
+        // ——— metadata discovery ———
+        private static ParamMeta ReadParamMeta(PropertyInfo p)
+        {
+            var meta = new ParamMeta();
+            // Accept any attribute with "Parameter" in the name (e.g., VFXParameterAttribute)
+            var attr = p.GetCustomAttributes(inherit: true)
+                        .FirstOrDefault(a => a.GetType().Name.Contains("Parameter", StringComparison.OrdinalIgnoreCase));
+
+            // If no attribute, still allow obvious types (bool/enum/number/color/string)
+            meta.IsParameterCandidate = attr != null || IsObviousType(p.PropertyType);
+
+            if (attr != null)
+            {
+                // reflect common metadata names if present
+                meta.DisplayName = GetMaybe<string>(attr, "DisplayName") ?? GetMaybe<string>(attr, "Name");
+                meta.Description = GetMaybe<string>(attr, "Description") ?? GetMaybe<string>(attr, "Help");
+                meta.Group       = GetMaybe<string>(attr, "Group") ?? GetMaybe<string>(attr, "Category");
+                meta.Order       = GetMaybe<int?>(attr, "Order") ?? 1000;
+                meta.Min         = GetMaybe<double?>(attr, "Min") ?? GetMaybe<double?>(attr, "Minimum");
+                meta.Max         = GetMaybe<double?>(attr, "Max") ?? GetMaybe<double?>(attr, "Maximum");
+                meta.Step        = GetMaybe<double?>(attr, "Step") ?? GetMaybe<double?>(attr, "Increment");
+                meta.Suffix      = GetMaybe<string>(attr, "Suffix");
+            }
+
+            // Defaults
+            meta.DisplayName ??= p.Name;
+            meta.Group ??= "General";
+
+            return meta;
+        }
+
+        private static bool IsObviousType(Type t)
+            => t == typeof(bool) || t.IsEnum || t == typeof(string) || t == typeof(Color) || IsNumeric(t);
+
+        private static T? GetMaybe<T>(object attr, string name)
+        {
+            var pi = attr.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance);
+            if (pi == null) return default;
+            var val = pi.GetValue(attr);
+            if (val is null) return default;
+            try { return (T?)Convert.ChangeType(val, typeof(T), CultureInfo.InvariantCulture); }
+            catch { return (T?)val; }
+        }
+
+        private sealed record ReflectedParam(PropertyInfo Property, ParamMeta Meta);
+        private sealed class ParamMeta
+        {
+            public bool IsParameterCandidate { get; set; }
+            public string? DisplayName { get; set; }
+            public string? Description { get; set; }
+            public string? Group { get; set; }
+            public int Order { get; set; } = 1000;
+            public double? Min { get; set; }
+            public double? Max { get; set; }
+            public double? Step { get; set; }
+            public string? Suffix { get; set; }
+        }
     }
 
-    // -----------------------
-    // Parameter item base + types
-    // -----------------------
-    public abstract class ParameterItemVM : INotifyPropertyChanged
+    // ——— View-model item hierarchy (one per editor row) ———
+    public class ParameterSection : ObservableObject
     {
-        protected readonly object Target;
-        protected readonly PropertyInfo Prop;
-        public string Name { get; }
-        public string Description { get; }
-        public int Order { get; }
+        public string Title { get; }
+        public ObservableCollection<ParamVM> Items { get; } = new();
+        public ParameterSection(string title) => Title = title;
+    }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void Raise(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        protected ParameterItemVM(object target, PropertyInfo prop, string name, string description, int order)
+    public abstract class ParamVM : ObservableObject
+    {
+        protected ParamVM(string label, string description)
         {
-            Target = target;
-            Prop = prop;
-            Name = name;
+            Label = label;
             Description = description;
-            Order = order;
         }
+        public string Label { get; }
+        public string Description { get; }
     }
 
-    public sealed class BoolParameterItem : ParameterItemVM
+    public sealed class BoolParamVM : ParamVM
     {
-        public BoolParameterItem(object t, PropertyInfo p, string n, string d, int o) : base(t, p, n, d, o) { }
-        public bool Value
-        {
-            get => (bool)(Prop.GetValue(Target) ?? false);
-            set { Prop.SetValue(Target, value); Raise(nameof(Value)); }
-        }
+        public BoolParamVM(string label, string description, object tag) : base(label, description) { Tag = tag; }
+        public object Tag { get; }
+        private bool _value;
+        public bool Value { get => _value; set { if (SetProperty(ref _value, value)) ValueChanged?.Invoke(value); } }
+        public Action<bool>? ValueChanged { get; set; }
     }
 
-    public sealed class StringParameterItem : ParameterItemVM
+    public sealed class EnumParamVM : ParamVM
     {
-        public StringParameterItem(object t, PropertyInfo p, string n, string d, int o) : base(t, p, n, d, o) { }
-        public string Value
+        public EnumParamVM(string label, string description, object tag, object[] choices) : base(label, description)
+        { Tag = tag; Choices = choices; }
+        public object Tag { get; }
+        public object[] Choices { get; }
+        private object? _selected;
+        public object? SelectedChoice
         {
-            get => (string?)(Prop.GetValue(Target)) ?? string.Empty;
-            set { Prop.SetValue(Target, value); Raise(nameof(Value)); }
+            get => _selected;
+            set { if (SetProperty(ref _selected, value)) { if (value != null) SelectionChanged?.Invoke(value); } }
         }
+        public Action<object>? SelectionChanged { get; set; }
     }
 
-    public sealed class EnumParameterItem : ParameterItemVM
+    public sealed class TextParamVM : ParamVM
     {
-        public Array Choices { get; }
-        public EnumParameterItem(object t, PropertyInfo p, string n, string d, int o) : base(t, p, n, d, o)
+        public TextParamVM(string label, string description, object tag) : base(label, description) { Tag = tag; }
+        public object Tag { get; }
+        private string? _value;
+        public string? Value { get => _value; set { if (SetProperty(ref _value, value)) ValueChanged?.Invoke(value); } }
+        public Action<string?>? ValueChanged { get; set; }
+    }
+
+    public sealed class NumberParamVM : ParamVM
+    {
+        public NumberParamVM(string label, string description, object tag,
+                             double min, double max, double step, string? suffix) : base(label, description)
+        { Tag = tag; Min = min; Max = max; Step = step; Suffix = suffix ?? string.Empty; }
+        public object Tag { get; }
+        public double Min { get; }
+        public double Max { get; }
+        public double Step { get; }
+        public string Suffix { get; }
+        private double _value;
+        public double Value { get => _value; set { if (SetProperty(ref _value, value)) { NumberChanged?.Invoke(value); OnPropertyChanged(nameof(ValueText)); } } }
+        public string ValueText
         {
-            Choices = Enum.GetValues(p.PropertyType);
-        }
-        public object Value
-        {
-            get => Prop.GetValue(Target)!;
+            get => _value.ToString("0.###", CultureInfo.InvariantCulture);
             set
             {
-                if (value != null && value.GetType() == Prop.PropertyType)
-                {
-                    Prop.SetValue(Target, value);
-                    Raise(nameof(Value));
-                }
-            }
-        }
-    }
-
-    public sealed class NumberParameterItem : ParameterItemVM
-    {
-        public double? Min { get; }
-        public double? Max { get; }
-        public double? Step { get; }
-        public bool IsInteger { get; }
-
-        public NumberParameterItem(object t, PropertyInfo p, string n, string d, int o, double? min, double? max, double? step)
-            : base(t, p, n, d, o)
-        {
-            Min = min; Max = max; Step = step;
-            IsInteger = p.PropertyType == typeof(int);
-        }
-
-        public double Value
-        {
-            get
-            {
-                var v = Prop.GetValue(Target);
-                if (v == null) return 0;
-                if (v is int i) return i;
-                if (v is float f) return f;
-                if (v is double d) return d;
-                double.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed);
-                return parsed;
-            }
-            set
-            {
-                var clamped = value;
-                if (Min.HasValue && clamped < Min.Value) clamped = Min.Value;
-                if (Max.HasValue && clamped > Max.Value) clamped = Max.Value;
-
-                if (IsInteger)
-                {
-                    Prop.SetValue(Target, (int)Math.Round(clamped));
-                }
-                else if (Prop.PropertyType == typeof(float))
-                {
-                    Prop.SetValue(Target, (float)clamped);
-                }
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
+                    Value = Math.Clamp(v, Min, Max);
                 else
-                {
-                    Prop.SetValue(Target, clamped);
-                }
-                Raise(nameof(Value));
+                    OnPropertyChanged(); // keep text unchanged if parse fails
             }
         }
+        public Action<double>? NumberChanged { get; set; }
     }
 
-    public sealed class ColorParameterItem : ParameterItemVM
+    public sealed class ColorParamVM : ParamVM
     {
-        public ColorParameterItem(object t, PropertyInfo p, string n, string d, int o) : base(t, p, n, d, o) { }
-
-        private Color Get() => (Color)(Prop.GetValue(Target) ?? Colors.White);
-        private void Set(Color c) { Prop.SetValue(Target, c); Raise(nameof(A)); Raise(nameof(R)); Raise(nameof(G)); Raise(nameof(B)); Raise(nameof(Preview)); }
-
-        public byte A { get => Get().A; set => Set(Color.FromArgb(value, R, G, B)); }
-        public byte R { get => Get().R; set => Set(Color.FromArgb(A, value, G, B)); }
-        public byte G { get => Get().G; set => Set(Color.FromArgb(A, R, value, B)); }
-        public byte B { get => Get().B; set => Set(Color.FromArgb(A, R, G, value)); }
-
-        public Color Preview => Get();
+        public ColorParamVM(string label, string description, object tag) : base(label, description) { Tag = tag; }
+        public object Tag { get; }
+        private Color _value = Colors.White;
+        public Color Value
+        {
+            get => _value;
+            set { if (SetProperty(ref _value, value)) { OnPropertyChanged(nameof(Hex)); ColorChanged?.Invoke(value); } }
+        }
+        public string Hex
+        {
+            get => Value.A == 255
+                ? $"#{Value.R:X2}{Value.G:X2}{Value.B:X2}"
+                : $"#{Value.A:X2}{Value.R:X2}{Value.G:X2}{Value.B:X2}";
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    try
+                    {
+                        var parsed = Color.Parse(value.Trim());
+                        Value = parsed;
+                    }
+                    catch { /* ignore bad text */ }
+                }
+            }
+        }
+        public Action<Color>? ColorChanged { get; set; }
     }
-}
