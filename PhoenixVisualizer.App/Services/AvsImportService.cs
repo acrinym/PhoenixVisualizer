@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Text;
 using System.IO;
+using System.ComponentModel;
 
 namespace PhoenixVisualizer.App.Services
 {
@@ -34,15 +35,69 @@ namespace PhoenixVisualizer.App.Services
             public bool IsBinaryFormat { get; set; }
         }
 
-        public class AvsEffect
+        public class AvsEffect : INotifyPropertyChanged
         {
-            public string Name { get; set; } = string.Empty;
-            public string Type { get; set; } = string.Empty;
-            public string ConfigData { get; set; } = string.Empty;
-            public byte[] BinaryData { get; set; } = Array.Empty<byte>();
-            public bool IsEnabled { get; set; } = true;
-            public int Order { get; set; }
-            public Dictionary<string, object> Parameters { get; set; } = new();
+            private string _name = string.Empty;
+            private string _type = string.Empty;
+            private string _configData = string.Empty;
+            private byte[] _binaryData = Array.Empty<byte>();
+            private bool _isEnabled = true;
+            private int _order;
+            private Dictionary<string, object> _parameters = new();
+
+            public string Name
+            {
+                get => _name;
+                set { if (_name != value) { _name = value; OnPropertyChanged(nameof(Name)); } }
+            }
+
+            public string Type
+            {
+                get => _type;
+                set { if (_type != value) { _type = value; OnPropertyChanged(nameof(Type)); } }
+            }
+
+            public string ConfigData
+            {
+                get => _configData;
+                set { if (_configData != value) { _configData = value; OnPropertyChanged(nameof(ConfigData)); } }
+            }
+
+            public byte[] BinaryData
+            {
+                get => _binaryData;
+                set { if (_binaryData != value) { _binaryData = value; OnPropertyChanged(nameof(BinaryData)); } }
+            }
+
+            /// <summary>Existing name used in code.</summary>
+            public bool IsEnabled
+            {
+                get => _isEnabled;
+                set { if (_isEnabled != value) { _isEnabled = value; OnPropertyChanged(nameof(IsEnabled)); OnPropertyChanged(nameof(Enabled)); } }
+            }
+
+            /// <summary>Alias for UI/data bindings that expect 'Enabled'.</summary>
+            public bool Enabled
+            {
+                get => _isEnabled;
+                set { if (_isEnabled != value) { _isEnabled = value; OnPropertyChanged(nameof(Enabled)); OnPropertyChanged(nameof(IsEnabled)); } }
+            }
+
+            public int Order
+            {
+                get => _order;
+                set { if (_order != value) { _order = value; OnPropertyChanged(nameof(Order)); } }
+            }
+
+            public Dictionary<string, object> Parameters
+            {
+                get => _parameters;
+                set { if (_parameters != value) { _parameters = value; OnPropertyChanged(nameof(Parameters)); } }
+            }
+
+            public event PropertyChangedEventHandler? PropertyChanged;
+            private void OnPropertyChanged(string propertyName) =>
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>

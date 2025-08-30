@@ -1,7 +1,7 @@
 ================================================================================
 PHOENIX VISUALIZER - SOURCE CODE EXPORT (STREAMLINED)
 ================================================================================
-Generated: 08/30/2025 16:29:31
+Generated: 08/30/2025 16:32:35
 Description: Streamlined source code export containing ONLY essential source files.
              Excludes: binaries, obj/bin directories, generated files, documentation,
              large files, and compiled assemblies.
@@ -17,34 +17,42 @@ Description: Streamlined source code export containing ONLY essential source fil
 ================================================================================
 BUILD STATUS & ERROR TRACKING
 ================================================================================
-Build started at: 08/30/2025 16:29:31
+Build started at: 08/30/2025 16:32:35
 === DOTNET BUILD OUTPUT ===
 Build Command: dotnet build PhoenixVisualizer.sln
-Build Timestamp: 08/30/2025 16:29:31
+Build Timestamp: 08/30/2025 16:32:35
 
   Determining projects to restore...
   All projects are up-to-date for restore.
   PhoenixVisualizer.Plots -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plots\bin\Debug\net8.0\PhoenixVisualizer.Plots.dll
   PhoenixVisualizer.Core -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.dll
   PhoenixVisualizer.PluginHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.PluginHost\bin\Debug\net8.0\PhoenixVisualizer.PluginHost.dll
-  PhoenixVisualizer.Audio -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Audio\bin\Debug\net8.0\PhoenixVisualizer.Audio.dll
-  PhoenixVisualizer.Plugins.Ape.Phoenix -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Ape.Phoenix\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Ape.Phoenix.dll
   PhoenixVisualizer.ApeHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.ApeHost\bin\Debug\net8.0\PhoenixVisualizer.ApeHost.dll
-  PhoenixVisualizer.AvsEngine -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
+  PhoenixVisualizer.Plugins.Ape.Phoenix -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Ape.Phoenix\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Ape.Phoenix.dll
   PhoenixVisualizer.Plugins.Avs -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Avs\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Avs.dll
+  PhoenixVisualizer.AvsEngine -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(56,19): warning CS0414: The field 'NyanCatVisualizer._sparkleAmountParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(55,19): warning CS0414: The field 'NyanCatVisualizer._trailLengthParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(57,19): warning CS0414: The field 'NyanCatVisualizer._catSpeedParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
   PhoenixVisualizer.Visuals -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\bin\Debug\net8.0\PhoenixVisualizer.Visuals.dll
-  PhoenixVisualizer.Editor -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\bin\Debug\net8.0\PhoenixVisualizer.Editor.dll
+  PhoenixVisualizer.Audio -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Audio\bin\Debug\net8.0\PhoenixVisualizer.Audio.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\ViewModels\EffectsGraphEditorViewModel.cs(412,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(380,39): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(654,34): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(667,89): error CS1061: 'AvsImportService.AvsEffect' does not contain a definition for 'Enabled' and no accessible extension method 'Enabled' accepting a first argument of type 'AvsImportService.AvsEffect' could be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(617,30): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(721,49): warning CS8604: Possible null reference argument for parameter 'filePath' in 'void PresetService.DeletePreset(string filePath)'. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(654,34): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(667,89): error CS1061: 'AvsImportService.AvsEffect' does not contain a definition for 'Enabled' and no accessible extension method 'Enabled' accepting a first argument of type 'AvsImportService.AvsEffect' could be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(1264,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(1295,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(1329,35): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+  PhoenixVisualizer.Editor -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\bin\Debug\net8.0\PhoenixVisualizer.Editor.dll
 
 Build FAILED.
 
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(56,19): warning CS0414: The field 'NyanCatVisualizer._sparkleAmountParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(55,19): warning CS0414: The field 'NyanCatVisualizer._trailLengthParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\NyanCatVisualizer.cs(57,19): warning CS0414: The field 'NyanCatVisualizer._catSpeedParam' is assigned but its value is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\ViewModels\EffectsGraphEditorViewModel.cs(412,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(617,30): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(721,49): warning CS8604: Possible null reference argument for parameter 'filePath' in 'void PresetService.DeletePreset(string filePath)'. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(1264,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
@@ -53,20 +61,20 @@ D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.a
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(380,39): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(654,34): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
 D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\AvsEditor.axaml.cs(667,89): error CS1061: 'AvsImportService.AvsEffect' does not contain a definition for 'Enabled' and no accessible extension method 'Enabled' accepting a first argument of type 'AvsImportService.AvsEffect' could be found (are you missing a using directive or an assembly reference?) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-    5 Warning(s)
+    9 Warning(s)
     3 Error(s)
 
-Time Elapsed 00:00:03.45
+Time Elapsed 00:00:08.29
 
 === BUILD SUMMARY ===
 Build Exit Code: 1
 Build Status: FAILED
-Build Completed: 08/30/2025 16:29:34
+Build Completed: 08/30/2025 16:32:43
 Total Errors: 6
-Total Warnings: 10
+Total Warnings: 18
 
 === BUILD FAILURE DETAILS ===
-The build failed with 6 errors and 10 warnings.
+The build failed with 6 errors and 18 warnings.
 This export captures the broken state for debugging purposes.
 
 === ERROR BREAKDOWN ===

@@ -1,3 +1,12 @@
+using System;
+using System.IO;
+using System.Text;
+using System.Linq;
+using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
 using PhoenixVisualizer.App.Services;
 
 namespace PhoenixVisualizer.Views
@@ -15,6 +24,7 @@ namespace PhoenixVisualizer.Views
             AvaloniaXamlLoader.Load(this);
             WireUpEventHandlers();
             InitializeCodeEditor();
+            TryWireEffectsListSelection();
         }
 
         private void InitializeCodeEditor()
@@ -699,6 +709,33 @@ Holden03: Convolution Filter";
             catch (Exception ex)
             {
                 ShowErrorDialog("Test Failed", $"AVS parsing test failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// If there's a ListBox named "EffectsList" in the AVS editor XAML, hook selection -> ParameterBus.
+        /// This is defensive: if it doesn't exist, nothing breaks.
+        /// </summary>
+        private void TryWireEffectsListSelection()
+        {
+            try
+            {
+                var list = this.FindControl<ListBox>("EffectsList");
+                if (list != null)
+                {
+                    list.SelectionChanged += (s, e) =>
+                    {
+                        var selected = list.SelectedItem;
+                        if (selected != null)
+                        {
+                            ParameterBus.PublishTarget(selected);
+                        }
+                    };
+                }
+            }
+            catch
+            {
+                // no-op: keep editor resilient
             }
         }
     }

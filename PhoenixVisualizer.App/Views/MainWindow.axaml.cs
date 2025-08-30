@@ -11,6 +11,7 @@ using PhoenixVisualizer.Core.Diagnostics;
 using PhoenixVisualizer.App.Utils;
 using System.Text;
 using System.Text.Json;
+using Avalonia.Input;
 
 namespace PhoenixVisualizer.Views;
 
@@ -48,6 +49,7 @@ public partial class MainWindow : Window
     {
         // Manually load XAML so we don't depend on generated InitializeComponent()
         AvaloniaXamlLoader.Load(this);
+        this.KeyDown += OnKeyDown_OpenParameterEditor;
         _renderSurface = this.FindControl<RenderSurface>("RenderHost");
         var avsCanvasHost = this.FindControl<Grid>("AvsCanvasHost");
         _avsCanvas = avsCanvasHost?.FindControl<Canvas>("AvsCanvas");
@@ -1387,6 +1389,16 @@ public partial class MainWindow : Window
         dialog.Content = panel;
 
         await dialog.ShowDialog(this);
+    }
+
+    private void OnKeyDown_OpenParameterEditor(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F4)
+        {
+            var w = new PhoenixVisualizer.App.Views.ParameterEditorWindow();
+            w.Show(this);
+            e.Handled = true;
+        }
     }
 
     private void LogError(string context, Exception ex)
