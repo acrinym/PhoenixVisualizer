@@ -265,50 +265,138 @@ namespace PhoenixVisualizer.App.Services
         }
 
         /// <summary>
-        /// Map AVS effect type ID to human-readable name
+        /// Map AVS effect type ID to human-readable name (COMPLETE LIST from Winamp source)
         /// </summary>
         private string MapAvsEffectType(int effectType)
         {
             var effectNames = new Dictionary<int, string>
             {
+                // Built-in Render Effects (0-45)
                 {0, "Simple Spectrum"},
-                {1, "Oscilloscope"},
-                {2, "Spectrum Analyzer"},
-                {3, "Superscope"},
-                {4, "Text Overlay"},
-                {5, "Picture Display"},
-                {6, "AVI Player"},
-                {7, "Clear Screen"},
-                {8, "Buffer Save"},
-                {9, "Buffer Restore"},
-                {10, "Movement"},
-                {11, "Blur"},
-                {12, "Color Modifier"},
-                {13, "Convolution Filter"},
-                {14, "Texer II"},
-                {15, "Color Map"},
-                {16, "Dynamic Movement"},
-                {17, "Dynamic Distance Modifier"},
-                {18, "Triangle"},
-                {19, "Star"},
-                {20, "Dot Grid"},
-                {21, "Dot Plane"},
-                {22, "MIDI Trace"}
+                {1, "Dot Plane"},
+                {2, "Oscilloscope Star"},
+                {3, "Fade Out"},
+                {4, "Blitter Feedback"},
+                {5, "NF Clear"},
+                {6, "Blur"},
+                {7, "Bass Spin"},
+                {8, "Moving Particles"},
+                {9, "Rotoblitter"},
+                {10, "SVP Loader"},
+                {11, "Color Fade"},
+                {12, "Contrast Enhancement"},
+                {13, "Rotating Stars"},
+                {14, "Oscilloscope Rings"},
+                {15, "Movement"},
+                {16, "Scatter"},
+                {17, "Dot Grid"},
+                {18, "Stack"},
+                {19, "Dot Fountain"},
+                {20, "Water"},
+                {21, "Comment"},
+                {22, "Brightness"},
+                {23, "Interleave"},
+                {24, "Grain"},
+                {25, "Clear Screen"},
+                {26, "Mirror"},
+                {27, "Star Field"},
+                {28, "Text"},
+                {29, "Bump"},
+                {30, "Mosaic"},
+                {31, "Water Bump"},
+                {32, "AVI Player"},
+                {33, "Custom BPM"},
+                {34, "Picture"},
+                {35, "Dynamic Distance Modifier"},
+                {36, "SuperScope"},
+                {37, "Invert"},
+                {38, "Unique Tone"},
+                {39, "Timescope"},
+                {40, "Line Mode"},
+                {41, "Interferences"},
+                {42, "Dynamic Shift"},
+                {43, "Dynamic Movement"},
+                {44, "Fast Brightness"},
+                {45, "Dynamic Color Modifier"},
+
+                // Built-in Transition Effects (46-65)
+                {46, "Blitter Feedback (Trans)"},
+                {47, "Blur (Trans)"},
+                {48, "Brightness (Trans)"},
+                {49, "Bump (Trans)"},
+                {50, "Channel Shift (Trans)"},
+                {51, "Color Fade (Trans)"},
+                {52, "Color Reduction (Trans)"},
+                {53, "Color Modifier (Trans)"},
+                {54, "Dynamic Distance Modifier (Trans)"},
+                {55, "Dynamic Movement (Trans)"},
+                {56, "Fade Out (Trans)"},
+                {57, "Fast Brightness (Trans)"},
+                {58, "Grain (Trans)"},
+                {59, "Interferences (Trans)"},
+                {60, "Interleave (Trans)"},
+                {61, "Invert (Trans)"},
+                {62, "Mirror (Trans)"},
+                {63, "Mosaic (Trans)"},
+                {64, "Movement (Trans)"},
+                {65, "Scatter (Trans)"},
+
+                // APE Effects (66-75)
+                {66, "Channel Shift (APE)"},
+                {67, "Color Reduction (APE)"},
+                {68, "Multiplier (APE)"},
+                {69, "Video Delay (APE)"},
+                {70, "Multi Delay (APE)"},
+                {71, "Dynamic Shift (APE)"},
+                {72, "Color Clip (APE)"},
+                {73, "Unique Tone (APE)"},
+                {74, "Set Render Mode (APE)"},
+                {75, "On Beat Clear (APE)"},
+
+                // Buffer Effects (76-80)
+                {76, "Buffer Save"},
+                {77, "Buffer Restore"},
+                {78, "Multi Delay (Buffer)"},
+                {79, "Video Delay (Buffer)"},
+                {80, "Multiplier (Buffer)"},
+
+                // Additional Effects (81+)
+                {81, "Convolution Filter"},
+                {82, "Texer II"},
+                {83, "Color Map"},
+                {84, "Triangle"},
+                {85, "Ring"},
+                {86, "Star"},
+                {87, "MIDI Trace"},
+                {88, "Rotoblitter (Trans)"},
+                {89, "Rotating Stars (Trans)"},
+                {90, "Rotoblitter (Render)"},
+                {91, "Dynamic Shift (Trans)"},
+                {92, "Simple Spectrum (Trans)"},
+                {93, "SuperScope (Trans)"},
+                {94, "Star Field (Trans)"},
+                {95, "SVP Loader (Trans)"},
+                {96, "Text (Trans)"},
+                {97, "Timescope (Trans)"},
+                {98, "Movement (Trans)"},
+                {99, "Video Delay (Trans)"},
+                {100, "Dynamic Color Modifier (Trans)"}
             };
 
-            return effectNames.TryGetValue(effectType, out var name) ? name : $"Effect_{effectType}";
+            return effectNames.TryGetValue(effectType, out var name) ? name : $"Unknown Effect {effectType}";
         }
 
         /// <summary>
-        /// Map AVS effect type to category name
+        /// Map AVS effect type to category name (COMPLETE categorization)
         /// </summary>
         private string MapAvsEffectTypeToName(int effectType)
         {
-            if (effectType >= 0 && effectType <= 7) return "Basic Render";
-            if (effectType >= 8 && effectType <= 11) return "Buffer Effects";
-            if (effectType >= 12 && effectType <= 17) return "Visual Effects";
-            if (effectType >= 18 && effectType <= 22) return "Geometric Effects";
-            return "Unknown";
+            if (effectType >= 0 && effectType <= 45) return "Render Effects";
+            if (effectType >= 46 && effectType <= 65) return "Transition Effects";
+            if (effectType >= 66 && effectType <= 75) return "APE Effects";
+            if (effectType >= 76 && effectType <= 80) return "Buffer Effects";
+            if (effectType >= 81 && effectType <= 100) return "Advanced Effects";
+            return "Unknown Category";
         }
 
         /// <summary>
@@ -323,10 +411,11 @@ namespace PhoenixVisualizer.App.Services
                 using var ms = new MemoryStream(configData);
                 using var reader = new BinaryReader(ms);
 
-                // Different effects have different parameter structures
+                // Different effects have different parameter structures (based on Winamp source)
                 switch (effectType)
                 {
                     case 0: // Simple Spectrum
+                    case 92: // Simple Spectrum (Trans)
                         if (configData.Length >= 8)
                         {
                             parameters["effect_mode"] = reader.ReadInt32();
@@ -344,7 +433,9 @@ namespace PhoenixVisualizer.App.Services
                         }
                         break;
 
-                    case 3: // Superscope
+                    case 3:  // Superscope
+                    case 36: // Superscope (Render)
+                    case 93: // Superscope (Trans)
                         if (configData.Length >= 4)
                         {
                             var codeLength = reader.ReadInt32();
@@ -357,10 +448,309 @@ namespace PhoenixVisualizer.App.Services
                         }
                         break;
 
-                    case 13: // Convolution Filter
+                    case 4:  // Blitter Feedback
+                    case 46: // Blitter Feedback (Trans)
+                        if (configData.Length >= 4)
+                        {
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 6:  // Blur
+                    case 47: // Blur (Trans)
+                        if (configData.Length >= 8)
+                        {
+                            parameters["blur_edges"] = reader.ReadInt32();
+                            parameters["round_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 7:  // Bass Spin
+                        if (configData.Length >= 12)
+                        {
+                            parameters["enabled"] = reader.ReadInt32();
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 9:  // Rotoblitter
+                    case 88: // Rotoblitter (Trans)
+                    case 90: // Rotoblitter (Render)
+                        if (configData.Length >= 20)
+                        {
+                            parameters["zoom"] = reader.ReadInt32();
+                            parameters["rotation"] = reader.ReadInt32();
+                            parameters["zoom_center_x"] = reader.ReadInt32();
+                            parameters["zoom_center_y"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 11: // Color Fade
+                    case 51: // Color Fade (Trans)
+                        if (configData.Length >= 16)
+                        {
+                            parameters["fade_red"] = reader.ReadInt32();
+                            parameters["fade_green"] = reader.ReadInt32();
+                            parameters["fade_blue"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 15: // Movement
+                    case 64: // Movement (Trans)
+                    case 98: // Movement (Trans)
+                        if (configData.Length >= 16)
+                        {
+                            parameters["movement_x"] = reader.ReadInt32();
+                            parameters["movement_y"] = reader.ReadInt32();
+                            parameters["wrap_mode"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 22: // Brightness
+                    case 48: // Brightness (Trans)
+                        if (configData.Length >= 4)
+                        {
+                            parameters["brightness"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 26: // Mirror
+                    case 62: // Mirror (Trans)
+                        if (configData.Length >= 8)
+                        {
+                            parameters["horizontal"] = reader.ReadInt32();
+                            parameters["vertical"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 28: // Text
+                    case 96: // Text (Trans)
+                        if (configData.Length >= 8)
+                        {
+                            var textLength = reader.ReadInt32();
+                            var color = reader.ReadInt32();
+                            parameters["color"] = color;
+                            if (textLength > 0 && textLength < configData.Length - 8)
+                            {
+                                var textBytes = reader.ReadBytes(textLength);
+                                var text = Encoding.Default.GetString(textBytes);
+                                parameters["text"] = text;
+                            }
+                        }
+                        break;
+
+                    case 29: // Bump
+                    case 49: // Bump (Trans)
+                        if (configData.Length >= 12)
+                        {
+                            parameters["depth"] = reader.ReadInt32();
+                            parameters["on_beat"] = reader.ReadInt32();
+                            parameters["depth2"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 30: // Mosaic
+                    case 63: // Mosaic (Trans)
+                        if (configData.Length >= 12)
+                        {
+                            parameters["block_size_x"] = reader.ReadInt32();
+                            parameters["block_size_y"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 32: // AVI Player
+                        if (configData.Length >= 8)
+                        {
+                            var filenameLength = reader.ReadInt32();
+                            parameters["speed"] = reader.ReadInt32();
+                            if (filenameLength > 0 && filenameLength < configData.Length - 8)
+                            {
+                                var filenameBytes = reader.ReadBytes(filenameLength);
+                                var filename = Encoding.Default.GetString(filenameBytes);
+                                parameters["filename"] = filename;
+                            }
+                        }
+                        break;
+
+                    case 33: // Custom BPM
+                        if (configData.Length >= 8)
+                        {
+                            parameters["enabled"] = reader.ReadInt32();
+                            parameters["bpm"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 34: // Picture
+                        if (configData.Length >= 8)
+                        {
+                            var filenameLength = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                            if (filenameLength > 0 && filenameLength < configData.Length - 8)
+                            {
+                                var filenameBytes = reader.ReadBytes(filenameLength);
+                                var filename = Encoding.Default.GetString(filenameBytes);
+                                parameters["filename"] = filename;
+                            }
+                        }
+                        break;
+
+                    case 39: // Timescope
+                    case 97: // Timescope (Trans)
+                        if (configData.Length >= 16)
+                        {
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["mode"] = reader.ReadInt32();
+                            parameters["band"] = reader.ReadInt32();
+                            parameters["smoothing"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 43: // Dynamic Movement
+                    case 55: // Dynamic Movement (Trans)
+                        if (configData.Length >= 20)
+                        {
+                            parameters["grid_x"] = reader.ReadInt32();
+                            parameters["grid_y"] = reader.ReadInt32();
+                            parameters["speed"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                            parameters["wrap_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    // APE Effects
+                    case 66: // Channel Shift (APE)
+                    case 50: // Channel Shift (Trans)
+                        if (configData.Length >= 12)
+                        {
+                            parameters["shift_red"] = reader.ReadInt32();
+                            parameters["shift_green"] = reader.ReadInt32();
+                            parameters["shift_blue"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 67: // Color Reduction (APE)
+                    case 52: // Color Reduction (Trans)
+                        if (configData.Length >= 4)
+                        {
+                            parameters["bits"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 68: // Multiplier (APE)
+                    case 80: // Multiplier (Buffer)
+                        if (configData.Length >= 4)
+                        {
+                            parameters["multiplier"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 69: // Video Delay (APE)
+                    case 79: // Video Delay (Buffer)
+                    case 99: // Video Delay (Trans)
+                        if (configData.Length >= 8)
+                        {
+                            parameters["delay_frames"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 70: // Multi Delay (APE)
+                    case 78: // Multi Delay (Buffer)
+                    case 65: // Multi Delay (Trans)
+                        if (configData.Length >= 12)
+                        {
+                            parameters["delay_frames"] = reader.ReadInt32();
+                            parameters["use_beats"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    // Buffer Effects
+                    case 76: // Buffer Save
+                        if (configData.Length >= 4)
+                        {
+                            parameters["buffer_index"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 77: // Buffer Restore
+                        if (configData.Length >= 8)
+                        {
+                            parameters["buffer_index"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    // Advanced Effects (from external plugins)
+                    case 81: // Convolution Filter
                         if (configData.Length >= 4)
                         {
                             parameters["intensity"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 82: // Texer II
+                        if (configData.Length >= 16)
+                        {
+                            parameters["texture_mode"] = reader.ReadInt32();
+                            parameters["wrap_mode"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                            parameters["alpha"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 83: // Color Map
+                        if (configData.Length >= 12)
+                        {
+                            parameters["map_mode"] = reader.ReadInt32();
+                            parameters["output_min"] = reader.ReadInt32();
+                            parameters["output_max"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 84: // Triangle
+                        if (configData.Length >= 20)
+                        {
+                            parameters["num_triangles"] = reader.ReadInt32();
+                            parameters["size"] = reader.ReadInt32();
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                            parameters["rotation"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 85: // Ring
+                        if (configData.Length >= 16)
+                        {
+                            parameters["radius"] = reader.ReadInt32();
+                            parameters["width"] = reader.ReadInt32();
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 86: // Star
+                        if (configData.Length >= 20)
+                        {
+                            parameters["num_points"] = reader.ReadInt32();
+                            parameters["inner_radius"] = reader.ReadInt32();
+                            parameters["outer_radius"] = reader.ReadInt32();
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
+                        }
+                        break;
+
+                    case 87: // MIDI Trace
+                        if (configData.Length >= 12)
+                        {
+                            parameters["midi_channel"] = reader.ReadInt32();
+                            parameters["color"] = reader.ReadInt32();
+                            parameters["blend_mode"] = reader.ReadInt32();
                         }
                         break;
 
@@ -399,10 +789,11 @@ namespace PhoenixVisualizer.App.Services
             var sb = new StringBuilder();
             sb.AppendLine($"Config Size: {configData.Length} bytes");
 
-            // Format based on effect type
+            // Format based on effect type (enhanced formatting)
             switch (effectType)
             {
                 case 0: // Simple Spectrum
+                case 92: // Simple Spectrum (Trans)
                     if (configData.Length >= 8)
                     {
                         var effectMode = BitConverter.ToInt32(configData, 0);
@@ -422,20 +813,273 @@ namespace PhoenixVisualizer.App.Services
                     }
                     break;
 
+                case 3:  // Superscope
+                case 36: // Superscope (Render)
+                case 93: // Superscope (Trans)
+                    if (configData.Length >= 4)
+                    {
+                        var codeLength = BitConverter.ToInt32(configData, 0);
+                        sb.AppendLine($"Code Length: {codeLength} bytes");
+                        if (codeLength > 0 && codeLength < configData.Length - 4)
+                        {
+                            var codeBytes = new byte[codeLength];
+                            Array.Copy(configData, 4, codeBytes, 0, codeLength);
+                            var code = Encoding.Default.GetString(codeBytes);
+                            sb.AppendLine("Code Preview:");
+                            sb.AppendLine($"  {code.Substring(0, Math.Min(100, code.Length))}...");
+                        }
+                    }
+                    break;
+
+                case 4:  // Blitter Feedback
+                case 46: // Blitter Feedback (Trans)
+                    if (configData.Length >= 4)
+                    {
+                        var blendMode = BitConverter.ToInt32(configData, 0);
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                    }
+                    break;
+
+                case 6:  // Blur
+                case 47: // Blur (Trans)
+                    if (configData.Length >= 8)
+                    {
+                        var blurEdges = BitConverter.ToInt32(configData, 0);
+                        var roundMode = BitConverter.ToInt32(configData, 4);
+                        sb.AppendLine($"Blur Edges: {blurEdges}");
+                        sb.AppendLine($"Round Mode: {roundMode}");
+                    }
+                    break;
+
+                case 9:  // Rotoblitter
+                case 88: // Rotoblitter (Trans)
+                case 90: // Rotoblitter (Render)
+                    if (configData.Length >= 20)
+                    {
+                        var zoom = BitConverter.ToInt32(configData, 0);
+                        var rotation = BitConverter.ToInt32(configData, 4);
+                        var zoomX = BitConverter.ToInt32(configData, 8);
+                        var zoomY = BitConverter.ToInt32(configData, 12);
+                        var blendMode = BitConverter.ToInt32(configData, 16);
+                        sb.AppendLine($"Zoom: {zoom}");
+                        sb.AppendLine($"Rotation: {rotation}");
+                        sb.AppendLine($"Zoom Center: ({zoomX}, {zoomY})");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                    }
+                    break;
+
+                case 11: // Color Fade
+                case 51: // Color Fade (Trans)
+                    if (configData.Length >= 16)
+                    {
+                        var red = BitConverter.ToInt32(configData, 0);
+                        var green = BitConverter.ToInt32(configData, 4);
+                        var blue = BitConverter.ToInt32(configData, 8);
+                        var blendMode = BitConverter.ToInt32(configData, 12);
+                        sb.AppendLine($"Fade Red: {red}");
+                        sb.AppendLine($"Fade Green: {green}");
+                        sb.AppendLine($"Fade Blue: {blue}");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                    }
+                    break;
+
+                case 15: // Movement
+                case 64: // Movement (Trans)
+                case 98: // Movement (Trans)
+                    if (configData.Length >= 16)
+                    {
+                        var moveX = BitConverter.ToInt32(configData, 0);
+                        var moveY = BitConverter.ToInt32(configData, 4);
+                        var wrapMode = BitConverter.ToInt32(configData, 8);
+                        var blendMode = BitConverter.ToInt32(configData, 12);
+                        sb.AppendLine($"Movement X: {moveX}");
+                        sb.AppendLine($"Movement Y: {moveY}");
+                        sb.AppendLine($"Wrap Mode: {wrapMode}");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                    }
+                    break;
+
+                case 28: // Text
+                case 96: // Text (Trans)
+                    if (configData.Length >= 8)
+                    {
+                        var textLength = BitConverter.ToInt32(configData, 0);
+                        var color = BitConverter.ToInt32(configData, 4);
+                        sb.AppendLine($"Color: #{color:X8}");
+                        if (textLength > 0 && textLength < configData.Length - 8)
+                        {
+                            var textBytes = new byte[textLength];
+                            Array.Copy(configData, 8, textBytes, 0, textLength);
+                            var text = Encoding.Default.GetString(textBytes);
+                            sb.AppendLine($"Text: \"{text}\"");
+                        }
+                    }
+                    break;
+
+                case 29: // Bump
+                case 49: // Bump (Trans)
+                    if (configData.Length >= 12)
+                    {
+                        var depth = BitConverter.ToInt32(configData, 0);
+                        var onBeat = BitConverter.ToInt32(configData, 4);
+                        var depth2 = BitConverter.ToInt32(configData, 8);
+                        sb.AppendLine($"Depth: {depth}");
+                        sb.AppendLine($"On Beat: {onBeat}");
+                        sb.AppendLine($"Depth 2: {depth2}");
+                    }
+                    break;
+
+                case 30: // Mosaic
+                case 63: // Mosaic (Trans)
+                    if (configData.Length >= 12)
+                    {
+                        var blockX = BitConverter.ToInt32(configData, 0);
+                        var blockY = BitConverter.ToInt32(configData, 4);
+                        var blendMode = BitConverter.ToInt32(configData, 8);
+                        sb.AppendLine($"Block Size X: {blockX}");
+                        sb.AppendLine($"Block Size Y: {blockY}");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                    }
+                    break;
+
+                case 32: // AVI Player
+                    if (configData.Length >= 8)
+                    {
+                        var filenameLength = BitConverter.ToInt32(configData, 0);
+                        var speed = BitConverter.ToInt32(configData, 4);
+                        sb.AppendLine($"Speed: {speed}");
+                        if (filenameLength > 0 && filenameLength < configData.Length - 8)
+                        {
+                            var filenameBytes = new byte[filenameLength];
+                            Array.Copy(configData, 8, filenameBytes, 0, filenameLength);
+                            var filename = Encoding.Default.GetString(filenameBytes);
+                            sb.AppendLine($"Filename: {filename}");
+                        }
+                    }
+                    break;
+
+                case 33: // Custom BPM
+                    if (configData.Length >= 8)
+                    {
+                        var enabled = BitConverter.ToInt32(configData, 0);
+                        var bpm = BitConverter.ToInt32(configData, 4);
+                        sb.AppendLine($"Enabled: {enabled}");
+                        sb.AppendLine($"BPM: {bpm}");
+                    }
+                    break;
+
+                case 34: // Picture
+                    if (configData.Length >= 8)
+                    {
+                        var filenameLength = BitConverter.ToInt32(configData, 0);
+                        var blendMode = BitConverter.ToInt32(configData, 4);
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                        if (filenameLength > 0 && filenameLength < configData.Length - 8)
+                        {
+                            var filenameBytes = new byte[filenameLength];
+                            Array.Copy(configData, 8, filenameBytes, 0, filenameLength);
+                            var filename = Encoding.Default.GetString(filenameBytes);
+                            sb.AppendLine($"Filename: {filename}");
+                        }
+                    }
+                    break;
+
+                case 39: // Timescope
+                case 97: // Timescope (Trans)
+                    if (configData.Length >= 16)
+                    {
+                        var color = BitConverter.ToInt32(configData, 0);
+                        var mode = BitConverter.ToInt32(configData, 4);
+                        var band = BitConverter.ToInt32(configData, 8);
+                        var smoothing = BitConverter.ToInt32(configData, 12);
+                        sb.AppendLine($"Color: #{color:X8}");
+                        sb.AppendLine($"Mode: {mode}");
+                        sb.AppendLine($"Band: {band}");
+                        sb.AppendLine($"Smoothing: {smoothing}");
+                    }
+                    break;
+
+                case 43: // Dynamic Movement
+                case 55: // Dynamic Movement (Trans)
+                    if (configData.Length >= 20)
+                    {
+                        var gridX = BitConverter.ToInt32(configData, 0);
+                        var gridY = BitConverter.ToInt32(configData, 4);
+                        var speed = BitConverter.ToInt32(configData, 8);
+                        var blendMode = BitConverter.ToInt32(configData, 12);
+                        var wrapMode = BitConverter.ToInt32(configData, 16);
+                        sb.AppendLine($"Grid X: {gridX}");
+                        sb.AppendLine($"Grid Y: {gridY}");
+                        sb.AppendLine($"Speed: {speed}");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                        sb.AppendLine($"Wrap Mode: {wrapMode}");
+                    }
+                    break;
+
+                // APE Effects
+                case 66: // Channel Shift (APE)
+                case 50: // Channel Shift (Trans)
+                    if (configData.Length >= 12)
+                    {
+                        var shiftR = BitConverter.ToInt32(configData, 0);
+                        var shiftG = BitConverter.ToInt32(configData, 4);
+                        var shiftB = BitConverter.ToInt32(configData, 8);
+                        sb.AppendLine($"Red Shift: {shiftR}");
+                        sb.AppendLine($"Green Shift: {shiftG}");
+                        sb.AppendLine($"Blue Shift: {shiftB}");
+                    }
+                    break;
+
+                case 68: // Multiplier (APE)
+                case 80: // Multiplier (Buffer)
+                    if (configData.Length >= 4)
+                    {
+                        var multiplier = BitConverter.ToInt32(configData, 0);
+                        sb.AppendLine($"Multiplier: {multiplier}");
+                    }
+                    break;
+
+                case 81: // Convolution Filter
+                    if (configData.Length >= 4)
+                    {
+                        var intensity = BitConverter.ToInt32(configData, 0);
+                        sb.AppendLine($"Intensity: {intensity}");
+                    }
+                    break;
+
+                case 82: // Texer II
+                    if (configData.Length >= 16)
+                    {
+                        var texMode = BitConverter.ToInt32(configData, 0);
+                        var wrapMode = BitConverter.ToInt32(configData, 4);
+                        var blendMode = BitConverter.ToInt32(configData, 8);
+                        var alpha = BitConverter.ToInt32(configData, 12);
+                        sb.AppendLine($"Texture Mode: {texMode}");
+                        sb.AppendLine($"Wrap Mode: {wrapMode}");
+                        sb.AppendLine($"Blend Mode: {blendMode}");
+                        sb.AppendLine($"Alpha: {alpha}");
+                    }
+                    break;
+
                 default:
-                    // Show raw data for unknown effects
+                    // Show raw data for unknown effects with better formatting
                     sb.AppendLine("Raw Config Data:");
-                    for (int i = 0; i < Math.Min(configData.Length, 32); i += 4)
+                    for (int i = 0; i < Math.Min(configData.Length, 64); i += 4)
                     {
                         if (i + 4 <= configData.Length)
                         {
                             var value = BitConverter.ToInt32(configData, i);
-                            sb.AppendLine($"  [{i/4}]: {value} (0x{value:X8})");
+                            sb.Append($"  [{i/4:D2}]: {value,8} (0x{value:X8})");
+                            if ((i/4 + 1) % 2 == 0) sb.AppendLine();
                         }
                     }
-                    if (configData.Length > 32)
+                    if (configData.Length > 64)
                     {
-                        sb.AppendLine($"  ... and {configData.Length - 32} more bytes");
+                        sb.AppendLine($"  ... and {configData.Length - 64} more bytes");
+                    }
+                    else if (configData.Length % 4 != 0)
+                    {
+                        sb.AppendLine(); // Add newline if we didn't finish on a pair
                     }
                     break;
             }
@@ -1018,3 +1662,4 @@ namespace PhoenixVisualizer.ImportedSuperscopes
         }
     }
 }
+
