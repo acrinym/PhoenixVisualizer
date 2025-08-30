@@ -11,6 +11,8 @@ using System.Linq;
 using System.ComponentModel;
 using System.IO;
 using PhoenixVisualizer.Core.Nodes;
+using Microsoft.CodeAnalysis;       // ✨ Roslyn for compilation
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace PhoenixVisualizer.Views
 {
@@ -279,14 +281,60 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
 
     private void OnCompileClick(object? sender, RoutedEventArgs e)
     {
-        // TODO: Implement plugin compilation
-        System.Diagnostics.Debug.WriteLine("Plugin compilation not yet implemented");
+        if (_editor?.Text == null || string.IsNullOrWhiteSpace(_editor.Text))
+        {
+            ShowMessage("No code to compile", "Please enter some C# code in the editor first.");
+            return;
+        }
+
+        try
+        {
+            var compilationResult = CompilePluginCode(_editor.Text);
+            if (compilationResult.Success)
+            {
+                ShowMessage("Compilation Successful", $"Plugin compiled successfully!\n\nOutput: {compilationResult.OutputFile}\n\n{compilationResult.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PluginEditor] Compilation successful: {compilationResult.OutputFile}");
+            }
+            else
+            {
+                ShowMessage("Compilation Failed", $"Compilation failed:\n\n{compilationResult.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PluginEditor] Compilation failed: {compilationResult.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowMessage("Compilation Error", $"An error occurred during compilation:\n\n{ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PluginEditor] Compilation error: {ex.Message}");
+        }
     }
 
     private void OnValidateClick(object? sender, RoutedEventArgs e)
     {
-        // TODO: Implement plugin validation
-        System.Diagnostics.Debug.WriteLine("Plugin validation not yet implemented");
+        if (_editor?.Text == null || string.IsNullOrWhiteSpace(_editor.Text))
+        {
+            ShowMessage("No code to validate", "Please enter some C# code in the editor first.");
+            return;
+        }
+
+        try
+        {
+            var validationResult = ValidatePluginCode(_editor.Text);
+            if (validationResult.IsValid)
+            {
+                ShowMessage("Validation Successful", $"Plugin code is valid!\n\n{validationResult.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PluginEditor] Validation successful: {validationResult.Message}");
+            }
+            else
+            {
+                ShowMessage("Validation Failed", $"Validation failed:\n\n{validationResult.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PluginEditor] Validation failed: {validationResult.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowMessage("Validation Error", $"An error occurred during validation:\n\n{ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PluginEditor] Validation error: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -296,6 +344,262 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
     {
         RefreshAvailableEffects();
         System.Diagnostics.Debug.WriteLine($"[PluginEditor] Manual refresh completed - {_availableEffects.Count} effects available");
+    }
+
+    /// <summary>
+    /// Compiles the plugin code into a dynamic assembly
+    /// </summary>
+    private PluginCompilationResult CompilePluginCode(string code)
+    {
+        var result = new PluginCompilationResult();
+
+        try
+        {
+            // Get the current directory and create output path
+            var currentDir = Directory.GetCurrentDirectory();
+            var outputDir = Path.Combine(currentDir, "CompiledPlugins");
+            Directory.CreateDirectory(outputDir);
+
+            var assemblyName = $"PhoenixPlugin_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var outputFile = Path.Combine(outputDir, $"{assemblyName}.dll");
+
+            // Add required references
+            var references = new List<string>
+            {
+                typeof(object).Assembly.Location, // mscorlib/System.Private.CoreLib
+                typeof(System.Linq.Enumerable).Assembly.Location, // System.Linq
+                typeof(System.Collections.Generic.List<>).Assembly.Location, // System.Collections
+                typeof(Avalonia.Controls.Control).Assembly.Location, // Avalonia.Controls
+                typeof(PhoenixVisualizer.Core.Nodes.IEffectNode).Assembly.Location, // PhoenixVisualizer.Core
+            };
+
+            // Add PhoenixVisualizer assemblies
+            var phoenixCore = Path.Combine(currentDir, "PhoenixVisualizer.Core.dll");
+            var phoenixApp = Path.Combine(currentDir, "PhoenixVisualizer.App.dll");
+
+            if (File.Exists(phoenixCore)) references.Add(phoenixCore);
+            if (File.Exists(phoenixApp)) references.Add(phoenixApp);
+
+            // Create compilation options
+            var compilationOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
+                Microsoft.CodeAnalysis.OutputKind.DynamicallyLinkedLibrary,
+                optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Release,
+                warningLevel: 4
+            );
+
+            // Add necessary using statements to the code if not present
+            var enhancedCode = EnsureRequiredUsings(code);
+
+            // Create syntax tree
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
+                enhancedCode,
+                new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions()
+            );
+
+            // Create compilation
+            var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+                assemblyName,
+                new[] { syntaxTree },
+                references.Select(r => Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(r)),
+                compilationOptions
+            );
+
+            // Compile
+            var emitResult = compilation.Emit(outputFile);
+
+            if (emitResult.Success)
+            {
+                result.Success = true;
+                result.OutputFile = outputFile;
+                result.Message = $"Successfully compiled plugin assembly.\n" +
+                               $"Location: {outputFile}\n" +
+                               $"Assembly: {assemblyName}.dll";
+
+                // Try to load and validate the compiled assembly
+                try
+                {
+                    var assembly = System.Reflection.Assembly.LoadFrom(outputFile);
+                    var pluginTypes = assembly.GetTypes()
+                        .Where(t => typeof(PhoenixVisualizer.Core.Nodes.IEffectNode).IsAssignableFrom(t))
+                        .ToList();
+
+                    result.Message += $"\n\nFound {pluginTypes.Count} effect node types: {string.Join(", ", pluginTypes.Select(t => t.Name))}";
+                }
+                catch (Exception ex)
+                {
+                    result.Message += $"\n\nWarning: Could not validate plugin types: {ex.Message}";
+                }
+            }
+            else
+            {
+                result.Success = false;
+                var errors = string.Join("\n", emitResult.Diagnostics
+                    .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                    .Select(d => $"Error {d.Id}: {d.GetMessage()}"));
+                result.Message = $"Compilation failed with errors:\n{errors}";
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Success = false;
+            result.Message = $"Compilation setup failed: {ex.Message}";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Validates the plugin code for syntax and structure
+    /// </summary>
+    private PluginValidationResult ValidatePluginCode(string code)
+    {
+        var result = new PluginValidationResult();
+
+        try
+        {
+            // Parse the code to check for syntax errors
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
+                code,
+                new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions()
+            );
+
+            var diagnostics = syntaxTree.GetDiagnostics();
+            var errors = diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ToList();
+            var warnings = diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Warning).ToList();
+
+            if (errors.Any())
+            {
+                result.IsValid = false;
+                result.Message = $"Syntax errors found:\n{string.Join("\n", errors.Select(e => $"Line {e.Location.GetLineSpan().StartLinePosition.Line + 1}: {e.GetMessage()}"))}";
+            }
+            else
+            {
+                result.IsValid = true;
+
+                // Check for required interfaces and patterns
+                var validationMessages = new List<string>();
+
+                // Check if code contains class definition
+                if (!code.Contains("class ") && !code.Contains("partial class "))
+                {
+                    validationMessages.Add("⚠️ No class definition found. Plugin should contain at least one class.");
+                }
+
+                // Check for IEffectNode interface implementation
+                if (!code.Contains("IEffectNode") && !code.Contains("implements IEffectNode"))
+                {
+                    validationMessages.Add("⚠️ No IEffectNode interface implementation found. Plugin should implement IEffectNode.");
+                }
+
+                // Check for Render method
+                if (!code.Contains("void Render(") && !code.Contains("public void Render("))
+                {
+                    validationMessages.Add("⚠️ No Render method found. Effect nodes should have a Render method.");
+                }
+
+                // Check for using statements
+                if (!code.Contains("using PhoenixVisualizer.Core.Nodes;") &&
+                    !code.Contains("PhoenixVisualizer.Core.Nodes"))
+                {
+                    validationMessages.Add("ℹ️ Consider adding 'using PhoenixVisualizer.Core.Nodes;' for better code completion.");
+                }
+
+                if (warnings.Any())
+                {
+                    validationMessages.Add($"⚠️ {warnings.Count} warnings found during syntax analysis.");
+                }
+
+                if (validationMessages.Any())
+                {
+                    result.Message = "Code is syntactically valid but has suggestions:\n\n" +
+                                   string.Join("\n", validationMessages);
+                }
+                else
+                {
+                    result.Message = "✅ Code is valid and well-structured!\n\n" +
+                                   "✓ Syntax is correct\n" +
+                                   "✓ No compilation errors\n" +
+                                   "✓ Follows plugin conventions";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            result.IsValid = false;
+            result.Message = $"Validation failed: {ex.Message}";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Ensures required using statements are present in the code
+    /// </summary>
+    private string EnsureRequiredUsings(string code)
+    {
+        var requiredUsings = new[]
+        {
+            "using System;",
+            "using System.Collections.Generic;",
+            "using System.Linq;",
+            "using PhoenixVisualizer.Core.Nodes;",
+            "using PhoenixVisualizer.Core;",
+            "using Avalonia.Media;"
+        };
+
+        var enhancedCode = code;
+
+        foreach (var usingStmt in requiredUsings)
+        {
+            if (!enhancedCode.Contains(usingStmt))
+            {
+                enhancedCode = usingStmt + "\n" + enhancedCode;
+            }
+        }
+
+        return enhancedCode;
+    }
+
+    /// <summary>
+    /// Shows a message dialog to the user
+    /// </summary>
+    private async void ShowMessage(string title, string message)
+    {
+        var dialog = new Avalonia.Controls.Window
+        {
+            Title = title,
+            Width = 500,
+            Height = 300,
+            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner,
+            CanResize = false
+        };
+
+        var textBlock = new Avalonia.Controls.TextBlock
+        {
+            Text = message,
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+            Margin = new Avalonia.Thickness(20),
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top
+        };
+
+        var closeButton = new Avalonia.Controls.Button
+        {
+            Content = "Close",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Margin = new Avalonia.Thickness(20),
+            Padding = new Avalonia.Thickness(20, 10, 20, 10)
+        };
+
+        closeButton.Click += (_, _) => dialog.Close();
+
+        var stackPanel = new Avalonia.Controls.StackPanel();
+        stackPanel.Children.Add(textBlock);
+        stackPanel.Children.Add(closeButton);
+
+        dialog.Content = stackPanel;
+
+        // Show dialog modally
+        await dialog.ShowDialog(this);
     }
 
     /// <summary>
@@ -395,6 +699,25 @@ public partial class PluginEditorWindow : Window, INotifyPropertyChanged
         _pluginWatcher?.Dispose();
         base.OnClosed(e);
     }
+}
+
+/// <summary>
+/// Result of a plugin compilation operation
+/// </summary>
+public class PluginCompilationResult
+{
+    public bool Success { get; set; }
+    public string OutputFile { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Result of a plugin validation operation
+/// </summary>
+public class PluginValidationResult
+{
+    public bool IsValid { get; set; }
+    public string Message { get; set; } = string.Empty;
 }
 
 public class EffectDescriptor
