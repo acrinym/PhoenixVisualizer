@@ -16,13 +16,14 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     // User parameters (these would be exposed in the UI)
     private float _sensitivity = 1.0f;
     private float _minSize = 0.05f;
-    private float _maxSize = 0.7f;
+    private float _maxSize = 0.35f; // FIXED: Reduced from 0.7f to 0.35f to prevent covering controls
     private float _smoothing = 0.92f;
     private bool _beatReactive = true;
     private bool _showPulseWaves = true;
     private float _pulseWaveSpeed = 1.0f;
     private uint _baseColor = 0xFFFFAA00; // Orange
     private uint _beatColor = 0xFFFFFFFF; // White
+    private float _marginFactor = 0.8f; // Leave 20% margin for controls
 
     public void Initialize(int width, int height) => Resize(width, height);
 
@@ -56,10 +57,15 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         _lastLevel = _lastLevel * _smoothing + scaledLevel * (1f - _smoothing);
         float smoothedLevel = _lastLevel;
 
-        // Calculate circle size with proper bounds
-        float maxSize = Math.Min(_width, _height) * _maxSize;
-        float minSize = Math.Min(_width, _height) * _minSize;
+        // Calculate circle size with proper bounds and margins for controls
+        float availableSpace = Math.Min(_width, _height) * _marginFactor; // Leave margin for controls
+        float maxSize = availableSpace * _maxSize; // Now 35% of available space instead of full screen
+        float minSize = availableSpace * _minSize;
         float circleSize = minSize + (maxSize - minSize) * smoothedLevel;
+
+        // Additional safety check to ensure circle doesn't get too big
+        float maxAllowedSize = Math.Min(_width, _height) * 0.4f; // Never exceed 40% of screen
+        circleSize = Math.Min(circleSize, maxAllowedSize);
 
         // Choose color based on beat detection
         uint circleColor = beat && _beatReactive ? _beatColor : _baseColor;
@@ -96,7 +102,7 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     {
         float centerX = _width / 2f;
         float centerY = _height / 2f;
-        float maxRadius = Math.Min(_width, _height) * 0.8f;
+        float maxRadius = Math.Min(_width, _height) * _marginFactor * 0.8f; // Use same margin system
 
         // Draw expanding pulse waves
         for (int wave = 0; wave < 4; wave++)
@@ -114,7 +120,7 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     {
         float centerX = _width / 2f;
         float centerY = _height / 2f;
-        float maxRadius = Math.Min(_width, _height) * 0.6f;
+        float maxRadius = Math.Min(_width, _height) * _marginFactor * 0.6f; // Use same margin system
 
         // Draw energy-based ripple effects
         for (int ripple = 0; ripple < 3; ripple++)
@@ -133,7 +139,7 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     // Parameter setters for UI binding
     public void SetSensitivity(float sensitivity) => _sensitivity = Math.Max(0.1f, Math.Min(10f, sensitivity));
     public void SetMinSize(float minSize) => _minSize = Math.Max(0.01f, Math.Min(0.3f, minSize));
-    public void SetMaxSize(float maxSize) => _maxSize = Math.Max(0.3f, Math.Min(0.9f, maxSize));
+    public void SetMaxSize(float maxSize) => _maxSize = Math.Max(0.1f, Math.Min(0.5f, maxSize)); // Reduced max from 0.9f to 0.5f for safety
     public void SetSmoothing(float smoothing) => _smoothing = Math.Max(0.5f, Math.Min(0.99f, smoothing));
     public void SetBeatReactive(bool beatReactive) => _beatReactive = beatReactive;
     public void SetShowPulseWaves(bool showPulseWaves) => _showPulseWaves = showPulseWaves;

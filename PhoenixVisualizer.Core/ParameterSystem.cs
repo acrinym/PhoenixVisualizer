@@ -305,7 +305,7 @@ public static class ParameterSystemExtensions
     /// <summary>
     /// Register common visualizer parameters
     /// </summary>
-    public static void RegisterCommonParameters(this IVisualizerPlugin visualizer)
+    public static void RegisterCommonParameters(this object visualizer, string visualizerId)
     {
         var parameters = new List<ParameterSystem.ParameterDefinition>
         {
@@ -356,6 +356,6 @@ public static class ParameterSystemExtensions
             }
         };
 
-        ParameterSystem.RegisterVisualizerParameters(visualizer.Id, parameters);
+        ParameterSystem.RegisterVisualizerParameters(visualizerId, parameters);
     }
 }
