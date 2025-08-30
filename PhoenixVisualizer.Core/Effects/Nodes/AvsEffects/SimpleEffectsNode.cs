@@ -229,10 +229,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 _smoothedSpectrumData[i] = _smoothedSpectrumData[i] * Smoothing + magnitude * (1 - Smoothing);
                 magnitude = _smoothedSpectrumData[i];
 
-                // FIXED: Apply proper scaling and clamping to prevent "constantly at MAX" issue
-                float scaledMagnitude = Math.Clamp(magnitude * Sensitivity * ScaleFactor, MinBarHeight, MaxBarHeight);
+                // VU METER: Allow bars to go beyond normal range, only clamp peaks to reasonable values
+                float scaledMagnitude = magnitude * Sensitivity * ScaleFactor;
                 int barHeight = (int)(scaledMagnitude * VisualizationHeight);
-                int peakHeight = (int)(Math.Clamp(_peakData[i] * Sensitivity * ScaleFactor, MinBarHeight, MaxBarHeight) * VisualizationHeight);
+                int peakHeight = (int)(Math.Clamp(_peakData[i] * Sensitivity * ScaleFactor, MinBarHeight, MaxBarHeight * 2f) * VisualizationHeight);
 
                 // Update peaks with proper scaling
                 if (magnitude > _peakData[i])

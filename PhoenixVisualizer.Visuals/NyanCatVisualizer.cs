@@ -109,10 +109,126 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
         _lastBeatTime = 0;
         _lastPeakTime = 0;
 
-        // Parameters
+        // Register parameters with the parameter system
+        RegisterParameters();
+
+        // Parameters (will be overridden by parameter system if loaded)
         _trailLength = 0.7f;
         _trailWidth = 8f;
         _sparkleDensity = 0.6f;
+    }
+
+    private void RegisterParameters()
+    {
+        var parameters = new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "trailLength",
+                Label = "Trail Length",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.7f,
+                MinValue = 0.1f,
+                MaxValue = 1.0f,
+                Description = "Length of the rainbow trail (0.1-1.0)",
+                Category = "Trail"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "trailWidth",
+                Label = "Trail Width",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 8f,
+                MinValue = 2f,
+                MaxValue = 20f,
+                Description = "Width of the rainbow trail (2-20)",
+                Category = "Trail"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "sparkleDensity",
+                Label = "Sparkle Density",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.6f,
+                MinValue = 0.0f,
+                MaxValue = 1.0f,
+                Description = "Density of sparkles and particles (0.0-1.0)",
+                Category = "Effects"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "catSpeed",
+                Label = "Cat Speed",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.5f,
+                MaxValue = 2.0f,
+                Description = "Movement speed of the Nyan Cat (0.5-2.0)",
+                Category = "Movement"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "movementMode",
+                Label = "Movement Mode",
+                Type = ParameterSystem.ParameterType.Dropdown,
+                DefaultValue = "AudioReactive",
+                Options = new List<string> { "Classic", "AudioReactive", "Chaotic" },
+                Description = "How the cat moves across the screen",
+                Category = "Movement"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "maxBirds",
+                Label = "Max Birds",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 5,
+                MinValue = 1,
+                MaxValue = 10,
+                Description = "Maximum number of birds on screen (1-10)",
+                Category = "Gameplay"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "pipeGapSize",
+                Label = "Pipe Gap Size",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 180f,
+                MinValue = 100f,
+                MaxValue = 300f,
+                Description = "Size of the gap between pipes (100-300)",
+                Category = "Gameplay"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "scrollSpeed",
+                Label = "Scroll Speed",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.5f,
+                MaxValue = 3.0f,
+                Description = "Speed at which pipes scroll (0.5-3.0)",
+                Category = "Gameplay"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "splatMode",
+                Label = "Splat Mode",
+                Type = ParameterSystem.ParameterType.Checkbox,
+                DefaultValue = true,
+                Description = "Enable/disable cartoon splat effects on collision",
+                Category = "Effects"
+            }
+        };
+
+        ParameterSystem.RegisterVisualizerParameters(Id, parameters);
     }
 
     public void Resize(int width, int height)
@@ -158,11 +274,16 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
         _midAccumulator = _midAccumulator * 0.95f + f.Mid * 0.05f;
         _trebleAccumulator = _trebleAccumulator * 0.95f + f.Treble * 0.05f;
 
-        // Update parameters based on audio
-        _trailLength = _trailLengthParam * (0.5f + _midAccumulator * 0.5f);
-        _trailWidth = 6f + _bassAccumulator * 12f;
-        _sparkleDensity = _sparkleAmountParam * (0.3f + _trebleAccumulator * 0.7f);
-        _catSpeed = _catSpeedParam * (0.8f + f.Volume * 0.4f);
+        // Update parameters based on audio and parameter system
+        float baseTrailLength = ParameterSystem.GetParameterValue<float>(Id, "trailLength", 0.7f);
+        float baseTrailWidth = ParameterSystem.GetParameterValue<float>(Id, "trailWidth", 8f);
+        float baseSparkleDensity = ParameterSystem.GetParameterValue<float>(Id, "sparkleDensity", 0.6f);
+        float baseCatSpeed = ParameterSystem.GetParameterValue<float>(Id, "catSpeed", 1.0f);
+
+        _trailLength = baseTrailLength * (0.5f + _midAccumulator * 0.5f);
+        _trailWidth = baseTrailWidth * (0.5f + _bassAccumulator);
+        _sparkleDensity = baseSparkleDensity * (0.3f + _trebleAccumulator * 0.7f);
+        _catSpeed = baseCatSpeed * (0.8f + f.Volume * 0.4f);
 
         // Beat detection for flips
         if (f.Beat && _time - _lastBeatTime > 0.2f)

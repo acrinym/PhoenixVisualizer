@@ -569,15 +569,20 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
 
     private void RenderTrack(ISkiaCanvas canvas, AudioFeatures f)
     {
-        // Sort track segments by Z for proper rendering order
-        var visibleSegments = _trackSegments.Where(s => s.Z >= -50).OrderByDescending(s => s.Z).ToList();
+        // Sort track segments by Z for proper rendering order (near to far)
+        var visibleSegments = _trackSegments.Where(s => s.Z >= -50).OrderBy(s => s.Z).ToList();
 
         for (int i = 0; i < visibleSegments.Count; i++)
         {
             var segment = visibleSegments[i];
 
-            float screenX = _width * 0.5f + segment.X;
-            float screenY = _height * 0.8f - segment.Y - segment.Z * 0.1f;
+            // Proper 3D perspective: tracks should appear towards/away from viewer
+            // Calculate perspective scale based on Z distance
+            float perspectiveScale = 1.0f / (1.0f + Math.Max(0, segment.Z) * 0.02f);
+            float centerOffset = (segment.Z * 0.1f) * perspectiveScale;
+
+            float screenX = _width * 0.5f + segment.X * perspectiveScale + centerOffset;
+            float screenY = _height * 0.8f - segment.Y;
 
             // Apply camera shake
             screenX += (float)Math.Sin(_time * 20) * _cameraShake;
@@ -602,8 +607,12 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
             if (i < visibleSegments.Count - 1)
             {
                 var nextSegment = visibleSegments[i + 1];
-                float nextScreenX = _width * 0.5f + nextSegment.X;
-                float nextScreenY = _height * 0.8f - nextSegment.Y - nextSegment.Z * 0.1f;
+                // Apply same perspective correction to next segment
+                float nextPerspectiveScale = 1.0f / (1.0f + Math.Max(0, nextSegment.Z) * 0.02f);
+                float nextCenterOffset = (nextSegment.Z * 0.1f) * nextPerspectiveScale;
+
+                float nextScreenX = _width * 0.5f + nextSegment.X * nextPerspectiveScale + nextCenterOffset;
+                float nextScreenY = _height * 0.8f - nextSegment.Y;
 
                 nextScreenX += (float)Math.Sin(_time * 20) * _cameraShake;
                 nextScreenY += (float)Math.Cos(_time * 18) * _cameraShake * 0.5f;
@@ -661,9 +670,12 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
             // Skip carts that are too far back
             if (cartZ < -20) continue;
 
-            // Project to screen
-            float screenX = _width * 0.5f + cartX;
-            float screenY = _height * 0.8f - cartY - cartZ * 0.1f;
+            // Project to screen with proper 3D perspective
+            float perspectiveScale = 1.0f / (1.0f + Math.Max(0, cartZ) * 0.02f);
+            float centerOffset = (cartZ * 0.1f) * perspectiveScale;
+
+            float screenX = _width * 0.5f + cartX * perspectiveScale + centerOffset;
+            float screenY = _height * 0.8f - cartY;
 
             // Apply camera shake
             screenX += (float)Math.Sin(_time * 20) * _cameraShake;
