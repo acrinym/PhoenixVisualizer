@@ -230,9 +230,9 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 magnitude = _smoothedSpectrumData[i];
 
                 // FIXED: Apply proper scaling and clamping to prevent "constantly at MAX" issue
-                float scaledMagnitude = Math.Max(MinBarHeight, Math.Min(MaxBarHeight, magnitude * Sensitivity * ScaleFactor));
+                float scaledMagnitude = Math.Clamp(magnitude * Sensitivity * ScaleFactor, MinBarHeight, MaxBarHeight);
                 int barHeight = (int)(scaledMagnitude * VisualizationHeight);
-                int peakHeight = (int)(Math.Max(MinBarHeight, Math.Min(MaxBarHeight, _peakData[i] * Sensitivity * ScaleFactor)) * VisualizationHeight);
+                int peakHeight = (int)(Math.Clamp(_peakData[i] * Sensitivity * ScaleFactor, MinBarHeight, MaxBarHeight) * VisualizationHeight);
 
                 // Update peaks with proper scaling
                 if (magnitude > _peakData[i])
@@ -309,7 +309,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 float sample = waveData[sampleIndex];
                 
                 // FIXED: Apply proper scaling and clamping for oscilloscope
-                float scaledSample = Math.Max(-1f, Math.Min(1f, sample * Sensitivity * ScaleFactor));
+                float scaledSample = Math.Clamp(sample * Sensitivity * ScaleFactor, -1f, 1f);
                 int y = centerY - (int)(scaledSample * VisualizationHeight / 2);
                 y = Math.Max(0, Math.Min(canvas.Height - 1, y));
 
@@ -351,7 +351,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         {
             if (x >= 0 && x < canvas.Width && y >= 0 && y < canvas.Height)
             {
-                canvas.Pixels[y * canvas.Width + x] = (int)color;
+                canvas.Pixels[y * canvas.Width + x] = unchecked((int)color);
             }
         }
 
