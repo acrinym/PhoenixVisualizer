@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="using:PhoenixVisualizer.Views"
+        xmlns:views="using:PhoenixVisualizer.App.Views"
+        xmlns:local="using:PhoenixVisualizer.Views"
         mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
         x:Class="PhoenixVisualizer.Views.PhxEditorWindow"
-        x:DataType="views:PhxEditorViewModel"
+        x:DataType="local:PhxEditorViewModel"
         Title="PHX Editor - Advanced Visual Effects Composer"
         Width="1400" Height="900"
         Icon="/Assets/avalonia-logo.ico">
@@ -17,6 +18,8 @@
         <SolidColorBrush x:Key="BorderColor" Color="#3e3e42"/>
         <SolidColorBrush x:Key="TextColor" Color="#f1f1f1"/>
         <SolidColorBrush x:Key="AccentColor" Color="#007acc"/>
+
+
     </Window.Resources>
 
     <Grid Background="{StaticResource EditorBackground}">
@@ -49,6 +52,11 @@
                 <Button Content="▶️ Play" Command="{Binding PlayCommand}" Background="Blue" Foreground="White" ToolTip.Tip="Play preview"/>
                 <Button Content="⏸️ Pause" Command="{Binding PauseCommand}" Background="Gray" Foreground="White" ToolTip.Tip="Pause preview"/>
                 <Button Content="🔄 Restart" Command="{Binding RestartCommand}" Background="Purple" Foreground="White" ToolTip.Tip="Restart preview"/>
+                <Separator/>
+                <Button Content="📊 Perf" Command="{Binding TogglePerformanceOverlayCommand}" Background="Teal" Foreground="White" ToolTip.Tip="Toggle performance overlay"/>
+                <Button Content="🐛 Debug" Command="{Binding ToggleDebugLoggingCommand}" Background="Orange" Foreground="White" ToolTip.Tip="Toggle debug logging"/>
+                <Button Content="🔄 Reset Stats" Command="{Binding ResetPerformanceStatsCommand}" Background="Gray" Foreground="White" ToolTip.Tip="Reset performance stats"/>
+                <Button Content="📋 Export Log" Command="{Binding ExportPerformanceLogCommand}" Background="Blue" Foreground="White" ToolTip.Tip="Export performance log"/>
                 <Separator/>
                 <Button Content="📖 Help" Command="{Binding HelpCommand}" ToolTip.Tip="Show help"/>
             </StackPanel>
@@ -199,14 +207,30 @@
                 <!-- Status Bar -->
                 <Border Grid.Row="1" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0"
                         Background="{StaticResource PanelBackground}">
-                    <StackPanel Orientation="Horizontal" Margin="8" Spacing="16">
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextColor}"/>
-                        <Separator/>
-                        <TextBlock Text="{Binding FpsCounter}" Foreground="{StaticResource AccentColor}"/>
-                        <TextBlock Text="{Binding MemoryUsage}" Foreground="{StaticResource TextColor}"/>
-                        <Separator/>
-                        <TextBlock Text="{Binding PresetName}" Foreground="{StaticResource TextColor}"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Main Status -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="8" Spacing="16">
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextColor}"/>
+                            <Separator/>
+                            <TextBlock Text="{Binding PresetName}" Foreground="{StaticResource TextColor}"/>
+                        </StackPanel>
+
+                        <!-- Performance Metrics -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8" Spacing="12">
+                            <TextBlock Text="{Binding FpsCounter}" Foreground="{StaticResource AccentColor}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding MemoryUsage}" Foreground="{StaticResource TextColor}"/>
+                            <TextBlock Text="{Binding CpuUsage}" Foreground="{StaticResource TextColor}"/>
+                            <TextBlock Text="{Binding RenderTime}" Foreground="{StaticResource TextColor}"/>
+                            <TextBlock Text="{Binding EffectCount}" Foreground="{StaticResource TextColor}"/>
+                            <Separator/>
+                            <TextBlock Text="{Binding DebugInfo}" Foreground="Yellow" FontSize="11"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
             </Grid>
 
@@ -229,11 +253,10 @@
                                    Foreground="{StaticResource TextColor}"/>
 
                         <ScrollViewer Grid.Row="1">
-                            <StackPanel x:Name="ParametersPanel" Margin="8,0,8,8" Spacing="8">
-                                <!-- Parameters will be dynamically added here by ParameterEditor -->
-                                <TextBlock Text="Select an effect to edit parameters"
-                                           Foreground="{StaticResource TextColor}" Opacity="0.6"/>
-                            </StackPanel>
+                            <views:ParameterEditor x:Name="ParameterEditorControl"
+                                                   EffectName="{Binding SelectedEffect.Name}"
+                                                   Parameters="{Binding SelectedEffect.Parameters}"
+                                                   Margin="4"/>
                         </ScrollViewer>
                     </Grid>
                 </Border>

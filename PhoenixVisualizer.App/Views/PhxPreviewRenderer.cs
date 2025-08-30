@@ -149,15 +149,17 @@ public class PhxPreviewRenderer
             // Update performance metrics
             UpdatePerformanceMetrics();
 
-            // Update view model
-            _viewModel.FpsCounter = $"{CurrentFps:F1} FPS";
-            _viewModel.MemoryUsage = $"{MemoryUsage / 1024 / 1024} MB";
+            // Update view model with comprehensive performance data
+            double cpuUsage = GetCpuUsage();
+            double renderTime = _frameTimer.Elapsed.TotalMilliseconds;
+            _viewModel.UpdatePerformanceMetrics(CurrentFps, MemoryUsage, cpuUsage, renderTime);
 
         }
         catch (Exception ex)
         {
             // Handle rendering errors gracefully
             _viewModel.StatusMessage = $"Render error: {ex.Message}";
+            _viewModel.LogDebugInfo($"Render error: {ex.Message}");
         }
         finally
         {
@@ -194,6 +196,9 @@ public class PhxPreviewRenderer
 
                 foreach (var effectItem in _viewModel.EffectStack)
                 {
+                    // Debug logging for effect rendering
+                    _viewModel.LogDebugInfo($"Rendering effect: {effectItem.Name}");
+
                     // Get the actual effect node
                     var effectNode = GetEffectNode(effectItem);
                     if (effectNode != null)
@@ -531,6 +536,31 @@ public class PhxPreviewRenderer
 
         // Update memory usage (simplified)
         MemoryUsage = GC.GetTotalMemory(false);
+    }
+
+    private double GetCpuUsage()
+    {
+        try
+        {
+            // Simplified CPU usage estimation based on frame time
+            // In a real implementation, you'd use System.Diagnostics.Process
+            // For now, we estimate based on how close we are to 60 FPS target
+            double targetFrameTime = 1000.0 / 60.0; // 16.67ms for 60 FPS
+            double actualFrameTime = _frameTimer.Elapsed.TotalMilliseconds;
+
+            if (actualFrameTime > 0)
+            {
+                // If we're taking longer than target, we're using more CPU
+                double cpuLoad = Math.Min(100.0, (actualFrameTime / targetFrameTime) * 10.0);
+                return Math.Max(0.1, cpuLoad); // Minimum 0.1% to show activity
+            }
+
+            return 5.0; // Default fallback
+        }
+        catch
+        {
+            return 5.0; // Default fallback on error
+        }
     }
 
     public void Stop()

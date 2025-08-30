@@ -1,17 +1,53 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using PhoenixVisualizer.Core.Nodes;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using EffectParam = PhoenixVisualizer.Core.Nodes.EffectParam;
 
 namespace PhoenixVisualizer.App.Views;
 
 /// <summary>
+/// ViewModel for Parameter Editor - handles reactive parameter binding
+/// </summary>
+public class ParameterEditorViewModel : ReactiveObject
+{
+    private Dictionary<string, EffectParam> _parameters = new();
+    private string _effectName = "";
+
+    public Dictionary<string, EffectParam> Parameters
+    {
+        get => _parameters;
+        set => this.RaiseAndSetIfChanged(ref _parameters, value);
+    }
+
+    public string EffectName
+    {
+        get => _effectName;
+        set => this.RaiseAndSetIfChanged(ref _effectName, value);
+    }
+
+    public ParameterEditorViewModel()
+    {
+        // React to parameter changes
+        this.WhenAnyValue(x => x.Parameters)
+            .Subscribe(_ => UpdateParameterControls());
+    }
+
+    private void UpdateParameterControls()
+    {
+        // This will be handled by the view
+    }
+}
+
+/// <summary>
 /// Parameter Editor - Dynamically generates UI controls for effect parameters
-/// Supports sliders, checkboxes, colors, and dropdowns
+/// Supports sliders, checkboxes, colors, and dropdowns with real-time binding
 /// </summary>
 public partial class ParameterEditor : UserControl
 {
@@ -33,10 +69,16 @@ public partial class ParameterEditor : UserControl
         set => SetValue(EffectNameProperty, value);
     }
 
+    private ParameterEditorViewModel _viewModel;
+
     public ParameterEditor()
     {
         InitializeComponent();
-        Parameters = new Dictionary<string, EffectParam>();
+        _viewModel = new ParameterEditorViewModel();
+
+        // React to parameter changes
+        _viewModel.WhenAnyValue(x => x.Parameters)
+            .Subscribe(_ => UpdateParameterControls());
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -45,7 +87,8 @@ public partial class ParameterEditor : UserControl
 
         if (change.Property == ParametersProperty || change.Property == EffectNameProperty)
         {
-            UpdateParameterControls();
+            _viewModel.Parameters = Parameters ?? new Dictionary<string, EffectParam>();
+            _viewModel.EffectName = EffectName ?? "";
         }
     }
 
@@ -54,7 +97,7 @@ public partial class ParameterEditor : UserControl
         // Clear existing controls
         ParametersPanel.Children.Clear();
 
-        if (Parameters == null || Parameters.Count == 0)
+        if (_viewModel?.Parameters == null || _viewModel.Parameters.Count == 0)
         {
             // Show default message
             var textBlock = new TextBlock
@@ -72,7 +115,7 @@ public partial class ParameterEditor : UserControl
         // Add effect header
         var header = new TextBlock
         {
-            Text = $"{EffectName} Parameters",
+            Text = $"{_viewModel.EffectName} Parameters",
             FontWeight = FontWeight.Bold,
             Foreground = Brushes.White,
             FontSize = 14,
@@ -81,7 +124,7 @@ public partial class ParameterEditor : UserControl
         ParametersPanel.Children.Add(header);
 
         // Generate controls for each parameter
-        foreach (var kvp in Parameters)
+        foreach (var kvp in _viewModel.Parameters)
         {
             var container = CreateParameterContainer(kvp.Key, kvp.Value);
             ParametersPanel.Children.Add(container);
@@ -259,8 +302,7 @@ public partial class ParameterEditor : UserControl
     /// </summary>
     public void UpdateParameters(string effectName, Dictionary<string, EffectParam> parameters)
     {
-        EffectName = effectName;
-        Parameters = parameters ?? new Dictionary<string, EffectParam>();
-        UpdateParameterControls();
+        _viewModel.EffectName = effectName;
+        _viewModel.Parameters = parameters ?? new Dictionary<string, EffectParam>();
     }
 }

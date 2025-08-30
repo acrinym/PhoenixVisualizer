@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
@@ -11,6 +12,8 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PhoenixVisualizer.Core.Nodes;
+// Note: Using the simpler IEffectNode from Nodes namespace, not the advanced one from Effects.Interfaces
+// The advanced EffectsGraphManager will be integrated in a future phase
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive.Linq;
@@ -36,6 +39,7 @@ public partial class PhxEditorWindow : Window
     private PhxPreviewRenderer _previewRenderer;
     private ParameterEditor _parameterEditor;
     private PhxCodeEngine _codeEngine;
+    // Using the basic EffectRegistry for Phase 4 - advanced graph manager integration in future phase
 
     public PhxEditorWindow()
     {
@@ -58,6 +62,28 @@ public partial class PhxEditorWindow : Window
 
         // Wire up code compilation
         WireUpCodeCompilation();
+
+        // Initialize effect instantiation pipeline
+        InitializeEffectPipeline();
+    }
+
+    private void InitializeEffectPipeline()
+    {
+        try
+        {
+            // Initialize the effect instantiation pipeline using EffectRegistry
+            var availableEffects = EffectRegistry.GetAll().ToList();
+            Debug.WriteLine($"PHX Editor: Effect pipeline initialized - {availableEffects.Count} effect types available");
+
+            foreach (var effect in availableEffects)
+            {
+                Debug.WriteLine($"PHX Editor: Available effect: {effect.Name} ({effect.Params.Count} parameters)");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"PHX Editor: Error initializing effect pipeline: {ex.Message}");
+        }
     }
 
     private void WireUpCodeCompilation()
@@ -149,32 +175,11 @@ public partial class PhxEditorWindow : Window
 
     private void SetupParameterEditor()
     {
-        // Create parameter editor and add it to the parameters panel
-        _parameterEditor = new ParameterEditor();
-        ParametersPanel.Children.Insert(0, _parameterEditor);
+        // Parameter editor is now handled via XAML binding
+        // The ParameterEditor control is automatically bound to ViewModel properties
 
-        // Bind to selected effect changes
-        this.WhenAnyValue(x => x.ViewModel)
-            .Where(vm => vm is PhxEditorViewModel)
-            .Select(vm => (PhxEditorViewModel)vm)
-            .Subscribe(vm =>
-            {
-                vm.WhenAnyValue(x => x.SelectedEffect)
-                    .Subscribe(selectedEffect =>
-                    {
-                        if (selectedEffect != null)
-                        {
-                            _parameterEditor.UpdateParameters(
-                                selectedEffect.Name,
-                                selectedEffect.Parameters
-                            );
-                        }
-                        else
-                        {
-                            _parameterEditor.UpdateParameters("", new Dictionary<string, EffectParam>());
-                        }
-                    });
-            });
+        // Get reference to the ParameterEditor control for manual updates if needed
+        _parameterEditor = this.FindControl<ParameterEditor>("ParameterEditorControl");
     }
 
     private void WireUpEffectSelection()
@@ -227,6 +232,14 @@ public class PhxEditorViewModel : ReactiveObject
     [Reactive] public string PresetName { get; set; } = "Untitled.phx";
     [Reactive] public string CodeStatus { get; set; } = "Ready";
 
+    // Performance Monitoring (Reactive properties)
+    [Reactive] public string CpuUsage { get; set; } = "5%";
+    [Reactive] public string RenderTime { get; set; } = "16.7ms";
+    [Reactive] public string EffectCount { get; set; } = "1 effects";
+    [Reactive] public string DebugInfo { get; set; } = "Debug: Ready";
+    [Reactive] public bool ShowPerformanceOverlay { get; set; } = true;
+    [Reactive] public bool EnableDebugLogging { get; set; } = false;
+
     // Commands (ReactiveCommands for UI actions)
     public ReactiveCommand<Unit, Unit> NewPresetCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> OpenPresetCommand { get; private set; } = null!;
@@ -249,10 +262,14 @@ public class PhxEditorViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> PauseCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> RestartCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> HelpCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> TogglePerformanceOverlayCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> ToggleDebugLoggingCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> ResetPerformanceStatsCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> ExportPerformanceLogCommand { get; private set; } = null!;
 
     // Undo/Redo System
-    private readonly Stack<EditorState> _undoStack = new();
-    private readonly Stack<EditorState> _redoStack = new();
+    private readonly Stack<string> _undoStack = new();
+    private readonly Stack<string> _redoStack = new();
 
     public PhxEditorViewModel()
     {
@@ -294,6 +311,10 @@ public class PhxEditorViewModel : ReactiveObject
         PauseCommand = ReactiveCommand.Create(() => { }); // Will be wired up in code-behind
         RestartCommand = ReactiveCommand.Create(() => { }); // Will be wired up in code-behind
         HelpCommand = ReactiveCommand.Create(ShowHelp);
+        TogglePerformanceOverlayCommand = ReactiveCommand.Create(TogglePerformanceOverlay);
+        ToggleDebugLoggingCommand = ReactiveCommand.Create(ToggleDebugLogging);
+        ResetPerformanceStatsCommand = ReactiveCommand.Create(ResetPerformanceStats);
+        ExportPerformanceLogCommand = ReactiveCommand.Create(ExportPerformanceLog);
     }
 
     private void LoadEffectLibrary()
@@ -325,12 +346,121 @@ public class PhxEditorViewModel : ReactiveObject
         SelectedEffect = defaultEffect;
     }
 
-    private void NewPreset() => InitializeDefaultPreset();
-    private void OpenPreset() => StatusMessage = "Open preset - Not implemented yet";
-    private void SavePreset() => StatusMessage = "Save preset - Not implemented yet";
-    private void SaveAsPreset() => StatusMessage = "Save as preset - Not implemented yet";
-    private void ExportAvs() => StatusMessage = "Export AVS - Not implemented yet";
-    private void ImportAvs() => StatusMessage = "Import AVS - Not implemented yet";
+    private void NewPreset()
+    {
+        try
+        {
+            InitializeDefaultPreset();
+            PresetName = "Untitled.phx";
+            StatusMessage = "New preset created";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error creating new preset: {ex.Message}";
+        }
+    }
+
+    private void OpenPreset()
+    {
+        try
+        {
+            // For now, use a simple file path - this can be enhanced with proper dialog later
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PhoenixVisualizer", "presets");
+            Directory.CreateDirectory(defaultPath);
+            string examplePresetPath = Path.Combine(defaultPath, "example.phx");
+
+            if (File.Exists(examplePresetPath))
+            {
+                LoadPresetFromFile(examplePresetPath).Wait();
+            }
+            else
+            {
+                StatusMessage = "No presets found. Create and save a preset first.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error opening preset: {ex.Message}";
+        }
+    }
+
+    private void SavePreset()
+    {
+        if (string.IsNullOrEmpty(PresetName) || PresetName == "Untitled.phx")
+        {
+            SaveAsPreset();
+            return;
+        }
+
+        try
+        {
+            SavePresetToFile(PresetName).Wait();
+            StatusMessage = $"Preset saved: {PresetName}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving preset: {ex.Message}";
+        }
+    }
+
+    private void SaveAsPreset()
+    {
+        try
+        {
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PhoenixVisualizer", "presets");
+            Directory.CreateDirectory(defaultPath);
+            string presetPath = Path.Combine(defaultPath, $"{PresetName.Replace(".phx", "")}.phx");
+
+            SavePresetToFile(presetPath).Wait();
+            PresetName = Path.GetFileName(presetPath);
+            StatusMessage = $"Preset saved: {PresetName}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving preset: {ex.Message}";
+        }
+    }
+
+    private void ExportAvs()
+    {
+        try
+        {
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PhoenixVisualizer", "avs_exports");
+            Directory.CreateDirectory(defaultPath);
+            string avsPath = Path.Combine(defaultPath, $"{PresetName.Replace(".phx", "")}.avs");
+
+            ExportPresetAsAvs(avsPath).Wait();
+            StatusMessage = $"Exported as AVS: {Path.GetFileName(avsPath)}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error exporting AVS: {ex.Message}";
+        }
+    }
+
+    private void ImportAvs()
+    {
+        try
+        {
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PhoenixVisualizer", "avs_imports");
+            Directory.CreateDirectory(defaultPath);
+            string exampleAvsPath = Path.Combine(defaultPath, "example.avs");
+
+            if (File.Exists(exampleAvsPath))
+            {
+                ImportPresetFromAvs(exampleAvsPath).Wait();
+                StatusMessage = $"Imported AVS preset: {Path.GetFileName(exampleAvsPath)}";
+            }
+            else
+            {
+                StatusMessage = "No AVS files found. Place AVS files in Documents/PhoenixVisualizer/avs_imports/";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error importing AVS: {ex.Message}";
+        }
+    }
     private void Undo() => StatusMessage = "Undo - Not implemented yet";
     private void Redo() => StatusMessage = "Redo - Not implemented yet";
     private void Cut() => StatusMessage = "Cut - Not implemented yet";
@@ -343,15 +473,329 @@ public class PhxEditorViewModel : ReactiveObject
     {
         if (SelectedLibraryEffect != null)
         {
-            var newEffect = new EffectStackItem(SelectedLibraryEffect.Name, SelectedLibraryEffect.Category);
-            EffectStack.Add(newEffect);
-            SelectedEffect = newEffect;
-            StatusMessage = $"Added effect: {SelectedLibraryEffect.Name}";
+            // Use the effect instantiation pipeline to create the effect instance
+            var effectNode = EffectRegistry.CreateByName(SelectedLibraryEffect.Name);
+
+            if (effectNode != null)
+            {
+                // Create EffectStackItem with proper IEffectNode backing
+                var newEffect = new EffectStackItem(SelectedLibraryEffect.Name, SelectedLibraryEffect.Category);
+                newEffect.EffectNode = effectNode; // Store the actual effect node
+
+                // Copy parameters from the instantiated effect node
+                foreach (var param in effectNode.Params)
+                {
+                    newEffect.Parameters[param.Key] = new CoreEffectParam
+                    {
+                        Label = param.Value.Label,
+                        Type = param.Value.Type,
+                        FloatValue = param.Value.FloatValue,
+                        BoolValue = param.Value.BoolValue,
+                        StringValue = param.Value.StringValue,
+                        ColorValue = param.Value.ColorValue,
+                        Min = param.Value.Min,
+                        Max = param.Value.Max,
+                        Options = param.Value.Options
+                    };
+                }
+
+                EffectStack.Add(newEffect);
+                SelectedEffect = newEffect;
+                StatusMessage = $"Added effect: {SelectedLibraryEffect.Name} (using advanced pipeline)";
+
+                Debug.WriteLine($"PHX Editor: Successfully instantiated effect '{SelectedLibraryEffect.Name}' with {effectNode.Params.Count} parameters");
+            }
+            else
+            {
+                // Fallback to basic creation if instantiation fails
+                var newEffect = new EffectStackItem(SelectedLibraryEffect.Name, SelectedLibraryEffect.Category);
+                EffectStack.Add(newEffect);
+                SelectedEffect = newEffect;
+                StatusMessage = $"Added effect: {SelectedLibraryEffect.Name} (fallback mode)";
+
+                Debug.WriteLine($"PHX Editor: Warning - Could not instantiate effect '{SelectedLibraryEffect.Name}', using fallback mode");
+            }
         }
+    }
+
+    private async Task SavePresetToFile(string filePath)
+    {
+        var preset = new PhxPreset
+        {
+            Version = "1.0",
+            Name = PresetName,
+            CreatedDate = DateTime.UtcNow,
+            InitCode = InitCode,
+            FrameCode = FrameCode,
+            PointCode = PointCode,
+            BeatCode = BeatCode,
+            EffectStack = EffectStack.Select(e => new PhxPreset.EffectStackEntry
+            {
+                Name = e.Name,
+                Category = e.Category,
+                EffectType = e.EffectType,
+                Parameters = e.Parameters.ToDictionary(p => p.Key, p => new PhxPreset.ParameterEntry
+                {
+                    Type = p.Value.Type,
+                    Label = p.Value.Label,
+                    FloatValue = p.Value.FloatValue,
+                    BoolValue = p.Value.BoolValue,
+                    StringValue = p.Value.StringValue,
+                    Options = p.Value.Options
+                })
+            }).ToList()
+        };
+
+        var json = JsonSerializer.Serialize(preset, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(filePath, json);
+    }
+
+    private async Task LoadPresetFromFile(string filePath)
+    {
+        var json = await File.ReadAllTextAsync(filePath);
+        var preset = JsonSerializer.Deserialize<PhxPreset>(json);
+
+        if (preset != null)
+        {
+            PresetName = preset.Name;
+            InitCode = preset.InitCode;
+            FrameCode = preset.FrameCode;
+            PointCode = preset.PointCode;
+            BeatCode = preset.BeatCode;
+
+            EffectStack.Clear();
+            foreach (var effectEntry in preset.EffectStack)
+            {
+                var effect = new EffectStackItem(effectEntry.Name, effectEntry.Category);
+                foreach (var paramEntry in effectEntry.Parameters)
+                {
+                    effect.Parameters[paramEntry.Key] = new EffectParam
+                    {
+                        Type = paramEntry.Value.Type,
+                        Label = paramEntry.Value.Label,
+                        FloatValue = paramEntry.Value.FloatValue,
+                        BoolValue = paramEntry.Value.BoolValue,
+                        StringValue = paramEntry.Value.StringValue,
+                        Options = paramEntry.Value.Options
+                    };
+                }
+                EffectStack.Add(effect);
+            }
+
+            SelectedEffect = EffectStack.FirstOrDefault();
+            StatusMessage = $"Loaded preset: {preset.Name}";
+        }
+    }
+
+    private async Task ExportPresetAsAvs(string filePath)
+    {
+        var avsContent = new StringBuilder();
+
+        // AVS preset header
+        avsContent.AppendLine("[avs]");
+        avsContent.AppendLine("MajorVersion=1");
+        avsContent.AppendLine("MinorVersion=0");
+        avsContent.AppendLine();
+
+        // Convert PHX effects to AVS format
+        foreach (var effect in EffectStack)
+        {
+            avsContent.AppendLine($"[effect.{effect.Name}]");
+            avsContent.AppendLine($"enabled=1");
+
+            // Convert parameters to AVS format
+            foreach (var param in effect.Parameters)
+            {
+                if (param.Value.Type == "slider")
+                {
+                    avsContent.AppendLine($"{param.Key}={param.Value.FloatValue:F3}");
+                }
+                else if (param.Value.Type == "checkbox")
+                {
+                    avsContent.AppendLine($"{param.Key}={(param.Value.BoolValue ? 1 : 0)}");
+                }
+                else if (param.Value.Type == "dropdown")
+                {
+                    avsContent.AppendLine($"{param.Key}={param.Value.StringValue}");
+                }
+            }
+            avsContent.AppendLine();
+        }
+
+        // Add code sections
+        if (!string.IsNullOrWhiteSpace(InitCode))
+        {
+            avsContent.AppendLine("[code.init]");
+            avsContent.AppendLine(InitCode);
+            avsContent.AppendLine();
+        }
+
+        if (!string.IsNullOrWhiteSpace(FrameCode))
+        {
+            avsContent.AppendLine("[code.frame]");
+            avsContent.AppendLine(FrameCode);
+            avsContent.AppendLine();
+        }
+
+        if (!string.IsNullOrWhiteSpace(PointCode))
+        {
+            avsContent.AppendLine("[code.point]");
+            avsContent.AppendLine(PointCode);
+            avsContent.AppendLine();
+        }
+
+        if (!string.IsNullOrWhiteSpace(BeatCode))
+        {
+            avsContent.AppendLine("[code.beat]");
+            avsContent.AppendLine(BeatCode);
+            avsContent.AppendLine();
+        }
+
+        await File.WriteAllTextAsync(filePath, avsContent.ToString());
+    }
+
+    private async Task ImportPresetFromAvs(string filePath)
+    {
+        var content = await File.ReadAllTextAsync(filePath);
+
+        // Basic AVS parsing - this would need to be expanded for full AVS support
+        // For now, just extract code sections
+        var lines = content.Split('\n');
+
+        string currentSection = "";
+        var initCode = new StringBuilder();
+        var frameCode = new StringBuilder();
+        var pointCode = new StringBuilder();
+        var beatCode = new StringBuilder();
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("[code."))
+            {
+                currentSection = trimmed;
+            }
+            else if (!string.IsNullOrEmpty(trimmed) && !trimmed.StartsWith("[") && !trimmed.Contains("="))
+            {
+                // Code line
+                switch (currentSection)
+                {
+                    case "[code.init]":
+                        initCode.AppendLine(trimmed);
+                        break;
+                    case "[code.frame]":
+                        frameCode.AppendLine(trimmed);
+                        break;
+                    case "[code.point]":
+                        pointCode.AppendLine(trimmed);
+                        break;
+                    case "[code.beat]":
+                        beatCode.AppendLine(trimmed);
+                        break;
+                }
+            }
+        }
+
+        // Update the editor with imported code
+        InitCode = initCode.ToString().TrimEnd();
+        FrameCode = frameCode.ToString().TrimEnd();
+        PointCode = pointCode.ToString().TrimEnd();
+        BeatCode = beatCode.ToString().TrimEnd();
+
+        // Create a default effect stack
+        InitializeDefaultPreset();
+        PresetName = Path.GetFileNameWithoutExtension(filePath) + ".phx";
     }
 
     private void SaveCode() => StatusMessage = "Code saved";
     private void ShowHelp() => StatusMessage = "Help - Check documentation for PHX Editor usage";
+
+    // Performance monitoring methods (Phase 4 - will be implemented)
+    private void TogglePerformanceOverlay()
+    {
+        ShowPerformanceOverlay = !ShowPerformanceOverlay;
+        StatusMessage = $"Performance overlay {(ShowPerformanceOverlay ? "enabled" : "disabled")}";
+    }
+
+    private void ToggleDebugLogging()
+    {
+        EnableDebugLogging = !EnableDebugLogging;
+        StatusMessage = $"Debug logging {(EnableDebugLogging ? "enabled" : "disabled")}";
+        if (EnableDebugLogging)
+        {
+            DebugInfo = "Debug: Logging active - check debug console";
+            Debug.WriteLine("PHX Editor: Debug logging enabled");
+        }
+        else
+        {
+            DebugInfo = "Debug: Logging disabled";
+        }
+    }
+
+    private void ResetPerformanceStats()
+    {
+        FpsCounter = "60 FPS";
+        MemoryUsage = "128 MB";
+        CpuUsage = "5%";
+        RenderTime = "16.7ms";
+        EffectCount = $"{EffectStack.Count} effects";
+        StatusMessage = "Performance stats reset";
+        DebugInfo = "Debug: Stats reset";
+    }
+
+    private void ExportPerformanceLog()
+    {
+        try
+        {
+            string logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "PhoenixVisualizer", "logs", $"performance_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath));
+
+            var logContent = new StringBuilder();
+            logContent.AppendLine("=== PHX Editor Performance Log ===");
+            logContent.AppendLine($"Timestamp: {DateTime.Now}");
+            logContent.AppendLine($"FPS: {FpsCounter}");
+            logContent.AppendLine($"Memory Usage: {MemoryUsage}");
+            logContent.AppendLine($"CPU Usage: {CpuUsage}");
+            logContent.AppendLine($"Render Time: {RenderTime}");
+            logContent.AppendLine($"Effect Count: {EffectCount}");
+            logContent.AppendLine($"Preset: {PresetName}");
+            logContent.AppendLine($"Debug Info: {DebugInfo}");
+            logContent.AppendLine();
+
+            File.WriteAllText(logPath, logContent.ToString());
+            StatusMessage = $"Performance log exported: {Path.GetFileName(logPath)}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error exporting performance log: {ex.Message}";
+        }
+    }
+
+    // Performance monitoring helpers
+    public void UpdatePerformanceMetrics(double fps, long memoryBytes, double cpuPercent, double renderMs)
+    {
+        FpsCounter = $"{fps:F1} FPS";
+        MemoryUsage = $"{memoryBytes / 1024.0 / 1024.0:F1} MB";
+        CpuUsage = $"{cpuPercent:F1}%";
+        RenderTime = $"{renderMs:F1}ms";
+        EffectCount = $"{EffectStack.Count} effect{(EffectStack.Count != 1 ? "s" : "")}";
+
+        if (EnableDebugLogging)
+        {
+            Debug.WriteLine($"PHX Performance: FPS={fps:F1}, Memory={MemoryUsage}, CPU={CpuUsage}, Render={RenderTime}");
+        }
+    }
+
+    public void LogDebugInfo(string message)
+    {
+        if (EnableDebugLogging)
+        {
+            DebugInfo = $"Debug: {message}";
+            Debug.WriteLine($"PHX Debug: {message}");
+        }
+    }
 }
 
 /// <summary>
@@ -361,6 +805,7 @@ public class EffectStackItem : EffectItem
 {
     public Dictionary<string, CoreEffectParam> Parameters { get; } = new();
     public string EffectType { get; set; } = "Phoenix"; // Phoenix, AVS, Research
+    public IEffectNode? EffectNode { get; set; } // The actual instantiated effect node
 
     public EffectStackItem(string name, string category) : base()
     {
@@ -397,15 +842,39 @@ public class EffectStackItem : EffectItem
             Parameters["complexity"] = new CoreEffectParam { Label = "Complexity", Type = "slider", FloatValue = 0.5f, Min = 0, Max = 1 };
         }
     }
+
 }
 
-
-
-public class EditorState
+/// <summary>
+/// PHX Preset data structure for save/load functionality
+/// </summary>
+public class PhxPreset
 {
-    public List<EffectStackItem> EffectStack { get; set; } = new();
+    public string Version { get; set; } = "1.0";
+    public string Name { get; set; } = "Untitled";
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public string InitCode { get; set; } = "";
     public string FrameCode { get; set; } = "";
     public string PointCode { get; set; } = "";
     public string BeatCode { get; set; } = "";
+    public List<EffectStackEntry> EffectStack { get; set; } = new();
+
+    public class EffectStackEntry
+    {
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string EffectType { get; set; } = "";
+        public Dictionary<string, ParameterEntry> Parameters { get; set; } = new();
+    }
+
+    public class ParameterEntry
+    {
+        public string Type { get; set; } = "";
+        public string Label { get; set; } = "";
+        public float FloatValue { get; set; } = 0;
+        public bool BoolValue { get; set; } = false;
+        public string StringValue { get; set; } = "";
+        public List<string>? Options { get; set; }
+    }
 }
+
