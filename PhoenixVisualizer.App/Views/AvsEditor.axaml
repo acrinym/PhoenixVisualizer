@@ -72,6 +72,7 @@ superscope(&quot;MyScope&quot;, &quot;
                     <Button x:Name="BtnLoadFile" Content="📁 Load" Width="80" ToolTip.Tip="Load AVS file"/>
                     <Button x:Name="BtnSaveFile" Content="💾 Save" Width="80" ToolTip.Tip="Save AVS file"/>
                     <Button x:Name="BtnClear" Content="🗑️ Clear" Width="80" ToolTip.Tip="Clear editor"/>
+                    <Button x:Name="BtnTestParse" Content="🔍 Test Parse" Width="100" ToolTip.Tip="Test AVS parsing with sample data"/>
                 </StackPanel>
             </StackPanel>
             

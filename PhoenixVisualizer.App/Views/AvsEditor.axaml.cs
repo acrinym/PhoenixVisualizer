@@ -297,9 +297,9 @@ namespace PhoenixVisualizer.Views
                 // Create a temporary file and import it
                 var tempFile = Path.GetTempFileName() + ".avs";
                 File.WriteAllText(tempFile, codeEditor.Text);
-                
+
                 var success = _avsImportService.ImportAvsFile(tempFile, out var errorMessage);
-                
+
                 if (success)
                 {
                     ShowSuccessDialog("Preset Applied", "Your AVS preset has been imported and is now available in the main application!");
@@ -309,7 +309,7 @@ namespace PhoenixVisualizer.Views
                 {
                     ShowErrorDialog("Apply Failed", $"Failed to apply preset: {errorMessage}");
                 }
-                
+
                 // Clean up temp file
                 try { File.Delete(tempFile); } catch { }
             }
@@ -317,6 +317,12 @@ namespace PhoenixVisualizer.Views
             {
                 ShowErrorDialog("Apply Error", $"Failed to apply preset: {ex.Message}");
             }
+        }
+
+        private void OnTestParse(object? sender, RoutedEventArgs e)
+        {
+            _ = sender; _ = e; // silence unused parameters
+            TestAvsParsing();
         }
 
         private void OnClose(object? sender, RoutedEventArgs e)
@@ -368,23 +374,61 @@ namespace PhoenixVisualizer.Views
                 // Parse the content to show a preview
                 var tempFile = Path.GetTempFileName() + ".avs";
                 File.WriteAllText(tempFile, content);
-                
+
                 var avsFile = _avsImportService.ParseAvsFile(tempFile);
-                
+
+                var previewInfo = new StringBuilder();
+
+                if (avsFile.IsBinaryFormat)
+                {
+                    previewInfo.AppendLine($"📁 Binary AVS Format");
+                    previewInfo.AppendLine($"📝 Preset: {avsFile.PresetName}");
+                }
+                else
+                {
+                    previewInfo.AppendLine($"📄 Text AVS Format");
+                }
+
                 if (avsFile.HasSuperscopes)
                 {
                     var validCount = avsFile.Superscopes.Count(s => s.IsValid);
                     var totalCount = avsFile.Superscopes.Count;
-                    
-                    previewText.Text = $"Preview: {validCount}/{totalCount} superscopes\n" +
-                                     $"File size: {content.Length} characters\n" +
-                                     $"Ready for import";
+                    previewInfo.AppendLine($"🎯 Superscopes: {validCount}/{totalCount} valid");
+                }
+
+                if (avsFile.HasEffects)
+                {
+                    previewInfo.AppendLine($"⚡ Effects: {avsFile.Effects.Count} detected");
+                    foreach (var effect in avsFile.Effects)
+                    {
+                        previewInfo.AppendLine($"  • {effect.Name} ({effect.Type})");
+                        if (effect.Parameters.Count > 0)
+                        {
+                            foreach (var param in effect.Parameters.Take(2))
+                            {
+                                previewInfo.AppendLine($"    {param.Key}: {param.Value}");
+                            }
+                            if (effect.Parameters.Count > 2)
+                            {
+                                previewInfo.AppendLine($"    ... and {effect.Parameters.Count - 2} more params");
+                            }
+                        }
+                    }
+                }
+
+                previewInfo.AppendLine($"📊 File size: {content.Length} characters");
+
+                if (avsFile.HasSuperscopes || avsFile.HasEffects)
+                {
+                    previewInfo.AppendLine($"✅ Ready for import");
                 }
                 else
                 {
-                    previewText.Text = "Preview: No valid superscopes found\nCheck your AVS syntax";
+                    previewInfo.AppendLine($"⚠️ No superscopes or effects detected");
                 }
-                
+
+                previewText.Text = previewInfo.ToString();
+
                 // Clean up temp file
                 try { File.Delete(tempFile); } catch { }
             }
@@ -559,6 +603,7 @@ namespace PhoenixVisualizer.ExportedPresets
             var btnImportToLibrary = this.FindControl<Button>("BtnImportToLibrary");
             var btnExportCSharp = this.FindControl<Button>("BtnExportCSharp");
             var btnSendToMainWindow = this.FindControl<Button>("BtnSendToMainWindow");
+            var btnTestParse = this.FindControl<Button>("BtnTestParse");
             var btnClose = this.FindControl<Button>("BtnClose");
             var applyButton = this.FindControl<Button>("ApplyButton");
 
@@ -569,8 +614,92 @@ namespace PhoenixVisualizer.ExportedPresets
             if (btnImportToLibrary != null) btnImportToLibrary.Click += OnImportToLibrary;
             if (btnExportCSharp != null) btnExportCSharp.Click += OnExportCSharp;
             if (btnSendToMainWindow != null) btnSendToMainWindow.Click += OnSendToMainWindow;
+            if (btnTestParse != null) btnTestParse.Click += OnTestParse;
             if (btnClose != null) btnClose.Click += OnClose;
             if (applyButton != null) applyButton.Click += OnApplyPreset;
+        }
+
+        /// <summary>
+        /// Test parsing with sample AVS data (for debugging binary format)
+        /// </summary>
+        private void TestAvsParsing()
+        {
+            // Sample AVS binary data that user provided
+            var sampleAvsData = @"Nullsoft AVS Preset 0.2
+D7 - Helium
+Lemme tell ya something. These days AVS is a really powerful tool to create visually stunning stuff, you can create photoshop quality stuff with it and what's the best, these things also reacts to your music. Many AVS artists have proven this and I try to prove it once again.  Made the ssc, thought it looked cool, added some movement, color, effects & there you go.
+
+Both dynamoves, last convo and colorfade are just giving some finishing touch to it, feel free to disable them for more fps.
+
+This gets too bright with resolutions under 200x200. If you don't have a powerful machine play with the brightenesses and color maps.. Best view with resolution over 220x220 and with >30fps
+
+|> Recommended music: Techno / metal
+[D7 - Helium, Dallas superstars - Helium, bomfunk mc's - b-boys flygirls (djgizmo rmx)]
+
+______
+-Degnic
+Convolution Filter
+Texer II
+Color Map
+Holden03: Convolution Filter";
+
+            try
+            {
+                // Create a temporary file with the sample data
+                var tempFile = Path.GetTempFileName() + ".avs";
+                File.WriteAllText(tempFile, sampleAvsData);
+
+                var avsFile = _avsImportService.ParseAvsFile(tempFile);
+
+                var result = new StringBuilder();
+                result.AppendLine("🔍 AVS PARSING TEST RESULTS:");
+                result.AppendLine($"📁 Format: {(avsFile.IsBinaryFormat ? "Binary" : "Text")}");
+                result.AppendLine($"📝 Preset: {avsFile.PresetName}");
+                result.AppendLine($"🎯 Superscopes: {avsFile.Superscopes.Count}");
+                result.AppendLine($"⚡ Effects: {avsFile.Effects.Count}");
+
+                if (avsFile.HasEffects)
+                {
+                    result.AppendLine("\n📋 DETECTED EFFECTS:");
+                    foreach (var effect in avsFile.Effects)
+                    {
+                        result.AppendLine($"  • {effect.Name} ({effect.Type})");
+                        result.AppendLine($"    Order: {effect.Order}, Enabled: {effect.Enabled}");
+
+                        if (effect.Parameters.Count > 0)
+                        {
+                            result.AppendLine("    Parameters:");
+                            foreach (var param in effect.Parameters.Take(3))
+                            {
+                                result.AppendLine($"      {param.Key}: {param.Value}");
+                            }
+                            if (effect.Parameters.Count > 3)
+                            {
+                                result.AppendLine($"      ... and {effect.Parameters.Count - 3} more");
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(effect.ConfigData))
+                        {
+                            result.AppendLine($"    Config: {effect.ConfigData.Substring(0, Math.Min(150, effect.ConfigData.Length))}...");
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(avsFile.PresetDescription))
+                {
+                    result.AppendLine($"\n📖 Description: {avsFile.PresetDescription.Substring(0, Math.Min(200, avsFile.PresetDescription.Length))}...");
+                }
+
+                ShowSuccessDialog("AVS Parsing Test", result.ToString());
+
+                // Clean up
+                try { File.Delete(tempFile); } catch { }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorDialog("Test Failed", $"AVS parsing test failed: {ex.Message}");
+            }
         }
     }
 }
