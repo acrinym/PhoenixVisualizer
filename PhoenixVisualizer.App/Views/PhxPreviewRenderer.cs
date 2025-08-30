@@ -203,8 +203,15 @@ public class PhxPreviewRenderer
                     var effectNode = GetEffectNode(effectItem);
                     if (effectNode != null)
                     {
-                        // Render effect to our pixel buffer
-                        RenderEffectToBuffer(effectNode, effectItem.Parameters, context, pixels);
+                        // Get blend mode from effect parameters (default to "normal")
+                        string blendMode = "normal";
+                        if (effectItem.Parameters.TryGetValue("blend", out var blendParam))
+                        {
+                            blendMode = blendParam.StringValue ?? "normal";
+                        }
+
+                        // Render effect to our pixel buffer with blend mode
+                        RenderEffectToBuffer(effectNode, effectItem.Parameters, context, pixels, blendMode);
                     }
                 }
             }
@@ -250,7 +257,7 @@ public class PhxPreviewRenderer
     }
 
     private unsafe void RenderEffectToBuffer(IEffectNode effect, Dictionary<string, CoreEffectParam> parameters,
-                                    RenderContext context, uint* pixels)
+                                    RenderContext context, uint* pixels, string blendMode = "normal")
     {
         // This is a simplified rendering approach
         // In a full implementation, we'd integrate with SkiaSharp or similar
@@ -265,14 +272,14 @@ public class PhxPreviewRenderer
                 // Generate color based on effect type and parameters
                 uint color = GenerateEffectColor(effect, parameters, x, y, context);
 
-                // Set pixel (note: Avalonia uses RGBA but we need BGRA for the bitmap)
-                int index = y * context.Width + x;
-                if (index < context.Width * context.Height)
-                {
-                    // Blend with existing pixel
-                    uint existing = pixels[index];
-                    pixels[index] = BlendColors(existing, color);
-                }
+                                    // Set pixel (note: Avalonia uses RGBA but we need BGRA for the bitmap)
+                    int index = y * context.Width + x;
+                    if (index < context.Width * context.Height)
+                    {
+                        // Blend with existing pixel using specified blend mode
+                        uint existing = pixels[index];
+                        pixels[index] = BlendColors(existing, color, blendMode);
+                    }
             }
         }
     }
@@ -402,23 +409,81 @@ public class PhxPreviewRenderer
         return 0xFF00FFFF;
     }
 
-    private uint BlendColors(uint existing, uint newColor)
+    private uint BlendColors(uint existing, uint newColor, string blendMode = "normal")
     {
-        // Simple alpha blending
-        float alpha = ((newColor >> 24) & 0xFF) / 255f;
-
-        byte existingR = (byte)(existing & 0xFF);
-        byte existingG = (byte)((existing >> 8) & 0xFF);
+        // Extract color components (BGRA format)
         byte existingB = (byte)((existing >> 16) & 0xFF);
+        byte existingG = (byte)((existing >> 8) & 0xFF);
+        byte existingR = (byte)(existing & 0xFF);
 
-        byte newR = (byte)(newColor & 0xFF);
-        byte newG = (byte)((newColor >> 8) & 0xFF);
         byte newB = (byte)((newColor >> 16) & 0xFF);
+        byte newG = (byte)((newColor >> 8) & 0xFF);
+        byte newR = (byte)(newColor & 0xFF);
 
-        byte blendedR = (byte)(existingR * (1 - alpha) + newR * alpha);
-        byte blendedG = (byte)(existingG * (1 - alpha) + newG * alpha);
-        byte blendedB = (byte)(existingB * (1 - alpha) + newB * alpha);
+        // Normalize to 0-1 range
+        float existingRf = existingR / 255f;
+        float existingGf = existingG / 255f;
+        float existingBf = existingB / 255f;
 
+        float newRf = newR / 255f;
+        float newGf = newG / 255f;
+        float newBf = newB / 255f;
+
+        float blendedRf, blendedGf, blendedBf;
+
+        // Apply blend mode
+        switch (blendMode.ToLower())
+        {
+            case "add":
+                // Additive blending
+                blendedRf = Math.Min(1f, existingRf + newRf);
+                blendedGf = Math.Min(1f, existingGf + newGf);
+                blendedBf = Math.Min(1f, existingBf + newBf);
+                break;
+
+            case "multiply":
+                // Multiply blending
+                blendedRf = existingRf * newRf;
+                blendedGf = existingGf * newGf;
+                blendedBf = existingBf * newBf;
+                break;
+
+            case "screen":
+                // Screen blending
+                blendedRf = 1f - (1f - existingRf) * (1f - newRf);
+                blendedGf = 1f - (1f - existingGf) * (1f - newGf);
+                blendedBf = 1f - (1f - existingBf) * (1f - newBf);
+                break;
+
+            case "overlay":
+                // Overlay blending
+                blendedRf = existingRf < 0.5f ? 2f * existingRf * newRf : 1f - 2f * (1f - existingRf) * (1f - newRf);
+                blendedGf = existingGf < 0.5f ? 2f * existingGf * newGf : 1f - 2f * (1f - existingGf) * (1f - newGf);
+                blendedBf = existingBf < 0.5f ? 2f * existingBf * newBf : 1f - 2f * (1f - existingBf) * (1f - newBf);
+                break;
+
+            case "subtract":
+                // Subtract blending
+                blendedRf = Math.Max(0f, existingRf - newRf);
+                blendedGf = Math.Max(0f, existingGf - newGf);
+                blendedBf = Math.Max(0f, existingBf - newBf);
+                break;
+
+            default: // "normal"
+                // Alpha blending with newColor's alpha
+                float alpha = ((newColor >> 24) & 0xFF) / 255f;
+                blendedRf = existingRf * (1 - alpha) + newRf * alpha;
+                blendedGf = existingGf * (1 - alpha) + newGf * alpha;
+                blendedBf = existingBf * (1 - alpha) + newBf * alpha;
+                break;
+        }
+
+        // Convert back to byte values
+        byte blendedR = (byte)(blendedRf * 255);
+        byte blendedG = (byte)(blendedGf * 255);
+        byte blendedB = (byte)(blendedBf * 255);
+
+        // Preserve existing alpha channel
         return (uint)((existing & 0xFF000000) | ((uint)blendedB << 16) | ((uint)blendedG << 8) | (uint)blendedR);
     }
 

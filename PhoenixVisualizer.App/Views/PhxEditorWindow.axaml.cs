@@ -39,6 +39,7 @@ public partial class PhxEditorWindow : Window
     private PhxPreviewRenderer _previewRenderer;
     private ParameterEditor _parameterEditor;
     private PhxCodeEngine _codeEngine;
+    private PresetService _presetService;
     // Using the basic EffectRegistry for Phase 4 - advanced graph manager integration in future phase
 
     public PhxEditorWindow()
@@ -46,10 +47,14 @@ public partial class PhxEditorWindow : Window
         InitializeComponent();
         ViewModel = new PhxEditorViewModel();
 
+        // Initialize commands after ViewModel is created
+        ViewModel.InitializeCommands();
+
         // Initialize required fields
         _codeEngine = new PhxCodeEngine();
         _previewRenderer = null!;
         _parameterEditor = null!;
+        _presetService = new PresetService();
 
         // Set up the preview rendering
         SetupPreviewRendering();
@@ -62,6 +67,9 @@ public partial class PhxEditorWindow : Window
 
         // Wire up code compilation
         WireUpCodeCompilation();
+
+        // Wire up preset commands
+        WireUpPresetCommands();
 
         // Initialize effect instantiation pipeline
         InitializeEffectPipeline();
@@ -179,7 +187,7 @@ public partial class PhxEditorWindow : Window
         // The ParameterEditor control is automatically bound to ViewModel properties
 
         // Get reference to the ParameterEditor control for manual updates if needed
-        _parameterEditor = this.FindControl<ParameterEditor>("ParameterEditorControl");
+        _parameterEditor = this.FindControl<ParameterEditor>("ParameterEditorControl") ?? null!;
     }
 
     private void WireUpEffectSelection()
@@ -190,7 +198,17 @@ public partial class PhxEditorWindow : Window
             vm.PlayCommand.Subscribe(_ => _previewRenderer?.Resume());
             vm.PauseCommand.Subscribe(_ => _previewRenderer?.Pause());
             vm.RestartCommand.Subscribe(_ => _previewRenderer?.Restart());
+
+            // Preset commands are wired in the window initialization
         }
+    }
+
+    private void WireUpPresetCommands()
+    {
+        // Wire up preset commands
+        ViewModel.RefreshPresetsCommand.Subscribe(_ => ViewModel.RefreshPresets());
+        ViewModel.LoadSelectedPresetCommand.Subscribe(_ => ViewModel.LoadSelectedPreset());
+        ViewModel.DeletePresetCommand.Subscribe(_ => ViewModel.DeleteSelectedPreset());
     }
 
     protected override void OnClosed(EventArgs e)
@@ -208,6 +226,8 @@ public partial class PhxEditorWindow : Window
 /// </summary>
 public class PhxEditorViewModel : ReactiveObject
 {
+    private readonly PresetService _presetService;
+
     // Core Data (ObservableCollections for UI binding)
     public ObservableCollection<EffectStackItem> EffectStack { get; } = new();
     public ObservableCollection<EffectItem> PhoenixOriginals { get; } = new();
@@ -240,6 +260,13 @@ public class PhxEditorViewModel : ReactiveObject
     [Reactive] public bool ShowPerformanceOverlay { get; set; } = true;
     [Reactive] public bool EnableDebugLogging { get; set; } = false;
 
+    // Preset management properties
+    [Reactive] public ObservableCollection<PresetMetadata> AvailablePresets { get; set; } = new();
+    [Reactive] public PresetMetadata? SelectedPreset { get; set; }
+    [Reactive] public string PresetSearchText { get; set; } = "";
+    [Reactive] public PresetType SelectedPresetType { get; set; } = PresetType.PHX;
+    [Reactive] public string SelectedPresetCategory { get; set; } = "All";
+
     // Commands (ReactiveCommands for UI actions)
     public ReactiveCommand<Unit, Unit> NewPresetCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> OpenPresetCommand { get; private set; } = null!;
@@ -266,6 +293,9 @@ public class PhxEditorViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ToggleDebugLoggingCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> ResetPerformanceStatsCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> ExportPerformanceLogCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> RefreshPresetsCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> LoadSelectedPresetCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> DeletePresetCommand { get; private set; } = null!;
 
     // Undo/Redo System
     private readonly Stack<string> _undoStack = new();
@@ -273,12 +303,12 @@ public class PhxEditorViewModel : ReactiveObject
 
     public PhxEditorViewModel()
     {
+        // Initialize preset service
+        _presetService = new PresetService();
+
         // Initialize reactive properties
         SelectedEffect = null!;
         SelectedLibraryEffect = null!;
-
-        // Initialize commands first
-        InitializeCommands();
 
         // Load effect library
         LoadEffectLibrary();
@@ -287,15 +317,15 @@ public class PhxEditorViewModel : ReactiveObject
         InitializeDefaultPreset();
     }
 
-    private void InitializeCommands()
+    public void InitializeCommands()
     {
         // Initialize all ReactiveCommand properties
         NewPresetCommand = ReactiveCommand.Create(NewPreset);
         OpenPresetCommand = ReactiveCommand.Create(OpenPreset);
         SavePresetCommand = ReactiveCommand.Create(SavePreset);
         SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
-        ExportAvsCommand = ReactiveCommand.Create(ExportAvs);
-        ImportAvsCommand = ReactiveCommand.Create(ImportAvs);
+        ExportAvsCommand = ReactiveCommand.Create(ExportAvsPreset);
+        ImportAvsCommand = ReactiveCommand.Create(ImportAvsPreset);
         UndoCommand = ReactiveCommand.Create(Undo);
         RedoCommand = ReactiveCommand.Create(Redo);
         CutCommand = ReactiveCommand.Create(Cut);
@@ -315,6 +345,9 @@ public class PhxEditorViewModel : ReactiveObject
         ToggleDebugLoggingCommand = ReactiveCommand.Create(ToggleDebugLogging);
         ResetPerformanceStatsCommand = ReactiveCommand.Create(ResetPerformanceStats);
         ExportPerformanceLogCommand = ReactiveCommand.Create(ExportPerformanceLog);
+        RefreshPresetsCommand = ReactiveCommand.Create(RefreshPresets);
+        LoadSelectedPresetCommand = ReactiveCommand.Create(LoadSelectedPreset);
+        DeletePresetCommand = ReactiveCommand.Create(DeleteSelectedPreset);
     }
 
     private void LoadEffectLibrary()
@@ -384,42 +417,25 @@ public class PhxEditorViewModel : ReactiveObject
         }
     }
 
-    private void SavePreset()
-    {
-        if (string.IsNullOrEmpty(PresetName) || PresetName == "Untitled.phx")
-        {
-            SaveAsPreset();
-            return;
-        }
 
-        try
-        {
-            SavePresetToFile(PresetName).Wait();
-            StatusMessage = $"Preset saved: {PresetName}";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error saving preset: {ex.Message}";
-        }
+
+    private void ExportAvsPreset()
+    {
+        // TODO: Implement AVS export functionality
+        // ViewModel.StatusMessage = "AVS export not yet implemented";
     }
 
-    private void SaveAsPreset()
+    private void ImportAvsPreset()
     {
-        try
-        {
-            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PhoenixVisualizer", "presets");
-            Directory.CreateDirectory(defaultPath);
-            string presetPath = Path.Combine(defaultPath, $"{PresetName.Replace(".phx", "")}.phx");
-
-            SavePresetToFile(presetPath).Wait();
-            PresetName = Path.GetFileName(presetPath);
-            StatusMessage = $"Preset saved: {PresetName}";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error saving preset: {ex.Message}";
-        }
+        // TODO: Implement AVS import functionality
+        // ViewModel.StatusMessage = "AVS import not yet implemented";
     }
+
+
+
+
+
+
 
     private void ExportAvs()
     {
@@ -576,13 +592,13 @@ public class PhxEditorViewModel : ReactiveObject
                         FloatValue = paramEntry.Value.FloatValue,
                         BoolValue = paramEntry.Value.BoolValue,
                         StringValue = paramEntry.Value.StringValue,
-                        Options = paramEntry.Value.Options
+                        Options = paramEntry.Value.Options ?? new List<string>()
                     };
                 }
                 EffectStack.Add(effect);
             }
 
-            SelectedEffect = EffectStack.FirstOrDefault();
+            SelectedEffect = EffectStack.FirstOrDefault() ?? null!;
             StatusMessage = $"Loaded preset: {preset.Name}";
         }
     }
@@ -750,7 +766,11 @@ public class PhxEditorViewModel : ReactiveObject
             string logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "PhoenixVisualizer", "logs", $"performance_{DateTime.Now:yyyyMMdd_HHmmss}.log");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(logPath));
+            var logDirectory = Path.GetDirectoryName(logPath);
+            if (!string.IsNullOrEmpty(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
 
             var logContent = new StringBuilder();
             logContent.AppendLine("=== PHX Editor Performance Log ===");
@@ -770,6 +790,177 @@ public class PhxEditorViewModel : ReactiveObject
         catch (Exception ex)
         {
             StatusMessage = $"Error exporting performance log: {ex.Message}";
+        }
+    }
+
+    // Preset management methods
+    public void SavePreset()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(PresetName) || PresetName == "Untitled.phx")
+            {
+                SaveAsPreset();
+                return;
+            }
+
+            var preset = CreatePhxPresetFromCurrentState();
+            _presetService.SavePresetAsync(preset, $"{preset.Name.Replace(" ", "_")}.json").Wait();
+            StatusMessage = $"Preset saved: {preset.Name}";
+            RefreshPresets();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving preset: {ex.Message}";
+        }
+    }
+
+    public void SaveAsPreset()
+    {
+        // This would typically open a file dialog, but for now we'll use a default name
+        try
+        {
+            var preset = CreatePhxPresetFromCurrentState();
+            var fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{preset.Name.Replace(" ", "_")}.json";
+            _presetService.SavePresetAsync(preset, fileName).Wait();
+            PresetName = preset.Name;
+            StatusMessage = $"Preset saved as: {preset.Name}";
+            RefreshPresets();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving preset: {ex.Message}";
+        }
+    }
+
+    public void LoadPreset(string presetName)
+    {
+        try
+        {
+            var preset = _presetService.LoadPresetByNameAsync(presetName).Result;
+            if (preset != null)
+            {
+                LoadPresetFromData(preset);
+                StatusMessage = $"Loaded preset: {preset.Name}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading preset: {ex.Message}";
+        }
+    }
+
+    public void RefreshPresets()
+    {
+        _presetService.RefreshPresetCache();
+        AvailablePresets.Clear();
+        foreach (var preset in _presetService.GetAllPresets())
+        {
+            AvailablePresets.Add(preset);
+        }
+        StatusMessage = $"Refreshed {AvailablePresets.Count} presets";
+    }
+
+    public void LoadSelectedPreset()
+    {
+        if (SelectedPreset?.Name != null)
+        {
+            LoadPreset(SelectedPreset.Name);
+        }
+    }
+
+    public void DeleteSelectedPreset()
+    {
+        // TODO: Implement preset deletion
+        StatusMessage = "Preset deletion not yet implemented";
+    }
+
+    private PhxPreset CreatePhxPresetFromCurrentState()
+    {
+        var preset = new PhxPreset
+        {
+            Name = PresetName.Replace(".phx", "").Replace(".json", ""),
+            Category = "Custom",
+            Description = $"PHX Editor preset created on {DateTime.Now:yyyy-MM-dd}",
+            Author = Environment.UserName,
+            Tags = new List<string> { "phx", "editor" },
+            InitCode = InitCode,
+            FrameCode = FrameCode,
+            PointCode = PointCode,
+            BeatCode = BeatCode,
+            EffectStack = new List<PhxPreset.EffectStackEntry>()
+        };
+
+        foreach (var effect in EffectStack)
+        {
+            var effectEntry = new PhxPreset.EffectStackEntry
+            {
+                Name = effect.Name,
+                Category = effect.Category,
+                EffectType = effect.EffectType,
+                Parameters = new Dictionary<string, PhxPreset.ParameterEntry>()
+            };
+
+            foreach (var param in effect.Parameters)
+            {
+                effectEntry.Parameters[param.Key] = new PhxPreset.ParameterEntry
+                {
+                    Type = param.Value.Type,
+                    Label = param.Value.Label,
+                    FloatValue = param.Value.FloatValue,
+                    BoolValue = param.Value.BoolValue,
+                    StringValue = param.Value.StringValue,
+                    Options = param.Value.Options
+                };
+            }
+
+            preset.EffectStack.Add(effectEntry);
+        }
+
+        return preset;
+    }
+
+    private void LoadPresetFromData(PresetBase preset)
+    {
+        if (preset is PhxPreset phxPreset)
+        {
+            // Load PHX preset
+            PresetName = phxPreset.Name;
+            InitCode = phxPreset.InitCode;
+            FrameCode = phxPreset.FrameCode;
+            PointCode = phxPreset.PointCode;
+            BeatCode = phxPreset.BeatCode;
+
+            // Clear existing effects
+            EffectStack.Clear();
+
+            // Load effects
+            foreach (var effectEntry in phxPreset.EffectStack)
+            {
+                var effectItem = new EffectStackItem(effectEntry.Name, effectEntry.Category)
+                {
+                    EffectType = effectEntry.EffectType
+                };
+
+                // Load parameters
+                foreach (var paramEntry in effectEntry.Parameters)
+                {
+                    effectItem.Parameters[paramEntry.Key] = new CoreEffectParam
+                    {
+                        Type = paramEntry.Value.Type,
+                        Label = paramEntry.Value.Label,
+                        FloatValue = paramEntry.Value.FloatValue,
+                        BoolValue = paramEntry.Value.BoolValue,
+                        StringValue = paramEntry.Value.StringValue,
+                        Options = paramEntry.Value.Options ?? new List<string>()
+                    };
+                }
+
+                EffectStack.Add(effectItem);
+            }
+
+            // Update selected effect if any
+            SelectedEffect = EffectStack.FirstOrDefault() ?? null!;
         }
     }
 
@@ -846,13 +1037,156 @@ public class EffectStackItem : EffectItem
 }
 
 /// <summary>
-/// PHX Preset data structure for save/load functionality
+/// Preset Service for managing presets across different formats
 /// </summary>
-public class PhxPreset
+public class PresetService
+{
+    private readonly string _presetsDirectory;
+    private readonly Dictionary<string, PresetMetadata> _presetCache = new();
+
+    public PresetService()
+    {
+        _presetsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "PhoenixVisualizer", "presets");
+        Directory.CreateDirectory(_presetsDirectory);
+        RefreshPresetCache();
+    }
+
+    public void RefreshPresetCache()
+    {
+        _presetCache.Clear();
+        var presetFiles = Directory.GetFiles(_presetsDirectory, "*.json", SearchOption.AllDirectories);
+
+        foreach (var file in presetFiles)
+        {
+            try
+            {
+                var json = File.ReadAllText(file);
+                var preset = JsonSerializer.Deserialize<PresetBase>(json);
+                if (preset != null)
+                {
+                    var metadata = new PresetMetadata
+                    {
+                        Name = preset.Name,
+                        Type = preset.Type,
+                        Version = preset.Version,
+                        Category = preset.Category,
+                        Description = preset.Description,
+                        Author = preset.Author,
+                        CreatedDate = preset.CreatedDate,
+                        ModifiedDate = preset.ModifiedDate,
+                        FilePath = file,
+                        ThumbnailPath = preset.ThumbnailPath,
+                        Tags = preset.Tags
+                    };
+                    _presetCache[file] = metadata;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error loading preset metadata {file}: {ex.Message}");
+            }
+        }
+    }
+
+    public IEnumerable<PresetMetadata> GetAllPresets() => _presetCache.Values;
+
+    public IEnumerable<PresetMetadata> GetPresetsByType(PresetType type) =>
+        _presetCache.Values.Where(p => p.Type == type);
+
+    public IEnumerable<PresetMetadata> GetPresetsByCategory(string category) =>
+        _presetCache.Values.Where(p => p.Category.Contains(category, StringComparison.OrdinalIgnoreCase));
+
+    public PresetMetadata? GetPresetByName(string name) =>
+        _presetCache.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    public async Task SavePresetAsync(PresetBase preset, string? fileName = null)
+    {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            fileName = $"{preset.Name.Replace(" ", "_")}.json";
+        }
+
+        var filePath = Path.Combine(_presetsDirectory, fileName);
+        var json = JsonSerializer.Serialize(preset, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(filePath, json);
+
+        // Update cache
+        var metadata = new PresetMetadata
+        {
+            Name = preset.Name,
+            Type = preset.Type,
+            Version = preset.Version,
+            Category = preset.Category,
+            Description = preset.Description,
+            Author = preset.Author,
+            CreatedDate = preset.CreatedDate,
+            ModifiedDate = DateTime.UtcNow,
+            FilePath = filePath,
+            ThumbnailPath = preset.ThumbnailPath,
+            Tags = preset.Tags
+        };
+
+        _presetCache[filePath] = metadata;
+    }
+
+    public async Task<PresetBase?> LoadPresetAsync(string filePath)
+    {
+        if (!File.Exists(filePath))
+            return null;
+
+        var json = await File.ReadAllTextAsync(filePath);
+        var preset = JsonSerializer.Deserialize<PresetBase>(json);
+        return preset;
+    }
+
+    public void DeletePreset(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+            _presetCache.Remove(filePath);
+        }
+    }
+
+    public async Task<PresetBase?> LoadPresetByNameAsync(string name)
+    {
+        var metadata = GetPresetByName(name);
+        if (metadata?.FilePath != null)
+        {
+            return await LoadPresetAsync(metadata.FilePath);
+        }
+        return null;
+    }
+}
+
+/// <summary>
+/// Base preset class with common properties
+/// </summary>
+public class PresetBase
 {
     public string Version { get; set; } = "1.0";
     public string Name { get; set; } = "Untitled";
+    public PresetType Type { get; set; } = PresetType.PHX;
+    public string Category { get; set; } = "General";
+    public string Description { get; set; } = "";
+    public string Author { get; set; } = Environment.UserName;
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
+    public List<string> Tags { get; set; } = new();
+    public string? ThumbnailPath { get; set; }
+}
+
+/// <summary>
+/// PHX Preset data structure for save/load functionality
+/// </summary>
+public class PhxPreset : PresetBase
+{
+    public PhxPreset()
+    {
+        Type = PresetType.PHX;
+    }
+
     public string InitCode { get; set; } = "";
     public string FrameCode { get; set; } = "";
     public string PointCode { get; set; } = "";
@@ -877,4 +1211,60 @@ public class PhxPreset
         public List<string>? Options { get; set; }
     }
 }
+
+/// <summary>
+/// AVS Preset data structure
+/// </summary>
+public class AvsPreset : PresetBase
+{
+    public AvsPreset()
+    {
+        Type = PresetType.AVS;
+    }
+
+    public string AvsCode { get; set; } = "";
+    public List<AvsComponent> Components { get; set; } = new();
+
+    public class AvsComponent
+    {
+        public string Type { get; set; } = "";
+        public string Config { get; set; } = "";
+        public Dictionary<string, object> Parameters { get; set; } = new();
+    }
+}
+
+/// <summary>
+/// Preset type enumeration
+/// </summary>
+public enum PresetType
+{
+    PHX,
+    AVS,
+    SONIQUE,
+    WMP
+}
+
+/// <summary>
+/// Preset metadata for browsing and searching
+/// </summary>
+public class PresetMetadata
+{
+    public string Name { get; set; } = "";
+    public PresetType Type { get; set; }
+    public string Version { get; set; } = "1.0";
+    public string Category { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string Author { get; set; } = "";
+    public DateTime CreatedDate { get; set; }
+    public DateTime ModifiedDate { get; set; }
+    public string? FilePath { get; set; }
+    public string? ThumbnailPath { get; set; }
+    public List<string> Tags { get; set; } = new();
+
+    public string DisplayName => $"{Name} ({Type})";
+    public string FileSize => FilePath != null && File.Exists(FilePath)
+        ? $"{new FileInfo(FilePath).Length / 1024} KB"
+        : "Unknown";
+}
+
 

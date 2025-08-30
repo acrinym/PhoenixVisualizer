@@ -119,9 +119,9 @@ done
 
 # Section 2: Core Engine & Effects Library - THE CROWN JEWEL
 echo "" >> "$EXPORT_FILE"
-echo "2. CORE ENGINE & EFFECTS LIBRARY - ALL 27 AVS EFFECTS ✅" >> "$EXPORT_FILE"
+echo "2. CORE ENGINE & EFFECTS LIBRARY - ALL  AVS EFFECTS ✅" >> "$EXPORT_FILE"
 echo "=================================================================================" >> "$EXPORT_FILE"
-echo "This section contains all 27 implemented AVS effects - our historic achievement!" >> "$EXPORT_FILE"
+echo "This section contains all  implemented AVS effects - our historic achievement!" >> "$EXPORT_FILE"
 echo "" >> "$EXPORT_FILE"
 
 # Add all AVS effects we implemented
@@ -201,11 +201,11 @@ cat >> "$EXPORT_FILE" << 'EOF'
 EXPORT COMPLETE - SUMMARY
 ================================================================================
 This export represents the complete PhoenixVisualizer codebase after achieving
-100% completion of all 27 missing AVS effects. This is a historic milestone
+100% completion of All AVS effects. This is a historic milestone
 in audio visualization technology.
 
 Key Achievements Included:
-✅ Complete AVS effects library (27/27 effects)
+✅ Complete AVS effects library (5effects)
 ✅ Advanced algorithms (particle systems, vector fields, compositing)
 ✅ VLC audio integration with real-time processing  
 ✅ Phoenix VFX framework foundation
