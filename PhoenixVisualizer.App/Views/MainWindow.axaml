@@ -30,9 +30,7 @@
             <Button x:Name="BtnLoadPreset" Content="Load Preset"/>
             <Button x:Name="BtnExecutePreset" Content="Execute Preset" Background="Green" Foreground="White" ToolTip.Tip="Execute the AVS preset in the text box (or press E key)"/>
             <Button x:Name="BtnImportPreset" Content="Import Preset"/>
-            <Button x:Name="BtnHotkeyManager" Content="⌨️ Hotkeys" ToolTip.Tip="Manage keyboard shortcuts"/>
-            <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in/Winamp" ToolTip.Tip="Switch between built-in visualizers and Winamp plugins"/>
-            <Button x:Name="BtnWinampPlugins" Content="🎵 Winamp" ToolTip.Tip="Manage Winamp visualization plugins"/>
+            <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in Mode" ToolTip.Tip="Switch between built-in visualizers"/>
         </StackPanel>
 
         <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->

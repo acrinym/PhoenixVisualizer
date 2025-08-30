@@ -332,11 +332,7 @@ public partial class MainWindow : Window
         var btnLoadPreset = this.FindControl<Button>("BtnLoadPreset");
         var btnExecutePreset = this.FindControl<Button>("BtnExecutePreset");
         var btnImportPreset = this.FindControl<Button>("BtnImportPreset");
-        var btnHotkeyManager = this.FindControl<Button>("BtnHotkeyManager");
         var btnPluginSwitcher = this.FindControl<Button>("BtnPluginSwitcher");
-        var btnWinampPlugins = this.FindControl<Button>("BtnWinampPlugins");
-
-
         if (btnOpen != null) btnOpen.Click += OnOpenClick;
         if (btnPlay != null) btnPlay.Click += OnPlayClick;
         if (btnPause != null) btnPause.Click += OnPauseClick;
@@ -348,9 +344,7 @@ public partial class MainWindow : Window
         if (btnLoadPreset != null) btnLoadPreset.Click += OnLoadPreset;
         if (btnExecutePreset != null) btnExecutePreset.Click += OnExecutePreset;
         if (btnImportPreset != null) btnImportPreset.Click += OnImportPreset;
-        if (btnHotkeyManager != null) btnHotkeyManager.Click += OnHotkeyManagerClick;
         if (btnPluginSwitcher != null) btnPluginSwitcher.Click += OnPluginSwitcherClick;
-        if (btnWinampPlugins != null) btnWinampPlugins.Click += OnWinampPluginsClick;
 
     }
 
@@ -940,15 +934,7 @@ public partial class MainWindow : Window
             phxEditor.Show();
         }
 
-        private void OnWinampPluginsClick(object? sender, RoutedEventArgs e)
-        {
-            // TODO: Implement Winamp plugins management window
-            System.Diagnostics.Debug.WriteLine("Winamp plugins management clicked - feature not yet implemented");
-            // For now, just show a debug message. In the future, this would open a window to:
-            // • Browse and install Winamp .dll plugins
-            // • Configure plugin settings
-            // • Switch between built-in and Winamp visualizers
-        }
+
 
         private void HandleAvsContentFromEditor(string avsContent)
         {
@@ -1222,22 +1208,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnHotkeyManagerClick(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            // Hotkey manager temporarily disabled - Winamp integration removed
-            var statusText = this.FindControl<TextBlock>("LblTime");
-            if (statusText != null)
-            {
-                statusText.Text = "⚠️ Hotkey manager temporarily disabled";
-            }
-        }
-        catch
-        {
-            // Error opening hotkey manager silently
-        }
-    }
+
 
     private void OnPluginSwitcherClick(object? sender, RoutedEventArgs e)
     {
