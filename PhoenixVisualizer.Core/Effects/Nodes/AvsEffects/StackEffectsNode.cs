@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.Core.Nodes;
 
 namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 {
@@ -93,6 +94,102 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             Name = "Stack Effects";
             Description = "Creates layered visual compositions by stacking multiple images";
             Category = "Composite Effects";
+
+            // Initialize parameters for UI binding
+            InitializeParameters();
+        }
+
+        private void InitializeParameters()
+        {
+            Params["enabled"] = new EffectParam
+            {
+                Label = "Enabled",
+                Type = "checkbox",
+                BoolValue = Enabled
+            };
+
+            Params["stackMode"] = new EffectParam
+            {
+                Label = "Stack Mode",
+                Type = "dropdown",
+                FloatValue = StackMode,
+                Options = new() { "Normal Stack", "Beat Stack", "Random Stack", "Sequence Stack" }
+            };
+
+            Params["layerCount"] = new EffectParam
+            {
+                Label = "Layer Count",
+                Type = "slider",
+                FloatValue = LayerCount,
+                Min = 1,
+                Max = 10
+            };
+
+            Params["blendMode"] = new EffectParam
+            {
+                Label = "Blend Mode",
+                Type = "dropdown",
+                FloatValue = BlendMode,
+                Options = new() { "Replace", "Additive", "Multiply", "Screen", "Overlay", "Difference" }
+            };
+
+            Params["layerOrder"] = new EffectParam
+            {
+                Label = "Layer Order",
+                Type = "dropdown",
+                FloatValue = LayerOrder,
+                Options = new() { "Forward", "Reverse", "Random" }
+            };
+
+            Params["baseAlpha"] = new EffectParam
+            {
+                Label = "Base Alpha",
+                Type = "slider",
+                FloatValue = BaseAlpha,
+                Min = 0.0f,
+                Max = 1.0f
+            };
+
+            Params["beatReactive"] = new EffectParam
+            {
+                Label = "Beat Reactive",
+                Type = "checkbox",
+                BoolValue = BeatReactive
+            };
+
+            Params["beatAlpha"] = new EffectParam
+            {
+                Label = "Beat Alpha",
+                Type = "slider",
+                FloatValue = BeatAlpha,
+                Min = 1.0f,
+                Max = 3.0f
+            };
+
+            Params["fadeTime"] = new EffectParam
+            {
+                Label = "Fade Time",
+                Type = "slider",
+                FloatValue = FadeTime,
+                Min = 1,
+                Max = 100
+            };
+
+            Params["layerOffset"] = new EffectParam
+            {
+                Label = "Layer Offset",
+                Type = "slider",
+                FloatValue = LayerOffset,
+                Min = 0,
+                Max = 50
+            };
+
+            Params["useHistoricalFrames"] = new EffectParam
+            {
+                Label = "Use Historical Frames",
+                Type = "checkbox",
+                BoolValue = UseHistoricalFrames
+            };
         }
 
         #endregion
@@ -118,15 +215,242 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
                 return GetDefaultOutput();
 
             var output = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
-            
-            // TODO: Implement actual effect logic here
-            // For now, just copy input to output
-            for (int i = 0; i < output.Pixels.Length; i++)
+
+            // Update frame history for historical stacking
+            if (UseHistoricalFrames)
             {
-                output.Pixels[i] = imageBuffer.Pixels[i];
+                var frameCopy = new ImageBuffer(imageBuffer.Width, imageBuffer.Height);
+                Array.Copy(imageBuffer.Pixels, frameCopy.Pixels, imageBuffer.Pixels.Length);
+                _frameHistory.Enqueue(frameCopy); // Deep copy
+                if (_frameHistory.Count > MAX_FRAME_HISTORY)
+                {
+                    _frameHistory.Dequeue();
+                }
             }
-            
+
+            // Handle beat reactivity
+            if (BeatReactive && audioFeatures.IsBeat)
+            {
+                _beatAlphaMultiplier = BeatAlpha;
+            }
+            else
+            {
+                _beatAlphaMultiplier = Math.Max(1.0f, _beatAlphaMultiplier * 0.95f); // Fade out
+            }
+
+            // Create layers based on stack mode
+            var layers = CreateLayers(imageBuffer, audioFeatures);
+
+            // Composite all layers onto output
+            foreach (var layer in layers)
+            {
+                CompositeLayer(output, layer);
+            }
+
             return output;
+        }
+
+        private List<LayerData> CreateLayers(ImageBuffer inputBuffer, AudioFeatures audioFeatures)
+        {
+            var layers = new List<LayerData>();
+            int availableFrames = UseHistoricalFrames ? _frameHistory.Count : 1;
+
+            if (availableFrames == 0) availableFrames = 1;
+
+            for (int i = 0; i < LayerCount; i++)
+            {
+                ImageBuffer sourceBuffer;
+
+                // Select source frame based on stack mode
+                switch (StackMode)
+                {
+                    case 0: // Normal Stack - use current frame for all layers
+                        sourceBuffer = new ImageBuffer(inputBuffer.Width, inputBuffer.Height);
+                        Array.Copy(inputBuffer.Pixels, sourceBuffer.Pixels, inputBuffer.Pixels.Length);
+                        break;
+
+                    case 1: // Beat Stack - change layers on beat
+                        if (audioFeatures.IsBeat)
+                        {
+                            _currentLayerIndex = (_currentLayerIndex + 1) % availableFrames;
+                        }
+                        sourceBuffer = GetFrameBuffer(i % availableFrames);
+                        break;
+
+                    case 2: // Random Stack - random layer selection
+                        int randomIndex = _random.Next(availableFrames);
+                        sourceBuffer = GetFrameBuffer(randomIndex);
+                        break;
+
+                    case 3: // Sequence Stack - cycle through frames
+                        int sequenceIndex = (i + _currentLayerIndex) % availableFrames;
+                        sourceBuffer = GetFrameBuffer(sequenceIndex);
+                        break;
+
+                    default:
+                        sourceBuffer = new ImageBuffer(inputBuffer.Width, inputBuffer.Height);
+                        Array.Copy(inputBuffer.Pixels, sourceBuffer.Pixels, inputBuffer.Pixels.Length);
+                        break;
+                }
+
+                // Apply layer transformations
+                var layer = new LayerData
+                {
+                    Buffer = sourceBuffer,
+                    BlendMode = BlendMode,
+                    Alpha = BaseAlpha * _beatAlphaMultiplier,
+                    OffsetX = i * LayerOffset,
+                    OffsetY = i * LayerOffset
+                };
+
+                // Apply layer order transformations
+                ApplyLayerOrder(layer, i);
+
+                layers.Add(layer);
+            }
+
+            return layers;
+        }
+
+        private ImageBuffer GetFrameBuffer(int index)
+        {
+            if (UseHistoricalFrames && _frameHistory.Count > index)
+            {
+                return _frameHistory.ElementAt(index);
+            }
+            // Return a copy of the current input buffer as fallback
+            var fallback = new ImageBuffer(800, 600);
+            // Initialize with a default color
+            for (int i = 0; i < fallback.Pixels.Length; i++)
+            {
+                fallback.Pixels[i] = unchecked((int)0xFF808080); // Gray color
+            }
+            return fallback;
+        }
+
+        private void ApplyLayerOrder(LayerData layer, int layerIndex)
+        {
+            switch (LayerOrder)
+            {
+                case 0: // Forward - normal order
+                    break;
+
+                case 1: // Reverse - reverse order
+                    layer.OffsetX = -layer.OffsetX;
+                    layer.OffsetY = -layer.OffsetY;
+                    break;
+
+                case 2: // Random - random offset
+                    layer.OffsetX = _random.Next(-LayerOffset * 2, LayerOffset * 2);
+                    layer.OffsetY = _random.Next(-LayerOffset * 2, LayerOffset * 2);
+                    break;
+            }
+        }
+
+        private void CompositeLayer(ImageBuffer output, LayerData layer)
+        {
+            int width = Math.Min(output.Width, layer.Buffer.Width);
+            int height = Math.Min(output.Height, layer.Buffer.Height);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int srcX = Math.Max(0, Math.Min(layer.Buffer.Width - 1, x - layer.OffsetX));
+                    int srcY = Math.Max(0, Math.Min(layer.Buffer.Height - 1, y - layer.OffsetY));
+                    int destIndex = y * output.Width + x;
+                    int srcIndex = srcY * layer.Buffer.Width + srcX;
+
+                    if (destIndex >= 0 && destIndex < output.Pixels.Length &&
+                        srcIndex >= 0 && srcIndex < layer.Buffer.Pixels.Length)
+                    {
+                        int srcColor = layer.Buffer.Pixels[srcIndex];
+                        int destColor = output.Pixels[destIndex];
+
+                        // Apply blending based on mode
+                        output.Pixels[destIndex] = BlendColors(destColor, srcColor, layer.BlendMode, layer.Alpha);
+                    }
+                }
+            }
+        }
+
+        private int BlendColors(int dest, int src, int blendMode, float alpha)
+        {
+            // Extract BGRA components from integers
+            int destB = (dest >> 16) & 0xFF;
+            int destG = (dest >> 8) & 0xFF;
+            int destR = dest & 0xFF;
+
+            int srcB = (src >> 16) & 0xFF;
+            int srcG = (src >> 8) & 0xFF;
+            int srcR = src & 0xFF;
+
+            // Apply alpha to source color
+            srcB = (int)(srcB * alpha);
+            srcG = (int)(srcG * alpha);
+            srcR = (int)(srcR * alpha);
+
+            int resultR, resultG, resultB;
+
+            switch (blendMode)
+            {
+                case 0: // Replace
+                    resultR = srcR;
+                    resultG = srcG;
+                    resultB = srcB;
+                    break;
+
+                case 1: // Additive
+                    resultR = Math.Min(255, destR + srcR);
+                    resultG = Math.Min(255, destG + srcG);
+                    resultB = Math.Min(255, destB + srcB);
+                    break;
+
+                case 2: // Multiply
+                    resultR = (destR * srcR) / 255;
+                    resultG = (destG * srcG) / 255;
+                    resultB = (destB * srcB) / 255;
+                    break;
+
+                case 3: // Screen
+                    resultR = 255 - ((255 - destR) * (255 - srcR)) / 255;
+                    resultG = 255 - ((255 - destG) * (255 - srcG)) / 255;
+                    resultB = 255 - ((255 - destB) * (255 - srcB)) / 255;
+                    break;
+
+                case 4: // Overlay
+                    int OverlayBlend(int d, int s) =>
+                        d < 128 ? (d * s) / 128 : 255 - ((255 - d) * (255 - s)) / 128;
+
+                    resultR = OverlayBlend(destR, srcR);
+                    resultG = OverlayBlend(destG, srcG);
+                    resultB = OverlayBlend(destB, srcB);
+                    break;
+
+                case 5: // Difference
+                    resultR = Math.Abs(destR - srcR);
+                    resultG = Math.Abs(destG - srcG);
+                    resultB = Math.Abs(destB - srcB);
+                    break;
+
+                default:
+                    resultR = srcR;
+                    resultG = srcG;
+                    resultB = srcB;
+                    break;
+            }
+
+            // Pack back into BGRA integer format
+            return (resultB << 16) | (resultG << 8) | resultR;
+        }
+
+        private class LayerData
+        {
+            public ImageBuffer Buffer { get; set; } = null!;
+            public int BlendMode { get; set; }
+            public float Alpha { get; set; }
+            public int OffsetX { get; set; }
+            public int OffsetY { get; set; }
         }
 
         public override object GetDefaultOutput()

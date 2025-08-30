@@ -25,6 +25,11 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         public virtual IReadOnlyList<EffectPort> InputPorts => _inputPorts.AsReadOnly();
         public virtual IReadOnlyList<EffectPort> OutputPorts => _outputPorts.AsReadOnly();
 
+        /// <summary>
+        /// Effect parameters for UI binding and configuration
+        /// </summary>
+        public virtual Dictionary<string, PhoenixVisualizer.Core.Nodes.EffectParam> Params { get; protected set; } = new();
+
         #endregion
 
         #region Protected Fields
@@ -156,6 +161,16 @@ namespace PhoenixVisualizer.Core.Effects.Nodes
         public virtual void BindExpressionEngine(PhoenixExpressionEngine engine)
         {
             Engine = engine;
+        }
+
+        /// <summary>
+        /// Render method required by IEffectNode interface
+        /// Default implementation - should be overridden by derived classes
+        /// </summary>
+        public virtual void Render(float[] waveform, float[] spectrum, PhoenixVisualizer.Core.Nodes.RenderContext ctx)
+        {
+            // Default implementation - derived classes should override this
+            // This method is called by the rendering pipeline
         }
 
         #endregion

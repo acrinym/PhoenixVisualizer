@@ -11,6 +11,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Nodes;
 // Note: Using the simpler IEffectNode from Nodes namespace, not the advanced one from Effects.Interfaces
 // The advanced EffectsGraphManager will be integrated in a future phase
@@ -48,7 +49,7 @@ public partial class PhxEditorWindow : Window
         ViewModel = new PhxEditorViewModel();
 
         // Initialize commands after ViewModel is created
-        ViewModel.InitializeCommands();
+        InitializeCommands();
 
         // Initialize required fields
         _codeEngine = new PhxCodeEngine();
@@ -73,6 +74,16 @@ public partial class PhxEditorWindow : Window
 
         // Initialize effect instantiation pipeline
         InitializeEffectPipeline();
+    }
+
+    private void InitializeCommands()
+    {
+        // Initialize ViewModel commands first
+        ViewModel.InitializeCommands();
+
+        // Override the AVS commands to use Window methods
+        ViewModel.ExportAvsCommand = ReactiveCommand.Create(() => { ExportAvsPreset(); return Unit.Default; });
+        ViewModel.ImportAvsCommand = ReactiveCommand.Create(() => { ImportAvsPreset(); return Unit.Default; });
     }
 
     private void InitializeEffectPipeline()
@@ -199,8 +210,44 @@ public partial class PhxEditorWindow : Window
             vm.PauseCommand.Subscribe(_ => _previewRenderer?.Pause());
             vm.RestartCommand.Subscribe(_ => _previewRenderer?.Restart());
 
+            // Wire up parameter editor updates when effect selection changes
+            vm.WhenAnyValue(x => x.SelectedEffect)
+                .Subscribe(selectedEffect =>
+                {
+                    if (_parameterEditor != null && selectedEffect != null)
+                    {
+                        _parameterEditor.UpdateParameters(
+                            selectedEffect.Name,
+                            selectedEffect.Parameters.ToDictionary(
+                                p => p.Key,
+                                p => new CoreEffectParam
+                                {
+                                    Label = p.Value.Label,
+                                    Type = p.Value.Type,
+                                    FloatValue = p.Value.FloatValue,
+                                    BoolValue = p.Value.BoolValue,
+                                    StringValue = p.Value.StringValue,
+                                    ColorValue = p.Value.ColorValue,
+                                    Min = p.Value.Min,
+                                    Max = p.Value.Max,
+                                    Options = p.Value.Options
+                                }
+                            )
+                        );
+                    }
+                });
+
             // Preset commands are wired in the window initialization
         }
+
+        // Wire up parameter changes back to the effect
+        WireUpParameterChanges();
+    }
+
+    private void WireUpParameterChanges()
+    {
+        // This will be handled through the existing parameter binding system
+        // The ParameterEditor already updates the EffectParam objects directly
     }
 
     private void WireUpPresetCommands()
@@ -218,6 +265,90 @@ public partial class PhxEditorWindow : Window
         // Clean up resources
         _previewRenderer?.Stop();
         _codeEngine?.Reset();
+    }
+
+    private async void ExportAvsPreset()
+    {
+        try
+        {
+            var storageProvider = TopLevel.GetTopLevel(this)?.StorageProvider;
+            if (storageProvider == null)
+            {
+                ViewModel.StatusMessage = "Storage provider not available";
+                return;
+            }
+
+            var options = new FilePickerSaveOptions
+            {
+                Title = "Export AVS Preset",
+                FileTypeChoices = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("AVS Preset Files")
+                    {
+                        Patterns = new[] { "*.avs" },
+                        MimeTypes = new[] { "application/octet-stream" }
+                    },
+                    new FilePickerFileType("All Files")
+                    {
+                        Patterns = new[] { "*" },
+                        MimeTypes = new[] { "application/octet-stream" }
+                    }
+                },
+                SuggestedFileName = "preset.avs"
+            };
+
+            var result = await storageProvider.SaveFilePickerAsync(options);
+            if (result != null)
+            {
+                await ViewModel.ExportPresetAsAvs(result.Path.LocalPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Error exporting AVS preset: {ex.Message}";
+        }
+    }
+
+    private async void ImportAvsPreset()
+    {
+        try
+        {
+            var storageProvider = TopLevel.GetTopLevel(this)?.StorageProvider;
+            if (storageProvider == null)
+            {
+                ViewModel.StatusMessage = "Storage provider not available";
+                return;
+            }
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = "Import AVS Preset",
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("AVS Preset Files")
+                    {
+                        Patterns = new[] { "*.avs" },
+                        MimeTypes = new[] { "application/octet-stream" }
+                    },
+                    new FilePickerFileType("All Files")
+                    {
+                        Patterns = new[] { "*" },
+                        MimeTypes = new[] { "application/octet-stream" }
+                    }
+                },
+                AllowMultiple = false
+            };
+
+            var results = await storageProvider.OpenFilePickerAsync(options);
+            if (results.Count > 0)
+            {
+                await ViewModel.ImportPresetFromAvs(results[0].Path.LocalPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Error importing AVS preset: {ex.Message}";
+        }
     }
 }
 
@@ -272,8 +403,8 @@ public class PhxEditorViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenPresetCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> SavePresetCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> SaveAsPresetCommand { get; private set; } = null!;
-    public ReactiveCommand<Unit, Unit> ExportAvsCommand { get; private set; } = null!;
-    public ReactiveCommand<Unit, Unit> ImportAvsCommand { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> ExportAvsCommand { get; set; } = null!;
+    public ReactiveCommand<Unit, Unit> ImportAvsCommand { get; set; } = null!;
     public ReactiveCommand<Unit, Unit> UndoCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> RedoCommand { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> CutCommand { get; private set; } = null!;
@@ -324,8 +455,7 @@ public class PhxEditorViewModel : ReactiveObject
         OpenPresetCommand = ReactiveCommand.Create(OpenPreset);
         SavePresetCommand = ReactiveCommand.Create(SavePreset);
         SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
-        ExportAvsCommand = ReactiveCommand.Create(ExportAvsPreset);
-        ImportAvsCommand = ReactiveCommand.Create(ImportAvsPreset);
+        // AVS commands will be set from the Window class
         UndoCommand = ReactiveCommand.Create(Undo);
         RedoCommand = ReactiveCommand.Create(Redo);
         CutCommand = ReactiveCommand.Create(Cut);
@@ -419,17 +549,9 @@ public class PhxEditorViewModel : ReactiveObject
 
 
 
-    private void ExportAvsPreset()
-    {
-        // TODO: Implement AVS export functionality
-        // ViewModel.StatusMessage = "AVS export not yet implemented";
-    }
+    // AVS import/export methods moved to PhxEditorWindow class
 
-    private void ImportAvsPreset()
-    {
-        // TODO: Implement AVS import functionality
-        // ViewModel.StatusMessage = "AVS import not yet implemented";
-    }
+    // ImportAvsPreset method moved to PhxEditorWindow class
 
 
 
@@ -603,7 +725,7 @@ public class PhxEditorViewModel : ReactiveObject
         }
     }
 
-    private async Task ExportPresetAsAvs(string filePath)
+    public async Task ExportPresetAsAvs(string filePath)
     {
         var avsContent = new StringBuilder();
 
@@ -670,7 +792,7 @@ public class PhxEditorViewModel : ReactiveObject
         await File.WriteAllTextAsync(filePath, avsContent.ToString());
     }
 
-    private async Task ImportPresetFromAvs(string filePath)
+    public async Task ImportPresetFromAvs(string filePath)
     {
         var content = await File.ReadAllTextAsync(filePath);
 

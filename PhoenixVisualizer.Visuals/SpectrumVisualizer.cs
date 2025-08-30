@@ -22,9 +22,9 @@ public sealed class SpectrumVisualizer : IVisualizerPlugin
     private bool _mirrorMode = false;
 
     // State for smoothing and peak detection
-    private float[] _previousHeights;
-    private float[] _peakHeights;
-    private float[] _peakTimes;
+    private float[] _previousHeights = Array.Empty<float>();
+    private float[] _peakHeights = Array.Empty<float>();
+    private float[] _peakTimes = Array.Empty<float>();
 
     public void Initialize(int width, int height) => Resize(width, height);
     public void Resize(int width, int height)

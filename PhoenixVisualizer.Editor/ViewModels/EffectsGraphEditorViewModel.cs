@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Platform;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Effects.Graph;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
@@ -9,9 +11,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
+// Suppress obsolete API warnings for file dialogs - will be updated in future phase
+#pragma warning disable CS0618
 
 namespace PhoenixVisualizer.Editor.ViewModels
 {
@@ -29,6 +36,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
         private Size _previewResolution = new Size(640, 480);
         private int _targetFPS = 60;
         private string _qualityLevel = "High";
+        private string _statusMessage = "Ready";
 
         #endregion
 
@@ -142,6 +150,16 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         public ObservableCollection<NodePropertyViewModel> SelectedNodeProperties { get; } = new();
         public ObservableCollection<ConnectionViewModel> SelectedNodeConnections { get; } = new();
+
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set
+            {
+                _statusMessage = value;
+                OnPropertyChanged();
+            }
+        }
 
         #endregion
 
@@ -307,18 +325,222 @@ namespace PhoenixVisualizer.Editor.ViewModels
             OnPropertyChanged(nameof(ConnectionCount));
         }
 
-        private void OpenGraph()
+        private async void OpenGraph()
         {
-            // TODO: Implement file open dialog
-            // For now, create a demo graph
-            CreateDemoGraph();
+            try
+            {
+                var dialog = new OpenFileDialog
+                {
+                    Title = "Open Effects Graph",
+                    Filters = new List<FileDialogFilter>
+                    {
+                        new FileDialogFilter { Name = "Phoenix Effects Graph", Extensions = new List<string> { "phx" } },
+                        new FileDialogFilter { Name = "AVS Preset Files", Extensions = new List<string> { "avs" } },
+                        new FileDialogFilter { Name = "All Files", Extensions = new List<string> { "*" } }
+                    },
+                    AllowMultiple = false
+                };
+
+                var result = await dialog.ShowAsync(Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.Window ?? throw new InvalidOperationException("No main window found"));
+                if (result != null && result.Length > 0)
+                {
+                    string filePath = result[0];
+                    string extension = Path.GetExtension(filePath).ToLower();
+
+                    if (extension == ".avs")
+                    {
+                        await LoadAvsPreset(filePath);
+                    }
+                    else if (extension == ".phx")
+                    {
+                        await LoadPhoenixGraph(filePath);
+                    }
+
+                    StatusMessage = $"Opened: {Path.GetFileName(filePath)}";
+                    OnPropertyChanged(nameof(GraphName));
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening graph: {ex.Message}";
+            }
         }
 
-        private void SaveGraph()
+        private async void SaveGraph()
         {
-            // TODO: Implement file save dialog
-            // For now, just validate the graph
-            ValidateGraph();
+            try
+            {
+                if (_currentGraph == null)
+                {
+                    StatusMessage = "No graph to save";
+                    return;
+                }
+
+                var dialog = new SaveFileDialog
+                {
+                    Title = "Save Effects Graph",
+                    Filters = new List<FileDialogFilter>
+                    {
+                        new FileDialogFilter { Name = "Phoenix Effects Graph", Extensions = new List<string> { "phx" } },
+                        new FileDialogFilter { Name = "All Files", Extensions = new List<string> { "*" } }
+                    },
+                    DefaultExtension = "phx",
+                    InitialFileName = $"{_currentGraph.Name.Replace(" ", "_")}.phx"
+                };
+
+                var result = await dialog.ShowAsync(Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.Window ?? throw new InvalidOperationException("No main window found"));
+                if (result != null)
+                {
+                    await SavePhoenixGraph(result);
+                    StatusMessage = $"Saved: {Path.GetFileName(result)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error saving graph: {ex.Message}";
+            }
+        }
+
+        private async Task LoadAvsPreset(string filePath)
+        {
+            try
+            {
+                // Use the existing AVS converter
+                var phoenixJson = PhoenixVisualizer.Core.Avs.AvsPresetConverter.LoadAvs(filePath);
+
+                // Parse the JSON and create a graph from it
+                using var doc = JsonDocument.Parse(phoenixJson);
+                var root = doc.RootElement;
+
+                string graphName = Path.GetFileNameWithoutExtension(filePath);
+                _currentGraph = _graphManager.CreateGraph(graphName, "Loaded from AVS preset");
+
+                // Parse effects and add to graph
+                if (root.TryGetProperty("effects", out var effects))
+                {
+                    foreach (var effect in effects.EnumerateArray())
+                    {
+                        string effectType = effect.GetProperty("type").GetString() ?? "";
+                        // Map AVS effect type to Phoenix node type
+                        string nodeType = MapAvsEffectToPhoenixNode(effectType);
+
+                        if (!string.IsNullOrEmpty(nodeType))
+                        {
+                            var node = _graphManager.CreateNodeInstance(nodeType);
+                            if (node != null)
+                            {
+                                _currentGraph.AddNode(node);
+                            }
+                        }
+                    }
+                }
+
+                // Load embedded code if present
+                if (root.TryGetProperty("code", out var code))
+                {
+                    // Code handling would go here
+                }
+
+                OnPropertyChanged(nameof(GraphName));
+                OnPropertyChanged(nameof(NodeCount));
+                OnPropertyChanged(nameof(ConnectionCount));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to load AVS preset: {ex.Message}");
+            }
+        }
+
+        private async Task LoadPhoenixGraph(string filePath)
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(filePath);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                string graphName = root.GetProperty("name").GetString() ?? "Loaded Graph";
+                _currentGraph = _graphManager.CreateGraph(graphName, "Loaded from file");
+
+                // Parse nodes
+                if (root.TryGetProperty("nodes", out var nodes))
+                {
+                    foreach (var nodeElement in nodes.EnumerateArray())
+                    {
+                        string nodeType = nodeElement.GetProperty("type").GetString() ?? "";
+                        var node = _graphManager.CreateNodeInstance(nodeType);
+                        if (node != null)
+                        {
+                            _currentGraph.AddNode(node);
+                        }
+                    }
+                }
+
+                OnPropertyChanged(nameof(GraphName));
+                OnPropertyChanged(nameof(NodeCount));
+                OnPropertyChanged(nameof(ConnectionCount));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to load Phoenix graph: {ex.Message}");
+            }
+        }
+
+        private async Task SavePhoenixGraph(string filePath)
+        {
+            try
+            {
+                var graphData = new
+                {
+                    name = _currentGraph?.Name ?? "Effects Graph",
+                    description = "Saved Phoenix effects graph",
+                    nodes = _currentGraph != null
+                        ? _currentGraph.GetNodes().Select(n => new
+                        {
+                            id = n.Key,
+                            type = n.Value.GetType().Name,
+                            name = n.Value.Name,
+                            position = new { x = 0, y = 0 } // Would need actual position data
+                        }).Cast<object>().ToArray()
+                        : Array.Empty<object>(),
+                    connections = _currentGraph != null
+                        ? _currentGraph.GetConnections().Select(c => new
+                        {
+                            from = c.Value.SourceNodeId,
+                            to = c.Value.TargetNodeId,
+                            fromPort = c.Value.SourcePortName,
+                            toPort = c.Value.TargetPortName
+                        }).Cast<object>().ToArray()
+                        : Array.Empty<object>()
+                };
+
+                var json = JsonSerializer.Serialize(graphData, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+                await File.WriteAllTextAsync(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to save Phoenix graph: {ex.Message}");
+            }
+        }
+
+        private string MapAvsEffectToPhoenixNode(string avsEffectType)
+        {
+            // Map common AVS effect types to Phoenix node types
+            return avsEffectType switch
+            {
+                "superscope_script" => "SuperscopeEffectsNode",
+                "blur" => "BlurEffectsNode",
+                "brightness" => "BrightnessEffectsNode",
+                "contrast" => "ContrastEffectsNode",
+                "color_fade" => "ColorfadeEffectsNode",
+                "invert" => "InvertEffectsNode",
+                "mosaic" => "MosaicEffectsNode",
+                _ => "" // Unknown effect type
+            };
         }
 
         private void CreateDemoGraph()
