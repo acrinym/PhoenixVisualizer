@@ -6,7 +6,7 @@ namespace PhoenixVisualizer.Views
     {
         private readonly AvsImportService _avsImportService = new();
         private string _currentFilePath = string.Empty;
-        
+
         // Event to communicate with main window
         public event Action<string>? AvsContentImported;
 
@@ -14,6 +14,41 @@ namespace PhoenixVisualizer.Views
         {
             AvaloniaXamlLoader.Load(this);
             WireUpEventHandlers();
+            InitializeCodeEditor();
+        }
+
+        private void InitializeCodeEditor()
+        {
+            var codeEditor = this.FindControl<TextBox>("CodeEditor");
+            if (codeEditor != null)
+            {
+                // Update stats when text changes
+                codeEditor.TextChanged += (sender, args) =>
+                {
+                    UpdateCodeStats();
+                    UpdatePreview();
+                };
+
+                // Initial stats update
+                UpdateCodeStats();
+            }
+        }
+
+        private void UpdateCodeStats()
+        {
+            var codeEditor = this.FindControl<TextBox>("CodeEditor");
+            var lineCountText = this.FindControl<TextBlock>("LineCountText");
+            var charCountText = this.FindControl<TextBlock>("CharCountText");
+
+            if (codeEditor != null && lineCountText != null && charCountText != null)
+            {
+                var text = codeEditor.Text ?? string.Empty;
+                var lines = text.Split('\n').Length;
+                var chars = text.Length;
+
+                lineCountText.Text = $"Lines: {lines}";
+                charCountText.Text = $"Chars: {chars}";
+            }
         }
 
         private async void OnLoadFile(object? sender, RoutedEventArgs e)
@@ -43,13 +78,14 @@ namespace PhoenixVisualizer.Views
                     {
                         codeEditor.Text = content;
                         _currentFilePath = filePath;
-                        
+
                         var statusText = this.FindControl<TextBlock>("StatusText");
                         if (statusText != null)
                         {
                             statusText.Text = $"Loaded: {Path.GetFileName(filePath)}";
                         }
-                        
+
+                        UpdateCodeStats();
                         UpdatePreview();
                     }
                 }
@@ -112,7 +148,8 @@ namespace PhoenixVisualizer.Views
                 {
                     statusText.Text = "Editor cleared";
                 }
-                
+
+                UpdateCodeStats();
                 UpdatePreview();
             }
         }
