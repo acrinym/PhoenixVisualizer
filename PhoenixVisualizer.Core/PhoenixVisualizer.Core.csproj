@@ -8,6 +8,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <!-- Enable F# support -->
+    <EnableDefaultFSharpItems>true</EnableDefaultFSharpItems>
   </PropertyGroup>
 
   <ItemGroup>
