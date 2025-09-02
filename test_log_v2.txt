@@ -1,0 +1,45 @@
+Using launch settings from PhoenixVisualizer.App\Properties\launchSettings.json...
+[0000028102142f90] main libvlc debug: VLC media player - 3.0.21 Vetinari
+[0000028102142f90] main libvlc debug: Copyright ┬⌐ 1996-2024 the VideoLAN team
+[0000028102142f90] main libvlc debug: revision 3.0.21-1-0-g9c4768291e
+[0000028102142f90] main libvlc debug: configured with /builds/videolan/vlc/extras/package/win32/../../../configure  '--enable-update-check' '--enable-lua' '--enable-faad' '--enable-flac' '--enable-theora' '--enable-avcodec' '--enable-merge-ffmpeg' '--enable-dca' '--enable-mpc' '--enable-libass' '--enable-schroedinger' '--enable-realrtsp' '--enable-live555' '--enable-shout' '--enable-goom' '--enable-sse' '--enable-mmx' '--enable-libcddb' '--enable-zvbi' '--disable-telx' '--enable-nls' '--host=x86_64-w64-mingw32' '--with-contrib=../contrib/x86_64-w64-mingw32' '--with-breakpad=https://win.crashes.videolan.org' '--enable-qt' '--enable-skins2' '--enable-dvdread' '--enable-caca' 'host_alias=x86_64-w64-mingw32' 'CFLAGS= -D_WIN32_WINNT=0x0502 -DWINVER=0x502 -D__MSVCRT_VERSION__=0x700 ' 'CXXFLAGS= -D_WIN32_WINNT=0x0502 -DWINVER=0x502 -D__MSVCRT_VERSION__=0x700 ' 'PKG_CONFIG=pkg-config' 'PKG_CONFIG_LIBDIR=/usr/x86_64-w64-mingw32/lib/pkgconfig:/usr/lib/x86_64-w64-mingw32/pkgconfig'
+[0000028102142f90] main libvlc debug: using multimedia timers as clock source
+[0000028102142f90] main libvlc debug:  min period: 1 ms, max period: 1000000 ms
+[0000028102142f90] main libvlc debug: searching plug-in modules
+[0000028102142f90] main libvlc debug: loading plugins cache file D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat
+[0000028102142f90] main libvlc warning: cannot read D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat: No such file or directory
+[0000028102142f90] main libvlc debug: recursively browsing `D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins'
+[0000028102142f90] main libvlc debug: plug-ins loaded: 432 modules
+[00000281021430e0] main logger debug: looking for logger module matching "any": 1 candidates
+[00000281021430e0] main logger debug: using logger module "console"
+[0000028102142f90] main libvlc debug: translation test: code is "C"
+[0000028102154530] main keystore debug: looking for keystore module matching "memory": 3 candidates
+[0000028102154530] main keystore debug: using keystore module "memory"
+[0000028102142f90] main libvlc debug: CPU has capabilities MMX MMXEXT SSE SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 FPU 
+[0000028102151dc0] main generic debug: creating audio output
+[00000281021527a0] main audio output debug: looking for audio output module matching "any": 6 candidates
+[00000281021527a0] mmdevice audio output debug: using default device
+[00000281021527a0] mmdevice audio output debug: version 2 session control unavailable
+[00000281021527a0] mmdevice audio output debug: volume from -65.250000 dB to +0.000000 dB with 0.031250 dB increments
+[00000281021527a0] main audio output debug: using audio output module "mmdevice"
+[0000028102151dc0] main generic debug: keeping audio output
+[000002810b010b40] main libvlc debug: VLC media player - 3.0.21 Vetinari
+[000002810b010b40] main libvlc debug: Copyright ┬⌐ 1996-2024 the VideoLAN team
+[000002810b010b40] main libvlc debug: revision 3.0.21-1-0-g9c4768291e
+[000002810b010b40] main libvlc debug: configured with /builds/videolan/vlc/extras/package/win32/../../../configure  '--enable-update-check' '--enable-lua' '--enable-faad' '--enable-flac' '--enable-theora' '--enable-avcodec' '--enable-merge-ffmpeg' '--enable-dca' '--enable-mpc' '--enable-libass' '--enable-schroedinger' '--enable-realrtsp' '--enable-live555' '--enable-shout' '--enable-goom' '--enable-sse' '--enable-mmx' '--enable-libcddb' '--enable-zvbi' '--disable-telx' '--enable-nls' '--host=x86_64-w64-mingw32' '--with-contrib=../contrib/x86_64-w64-mingw32' '--with-breakpad=https://win.crashes.videolan.org' '--enable-qt' '--enable-skins2' '--enable-dvdread' '--enable-caca' 'host_alias=x86_64-w64-mingw32' 'CFLAGS= -D_WIN32_WINNT=0x0502 -DWINVER=0x502 -D__MSVCRT_VERSION__=0x700 ' 'CXXFLAGS= -D_WIN32_WINNT=0x0502 -DWINVER=0x502 -D__MSVCRT_VERSION__=0x700 ' 'PKG_CONFIG=pkg-config' 'PKG_CONFIG_LIBDIR=/usr/x86_64-w64-mingw32/lib/pkgconfig:/usr/lib/x86_64-w64-mingw32/pkgconfig'
+[000002810b010b40] main libvlc debug: plug-ins loaded: 432 modules
+[000002810abce4f0] main logger debug: looking for logger module matching "any": 1 candidates
+[000002810abce4f0] main logger debug: using logger module "console"
+[000002810b010b40] main libvlc debug: translation test: code is "C"
+[000002810b02d800] main keystore debug: looking for keystore module matching "memory": 3 candidates
+[000002810b02d800] main keystore debug: using keystore module "memory"
+[000002810b010b40] main libvlc debug: CPU has capabilities MMX MMXEXT SSE SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 FPU 
+[000002810b035c90] main generic debug: creating audio output
+[000002810b035e60] main audio output debug: looking for audio output module matching "any": 6 candidates
+[000002810b035e60] mmdevice audio output debug: using default device
+[000002810b035e60] mmdevice audio output debug: version 2 session control unavailable
+[000002810b035e60] mmdevice audio output debug: volume from -65.250000 dB to +0.000000 dB with 0.031250 dB increments
+[000002810b035e60] main audio output debug: using audio output module "mmdevice"
+[000002810b035c90] main generic debug: keeping audio output
+[00000281021527a0] main audio output debug: removing module "mmdevice"
+[000002810b035e60] main audio output debug: removing module "mmdevice"

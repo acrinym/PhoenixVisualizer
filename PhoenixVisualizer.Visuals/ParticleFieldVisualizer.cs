@@ -1,6 +1,8 @@
 using System;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core;
+using PhoenixVisualizer.Core.Models;
+using SkiaSharp;
 
 namespace PhoenixVisualizer.Visuals;
 
@@ -15,6 +17,8 @@ public class ParticleFieldVisualizer : BaseVisualizer
     private Particle[] _particles;
     private int _particleCount = 1000;
     private float _time = 0.0f;
+    private int _width = 800;
+    private int _height = 600;
 
     // Visual parameters with global parameter support
     private uint _particleColor = 0xFFFFFFFF; // White
@@ -38,6 +42,14 @@ public class ParticleFieldVisualizer : BaseVisualizer
     public override string Id => "ParticleField";
     public override string Name => "Particle Field";
     public override string Description => "Advanced particle system with physics simulation and audio reactivity";
+
+    public override void Render(SKCanvas canvas, int width, int height, AudioFeatures audioFeatures, float deltaTime)
+    {
+        // For now, delegate to the existing UpdateParticles method
+        // This would need to be updated to use SKCanvas directly instead of frame buffer
+        _time += deltaTime;
+        UpdateParticles(width, height, audioFeatures);
+    }
 
     private class Particle
     {
@@ -350,19 +362,19 @@ public class ParticleFieldVisualizer : BaseVisualizer
             InitializeParticles(width, height);
         }
 
-        _particleSize = ParameterSystem.GetParameterValue<float>(Id, "particleSize", 2.0f) ?? 2.0f;
-        _trailLength = ParameterSystem.GetParameterValue<float>(Id, "trailLength", 0.5f) ?? 0.5f;
-        _attractionStrength = ParameterSystem.GetParameterValue<float>(Id, "attractionStrength", 0.1f) ?? 0.1f;
-        _repulsionStrength = ParameterSystem.GetParameterValue<float>(Id, "repulsionStrength", 0.05f) ?? 0.05f;
-        _damping = ParameterSystem.GetParameterValue<float>(Id, "damping", 0.98f) ?? 0.98f;
-        _maxVelocity = ParameterSystem.GetParameterValue<float>(Id, "maxVelocity", 5.0f) ?? 5.0f;
+        _particleSize = ParameterSystem.GetParameterValue<float>(Id, "particleSize", 2.0f);
+        _trailLength = ParameterSystem.GetParameterValue<float>(Id, "trailLength", 0.5f);
+        _attractionStrength = ParameterSystem.GetParameterValue<float>(Id, "attractionStrength", 0.1f);
+        _repulsionStrength = ParameterSystem.GetParameterValue<float>(Id, "repulsionStrength", 0.05f);
+        _damping = ParameterSystem.GetParameterValue<float>(Id, "damping", 0.98f);
+        _maxVelocity = ParameterSystem.GetParameterValue<float>(Id, "maxVelocity", 5.0f);
         _enableTrails = ParameterSystem.GetParameterValue<bool>(Id, "enableTrails", true);
         _enableGravity = ParameterSystem.GetParameterValue<bool>(Id, "enableGravity", false);
-        _gravityStrength = ParameterSystem.GetParameterValue<float>(Id, "gravityStrength", 0.1f) ?? 0.1f;
+        _gravityStrength = ParameterSystem.GetParameterValue<float>(Id, "gravityStrength", 0.1f);
         _movementMode = ParameterSystem.GetParameterValue<string>(Id, "movementMode", "Attract") ?? "Attract";
-        _bassMultiplier = ParameterSystem.GetParameterValue<float>(Id, "bassMultiplier", 2.0f) ?? 2.0f;
-        _midMultiplier = ParameterSystem.GetParameterValue<float>(Id, "midMultiplier", 1.5f) ?? 1.5f;
-        _trebleMultiplier = ParameterSystem.GetParameterValue<float>(Id, "trebleMultiplier", 1.0f) ?? 1.0f;
+        _bassMultiplier = ParameterSystem.GetParameterValue<float>(Id, "bassMultiplier", 2.0f);
+        _midMultiplier = ParameterSystem.GetParameterValue<float>(Id, "midMultiplier", 1.5f);
+        _trebleMultiplier = ParameterSystem.GetParameterValue<float>(Id, "trebleMultiplier", 1.0f);
 
         // Apply global parameters
         _particleSize *= globalScale;

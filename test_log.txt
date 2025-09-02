@@ -1,0 +1,4 @@
+Using launch settings from PhoenixVisualizer.App\Properties\launchSettings.json...
+[AvsImportService] Found mystical visualizer content
+[AvsImportService] Mystical matches found: 6
+[AvsImportService] Found preset sections: 6

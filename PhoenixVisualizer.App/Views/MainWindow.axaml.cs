@@ -9,9 +9,17 @@ using PhoenixVisualizer.App.Rendering;
 using PhoenixVisualizer.App.Controls;
 using PhoenixVisualizer.Core.Diagnostics;
 using PhoenixVisualizer.App.Utils;
+using PhoenixVisualizer.App.Services;
+using PhoenixVisualizer.App.Views;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Linq;
 using Avalonia.Input;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.Views;
 
@@ -741,6 +749,10 @@ public partial class MainWindow : Window
             
             try
             {
+                // FIX: For now, just use the standard preset loading flow
+                // TODO: Add text-based preset updating for UnifiedAvsVisualizer later
+
+                // Fallback for other cases (original logic)
                 var plug = PluginRegistry.Create("vis_avs") as IAvsHostPlugin;
                 if (plug is null)
                 {
@@ -856,12 +868,203 @@ public partial class MainWindow : Window
 
             // Use the extension method to get the local path
             var filePath = file.RequireLocalPath();
-            var bytes = await File.ReadAllBytesAsync(filePath);
-            await ProcessPresetBytes(bytes, Path.GetFileName(filePath));
+            await ProcessAvsFile(filePath);
+        }
+
+        private async Task ProcessAvsFile(string filePath)
+        {
+            try
+            {
+                // Use the new unified AVS service - no more regex nightmares!
+                Console.WriteLine("### JUSTIN DEBUG: Using NEW UnifiedAvsService! ###");
+                var unifiedService = new UnifiedAvsService();
+                var avsData = unifiedService.Load(filePath);
+                
+                Console.WriteLine($"### JUSTIN DEBUG: UnifiedAvsService detected type: {avsData.FileType} ###");
+                Console.WriteLine($"### JUSTIN DEBUG: Found {avsData.Superscopes.Count} superscopes, {avsData.Effects.Count} effects ###");
+
+                var fileExtension = Path.GetExtension(filePath).ToLower();
+
+                // Show file content preview (handle both binary and text)
+                string debugContent;
+                if (avsData.FileType == AvsFileType.WinampBinary && avsData.RawBinary != null)
+                {
+                    // For binary files, show hex dump of first part
+                    var hexBytes = avsData.RawBinary.Take(50).Select(b => b.ToString("X2")).ToArray();
+                    debugContent = $"Binary data (hex): {string.Join(" ", hexBytes)}...";
+                    if (avsData.RawBinary.Length > 50) debugContent += $" (total {avsData.RawBinary.Length} bytes)";
+                }
+                else
+                {
+                    // For text files, show actual content
+                    var rawText = avsData.RawText ?? "";
+                    debugContent = rawText.Length > 500
+                        ? rawText.Substring(0, 500) + "..."
+                        : rawText;
+                }
+
+                // Debug: Show parsing results with detection info
+                var debugInfo = $"File: {Path.GetFileName(filePath)}\n" +
+                               $"Extension: {fileExtension}\n" +
+                               $"File Size: {new FileInfo(filePath).Length} bytes\n" +
+                               $"Detected Type: {avsData.FileType}\n" +
+                               $"Detection Confidence: {avsData.Detection.Confidence:F2}\n" +
+                               $"Found Markers: {string.Join(", ", avsData.Detection.Markers)}\n" +
+                               $"Binary Format: {avsData.FileType == AvsFileType.WinampBinary}\n" +
+                               $"Superscopes: {avsData.Superscopes.Count}\n" +
+                               $"Effects: {avsData.Effects.Count}\n" +
+                               $"Content Length: {(avsData.RawText?.Length ?? avsData.RawBinary?.Length ?? 0)}\n" +
+                               $"Has Superscopes: {avsData.Superscopes.Count > 0}\n" +
+                               $"Has Effects: {avsData.Effects.Count > 0}\n\n";
+
+                // Add superscope details
+                if (avsData.Superscopes.Count > 0)
+                {
+                    debugInfo += "Superscope Details:\n";
+                    foreach (var scope in avsData.Superscopes)
+                    {
+                        debugInfo += $"  - {scope.Name} ({scope.SourceType})\n";
+                        var codeLength = scope.CombinedCode.Length;
+                        debugInfo += $"    Code Length: {codeLength} chars\n";
+                    }
+                    debugInfo += "\n";
+                }
+
+                debugInfo += $"File Content Preview:\n{debugContent}";
+
+                // Check if we have any importable content
+                if (avsData.Superscopes.Count == 0 && avsData.Effects.Count == 0)
+                {
+                    await ShowDebugDialogAsync(debugInfo);
+                    return;
+                }
+
+                // Show success with details
+                await ShowToastAsync($"✅ AVS preset loaded: {Path.GetFileName(filePath)}\n" +
+                                   $"Type: {avsData.FileType}\n" +
+                                   $"Superscopes: {avsData.Superscopes.Count}, Effects: {avsData.Effects.Count}");
+
+                // Create a proper AVS visualizer that can handle the unified data
+                var avsVisualizer = new UnifiedAvsVisualizer();
+                avsVisualizer.LoadAvsData(avsData);
+                if (RenderSurfaceControl != null)
+                {
+                    RenderSurfaceControl.SetPlugin(avsVisualizer);
+                }
+                else
+                {
+                    await ShowDialogAsync("PhoenixVisualizer", "❌ Render surface not available");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowDialogAsync("PhoenixVisualizer", $"❌ Failed to import AVS preset: {ex.Message}\n\n{ex.StackTrace}");
+            }
+        }
+
+        private async Task ShowDebugDialogAsync(string debugInfo)
+        {
+            // Create a custom dialog window with copy to clipboard functionality
+            var dialog = new Window
+            {
+                Title = "AVS Import Debug Info",
+                Width = 800,
+                Height = 600,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                CanResize = true
+            };
+
+            // Create the main content stack
+            var mainStack = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                Margin = new Thickness(10)
+            };
+
+            // Title text
+            var titleText = new TextBlock
+            {
+                Text = "❌ No superscopes or effects found in the AVS file",
+                FontSize = 16,
+                FontWeight = FontWeight.Bold,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            mainStack.Children.Add(titleText);
+
+            // Debug info text box
+            var debugTextBox = new TextBox
+            {
+                Text = debugInfo,
+                FontFamily = "Consolas, Monaco, monospace",
+                FontSize = 12,
+                AcceptsReturn = true,
+                AcceptsTab = true,
+                IsReadOnly = true,
+                Height = 400,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            mainStack.Children.Add(debugTextBox);
+
+            // Button panel
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Spacing = 10
+            };
+
+            // Copy to clipboard button
+            var copyButton = new Button
+            {
+                Content = "📋 Copy to Clipboard",
+                Width = 150,
+                Height = 35
+            };
+            copyButton.Click += async (s, e) =>
+            {
+                try
+                {
+                    var topLevel = TopLevel.GetTopLevel(this);
+                    if (topLevel?.Clipboard != null)
+                    {
+                        await topLevel.Clipboard.SetTextAsync(debugInfo);
+                        await ShowToastAsync("✅ Debug info copied to clipboard!");
+                    }
+                    else
+                    {
+                        await ShowToastAsync("❌ Clipboard not available");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await ShowToastAsync($"❌ Failed to copy: {ex.Message}");
+                }
+            };
+            buttonPanel.Children.Add(copyButton);
+
+            // OK button
+            var okButton = new Button
+            {
+                Content = "OK",
+                Width = 80,
+                Height = 35
+            };
+            okButton.Click += (s, e) =>
+            {
+                dialog.Close();
+            };
+            buttonPanel.Children.Add(okButton);
+
+            mainStack.Children.Add(buttonPanel);
+            dialog.Content = mainStack;
+
+            // Show the dialog
+            await dialog.ShowDialog(this);
         }
 
         private async Task ProcessPresetBytes(byte[] bytes, string fileName)
         {
+            // Keep the old method for backward compatibility with existing calls
             // Route AVS binaries vs. our text NS-EEL path
             var route = AvsPresetRouter.Decide(bytes, fileName);
             if (route.Route == AvsRoute.NativeAvs)

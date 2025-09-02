@@ -1,6 +1,8 @@
 using System;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core;
+using PhoenixVisualizer.Core.Models;
+using SkiaSharp;
 
 namespace PhoenixVisualizer.Visuals;
 
@@ -25,10 +27,25 @@ public class SpectrumWaveformHybridVisualizer : BaseVisualizer
     private float _waveformThickness = 2.0f;
     private bool _showSpectrum = true;
     private bool _showWaveform = true;
+    private int _width = 800;
+    private int _height = 600;
 
     public override string Id => "SpectrumWaveformHybrid";
     public override string Name => "Spectrum Waveform Hybrid";
     public override string Description => "AVS-inspired hybrid combining spectrum bars with waveform data";
+
+    public override void Render(SKCanvas canvas, int width, int height, AudioFeatures audioFeatures, float deltaTime)
+    {
+        // For now, provide a basic implementation
+        // This would need to be fully implemented to render spectrum bars and waveform
+        if (canvas == null) return;
+
+        // Clear canvas with black background
+        canvas.Clear(SKColors.Black);
+
+        // Basic implementation - would need to add actual spectrum/waveform rendering
+        // This is a placeholder until the full rendering logic is implemented
+    }
 
     public void Initialize(int width, int height)
     {
@@ -158,10 +175,10 @@ public class SpectrumWaveformHybridVisualizer : BaseVisualizer
 
         // Update specific parameters
         _barCount = ParameterSystem.GetParameterValue<int>(Id, "barCount", 64);
-        _sensitivity = ParameterSystem.GetParameterValue<float>(Id, "sensitivity", 1.0f) ?? 1.0f;
-        _waveformAmplitude = ParameterSystem.GetParameterValue<float>(Id, "waveformAmplitude", 0.3f) ?? 0.3f;
-        _waveformThickness = ParameterSystem.GetParameterValue<float>(Id, "waveformThickness", 2.0f) ?? 2.0f;
-        _barWidth = ParameterSystem.GetParameterValue<float>(Id, "barWidth", 0.8f) ?? 0.8f;
+        _sensitivity = ParameterSystem.GetParameterValue<float>(Id, "sensitivity", 1.0f);
+        _waveformAmplitude = ParameterSystem.GetParameterValue<float>(Id, "waveformAmplitude", 0.3f);
+        _waveformThickness = ParameterSystem.GetParameterValue<float>(Id, "waveformThickness", 2.0f);
+        _barWidth = ParameterSystem.GetParameterValue<float>(Id, "barWidth", 0.8f);
         _showSpectrum = ParameterSystem.GetParameterValue<bool>(Id, "showSpectrum", true);
         _showWaveform = ParameterSystem.GetParameterValue<bool>(Id, "showWaveform", true);
 

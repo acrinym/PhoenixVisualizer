@@ -105,17 +105,24 @@ namespace PhoenixVisualizer.Views
                 
                 if (extension == ".avs" || extension == ".txt")
                 {
-                    // Import AVS file using the enhanced service
-                    var success = _avsImportService.ImportAvsFile(filePath, out var errorMessage);
-                    if (success)
+                    // FIXED: Use the new UnifiedAvsService instead of old AvsImportService
+                    Console.WriteLine("### JUSTIN DEBUG: PresetManager using NEW UnifiedAvsService! ###");
+                    var unifiedService = new UnifiedAvsService();
+                    var avsData = unifiedService.Load(filePath);
+                    
+                    Console.WriteLine($"### JUSTIN DEBUG: PresetManager detected {avsData.FileType} with {avsData.Superscopes.Count} superscopes, {avsData.Effects.Count} effects ###");
+                    
+                    if (avsData.Superscopes.Count > 0 || avsData.Effects.Count > 0)
                     {
-                        statusText.Text = $"✅ AVS file imported successfully: {fileName}";
+                        statusText.Text = $"✅ AVS file imported: {fileName} ({avsData.Superscopes.Count} scopes, {avsData.Effects.Count} effects)";
                         ShowImportSuccessDialog(fileName);
+                        Console.WriteLine($"### JUSTIN DEBUG: PresetManager found {avsData.Superscopes.Count} superscopes, {avsData.Effects.Count} effects ###");
                     }
                     else
                     {
-                        statusText.Text = $"❌ AVS import failed: {errorMessage}";
-                        ShowImportErrorDialog(fileName, errorMessage);
+                        statusText.Text = $"❌ No content found in AVS file: {fileName}";
+                        ShowImportErrorDialog(fileName, "No superscopes or effects found");
+                        Console.WriteLine("### JUSTIN DEBUG: PresetManager found no content ###");
                     }
                 }
                 else
