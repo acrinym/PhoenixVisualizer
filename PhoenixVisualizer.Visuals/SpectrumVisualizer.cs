@@ -1,4 +1,5 @@
 using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Visuals;
 
@@ -12,7 +13,7 @@ public sealed class SpectrumVisualizer : IVisualizerPlugin
     private int _height;
     private float _time;
 
-    // Parameter controls
+    // Parameter backing fields
     private int _barCount = 64;
     private float _sensitivity = 1.0f;
     private float _decayRate = 0.95f;
@@ -26,14 +27,124 @@ public sealed class SpectrumVisualizer : IVisualizerPlugin
     private float[] _peakHeights = Array.Empty<float>();
     private float[] _peakTimes = Array.Empty<float>();
 
-    public void Initialize(int width, int height) => Resize(width, height);
+    public void Initialize(int width, int height)
+    {
+        Resize(width, height);
+
+        // Register global parameters
+        this.RegisterGlobalParameters(Id, new[]
+        {
+            GlobalParameterSystem.GlobalCategory.General,
+            GlobalParameterSystem.GlobalCategory.Audio,
+            GlobalParameterSystem.GlobalCategory.Visual,
+            GlobalParameterSystem.GlobalCategory.Motion,
+            GlobalParameterSystem.GlobalCategory.Effects
+        });
+
+        // Register specific parameters
+        RegisterParameters();
+    }
     public void Resize(int width, int height)
     {
         _width = width;
         _height = height;
 
-        // Ensure arrays are properly sized (use maximum possible size to avoid reallocation)
-        int maxBars = _barCount * 2; // Support both normal and mirror modes
+        // Update arrays based on current bar count
+        UpdateArrays();
+    }
+
+    private void RegisterParameters()
+    {
+        var parameters = new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "barCount",
+                Label = "Bar Count",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 64,
+                MinValue = 16,
+                MaxValue = 128,
+                Description = "Number of frequency bars to display",
+                Category = "Layout"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "sensitivity",
+                Label = "Sensitivity",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.1f,
+                MaxValue = 3.0f,
+                Description = "Audio sensitivity multiplier",
+                Category = "Audio"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "decayRate",
+                Label = "Decay Rate",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.95f,
+                MinValue = 0.8f,
+                MaxValue = 0.99f,
+                Description = "How quickly bars decay when audio is quiet",
+                Category = "Animation"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "showPeaks",
+                Label = "Show Peaks",
+                Type = ParameterSystem.ParameterType.Checkbox,
+                DefaultValue = true,
+                Description = "Show peak indicators on bars",
+                Category = "Appearance"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "colorShift",
+                Label = "Color Shift",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 360.0f,
+                Description = "Base color shift in degrees (0-360)",
+                Category = "Appearance"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "barWidth",
+                Label = "Bar Width",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.8f,
+                MinValue = 0.1f,
+                MaxValue = 1.0f,
+                Description = "Width of each frequency bar as fraction of available space",
+                Category = "Layout"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = "mirrorMode",
+                Label = "Mirror Mode",
+                Type = ParameterSystem.ParameterType.Checkbox,
+                DefaultValue = false,
+                Description = "Mirror bars on both sides of center",
+                Category = "Layout"
+            }
+        };
+
+        ParameterSystem.RegisterVisualizerParameters(Id, parameters);
+    }
+
+    private void UpdateArrays()
+    {
+        // Update arrays based on current bar count
+        int maxBars = _barCount * (_mirrorMode ? 2 : 1);
         if (_previousHeights == null || _previousHeights.Length < maxBars)
         {
             _previousHeights = new float[maxBars];
@@ -44,6 +155,9 @@ public sealed class SpectrumVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
+        // Update parameters from the parameter system
+        UpdateParametersFromSystem();
+
         _time += 0.016f;
 
         // Dynamic background based on audio
@@ -187,5 +301,39 @@ public sealed class SpectrumVisualizer : IVisualizerPlugin
         byte G = (byte)Math.Clamp((g + m) * 255f, 0, 255);
         byte B = (byte)Math.Clamp((b + m) * 255f, 0, 255);
         return 0xFF000000u | ((uint)R << 16) | ((uint)G << 8) | B;
+    }
+
+    private void UpdateParametersFromSystem()
+    {
+        // Update global parameter values
+        var globalEnabled = GlobalParameterSystem.GetGlobalParameter<bool>(Id, GlobalParameterSystem.CommonParameters.Enabled, true);
+        if (!globalEnabled) return; // Early exit if disabled
+
+        var globalOpacity = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Opacity, 1.0f);
+        var globalBrightness = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Brightness, 1.0f);
+        var globalScale = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Scale, 1.0f);
+        var globalSpeed = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Speed, 1.0f);
+
+        var oldBarCount = _barCount;
+        var oldMirrorMode = _mirrorMode;
+
+        // Update specific parameter values
+        _barCount = ParameterSystem.GetParameterValue<int>(Id, "barCount", 64);
+        _sensitivity = ParameterSystem.GetParameterValue<float>(Id, "sensitivity", 1.0f);
+        _decayRate = ParameterSystem.GetParameterValue<float>(Id, "decayRate", 0.95f);
+        _showPeaks = ParameterSystem.GetParameterValue<bool>(Id, "showPeaks", true);
+        _barWidth = ParameterSystem.GetParameterValue<float>(Id, "barWidth", 0.8f);
+        _mirrorMode = ParameterSystem.GetParameterValue<bool>(Id, "mirrorMode", false);
+
+        // Apply global parameters
+        _sensitivity *= GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.AudioSensitivity, 1.0f);
+        _colorShift = ParameterSystem.GetParameterValue<float>(Id, "colorShift", 0.0f) +
+                     GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.ColorShift, 0.0f);
+
+        // Update arrays if bar count or mirror mode changed
+        if (oldBarCount != _barCount || oldMirrorMode != _mirrorMode)
+        {
+            UpdateArrays();
+        }
     }
 }

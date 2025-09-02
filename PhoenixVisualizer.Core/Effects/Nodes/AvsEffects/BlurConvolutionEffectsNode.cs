@@ -59,7 +59,6 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         private float[] _gaussianKernel5x5;
         private float[] _boxKernel5x5;
-        private float[] _motionKernel;
 
         #endregion
 
@@ -70,6 +69,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             Name = "Blur Convolution Effects";
             Description = "Advanced 5x5 convolution blur with multiple modes and edge preservation";
             Category = "Filter Effects";
+
+            // Initialize convolution kernels with empty arrays first
+            _gaussianKernel5x5 = Array.Empty<float>();
+            _boxKernel5x5 = Array.Empty<float>();
 
             // Initialize convolution kernels
             InitializeKernels();

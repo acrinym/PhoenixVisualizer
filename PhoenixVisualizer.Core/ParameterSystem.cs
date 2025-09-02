@@ -298,12 +298,447 @@ public static class ParameterSystem
 }
 
 /// <summary>
+/// Global parameter system for universal visualizer controls
+/// </summary>
+public static class GlobalParameterSystem
+{
+    /// <summary>
+    /// Global parameter categories
+    /// </summary>
+    public enum GlobalCategory
+    {
+        General,
+        Audio,
+        Visual,
+        Motion,
+        Effects
+    }
+
+    /// <summary>
+    /// Universal visualizer parameters that most visualizers can use
+    /// </summary>
+    public static class CommonParameters
+    {
+        // General Parameters
+        public const string Enabled = "global_enabled";
+        public const string Opacity = "global_opacity";
+        public const string Brightness = "global_brightness";
+        public const string Saturation = "global_saturation";
+        public const string Contrast = "global_contrast";
+
+        // Audio Parameters
+        public const string AudioSensitivity = "global_audio_sensitivity";
+        public const string BassMultiplier = "global_bass_multiplier";
+        public const string MidMultiplier = "global_mid_multiplier";
+        public const string TrebleMultiplier = "global_treble_multiplier";
+        public const string BeatThreshold = "global_beat_threshold";
+
+        // Visual Parameters
+        public const string Scale = "global_scale";
+        public const string Blur = "global_blur";
+        public const string Glow = "global_glow";
+        public const string ColorShift = "global_color_shift";
+        public const string ColorSpeed = "global_color_speed";
+
+        // Motion Parameters
+        public const string Speed = "global_speed";
+        public const string Rotation = "global_rotation";
+        public const string PositionX = "global_position_x";
+        public const string PositionY = "global_position_y";
+        public const string Bounce = "global_bounce";
+
+        // Effect Parameters
+        public const string TrailLength = "global_trail_length";
+        public const string Decay = "global_decay";
+        public const string ParticleCount = "global_particle_count";
+        public const string Waveform = "global_waveform";
+        public const string Mirror = "global_mirror";
+    }
+
+    /// <summary>
+    /// Register global parameters for a visualizer
+    /// </summary>
+    public static void RegisterGlobalParameters(string visualizerId, GlobalCategory[] categories = null)
+    {
+        categories ??= Enum.GetValues<GlobalCategory>();
+
+        var parameters = new List<ParameterSystem.ParameterDefinition>();
+
+        foreach (var category in categories)
+        {
+            switch (category)
+            {
+                case GlobalCategory.General:
+                    parameters.AddRange(CreateGeneralParameters());
+                    break;
+                case GlobalCategory.Audio:
+                    parameters.AddRange(CreateAudioParameters());
+                    break;
+                case GlobalCategory.Visual:
+                    parameters.AddRange(CreateVisualParameters());
+                    break;
+                case GlobalCategory.Motion:
+                    parameters.AddRange(CreateMotionParameters());
+                    break;
+                case GlobalCategory.Effects:
+                    parameters.AddRange(CreateEffectParameters());
+                    break;
+            }
+        }
+
+        ParameterSystem.RegisterVisualizerParameters(visualizerId, parameters);
+    }
+
+    private static List<ParameterSystem.ParameterDefinition> CreateGeneralParameters()
+    {
+        return new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Enabled,
+                Label = "Enabled",
+                Type = ParameterSystem.ParameterType.Checkbox,
+                DefaultValue = true,
+                Description = "Enable or disable this visualizer",
+                Category = "Global - General"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Opacity,
+                Label = "Opacity",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 1.0f,
+                Description = "Overall opacity multiplier",
+                Category = "Global - General"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Brightness,
+                Label = "Brightness",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 3.0f,
+                Description = "Brightness multiplier",
+                Category = "Global - General"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Saturation,
+                Label = "Saturation",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 2.0f,
+                Description = "Color saturation multiplier",
+                Category = "Global - General"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Contrast,
+                Label = "Contrast",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.1f,
+                MaxValue = 3.0f,
+                Description = "Color contrast multiplier",
+                Category = "Global - General"
+            }
+        };
+    }
+
+    private static List<ParameterSystem.ParameterDefinition> CreateAudioParameters()
+    {
+        return new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.AudioSensitivity,
+                Label = "Audio Sensitivity",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.1f,
+                MaxValue = 5.0f,
+                Description = "Overall audio responsiveness multiplier",
+                Category = "Global - Audio"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.BassMultiplier,
+                Label = "Bass Multiplier",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 3.0f,
+                Description = "Low frequency response multiplier",
+                Category = "Global - Audio"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.MidMultiplier,
+                Label = "Mid Multiplier",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 3.0f,
+                Description = "Mid frequency response multiplier",
+                Category = "Global - Audio"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.TrebleMultiplier,
+                Label = "Treble Multiplier",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.0f,
+                MaxValue = 3.0f,
+                Description = "High frequency response multiplier",
+                Category = "Global - Audio"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.BeatThreshold,
+                Label = "Beat Threshold",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.3f,
+                MinValue = 0.1f,
+                MaxValue = 1.0f,
+                Description = "Minimum audio level to trigger beat detection",
+                Category = "Global - Audio"
+            }
+        };
+    }
+
+    private static List<ParameterSystem.ParameterDefinition> CreateVisualParameters()
+    {
+        return new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Scale,
+                Label = "Scale",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = 0.1f,
+                MaxValue = 3.0f,
+                Description = "Overall size scaling multiplier",
+                Category = "Global - Visual"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Blur,
+                Label = "Blur Amount",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 10.0f,
+                Description = "Gaussian blur intensity",
+                Category = "Global - Visual"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Glow,
+                Label = "Glow Intensity",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 5.0f,
+                Description = "Glow effect intensity",
+                Category = "Global - Visual"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.ColorShift,
+                Label = "Color Shift",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 360.0f,
+                Description = "Hue shift in degrees",
+                Category = "Global - Visual"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.ColorSpeed,
+                Label = "Color Speed",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = -5.0f,
+                MaxValue = 5.0f,
+                Description = "Automatic color cycling speed",
+                Category = "Global - Visual"
+            }
+        };
+    }
+
+    private static List<ParameterSystem.ParameterDefinition> CreateMotionParameters()
+    {
+        return new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Speed,
+                Label = "Animation Speed",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 1.0f,
+                MinValue = -2.0f,
+                MaxValue = 5.0f,
+                Description = "Animation speed multiplier (negative = reverse)",
+                Category = "Global - Motion"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Rotation,
+                Label = "Rotation Speed",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = -5.0f,
+                MaxValue = 5.0f,
+                Description = "Rotation speed in degrees per second",
+                Category = "Global - Motion"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.PositionX,
+                Label = "Position X",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = -1.0f,
+                MaxValue = 1.0f,
+                Description = "Horizontal position offset (as fraction of screen)",
+                Category = "Global - Motion"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.PositionY,
+                Label = "Position Y",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = -1.0f,
+                MaxValue = 1.0f,
+                Description = "Vertical position offset (as fraction of screen)",
+                Category = "Global - Motion"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Bounce,
+                Label = "Bounce Factor",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 1.0f,
+                Description = "How bouncy/elastic the motion is",
+                Category = "Global - Motion"
+            }
+        };
+    }
+
+    private static List<ParameterSystem.ParameterDefinition> CreateEffectParameters()
+    {
+        return new List<ParameterSystem.ParameterDefinition>
+        {
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.TrailLength,
+                Label = "Trail Length",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.0f,
+                MinValue = 0.0f,
+                MaxValue = 1.0f,
+                Description = "Length of motion trails (0 = no trails)",
+                Category = "Global - Effects"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Decay,
+                Label = "Decay Rate",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0.95f,
+                MinValue = 0.8f,
+                MaxValue = 0.99f,
+                Description = "How quickly elements fade/decay",
+                Category = "Global - Effects"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.ParticleCount,
+                Label = "Particle Count",
+                Type = ParameterSystem.ParameterType.Slider,
+                DefaultValue = 0,
+                MinValue = 0,
+                MaxValue = 1000,
+                Description = "Number of particles/elements to render",
+                Category = "Global - Effects"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Waveform,
+                Label = "Waveform Mode",
+                Type = ParameterSystem.ParameterType.Dropdown,
+                DefaultValue = "Normal",
+                Options = new List<string> { "Normal", "Circular", "Spiral", "Random" },
+                Description = "How elements are arranged/distributed",
+                Category = "Global - Effects"
+            },
+
+            new ParameterSystem.ParameterDefinition
+            {
+                Key = CommonParameters.Mirror,
+                Label = "Mirror Mode",
+                Type = ParameterSystem.ParameterType.Dropdown,
+                DefaultValue = "None",
+                Options = new List<string> { "None", "Horizontal", "Vertical", "Both", "Radial" },
+                Description = "Mirroring/symmetry mode",
+                Category = "Global - Effects"
+            }
+        };
+    }
+
+    /// <summary>
+    /// Get the current global parameter value for a visualizer
+    /// </summary>
+    public static T GetGlobalParameter<T>(string visualizerId, string parameterKey, T defaultValue = default!)
+    {
+        return ParameterSystem.GetParameterValue<T>(visualizerId, parameterKey, defaultValue);
+    }
+
+    /// <summary>
+    /// Set a global parameter value for a visualizer
+    /// </summary>
+    public static void SetGlobalParameter(string visualizerId, string parameterKey, object value)
+    {
+        ParameterSystem.SetParameterValue(visualizerId, parameterKey, value);
+    }
+}
+
+/// <summary>
 /// Extension methods for parameter system integration
 /// </summary>
 public static class ParameterSystemExtensions
 {
     /// <summary>
-    /// Register common visualizer parameters
+    /// Register common visualizer parameters (legacy method)
     /// </summary>
     public static void RegisterCommonParameters(this object visualizer, string visualizerId)
     {
@@ -357,5 +792,22 @@ public static class ParameterSystemExtensions
         };
 
         ParameterSystem.RegisterVisualizerParameters(visualizerId, parameters);
+    }
+
+    /// <summary>
+    /// Register global parameters for a visualizer with specific categories
+    /// </summary>
+    public static void RegisterGlobalParameters(this object visualizer, string visualizerId,
+        GlobalParameterSystem.GlobalCategory[] categories = null)
+    {
+        GlobalParameterSystem.RegisterGlobalParameters(visualizerId, categories);
+    }
+
+    /// <summary>
+    /// Get a global parameter value
+    /// </summary>
+    public static T GetGlobalParameter<T>(this object visualizer, string visualizerId, string parameterKey, T defaultValue = default!)
+    {
+        return GlobalParameterSystem.GetGlobalParameter<T>(visualizerId, parameterKey, defaultValue);
     }
 }

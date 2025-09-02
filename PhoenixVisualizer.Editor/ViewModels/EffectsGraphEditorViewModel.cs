@@ -409,7 +409,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
             }
         }
 
-        private async Task LoadAvsPreset(string filePath)
+        private Task LoadAvsPreset(string filePath)
         {
             try
             {
@@ -452,6 +452,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 OnPropertyChanged(nameof(GraphName));
                 OnPropertyChanged(nameof(NodeCount));
                 OnPropertyChanged(nameof(ConnectionCount));
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {

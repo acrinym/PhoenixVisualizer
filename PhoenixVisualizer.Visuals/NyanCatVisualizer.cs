@@ -52,9 +52,6 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
     private float _lastPeakTime;
 
     // Parameters
-    private float _trailLengthParam = 0.7f; // 0-1
-    private float _sparkleAmountParam = 0.6f; // 0-1
-    private float _catSpeedParam = 1.0f; // 0.5-2.0
     private MovementMode _movementMode = MovementMode.AudioReactive;
 
     // Rainbow colors (ROYGBIV)
@@ -110,7 +107,17 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
         _lastBeatTime = 0;
         _lastPeakTime = 0;
 
-        // Register parameters with the parameter system
+        // Register global parameters
+        this.RegisterGlobalParameters(Id, new[]
+        {
+            GlobalParameterSystem.GlobalCategory.General,
+            GlobalParameterSystem.GlobalCategory.Audio,
+            GlobalParameterSystem.GlobalCategory.Visual,
+            GlobalParameterSystem.GlobalCategory.Motion,
+            GlobalParameterSystem.GlobalCategory.Effects
+        });
+
+        // Register specific parameters
         RegisterParameters();
 
         // Parameters (will be overridden by parameter system if loaded)
@@ -275,16 +282,25 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
         _midAccumulator = _midAccumulator * 0.95f + f.Mid * 0.05f;
         _trebleAccumulator = _trebleAccumulator * 0.95f + f.Treble * 0.05f;
 
+        // Check if globally enabled
+        var globalEnabled = GlobalParameterSystem.GetGlobalParameter<bool>(Id, GlobalParameterSystem.CommonParameters.Enabled, true);
+        if (!globalEnabled) return;
+
         // Update parameters based on audio and parameter system
         float baseTrailLength = ParameterSystem.GetParameterValue<float>(Id, "trailLength", 0.7f);
         float baseTrailWidth = ParameterSystem.GetParameterValue<float>(Id, "trailWidth", 8f);
         float baseSparkleDensity = ParameterSystem.GetParameterValue<float>(Id, "sparkleDensity", 0.6f);
         float baseCatSpeed = ParameterSystem.GetParameterValue<float>(Id, "catSpeed", 1.0f);
 
-        _trailLength = baseTrailLength * (0.5f + _midAccumulator * 0.5f);
-        _trailWidth = baseTrailWidth * (0.5f + _bassAccumulator);
-        _sparkleDensity = baseSparkleDensity * (0.3f + _trebleAccumulator * 0.7f);
-        _catSpeed = baseCatSpeed * (0.8f + f.Volume * 0.4f);
+        // Apply global multipliers
+        var globalScale = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Scale, 1.0f);
+        var globalSpeed = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Speed, 1.0f);
+        var globalAudioSens = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.AudioSensitivity, 1.0f);
+
+        _trailLength = baseTrailLength * globalScale * (0.5f + _midAccumulator * globalAudioSens * 0.5f);
+        _trailWidth = baseTrailWidth * globalScale * (0.5f + _bassAccumulator * globalAudioSens);
+        _sparkleDensity = baseSparkleDensity * (0.3f + _trebleAccumulator * globalAudioSens * 0.7f);
+        _catSpeed = baseCatSpeed * globalSpeed * (0.8f + f.Volume * globalAudioSens * 0.4f);
 
         // Beat detection for flips
         if (f.Beat && _time - _lastBeatTime > 0.2f)

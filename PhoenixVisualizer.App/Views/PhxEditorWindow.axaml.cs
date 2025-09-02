@@ -805,7 +805,7 @@ public class PhxEditorViewModel : ReactiveObject
         {
             EffectStack.Remove(SelectedEffect);
             EffectCount = $"{EffectStack.Count} effects";
-            SelectedEffect = EffectStack.Count > 0 ? EffectStack[0] : null;
+            SelectedEffect = EffectStack.Count > 0 ? EffectStack[0] : null!;
             StatusMessage = "Effect deleted";
         }
         else
@@ -909,7 +909,10 @@ public class PhxEditorViewModel : ReactiveObject
                 if (result)
                 {
                     // Delete the actual preset file
-                    _presetService.DeletePreset(SelectedPreset.FilePath);
+                    if (!string.IsNullOrEmpty(SelectedPreset.FilePath))
+                    {
+                        _presetService.DeletePreset(SelectedPreset.FilePath);
+                    }
 
                     // Remove from the list
                     AvailablePresets.Remove(SelectedPreset);
@@ -1455,7 +1458,7 @@ public class PhxEditorViewModel : ReactiveObject
         }
     }
 
-    private async Task LoadPhxPreset(PhxPreset preset)
+    private Task LoadPhxPreset(PhxPreset preset)
     {
         try
         {
@@ -1479,24 +1482,28 @@ public class PhxEditorViewModel : ReactiveObject
             }
 
             // UI will be updated automatically through ReactiveUI bindings
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error loading PHX preset: {ex.Message}";
+            return Task.CompletedTask;
         }
     }
 
-    private async Task LoadAvsPreset(AvsPreset preset)
+    private Task LoadAvsPreset(AvsPreset preset)
     {
         try
         {
             // Load AVS preset data
             // This would convert AVS effects to PHX equivalents
             StatusMessage = $"AVS preset '{preset.Name}' loaded (conversion to PHX format)";
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error loading AVS preset: {ex.Message}";
+            return Task.CompletedTask;
         }
     }
 
@@ -1515,12 +1522,12 @@ public class PhxEditorViewModel : ReactiveObject
                 {
                     var coreParam = new CoreEffectParam
                     {
-                        Label = paramEntry.Value.Label,
+                        Label = paramEntry.Value.Label ?? string.Empty,
                         Type = paramEntry.Value.Type,
                         FloatValue = paramEntry.Value.FloatValue,
                         BoolValue = paramEntry.Value.BoolValue,
-                        StringValue = paramEntry.Value.StringValue,
-                        Options = paramEntry.Value.Options
+                        StringValue = paramEntry.Value.StringValue ?? string.Empty,
+                        Options = paramEntry.Value.Options ?? new List<string>()
                     };
                     effect.Parameters[paramEntry.Key] = coreParam;
                 }

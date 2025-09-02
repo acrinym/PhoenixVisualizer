@@ -254,8 +254,8 @@
 
                         <ScrollViewer Grid.Row="1">
                             <views:ParameterEditor x:Name="ParameterEditorControl"
-                                                   EffectName="{Binding SelectedEffect.Name}"
-                                                   Parameters="{Binding SelectedEffect.Parameters}"
+                                                   VisualizerId="{Binding SelectedEffect.Name}"
+                                                   VisualizerName="{Binding SelectedEffect.DisplayName}"
                                                    Margin="4"/>
                         </ScrollViewer>
                     </Grid>

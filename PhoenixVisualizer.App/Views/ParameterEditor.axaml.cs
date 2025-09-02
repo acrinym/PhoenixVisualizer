@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.Core;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using EffectParam = PhoenixVisualizer.Core.Nodes.EffectParam;
@@ -13,35 +14,114 @@ using EffectParam = PhoenixVisualizer.Core.Nodes.EffectParam;
 namespace PhoenixVisualizer.App.Views;
 
 /// <summary>
-/// ViewModel for Parameter Editor - handles reactive parameter binding
+/// ViewModel for Parameter Editor - handles reactive parameter binding with ParameterSystem
 /// </summary>
 public class ParameterEditorViewModel : ReactiveObject
 {
-    private Dictionary<string, EffectParam> _parameters = new();
-    private string _effectName = "";
+    private Dictionary<string, ParameterSystem.ParameterDefinition> _parameterDefinitions = new();
+    private Dictionary<string, ParameterSystem.ParameterValue> _parameterValues = new();
+    private string _visualizerId = "";
+    private string _visualizerName = "";
 
-    public Dictionary<string, EffectParam> Parameters
+    public Dictionary<string, ParameterSystem.ParameterDefinition> ParameterDefinitions
     {
-        get => _parameters;
-        set => this.RaiseAndSetIfChanged(ref _parameters, value);
+        get => _parameterDefinitions;
+        set => this.RaiseAndSetIfChanged(ref _parameterDefinitions, value);
     }
 
-    public string EffectName
+    public Dictionary<string, ParameterSystem.ParameterValue> ParameterValues
     {
-        get => _effectName;
-        set => this.RaiseAndSetIfChanged(ref _effectName, value);
+        get => _parameterValues;
+        set => this.RaiseAndSetIfChanged(ref _parameterValues, value);
+    }
+
+    public string VisualizerId
+    {
+        get => _visualizerId;
+        set => this.RaiseAndSetIfChanged(ref _visualizerId, value);
+    }
+
+    public string VisualizerName
+    {
+        get => _visualizerName;
+        set => this.RaiseAndSetIfChanged(ref _visualizerName, value);
     }
 
     public ParameterEditorViewModel()
     {
         // React to parameter changes
-        this.WhenAnyValue(x => x.Parameters)
+        this.WhenAnyValue(x => x.ParameterDefinitions)
+            .Subscribe(_ => UpdateParameterControls());
+
+        this.WhenAnyValue(x => x.ParameterValues)
             .Subscribe(_ => UpdateParameterControls());
     }
 
     private void UpdateParameterControls()
     {
         // This will be handled by the view
+    }
+
+    /// <summary>
+    /// Load parameters for a specific visualizer
+    /// </summary>
+    public void LoadVisualizerParameters(string visualizerId, string visualizerName)
+    {
+        VisualizerId = visualizerId;
+        VisualizerName = visualizerName;
+
+        ParameterDefinitions = ParameterSystem.GetVisualizerParameters(visualizerId);
+        ParameterValues = ParameterSystem.GetVisualizerParameterValues(visualizerId);
+    }
+
+    /// <summary>
+    /// Update a parameter value
+    /// </summary>
+    public void UpdateParameterValue(string parameterKey, object value)
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.SetParameterValue(VisualizerId, parameterKey, value);
+
+            // Update local copy
+            if (ParameterValues.ContainsKey(parameterKey))
+            {
+                ParameterValues[parameterKey].Value = value;
+                ParameterValues[parameterKey].LastModified = DateTime.Now;
+                ParameterValues[parameterKey].IsModified = true;
+
+                // Notify UI of the change
+                this.RaisePropertyChanged(nameof(ParameterValues));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reset parameter to default
+    /// </summary>
+    public void ResetParameterToDefault(string parameterKey)
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.ResetParameterToDefault(VisualizerId, parameterKey);
+
+            // Reload values
+            ParameterValues = ParameterSystem.GetVisualizerParameterValues(VisualizerId);
+        }
+    }
+
+    /// <summary>
+    /// Reset all parameters to defaults
+    /// </summary>
+    public void ResetAllToDefaults()
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.ResetAllParametersToDefaults(VisualizerId);
+
+            // Reload values
+            ParameterValues = ParameterSystem.GetVisualizerParameterValues(VisualizerId);
+        }
     }
 }
 
@@ -51,22 +131,22 @@ public class ParameterEditorViewModel : ReactiveObject
 /// </summary>
 public partial class ParameterEditor : UserControl
 {
-    public static readonly StyledProperty<Dictionary<string, EffectParam>> ParametersProperty =
-        AvaloniaProperty.Register<ParameterEditor, Dictionary<string, EffectParam>>(nameof(Parameters));
+    public static readonly StyledProperty<string> VisualizerIdProperty =
+        AvaloniaProperty.Register<ParameterEditor, string>(nameof(VisualizerId));
 
-    public static readonly StyledProperty<string> EffectNameProperty =
-        AvaloniaProperty.Register<ParameterEditor, string>(nameof(EffectName));
+    public static readonly StyledProperty<string> VisualizerNameProperty =
+        AvaloniaProperty.Register<ParameterEditor, string>(nameof(VisualizerName));
 
-    public Dictionary<string, EffectParam> Parameters
+    public string VisualizerId
     {
-        get => GetValue(ParametersProperty);
-        set => SetValue(ParametersProperty, value);
+        get => GetValue(VisualizerIdProperty);
+        set => SetValue(VisualizerIdProperty, value);
     }
 
-    public string EffectName
+    public string VisualizerName
     {
-        get => GetValue(EffectNameProperty);
-        set => SetValue(EffectNameProperty, value);
+        get => GetValue(VisualizerNameProperty);
+        set => SetValue(VisualizerNameProperty, value);
     }
 
     private ParameterEditorViewModel _viewModel;
@@ -77,7 +157,10 @@ public partial class ParameterEditor : UserControl
         _viewModel = new ParameterEditorViewModel();
 
         // React to parameter changes
-        _viewModel.WhenAnyValue(x => x.Parameters)
+        _viewModel.WhenAnyValue(x => x.ParameterDefinitions)
+            .Subscribe(_ => UpdateParameterControls());
+
+        _viewModel.WhenAnyValue(x => x.ParameterValues)
             .Subscribe(_ => UpdateParameterControls());
     }
 
@@ -85,10 +168,12 @@ public partial class ParameterEditor : UserControl
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == ParametersProperty || change.Property == EffectNameProperty)
+        if (change.Property == VisualizerIdProperty || change.Property == VisualizerNameProperty)
         {
-            _viewModel.Parameters = Parameters ?? new Dictionary<string, EffectParam>();
-            _viewModel.EffectName = EffectName ?? "";
+            if (!string.IsNullOrEmpty(VisualizerId) && !string.IsNullOrEmpty(VisualizerName))
+            {
+                _viewModel.LoadVisualizerParameters(VisualizerId, VisualizerName);
+            }
         }
     }
 
@@ -97,12 +182,12 @@ public partial class ParameterEditor : UserControl
         // Clear existing controls
         ParametersPanel.Children.Clear();
 
-        if (_viewModel?.Parameters == null || _viewModel.Parameters.Count == 0)
+        if (_viewModel?.ParameterDefinitions == null || _viewModel.ParameterDefinitions.Count == 0)
         {
             // Show default message
             var textBlock = new TextBlock
             {
-                Text = "Select an effect to edit parameters",
+                Text = "Select a visualizer to edit parameters",
                 Foreground = Brushes.White,
                 Opacity = 0.6,
                 TextAlignment = Avalonia.Media.TextAlignment.Center,
@@ -112,10 +197,10 @@ public partial class ParameterEditor : UserControl
             return;
         }
 
-        // Add effect header
+        // Add visualizer header
         var header = new TextBlock
         {
-            Text = $"{_viewModel.EffectName} Parameters",
+            Text = $"{_viewModel.VisualizerName} Parameters",
             FontWeight = FontWeight.Bold,
             Foreground = Brushes.White,
             FontSize = 14,
@@ -123,15 +208,58 @@ public partial class ParameterEditor : UserControl
         };
         ParametersPanel.Children.Add(header);
 
-        // Generate controls for each parameter
-        foreach (var kvp in _viewModel.Parameters)
+        // Group parameters by category
+        var categories = _viewModel.ParameterDefinitions
+            .GroupBy(p => p.Value.Category)
+            .OrderBy(g => g.Key);
+
+        foreach (var categoryGroup in categories)
         {
-            var container = CreateParameterContainer(kvp.Key, kvp.Value);
-            ParametersPanel.Children.Add(container);
+            // Category header
+            if (!string.IsNullOrEmpty(categoryGroup.Key) && categoryGroup.Key != "General")
+            {
+                var categoryHeader = new TextBlock
+                {
+                    Text = categoryGroup.Key,
+                    FontWeight = FontWeight.SemiBold,
+                    Foreground = Brushes.LightBlue,
+                    FontSize = 12,
+                    Margin = new Thickness(0, 10, 0, 5)
+                };
+                ParametersPanel.Children.Add(categoryHeader);
+            }
+
+            // Generate controls for each parameter in this category
+            foreach (var kvp in categoryGroup.OrderBy(p => p.Value.Label))
+            {
+                var container = CreateParameterContainer(kvp.Key, kvp.Value);
+                ParametersPanel.Children.Add(container);
+            }
         }
+
+        // Add reset buttons at the bottom
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10,
+            Margin = new Thickness(0, 20, 0, 0)
+        };
+
+        var resetAllButton = new Button
+        {
+            Content = "Reset All",
+            Background = Brushes.DarkRed,
+            Foreground = Brushes.White,
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        resetAllButton.Click += (s, e) => _viewModel.ResetAllToDefaults();
+
+        buttonPanel.Children.Add(resetAllButton);
+        ParametersPanel.Children.Add(buttonPanel);
     }
 
-    private Control CreateParameterContainer(string paramName, EffectParam param)
+    private Control CreateParameterContainer(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
         var container = new StackPanel
         {
@@ -139,71 +267,74 @@ public partial class ParameterEditor : UserControl
             Margin = new Thickness(0, 0, 0, 15)
         };
 
-        // Parameter label
+        // Parameter label and description
         var label = new TextBlock
         {
-            Text = param.Label,
+            Text = paramDef.Label,
             Foreground = Brushes.White,
             FontWeight = FontWeight.Medium,
             FontSize = 12
         };
         container.Children.Add(label);
 
-        // Parameter control
-        var control = CreateParameterControl(paramName, param);
-        container.Children.Add(control);
-
-        // Value display (for sliders)
-        if (param.Type == "slider")
+        if (!string.IsNullOrEmpty(paramDef.Description))
         {
-            var valueText = new TextBlock
+            var description = new TextBlock
             {
-                Text = $"{param.FloatValue:F2}",
-                Foreground = Brushes.LightGray,
+                Text = paramDef.Description,
+                Foreground = Brushes.Gray,
                 FontSize = 10,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
+                Margin = new Thickness(0, 0, 0, 5)
             };
-
-            // Bind value changes to update display
-            if (control is Slider slider)
-            {
-                slider.PropertyChanged += (s, e) =>
-                {
-                    if (e.Property.Name == "Value")
-                    {
-                        valueText.Text = $"{slider.Value:F2}";
-                        param.FloatValue = (float)slider.Value;
-                    }
-                };
-            }
-
-            container.Children.Add(valueText);
+            container.Children.Add(description);
         }
+
+        // Parameter control
+        var control = CreateParameterControl(paramKey, paramDef);
+        container.Children.Add(control);
 
         return container;
     }
 
-    private Control CreateParameterControl(string paramName, EffectParam param)
+    private Control CreateParameterControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
-        return param.Type switch
+        return paramDef.Type switch
         {
-            "slider" => CreateSliderControl(param),
-            "checkbox" => CreateCheckboxControl(param),
-            "color" => CreateColorControl(param),
-            "dropdown" => CreateDropdownControl(param),
-            _ => CreateTextBlock($"Unsupported parameter type: {param.Type}")
+            ParameterSystem.ParameterType.Slider => CreateSliderControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Checkbox => CreateCheckboxControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Color => CreateColorControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Dropdown => CreateDropdownControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Dial => CreateDialControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Text => CreateTextControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.File => CreateFileControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Directory => CreateDirectoryControl(paramKey, paramDef),
+            _ => CreateTextBlock($"Unsupported parameter type: {paramDef.Type}")
         };
     }
 
-    private Control CreateSliderControl(EffectParam param)
+    private Control CreateSliderControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value
+            : paramDef.DefaultValue;
+
         var slider = new Slider
         {
-            Minimum = param.Min,
-            Maximum = param.Max,
-            Value = param.FloatValue,
-            Height = 20,
+            Minimum = Convert.ToDouble(paramDef.MinValue ?? 0),
+            Maximum = Convert.ToDouble(paramDef.MaxValue ?? 100),
+            Value = Convert.ToDouble(currentValue ?? paramDef.DefaultValue),
+            Height = 25,
             Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        // Value display
+        var valueText = new TextBlock
+        {
+            Text = $"{slider.Value:F2}",
+            Foreground = Brushes.LightGray,
+            FontSize = 10,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Margin = new Thickness(0, 0, 0, 5)
         };
 
         // Handle value changes
@@ -211,19 +342,29 @@ public partial class ParameterEditor : UserControl
         {
             if (e.Property.Name == "Value")
             {
-                param.FloatValue = (float)slider.Value;
+                valueText.Text = $"{slider.Value:F2}";
+                _viewModel.UpdateParameterValue(paramKey, slider.Value);
             }
         };
 
-        return slider;
+        // Container for slider and value display
+        var container = new StackPanel { Spacing = 5 };
+        container.Children.Add(slider);
+        container.Children.Add(valueText);
+
+        return container;
     }
 
-    private Control CreateCheckboxControl(EffectParam param)
+    private Control CreateCheckboxControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value
+            : paramDef.DefaultValue;
+
         var checkbox = new CheckBox
         {
-            Content = param.Label,
-            IsChecked = param.BoolValue,
+            Content = paramDef.Label,
+            IsChecked = Convert.ToBoolean(currentValue ?? paramDef.DefaultValue),
             Foreground = Brushes.White,
             Margin = new Thickness(0, 5, 0, 0)
         };
@@ -233,23 +374,27 @@ public partial class ParameterEditor : UserControl
         {
             if (e.Property.Name == "IsChecked")
             {
-                param.BoolValue = checkbox.IsChecked ?? false;
+                _viewModel.UpdateParameterValue(paramKey, checkbox.IsChecked ?? false);
             }
         };
 
         return checkbox;
     }
 
-    private Control CreateColorControl(EffectParam param)
+    private Control CreateColorControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
         // For now, use a text box for color input
         // In a full implementation, this would be a color picker
         var textBox = new TextBox
         {
-            Text = param.ColorValue,
+            Text = currentValue ?? "#FFFFFF",
             Watermark = "#RRGGBB",
             Margin = new Thickness(0, 5, 0, 0),
-            Height = 25
+            Height = 30
         };
 
         // Handle value changes
@@ -257,21 +402,25 @@ public partial class ParameterEditor : UserControl
         {
             if (e.Property.Name == "Text")
             {
-                param.ColorValue = textBox.Text;
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
             }
         };
 
         return textBox;
     }
 
-    private Control CreateDropdownControl(EffectParam param)
+    private Control CreateDropdownControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
     {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
         var comboBox = new ComboBox
         {
-            ItemsSource = param.Options,
-            SelectedItem = param.StringValue,
+            ItemsSource = paramDef.Options,
+            SelectedItem = currentValue ?? paramDef.DefaultValue?.ToString(),
             Margin = new Thickness(0, 5, 0, 0),
-            Height = 25
+            Height = 30
         };
 
         // Handle selection changes
@@ -279,11 +428,130 @@ public partial class ParameterEditor : UserControl
         {
             if (comboBox.SelectedItem is string selectedValue)
             {
-                param.StringValue = selectedValue;
+                _viewModel.UpdateParameterValue(paramKey, selectedValue);
             }
         };
 
         return comboBox;
+    }
+
+    private Control CreateDialControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        // For now, use a slider as a dial substitute
+        return CreateSliderControl(paramKey, paramDef);
+    }
+
+    private Control CreateTextControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30
+        };
+
+        // Handle value changes
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        return textBox;
+    }
+
+    private Control CreateFileControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var container = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var browseButton = new Button
+        {
+            Content = "Browse...",
+            Height = 30,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        browseButton.Click += (s, e) =>
+        {
+            // TODO: Implement file dialog
+            // For now, just update with current value
+            _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+        };
+
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        container.Children.Add(textBox);
+        container.Children.Add(browseButton);
+
+        return container;
+    }
+
+    private Control CreateDirectoryControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var container = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var browseButton = new Button
+        {
+            Content = "Browse...",
+            Height = 30,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        browseButton.Click += (s, e) =>
+        {
+            // TODO: Implement directory dialog
+            // For now, just update with current value
+            _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+        };
+
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        container.Children.Add(textBox);
+        container.Children.Add(browseButton);
+
+        return container;
     }
 
     private Control CreateTextBlock(string text)
@@ -298,11 +566,93 @@ public partial class ParameterEditor : UserControl
     }
 
     /// <summary>
-    /// Public method to update parameters programmatically
+    /// Public method to update parameters programmatically for visualizers
+    /// </summary>
+    public void UpdateParameters(string visualizerId, string visualizerName)
+    {
+        _viewModel.LoadVisualizerParameters(visualizerId, visualizerName);
+    }
+
+    /// <summary>
+    /// Public method to update parameters for effects (legacy support)
     /// </summary>
     public void UpdateParameters(string effectName, Dictionary<string, EffectParam> parameters)
     {
-        _viewModel.EffectName = effectName;
-        _viewModel.Parameters = parameters ?? new Dictionary<string, EffectParam>();
+        // For backward compatibility with effect parameters
+        // This is a simplified implementation that just shows the effect name
+        ParametersPanel.Children.Clear();
+
+        var header = new TextBlock
+        {
+            Text = $"{effectName} Parameters (Legacy)",
+            FontWeight = FontWeight.Bold,
+            Foreground = Brushes.White,
+            FontSize = 14,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        ParametersPanel.Children.Add(header);
+
+        if (parameters != null && parameters.Count > 0)
+        {
+            foreach (var kvp in parameters)
+            {
+                var container = new StackPanel
+                {
+                    Spacing = 5,
+                    Margin = new Thickness(0, 0, 0, 10)
+                };
+
+                var label = new TextBlock
+                {
+                    Text = kvp.Value.Label,
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeight.Medium,
+                    FontSize = 12
+                };
+                container.Children.Add(label);
+
+                var valueText = new TextBlock
+                {
+                    Text = kvp.Value.Type switch
+                    {
+                        "slider" => $"{kvp.Value.FloatValue:F2}",
+                        "checkbox" => kvp.Value.BoolValue.ToString(),
+                        "color" => kvp.Value.ColorValue,
+                        "dropdown" => kvp.Value.StringValue,
+                        _ => "N/A"
+                    },
+                    Foreground = Brushes.LightGray,
+                    FontSize = 10
+                };
+                container.Children.Add(valueText);
+
+                ParametersPanel.Children.Add(container);
+            }
+        }
+        else
+        {
+            var noParamsText = new TextBlock
+            {
+                Text = "No parameters available for this effect",
+                Foreground = Brushes.Gray,
+                FontSize = 11,
+                TextAlignment = Avalonia.Media.TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+            ParametersPanel.Children.Add(noParamsText);
+        }
+    }
+
+    /// <summary>
+    /// Public method to get current parameter values
+    /// </summary>
+    public Dictionary<string, object> GetCurrentParameterValues()
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var kvp in _viewModel.ParameterValues)
+        {
+            result[kvp.Key] = kvp.Value.Value;
+        }
+        return result;
     }
 }

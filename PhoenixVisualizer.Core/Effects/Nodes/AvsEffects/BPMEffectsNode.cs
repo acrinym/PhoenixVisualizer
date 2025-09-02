@@ -67,10 +67,8 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
 
         #region Private Fields
 
-        private float _beatCounter = 0.0f;
         private int _beatFrameCounter = 0;
         private float _lastBeatEnergy = 0.0f;
-        private float _energyHistory = 0.0f;
         private readonly float[] _energyBuffer = new float[43]; // ~1 second at 60fps
         private int _energyBufferIndex = 0;
         private float _adaptiveBPM = 120.0f;
