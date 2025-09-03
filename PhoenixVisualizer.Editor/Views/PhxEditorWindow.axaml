@@ -3,9 +3,8 @@
         xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:r="using:PhoenixVisualizer.Rendering"
         xmlns:views="using:PhoenixVisualizer.Editor.Views"
-        xmlns:app="using:PhoenixVisualizer.Editor.Views"
+        xmlns:cvt="using:PhoenixVisualizer.Editor.Converters"
         xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
-        xmlns:converters="using:PhoenixVisualizer.Editor.Converters"
         x:Class="PhoenixVisualizer.Editor.Views.PhxEditorWindow"
         x:DataType="vm:PhxEditorViewModel"
         Width="1280" Height="830" Title="Phoenix Visualizer - PHX Editor">
@@ -27,7 +26,7 @@
     </StackPanel>
 
     <!-- 3-pane layout -->
-    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*,Auto,2*">
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,1.3*,Auto,2*">
       <!-- LEFT: Code editor (visible when Superscope selected) -->
       <Border Grid.Column="0" Background="#151515" Padding="6">
         <Grid RowDefinitions="Auto,*">
@@ -35,19 +34,19 @@
           <TabControl IsVisible="{Binding IsSuperscopeSelected}">
             <TabItem Header="Init">
               <edit:TextEditor x:Name="InitEditor" ShowLineNumbers="True" FontFamily="Consolas"
-                               SyntaxHighlighting="C#" Document="{Binding ScriptInit, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+                               SyntaxHighlighting="C#" Document="{Binding ScriptInit, Converter={x:Static cvt:StringToDocumentConverter.Instance}}"/>
             </TabItem>
             <TabItem Header="Frame">
               <edit:TextEditor x:Name="FrameEditor" ShowLineNumbers="True" FontFamily="Consolas"
-                               SyntaxHighlighting="C#" Document="{Binding ScriptFrame, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+                               SyntaxHighlighting="C#" Document="{Binding ScriptFrame, Converter={x:Static cvt:StringToDocumentConverter.Instance}}"/>
             </TabItem>
             <TabItem Header="Beat">
               <edit:TextEditor x:Name="BeatEditor" ShowLineNumbers="True" FontFamily="Consolas"
-                               SyntaxHighlighting="C#" Document="{Binding ScriptBeat, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+                               SyntaxHighlighting="C#" Document="{Binding ScriptBeat, Converter={x:Static cvt:StringToDocumentConverter.Instance}}"/>
             </TabItem>
             <TabItem Header="Point">
               <edit:TextEditor x:Name="PointEditor" ShowLineNumbers="True" FontFamily="Consolas"
-                               SyntaxHighlighting="C#" Document="{Binding ScriptPoint, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+                               SyntaxHighlighting="C#" Document="{Binding ScriptPoint, Converter={x:Static cvt:StringToDocumentConverter.Instance}}"/>
             </TabItem>
           </TabControl>
         </Grid>
@@ -55,21 +54,71 @@
 
       <GridSplitter Grid.Column="1" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />
 
-      <!-- MIDDLE: Stack + Parameters -->
-      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,*" ColumnDefinitions="*">
-        <TextBlock Text="Effect Stack" FontWeight="Bold" Margin="6,0,0,6"/>
-        <ListBox Grid.Row="1"
+      <!-- MIDDLE: Catalog + Stack + Parameters -->
+      <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto,*" ColumnDefinitions="*">
+        <!-- Catalog Header -->
+        <StackPanel Orientation="Horizontal" Margin="6,0,6,6" Spacing="8">
+          <TextBlock Text="Effects Catalog" FontWeight="Bold"/>
+          <ComboBox Width="140"
+                    SelectedItem="{Binding CatalogCategory}"
+                    ItemsSource="{Binding Catalog, Converter={x:Static cvt:CatalogCategoryConverter.Instance}}"/>
+          <TextBox Width="220" Watermark="Search…" Text="{Binding CatalogFilter, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <!-- Catalog List -->
+        <ListBox Grid.Row="1" Height="160" ItemsSource="{Binding CatalogView}" SelectionMode="Single">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <DockPanel Margin="4,2">
+                <TextBlock Text="{Binding Category}" Foreground="#7aa" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                <StackPanel>
+                  <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding TypeKey}" FontSize="11" Foreground="#999"/>
+                </StackPanel>
+              </DockPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+          <ListBox.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Add to Stack" Command="{Binding AddByTypeKeyCommand}" CommandParameter="{Binding}"/>
+            </ContextMenu>
+          </ListBox.ContextMenu>
+        </ListBox>
+
+        <!-- Effect Stack header + buttons -->
+        <DockPanel Grid.Row="2" LastChildFill="False" Margin="6,10,6,6">
+          <TextBlock Text="Effect Stack" FontWeight="Bold" DockPanel.Dock="Left"/>
+          <StackPanel Orientation="Horizontal" Spacing="6" DockPanel.Dock="Right">
+            <Button Content="Up" Command="{Binding MoveUpCommand}"/>
+            <Button Content="Down" Command="{Binding MoveDownCommand}"/>
+            <Button Content="Duplicate" Command="{Binding DuplicateSelectedCommand}"/>
+            <Button Content="Delete" Command="{Binding RemoveSelectedCommand}"/>
+          </StackPanel>
+        </DockPanel>
+
+        <!-- Effect Stack with drag & drop reorder & accepting drops from Catalog -->
+        <ListBox Grid.Row="3"
                  ItemsSource="{Binding EffectStack}"
                  SelectedItem="{Binding SelectedEffect}">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding DisplayName}"/>
+              <DockPanel Margin="4,2">
+                <TextBlock Text="{Binding TypeKey}" Foreground="#8a8" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                <TextBlock Text="{Binding DisplayName}"/>
+              </DockPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>
+          <ListBox.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Move Up" Command="{Binding MoveUpCommand}"/>
+              <MenuItem Header="Move Down" Command="{Binding MoveDownCommand}"/>
+              <MenuItem Header="Duplicate" Command="{Binding DuplicateSelectedCommand}"/>
+              <MenuItem Header="Delete" Command="{Binding RemoveSelectedCommand}"/>
+            </ContextMenu>
+          </ListBox.ContextMenu>
         </ListBox>
-        <TextBlock Grid.Row="2" Text="Parameters" FontWeight="Bold" Margin="6,12,0,6"/>
-        <!-- The ParameterEditor user control already exists in your project -->
-        <app:ParameterEditor Grid.Row="3" x:Name="ParameterEditor"/>
+
+        <TextBlock Grid.Row="4" Text="Parameters" FontWeight="Bold" Margin="6,12,0,6"/>
+        <views:ParameterEditor Grid.Row="5" x:Name="ParameterEditor"/>
       </Grid>
 
       <GridSplitter Grid.Column="3" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />

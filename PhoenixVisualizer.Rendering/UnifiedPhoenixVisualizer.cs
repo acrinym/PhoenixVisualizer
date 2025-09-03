@@ -79,17 +79,60 @@ namespace PhoenixVisualizer.Rendering
             // Each node type can draw; for now Superscope is primary. You can extend switch(TypeKey) here.
             foreach (var node in _graph.Nodes)
             {
-                switch (node.TypeKey.ToLowerInvariant())
+                switch ((node.TypeKey ?? "").ToLowerInvariant())
                 {
+                    case "clear":
+                    {
+                        var hex = Convert.ToString(node.Parameters.TryGetValue("color", out var c) ? c : "#000000") ?? "#000000";
+                        var color = ParseColor(hex);
+                        canvas.Clear(color);
+                        break;
+                    }
+                    case "text":
+                    {
+                        var s = Convert.ToString(node.Parameters.GetValueOrDefault("content")) ?? "Phoenix";
+                        int x = ToInt(node.Parameters.GetValueOrDefault("x"), 20);
+                        int y = ToInt(node.Parameters.GetValueOrDefault("y"), 32);
+                        float size = (float)ToDouble(node.Parameters.GetValueOrDefault("size"), 24.0);
+                        var hex = Convert.ToString(node.Parameters.GetValueOrDefault("color")) ?? "#00FFFF";
+                        var color = ParseColor(hex);
+                        // Note: DrawText not available in ISkiaCanvas, using DrawPoint for now
+                        canvas.DrawPoint(x, y, color, size);
+                        break;
+                    }
+                    case "circle":
+                    {
+                        int x = ToInt(node.Parameters.GetValueOrDefault("x"), 128);
+                        int y = ToInt(node.Parameters.GetValueOrDefault("y"), 128);
+                        float radius = (float)ToDouble(node.Parameters.GetValueOrDefault("radius"), 64);
+                        bool filled = node.Parameters.GetValueOrDefault("filled") is bool fb && fb;
+                        var hex = Convert.ToString(node.Parameters.GetValueOrDefault("color")) ?? "#FFFFFF";
+                        var color = ParseColor(hex);
+                        if (filled) canvas.FillCircle(x,y,radius, color);
+                        else canvas.DrawCircle(x,y,radius, color, false);
+                        break;
+                    }
                     case "superscope":
-                        DrawSuperscope(node, canvas, canvas.Width, canvas.Height);
-                        break;
-
-                    // Add more node types here: blur, colormap, movement, convolution, etc.
                     default:
-                        // Unknown node -> draw a faint placeholder label so it's visibly "there"
-                        canvas.DrawText(node.DisplayName ?? node.TypeKey, 8, canvas.Height - 8, 0x18FFFFFF, 12);
+                    {
+                        // draw simple audio-reactive line to prove live apply
+                        int samples = ToInt(node.Parameters.GetValueOrDefault("samples"), 512);
+                        samples = Math.Clamp(samples, 16, 8192);
+                        var midY = canvas.Height / 2f;
+                        var w = canvas.Width;
+                        var prevX = 0f;
+                        var prevY = midY;
+                        for (int i=0;i<samples;i++)
+                        {
+                            float x = (float)i / Math.Max(1, samples-1) * (w-1);
+                            // quick waveform: map audio to y
+                            float amp = features.Waveform.Length > 0 ? features.Waveform[i % features.Waveform.Length] : 0f;
+                            float y = midY + amp * midY * 0.8f;
+                            if (i>0) canvas.DrawLine(prevX, prevY, x, y, 0x00FFFF, 1.2f);
+                            prevX = x; prevY = y;
+                        }
                         break;
+                    }
                 }
             }
         }
@@ -192,6 +235,21 @@ namespace PhoenixVisualizer.Rendering
             catch { /* fall through */ }
             return 0xFFFFFFFF;
         }
+
+        private static (byte r,byte g,byte b) HexToRgb(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return (255,255,255);
+            hex = hex.Trim();
+            if (hex.StartsWith("#")) hex = hex.Substring(1);
+            if (hex.Length == 6 &&
+                byte.TryParse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber, null, out var r) &&
+                byte.TryParse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber, null, out var g) &&
+                byte.TryParse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber, null, out var b))
+                return (r,g,b);
+            return (255,255,255);
+        }
+        private static int ToInt(object? v, int dflt) => v is IConvertible ? Convert.ToInt32(v) : dflt;
+        private static double ToDouble(object? v, double dflt) => v is IConvertible ? Convert.ToDouble(v) : dflt;
 
         public void Dispose()
         {

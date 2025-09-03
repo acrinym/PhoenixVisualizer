@@ -1,0 +1,38 @@
+{
+  "effects": [
+    {
+      "typeKey": "clear",
+      "displayName": "Clear (Night Sky)",
+      "category": "Render",
+      "parameters": { "color": "#0b1020" },
+      "tags": ["fill","dark"]
+    },
+    {
+      "typeKey": "text",
+      "displayName": "Phoenix Title",
+      "category": "Render",
+      "parameters": { 
+        "content": "Phoenix Visualizer",
+        "x": 50,
+        "y": 50,
+        "size": 32,
+        "color": "#00FFFF"
+      },
+      "tags": ["title","label"]
+    },
+    {
+      "typeKey": "circle",
+      "displayName": "Pulse Circle",
+      "category": "Render",
+      "parameters": { 
+        "x": 200,
+        "y": 200,
+        "radius": 80,
+        "filled": true,
+        "color": "#FF00FF",
+        "stroke": 3.0
+      },
+      "tags": ["pulse","shape"]
+    }
+  ]
+}

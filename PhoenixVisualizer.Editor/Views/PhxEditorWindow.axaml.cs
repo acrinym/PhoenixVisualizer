@@ -12,11 +12,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Transpile;
 using PhoenixVisualizer.Core.Serialization;
+using PhoenixVisualizer.Core.Catalog;
 using PhoenixVisualizer.Editor.ViewModels;
 using PhoenixVisualizer.Core;
 using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Editor.Views;
 using PhoenixVisualizer.Parameters;
+using Avalonia.Input;
+using Avalonia;
+using Avalonia.VisualTree;
 
 namespace PhoenixVisualizer.Editor.Views
 {
@@ -59,6 +63,9 @@ namespace PhoenixVisualizer.Editor.Views
 
             // Optionally load builtin parameter docs (*.json) from "Presets/Params"
             TryLoadBuiltinParamDocs();
+
+            // Load catalog from disk (Presets/Effects) in addition to reflection-based defaults
+            TryLoadEffectCatalogDocs();
         }
 
         private void WireUpCommands(PhxEditorViewModel vm)
@@ -110,6 +117,9 @@ namespace PhoenixVisualizer.Editor.Views
                 if (_vm?.EffectStack.Any(n => n.Id == vid) == true && _vm.LiveApply)
                     CompileFromStack();
             };
+
+            // Add-by-typekey from catalog (e.g., context menu/Enter)
+            vm.AddByTypeKeyCommand.Subscribe(_ => CompileFromStack()).DisposeWith(_disposables);
         }
 
         private void WireUpSelection(PhxEditorViewModel vm)
@@ -286,16 +296,7 @@ namespace PhoenixVisualizer.Editor.Views
         {
             if (_vm == null) return;
             _vm.EffectStack.Clear();
-            var node = new UnifiedEffectNode
-            {
-                TypeKey = "superscope",
-                DisplayName = "Superscope",
-            };
-            node.Parameters["init"] = "";
-            node.Parameters["frame"] = "";
-            node.Parameters["beat"] = "";
-            node.Parameters["point"] = "";
-            node.Parameters["samples"] = 512;
+            var node = EffectNodeCatalog.Create("superscope");
             _vm.EffectStack.Add(node);
             _vm.SelectedEffect = node;
             _vm.CurrentFilePath = null;
@@ -350,6 +351,37 @@ namespace PhoenixVisualizer.Editor.Views
                 PhoenixVisualizer.Parameters.ParamJson.LoadFolder(folder);
             }
             catch { /* optional */ }
+        }
+
+        private void TryLoadEffectCatalogDocs()
+        {
+            try
+            {
+                var exe = AppContext.BaseDirectory;
+                var folder = Path.Combine(exe, "Presets", "Effects");
+                EffectNodeCatalog.LoadFolder(folder);
+            }
+            catch { /* optional */ }
+        }
+
+        // ----- Drag & Drop from catalog into stack -----
+        public void OnStackDragEnter(object? sender, DragEventArgs e) { e.DragEffects = DragDropEffects.Copy; }
+        public void OnStackDragLeave(object? sender, DragEventArgs e) { }
+        public void OnStackDragOver(object? sender, DragEventArgs e)
+        {
+            if (!e.Data.Contains("application/x-phx-node")) e.DragEffects = DragDropEffects.None;
+            else e.DragEffects = DragDropEffects.Copy;
+        }
+        public void OnStackDrop(object? sender, DragEventArgs e)
+        {
+            if (_vm == null) return;
+            if (e.Data.Get("application/x-phx-node") is string typeKey)
+            {
+                var node = EffectNodeCatalog.Create(typeKey);
+                _vm.EffectStack.Add(node);
+                _vm.SelectedEffect = node;
+                CompileFromStack();
+            }
         }
     }
 

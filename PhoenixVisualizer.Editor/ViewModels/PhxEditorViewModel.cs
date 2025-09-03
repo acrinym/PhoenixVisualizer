@@ -4,7 +4,9 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using ReactiveUI;
 using System.Collections.ObjectModel;
+using System.Linq;
 using PhoenixVisualizer.Core.Transpile;
+using PhoenixVisualizer.Core.Catalog;
 
 namespace PhoenixVisualizer.Editor.ViewModels
 {
@@ -20,14 +22,25 @@ namespace PhoenixVisualizer.Editor.ViewModels
         public ReactiveCommand<Unit, Unit> TestCodeCommand { get; }
         public ReactiveCommand<Unit, Unit> NewPhxVisCommand { get; }
         public ReactiveCommand<Unit, Unit> ToggleUndockCommand { get; }
+        public ReactiveCommand<object, Unit> AddByTypeKeyCommand { get; }
+        public ReactiveCommand<Unit, Unit> RemoveSelectedCommand { get; }
+        public ReactiveCommand<Unit, Unit> DuplicateSelectedCommand { get; }
+        public ReactiveCommand<Unit, Unit> MoveUpCommand { get; }
+        public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
 
         public ObservableCollection<UnifiedEffectNode> EffectStack { get; } = new();
         private UnifiedEffectNode? _selectedEffect;
-        public UnifiedEffectNode? SelectedEffect
-        {
-            get => _selectedEffect;
-            set => this.RaiseAndSetIfChanged(ref _selectedEffect, value);
-        }
+        public UnifiedEffectNode? SelectedEffect { get => _selectedEffect; set => this.RaiseAndSetIfChanged(ref _selectedEffect, value); }
+
+        // catalog
+        public ObservableCollection<NodeMeta> Catalog { get; } = new();
+        private string _catalogFilter = "";
+        public string CatalogFilter { get => _catalogFilter; set { this.RaiseAndSetIfChanged(ref _catalogFilter, value); RefreshCatalog(); } }
+        private string _catalogCategory = "All";
+        public string CatalogCategory { get => _catalogCategory; set { this.RaiseAndSetIfChanged(ref _catalogCategory, value); RefreshCatalog(); } }
+        public ReadOnlyObservableCollection<NodeMeta> CatalogView => _catalogView;
+        private ReadOnlyObservableCollection<NodeMeta> _catalogView = default!;
+        private readonly ObservableCollection<NodeMeta> _catalogBacking = new();
 
         // Code panes (Superscope only)
         private string _scriptInit = "", _scriptFrame = "", _scriptBeat = "", _scriptPoint = "";
@@ -92,6 +105,76 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 () => { /* handled in window */ },
                 outputScheduler: Ui);
 
+            AddByTypeKeyCommand = ReactiveCommand.Create<object>(param =>
+            {
+                string typeKey;
+                if (param is NodeMeta meta)
+                {
+                    typeKey = meta.TypeKey;
+                }
+                else if (param is string str)
+                {
+                    typeKey = str;
+                }
+                else
+                {
+                    return;
+                }
+                
+                var nodeMeta = EffectNodeCatalog.TryGet(typeKey, out var m) ? m :
+                    new NodeMeta(typeKey, typeKey, "Custom", () => new UnifiedEffectNode{ TypeKey = typeKey, DisplayName = typeKey });
+                var node = nodeMeta.CreateNode();
+                EffectStack.Add(node);
+                SelectedEffect = node;
+                StatusText = $"Added: {nodeMeta.DisplayName}";
+            }, outputScheduler: Ui);
+
+            RemoveSelectedCommand = ReactiveCommand.Create(() =>
+            {
+                if (SelectedEffect != null)
+                {
+                    var i = EffectStack.IndexOf(SelectedEffect);
+                    EffectStack.Remove(SelectedEffect);
+                    if (EffectStack.Count > 0)
+                        SelectedEffect = EffectStack[Math.Clamp(i-1, 0, EffectStack.Count-1)];
+                    StatusText = "Removed selected effect.";
+                }
+            }, outputScheduler: Ui);
+
+            DuplicateSelectedCommand = ReactiveCommand.Create(() =>
+            {
+                if (SelectedEffect == null) return;
+                var dupe = new UnifiedEffectNode
+                {
+                    TypeKey = SelectedEffect.TypeKey,
+                    DisplayName = SelectedEffect.DisplayName + " (Copy)"
+                };
+                foreach (var kv in SelectedEffect.Parameters) dupe.Parameters[kv.Key] = kv.Value;
+                var idx = EffectStack.IndexOf(SelectedEffect);
+                EffectStack.Insert(Math.Max(0, idx+1), dupe);
+                SelectedEffect = dupe;
+                StatusText = "Duplicated effect.";
+            }, outputScheduler: Ui);
+
+            MoveUpCommand = ReactiveCommand.Create(() =>
+            {
+                if (SelectedEffect == null) return;
+                var i = EffectStack.IndexOf(SelectedEffect);
+                if (i > 0) { EffectStack.Move(i, i-1); }
+            }, outputScheduler: Ui);
+
+            MoveDownCommand = ReactiveCommand.Create(() =>
+            {
+                if (SelectedEffect == null) return;
+                var i = EffectStack.IndexOf(SelectedEffect);
+                if (i >= 0 && i < EffectStack.Count-1) { EffectStack.Move(i, i+1); }
+            }, outputScheduler: Ui);
+
+            // setup catalog backing view
+            _catalogView = new ReadOnlyObservableCollection<NodeMeta>(_catalogBacking);
+            EffectNodeCatalog.CatalogChanged += RefreshCatalog;
+            RefreshCatalog();
+
             // Selection drives code visibility + text panes (Superscope only)
             this.WhenAnyValue(x => x.SelectedEffect)
                 .ObserveOn(Ui)
@@ -127,6 +210,24 @@ namespace PhoenixVisualizer.Editor.ViewModels
                         SelectedEffect.Parameters["point"] = ScriptPoint;
                     }
                 });
+        }
+
+        private void RefreshCatalog()
+        {
+            var all = EffectNodeCatalog.All();
+            var filter = _catalogFilter?.Trim() ?? "";
+            var cat = _catalogCategory ?? "All";
+            var filtered = all.Where(m =>
+            {
+                var okCat = cat == "All" || string.Equals(m.Category, cat, StringComparison.OrdinalIgnoreCase);
+                var okTxt = string.IsNullOrEmpty(filter) ||
+                            m.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                            m.TypeKey.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                            (m.Tags != null && m.Tags.Any(t => t.Contains(filter, StringComparison.OrdinalIgnoreCase)));
+                return okCat && okTxt;
+            }).ToList();
+            _catalogBacking.Clear();
+            foreach (var m in filtered) _catalogBacking.Add(m);
         }
     }
 }
