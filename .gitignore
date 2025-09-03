@@ -3,3 +3,10 @@ obj/
 *.user
 *.suo
 *.cache
+phoenix_visualizer_source_export_2025-09-03.txt
+
+# Development diffs - entire folder ignored
+Diffs/
+
+# Documentation reports (moved to docs/development-reports/)
+docs/development-reports/
