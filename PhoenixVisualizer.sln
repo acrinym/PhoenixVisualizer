@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Plots", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Editor", "PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj", "{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Audio.TestRunner", "..\PhoenixVisualizer.Audio.TestRunner\PhoenixVisualizer.Audio.TestRunner.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Audio.TestRunner", "Tests\AudioTestRunner.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Rendering", "PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj", "{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}"
 EndProject
