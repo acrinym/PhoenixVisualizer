@@ -29,6 +29,7 @@ namespace PhoenixVisualizer.App.ViewModels
             get => _isCompiling; 
             private set 
             { 
+                // Always dispatch to UI thread to avoid ReactiveCommand thread issues
                 if (Dispatcher.UIThread.CheckAccess())
                 {
                     this.RaiseAndSetIfChanged(ref _isCompiling, value);
@@ -46,7 +47,17 @@ namespace PhoenixVisualizer.App.ViewModels
         }
         public bool IsCompileEnabled => !IsCompiling;
         public ObservableCollection<string> Logs { get; } = new();
-        public void Log(string msg) => Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
+        public void Log(string msg) 
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
+            }
+            else
+            {
+                Dispatcher.UIThread.Post(() => Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}"));
+            }
+        }
 
         // Commands
         public ReactiveCommand<Unit, Unit> SavePresetCommand { get; set; } = ReactiveCommand.Create(() => { });
@@ -81,7 +92,6 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public PhxEditorViewModel()
         {
-            var canRun = this.WhenAnyValue(x => x.IsCompiling).Select(c => !c);
             InitializeCommands();
             
             // Create a dummy SelectedEffect to avoid null reference exceptions
@@ -92,7 +102,8 @@ namespace PhoenixVisualizer.App.ViewModels
         {
             // Ensure all command updates happen on the UI thread
             var canRun = this.WhenAnyValue(x => x.IsCompiling)
-                .Select(c => !c);
+                .Select(c => !c)
+                .DistinctUntilChanged();
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
             SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
@@ -108,7 +119,8 @@ namespace PhoenixVisualizer.App.ViewModels
             
             CompileCommand = ReactiveCommand.CreateFromTask(async () =>
             {
-                CompileStarted?.Invoke();
+                // Ensure we're on UI thread for all UI updates
+                await Dispatcher.UIThread.InvokeAsync(() => CompileStarted?.Invoke());
                 IsCompiling = true;
                 var ok = false;
                 try
@@ -126,7 +138,7 @@ namespace PhoenixVisualizer.App.ViewModels
                 finally
                 {
                     IsCompiling = false;
-                    CompileCompleted?.Invoke(ok);
+                    await Dispatcher.UIThread.InvokeAsync(() => CompileCompleted?.Invoke(ok));
                 }
             }, canRun);
             
