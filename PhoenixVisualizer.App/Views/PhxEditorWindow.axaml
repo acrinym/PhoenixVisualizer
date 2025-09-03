@@ -1,16 +1,22 @@
-<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/PhxEditorWindow.axaml -->
-<Window xmlns="https://github.com/avaloniaui"
+<Window x:Class="PhoenixVisualizer.Views.PhxEditorWindow"
+        xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="using:PhoenixVisualizer.App.Views"
         xmlns:local="using:PhoenixVisualizer.Views"
-        mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
-        x:Class="PhoenixVisualizer.Views.PhxEditorWindow"
-        x:DataType="local:PhxEditorViewModel"
+        xmlns:vm="using:PhoenixVisualizer.App.ViewModels"
+        mc:Ignorable="d"
+        d:DesignWidth="1400"
+        d:DesignHeight="900"
+        x:Name="PhxEditor"
         Title="PHX Editor - Advanced Visual Effects Composer"
-        Width="1400" Height="900"
-        Icon="/Assets/avalonia-logo.ico">
+        Width="1400"
+        Height="900"
+        Icon="/Assets/avalonia-logo.ico"
+        x:DataType="vm:PhxEditorViewModel">
+
+
 
     <Window.Resources>
         <SolidColorBrush x:Key="EditorBackground" Color="#1e1e1e"/>
@@ -18,264 +24,39 @@
         <SolidColorBrush x:Key="BorderColor" Color="#3e3e42"/>
         <SolidColorBrush x:Key="TextColor" Color="#f1f1f1"/>
         <SolidColorBrush x:Key="AccentColor" Color="#007acc"/>
-
-
     </Window.Resources>
 
-    <Grid Background="{StaticResource EditorBackground}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Menu Bar -->
-            <RowDefinition Height="*"/>    <!-- Main Content -->
-        </Grid.RowDefinitions>
-
-        <!-- Menu Bar -->
-        <Border Grid.Row="0" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="8" Spacing="16">
-                <Button Content="📁 New" Command="{Binding NewPresetCommand}" ToolTip.Tip="Create new preset"/>
-                <Button Content="📂 Open" Command="{Binding OpenPresetCommand}" ToolTip.Tip="Open existing preset"/>
-                <Button Content="💾 Save" Command="{Binding SavePresetCommand}" ToolTip.Tip="Save current preset"/>
-                <Button Content="💾 Save As" Command="{Binding SaveAsPresetCommand}" ToolTip.Tip="Save preset with new name"/>
-                <Button Content="📤 Export AVS" Command="{Binding ExportAvsCommand}" ToolTip.Tip="Export as AVS preset"/>
-                <Button Content="📥 Import AVS" Command="{Binding ImportAvsCommand}" ToolTip.Tip="Import AVS preset"/>
-                <Separator/>
-                <Button Content="↶ Undo" Command="{Binding UndoCommand}" ToolTip.Tip="Undo last action"/>
-                <Button Content="↷ Redo" Command="{Binding RedoCommand}" ToolTip.Tip="Redo last action"/>
-                <Separator/>
-                <Button Content="✂️ Cut" Command="{Binding CutCommand}" ToolTip.Tip="Cut selected effect"/>
-                <Button Content="📋 Copy" Command="{Binding CopyCommand}" ToolTip.Tip="Copy selected effect"/>
-                <Button Content="📄 Paste" Command="{Binding PasteCommand}" ToolTip.Tip="Paste effect"/>
-                <Button Content="🗑️ Delete" Command="{Binding DeleteEffectCommand}" ToolTip.Tip="Delete selected effect"/>
-                <Button Content="📋 Duplicate" Command="{Binding DuplicateEffectCommand}" ToolTip.Tip="Duplicate selected effect"/>
-                <Separator/>
-                <Button Content="🔧 Compile" Command="{Binding CompileCommand}" Background="Green" Foreground="White" ToolTip.Tip="Compile code"/>
-                <Button Content="🧪 Test" Command="{Binding TestCodeCommand}" Background="Orange" Foreground="White" ToolTip.Tip="Test code execution"/>
-                <Button Content="▶️ Play" Command="{Binding PlayCommand}" Background="Blue" Foreground="White" ToolTip.Tip="Play preview"/>
-                <Button Content="⏸️ Pause" Command="{Binding PauseCommand}" Background="Gray" Foreground="White" ToolTip.Tip="Pause preview"/>
-                <Button Content="🔄 Restart" Command="{Binding RestartCommand}" Background="Purple" Foreground="White" ToolTip.Tip="Restart preview"/>
-                <Separator/>
-                <Button Content="📊 Perf" Command="{Binding TogglePerformanceOverlayCommand}" Background="Teal" Foreground="White" ToolTip.Tip="Toggle performance overlay"/>
-                <Button Content="🐛 Debug" Command="{Binding ToggleDebugLoggingCommand}" Background="Orange" Foreground="White" ToolTip.Tip="Toggle debug logging"/>
-                <Button Content="🔄 Reset Stats" Command="{Binding ResetPerformanceStatsCommand}" Background="Gray" Foreground="White" ToolTip.Tip="Reset performance stats"/>
-                <Button Content="📋 Export Log" Command="{Binding ExportPerformanceLogCommand}" Background="Blue" Foreground="White" ToolTip.Tip="Export performance log"/>
-                <Separator/>
-                <Button Content="📖 Help" Command="{Binding HelpCommand}" ToolTip.Tip="Show help"/>
+    <!-- Split main area: preview on the left, parameter panel on the right -->
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,360">
+        <!-- Top toolbar -->
+        <DockPanel Grid.Row="0" LastChildFill="True" Background="#1a1a22" Height="40">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Spacing="8" Margin="10,0">
+                <Button x:Name="BtnImport" Content="Import" Width="90" Command="{Binding ImportAvsCommand}"/>
+                <Button x:Name="BtnExport" Content="Export" Width="90" Command="{Binding ExportAvsCommand}"/>
+                <Separator Width="8"/>
+                <Button x:Name="BtnCompile" Content="Compile" Width="90" Command="{Binding CompileCommand}" IsEnabled="{Binding IsCompileEnabled}"/>
+                <Button x:Name="BtnTest" Content="Test" Width="90" Command="{Binding TestCodeCommand}" IsEnabled="{Binding IsCompileEnabled}"/>
+                <Separator Width="8"/>
+                <Button x:Name="BtnSettings" Content="Settings" Width="110" />
+                <Separator Width="8"/>
+                <Button x:Name="BtnUndockPreview" Content="Undock Preview" Width="140" />
             </StackPanel>
+            <TextBlock VerticalAlignment="Center" Margin="12,0"
+                       Text="{Binding StatusText}" Foreground="#b0b0b0"/>
+        </DockPanel>
+
+        <!-- Left: Preview surface -->
+        <Border Grid.Row="1" Grid.Column="0" Margin="10" Background="#0c0c11"
+                CornerRadius="6" BorderBrush="#22252d" BorderThickness="1">
+            <Canvas x:Name="PreviewCanvas"/>
         </Border>
 
-        <!-- Main Content Area -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/> <!-- Left Sidebar -->
-                <ColumnDefinition Width="*"/>   <!-- Center Content -->
-                <ColumnDefinition Width="350"/> <!-- Right Sidebar -->
-            </Grid.ColumnDefinitions>
-
-            <!-- Left Sidebar: Effect Library -->
-            <Border Grid.Column="0" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0" Text="Effect Library" FontWeight="Bold" Margin="8,8,8,4"
-                               Foreground="{StaticResource TextColor}"/>
-
-                    <TabControl Grid.Row="1" Margin="4">
-                        <TabItem Header="Phoenix" Background="Transparent">
-                            <ListBox ItemsSource="{Binding PhoenixOriginals}"
-                                     SelectedItem="{Binding SelectedLibraryEffect}"
-                                     Background="{StaticResource PanelBackground}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextColor}"/>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                        <TabItem Header="AVS" Background="Transparent">
-                            <ListBox ItemsSource="{Binding AvsEffects}"
-                                     SelectedItem="{Binding SelectedLibraryEffect}"
-                                     Background="{StaticResource PanelBackground}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextColor}"/>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                        <TabItem Header="Research" Background="Transparent">
-                            <ListBox ItemsSource="{Binding ResearchEffects}"
-                                     SelectedItem="{Binding SelectedLibraryEffect}"
-                                     Background="{StaticResource PanelBackground}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextColor}"/>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                    </TabControl>
-                </Grid>
-            </Border>
-
-            <!-- Center: Main Content Area -->
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>    <!-- Effect Stack / Code Editor -->
-                    <RowDefinition Height="Auto"/>  <!-- Status Bar -->
-                </Grid.RowDefinitions>
-
-                <!-- Tab Control for Effect Stack and Code Editor -->
-                <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}" Margin="4">
-                    <TabItem Header="Effect Stack" Background="Transparent">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="➕ Add Effect" Command="{Binding AddEffectCommand}" Margin="0,0,8,0"/>
-                                <Button Content="🗑️ Remove" Command="{Binding DeleteEffectCommand}"/>
-                            </StackPanel>
-
-                            <ListBox Grid.Row="1" ItemsSource="{Binding EffectStack}"
-                                     SelectedItem="{Binding SelectedEffect}"
-                                     Background="{StaticResource PanelBackground}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource TextColor}"/>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-
-                            <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,8,0,0"
-                                       Foreground="{StaticResource TextColor}"/>
-                        </Grid>
-                    </TabItem>
-
-                    <TabItem Header="Code Editor" Background="Transparent">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Text="Code Sections" FontWeight="Bold" Margin="0,0,0,8"
-                                       Foreground="{StaticResource TextColor}"/>
-
-                            <TabControl Grid.Row="1">
-                                <TabItem Header="Init Code">
-                                    <TextBox Text="{Binding InitCode}" AcceptsReturn="True" AcceptsTab="True"
-                                             Background="{StaticResource PanelBackground}"
-                                             Foreground="{StaticResource TextColor}"
-                                             FontFamily="Consolas" FontSize="12"
-                                             Watermark="Enter initialization code here..."/>
-                                </TabItem>
-                                <TabItem Header="Frame Code">
-                                    <TextBox Text="{Binding FrameCode}" AcceptsReturn="True" AcceptsTab="True"
-                                             Background="{StaticResource PanelBackground}"
-                                             Foreground="{StaticResource TextColor}"
-                                             FontFamily="Consolas" FontSize="12"
-                                             Watermark="Enter per-frame code here..."/>
-                                </TabItem>
-                                <TabItem Header="Point Code">
-                                    <TextBox Text="{Binding PointCode}" AcceptsReturn="True" AcceptsTab="True"
-                                             Background="{StaticResource PanelBackground}"
-                                             Foreground="{StaticResource TextColor}"
-                                             FontFamily="Consolas" FontSize="12"
-                                             Watermark="Enter per-point code here..."/>
-                                </TabItem>
-                                <TabItem Header="Beat Code">
-                                    <TextBox Text="{Binding BeatCode}" AcceptsReturn="True" AcceptsTab="True"
-                                             Background="{StaticResource PanelBackground}"
-                                             Foreground="{StaticResource TextColor}"
-                                             FontFamily="Consolas" FontSize="12"
-                                             Watermark="Enter beat-triggered code here..."/>
-                                </TabItem>
-                            </TabControl>
-
-                            <TextBlock Grid.Row="2" Text="{Binding CodeStatus}" Margin="0,8,0,0"
-                                       Foreground="{StaticResource TextColor}"/>
-                        </Grid>
-                    </TabItem>
-                </TabControl>
-
-                <!-- Status Bar -->
-                <Border Grid.Row="1" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0"
-                        Background="{StaticResource PanelBackground}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Main Status -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="8" Spacing="16">
-                            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextColor}"/>
-                            <Separator/>
-                            <TextBlock Text="{Binding PresetName}" Foreground="{StaticResource TextColor}"/>
-                        </StackPanel>
-
-                        <!-- Performance Metrics -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8" Spacing="12">
-                            <TextBlock Text="{Binding FpsCounter}" Foreground="{StaticResource AccentColor}" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding MemoryUsage}" Foreground="{StaticResource TextColor}"/>
-                            <TextBlock Text="{Binding CpuUsage}" Foreground="{StaticResource TextColor}"/>
-                            <TextBlock Text="{Binding RenderTime}" Foreground="{StaticResource TextColor}"/>
-                            <TextBlock Text="{Binding EffectCount}" Foreground="{StaticResource TextColor}"/>
-                            <Separator/>
-                            <TextBlock Text="{Binding DebugInfo}" Foreground="Yellow" FontSize="11"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <!-- Right Sidebar: Properties & Preview -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>    <!-- Properties -->
-                    <RowDefinition Height="250"/>  <!-- Preview -->
-                </Grid.RowDefinitions>
-
-                <!-- Properties Panel -->
-                <Border Grid.Row="0" BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,1">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Text="Properties" FontWeight="Bold" Margin="8,8,8,4"
-                                   Foreground="{StaticResource TextColor}"/>
-
-                        <ScrollViewer Grid.Row="1">
-                            <views:ParameterEditor x:Name="ParameterEditorControl"
-                                                   VisualizerId="{Binding SelectedEffect.Name}"
-                                                   VisualizerName="{Binding SelectedEffect.DisplayName}"
-                                                   Margin="4"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <!-- Preview Panel -->
-                <Border Grid.Row="1" BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Text="Live Preview" FontWeight="Bold" Margin="8,8,8,4"
-                                   Foreground="{StaticResource TextColor}"/>
-
-                        <Canvas x:Name="PreviewCanvas" Grid.Row="1" Background="Black" Margin="8,0,8,8"/>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Grid>
+        <!-- Right: Parameter panel host (live, no extra wiring needed) -->
+        <Border Grid.Row="1" Grid.Column="1" Margin="0,10,10,10" Background="#13151d"
+                CornerRadius="6" BorderBrush="#22252d" BorderThickness="1">
+            <ContentControl x:Name="ParamPanelHost"/>
+        </Border>
     </Grid>
+
+    <!-- Logs will be added in a future update -->
 </Window>

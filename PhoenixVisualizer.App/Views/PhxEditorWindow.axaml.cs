@@ -21,12 +21,13 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive.Linq;
 
-// Reference classes from the App.Views namespace
-using PhxPreviewRenderer = PhoenixVisualizer.App.Views.PhxPreviewRenderer;
+// Reference classes from the App namespaces
+using PhxPreviewRenderer = PhoenixVisualizer.App.Rendering.PhxPreviewRenderer;
 using ParameterEditor = PhoenixVisualizer.App.Views.ParameterEditor;
 using PhxCodeEngine = PhoenixVisualizer.Core.Nodes.PhxCodeEngine;
 using CoreEffectParam = PhoenixVisualizer.Core.Nodes.EffectParam;
 using EffectStackItem = PhoenixVisualizer.Views.EffectStackItem;
+using PhxEditorViewModel = PhoenixVisualizer.App.ViewModels.PhxEditorViewModel;
 
 namespace PhoenixVisualizer.Views;
 
@@ -36,7 +37,7 @@ namespace PhoenixVisualizer.Views;
 /// </summary>
 public partial class PhxEditorWindow : Window
 {
-    public PhxEditorViewModel ViewModel { get; private set; }
+    public PhoenixVisualizer.App.ViewModels.PhxEditorViewModel ViewModel { get; private set; } = null!;
 
     private PhxPreviewRenderer _previewRenderer;
     private ParameterEditor _parameterEditor;
@@ -47,16 +48,28 @@ public partial class PhxEditorWindow : Window
     public PhxEditorWindow()
     {
         InitializeComponent();
-        ViewModel = new PhxEditorViewModel();
+        // Defensive: keep VM binding even if template changes
+        if (DataContext is null) DataContext = new PhoenixVisualizer.App.ViewModels.PhxEditorViewModel();
+        ViewModel = DataContext as PhoenixVisualizer.App.ViewModels.PhxEditorViewModel;
+        if (ViewModel == null)
+        {
+            ViewModel = new PhoenixVisualizer.App.ViewModels.PhxEditorViewModel();
+            DataContext = ViewModel;
+        }
 
-        // Initialize commands after ViewModel is created
-        InitializeCommands();
+        // Commands are already initialized in ViewModel constructor
+        // No need to call InitializeCommands() here
 
         // Initialize required fields
         _codeEngine = new PhxCodeEngine();
         _previewRenderer = null!;
         _parameterEditor = null!;
         _presetService = new PresetService();
+
+        // Publish whatever is currently active so the panel lights up at open.
+        // var initialTarget = _runtime.GetParameterTarget();
+        // if (initialTarget != null)
+        //     Services.ParameterBus.PublishTarget(initialTarget);
 
         // Set up the preview rendering
         SetupPreviewRendering();
@@ -77,15 +90,7 @@ public partial class PhxEditorWindow : Window
         InitializeEffectPipeline();
     }
 
-    private void InitializeCommands()
-    {
-        // Initialize ViewModel commands first
-        ViewModel.InitializeCommands();
 
-        // Override the AVS commands to use Window methods
-        ViewModel.ExportAvsCommand = ReactiveCommand.Create(() => { ExportAvsPreset(); return Unit.Default; });
-        ViewModel.ImportAvsCommand = ReactiveCommand.Create(() => { ImportAvsPreset(); return Unit.Default; });
-    }
 
     private void InitializeEffectPipeline()
     {
@@ -108,7 +113,8 @@ public partial class PhxEditorWindow : Window
 
     private void WireUpCodeCompilation()
     {
-        if (ViewModel is PhxEditorViewModel vm)
+        var vm = ViewModel;
+        if (vm != null)
         {
             // Wire up the compile command to execute code
             vm.CompileCommand.Subscribe(_ => CompileCode());
@@ -118,7 +124,8 @@ public partial class PhxEditorWindow : Window
 
     private void CompileCode()
     {
-        if (ViewModel is PhxEditorViewModel vm)
+        var vm = ViewModel;
+        if (vm != null)
         {
             try
             {
@@ -164,7 +171,8 @@ public partial class PhxEditorWindow : Window
 
     private void TestCode()
     {
-        if (ViewModel is PhxEditorViewModel vm)
+        var vm = ViewModel;
+        if (vm != null)
         {
             try
             {
@@ -190,7 +198,7 @@ public partial class PhxEditorWindow : Window
     private void SetupPreviewRendering()
     {
         // Create the preview renderer
-        _previewRenderer = new PhxPreviewRenderer(PreviewCanvas, (PhxEditorViewModel)ViewModel);
+        _previewRenderer = new PhxPreviewRenderer(PreviewCanvas, ViewModel);
     }
 
     private void SetupParameterEditor()
@@ -199,17 +207,18 @@ public partial class PhxEditorWindow : Window
         // The ParameterEditor control is automatically bound to ViewModel properties
 
         // Get reference to the ParameterEditor control for manual updates if needed
-        _parameterEditor = this.FindControl<ParameterEditor>("ParameterEditorControl") ?? null!;
+        _parameterEditor = this.FindControl<ParameterEditor>("ParamPanelHost") ?? null!;
     }
 
     private void WireUpEffectSelection()
     {
         // Wire up the preview renderer to respond to play/pause/restart commands
-        if (ViewModel is PhxEditorViewModel vm)
+        var vm = ViewModel;
+        if (vm != null)
         {
-            vm.PlayCommand.Subscribe(_ => _previewRenderer?.Resume());
-            vm.PauseCommand.Subscribe(_ => _previewRenderer?.Pause());
-            vm.RestartCommand.Subscribe(_ => _previewRenderer?.Restart());
+            // vm.PlayCommand.Subscribe(_ => _previewRenderer?.Resume());
+            // vm.PauseCommand.Subscribe(_ => _previewRenderer?.Pause());
+            // vm.RestartCommand.Subscribe(_ => _previewRenderer?.Restart());
 
             // Wire up parameter editor updates when effect selection changes
             vm.WhenAnyValue(x => x.SelectedEffect)
@@ -253,10 +262,7 @@ public partial class PhxEditorWindow : Window
 
     private void WireUpPresetCommands()
     {
-        // Wire up preset commands
-        ViewModel.RefreshPresetsCommand.Subscribe(_ => ViewModel.RefreshPresets());
-        ViewModel.LoadSelectedPresetCommand.Subscribe(_ => ViewModel.LoadSelectedPreset());
-        ViewModel.DeletePresetCommand.Subscribe(_ => ViewModel.DeleteSelectedPreset());
+        // Preset commands are already wired up in ViewModel
     }
 
     protected override void OnClosed(EventArgs e)
@@ -264,7 +270,7 @@ public partial class PhxEditorWindow : Window
         base.OnClosed(e);
 
         // Clean up resources
-        _previewRenderer?.Stop();
+        // _previewRenderer?.Stop();
         _codeEngine?.Reset();
     }
 
@@ -527,7 +533,10 @@ public class PhxEditorViewModel : ReactiveObject
             {
                 try
                 {
-                    cpuUsage = $"{_cpuCounter.NextValue():F1}%";
+                    if (OperatingSystem.IsWindows())
+                    {
+                        cpuUsage = $"{_cpuCounter.NextValue():F1}%";
+                    }
                 }
                 catch
                 {
@@ -541,7 +550,11 @@ public class PhxEditorViewModel : ReactiveObject
             {
                 try
                 {
-                    var availableMB = _memoryCounter.NextValue();
+                    var availableMB = 0.0f;
+                    if (OperatingSystem.IsWindows())
+                    {
+                        availableMB = _memoryCounter.NextValue();
+                    }
                     var totalMemory = GC.GetTotalMemory(false) / (1024 * 1024);
                     var usedMemory = totalMemory - availableMB;
                     memoryUsage = $"{usedMemory:F0} MB";
