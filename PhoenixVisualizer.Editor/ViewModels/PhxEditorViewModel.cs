@@ -54,6 +54,8 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         private bool _liveApply = true;
         public bool LiveApply { get => _liveApply; set => this.RaiseAndSetIfChanged(ref _liveApply, value); }
+        
+        private bool _isUpdatingFromEffect = false;
 
         // File state
         private string? _currentFilePath;
@@ -65,6 +67,9 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         private string _statusText = "";
         public string StatusText { get => _statusText; set => this.RaiseAndSetIfChanged(ref _statusText, value); }
+        
+        // Event for requesting compilation from the ViewModel
+        public event EventHandler? CompileRequested;
 
         public PhxEditorViewModel()
         {
@@ -174,6 +179,12 @@ namespace PhoenixVisualizer.Editor.ViewModels
             _catalogView = new ReadOnlyObservableCollection<NodeMeta>(_catalogBacking);
             EffectNodeCatalog.CatalogChanged += RefreshCatalog;
             RefreshCatalog();
+            
+            // Trigger compilation when effect stack changes
+            EffectStack.CollectionChanged += (_, __) => 
+            {
+                if (LiveApply) CompileRequested?.Invoke(this, EventArgs.Empty);
+            };
 
             // Selection drives code visibility + text panes (Superscope only)
             this.WhenAnyValue(x => x.SelectedEffect)
@@ -184,30 +195,45 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     IsSuperscopeSelected = isScope;
                     if (isScope && sel != null)
                     {
+                        _isUpdatingFromEffect = true;
                         ScriptInit  = sel.Parameters.TryGetValue("init", out var i) ? Convert.ToString(i) ?? "" : "";
                         ScriptFrame = sel.Parameters.TryGetValue("frame", out var f) ? Convert.ToString(f) ?? "" : "";
                         ScriptBeat  = sel.Parameters.TryGetValue("beat", out var b) ? Convert.ToString(b) ?? "" : "";
                         ScriptPoint = sel.Parameters.TryGetValue("point", out var p) ? Convert.ToString(p) ?? "" : "";
+                        _isUpdatingFromEffect = false;
                     }
                     else
                     {
+                        _isUpdatingFromEffect = true;
                         ScriptInit = ScriptFrame = ScriptBeat = ScriptPoint = "";
+                        _isUpdatingFromEffect = false;
                     }
                     this.RaisePropertyChanged(nameof(PreviewDockButtonText));
                 });
 
             // Push edits back into the selected Superscope node
-            this.WhenAnyValue(x => x.ScriptInit,  x => x.ScriptFrame, x => x.ScriptBeat, x => x.ScriptPoint, x => x.SelectedEffect)
+            this.WhenAnyValue(x => x.ScriptInit, x => x.ScriptFrame, x => x.ScriptBeat, x => x.ScriptPoint)
+                .CombineLatest(this.WhenAnyValue(x => x.SelectedEffect))
                 .Throttle(TimeSpan.FromMilliseconds(120), Ui)
                 .ObserveOn(Ui)
-                .Subscribe(_ =>
+                .Subscribe(tuple =>
                 {
-                    if (SelectedEffect?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true)
+                    if (_isUpdatingFromEffect) return; // Prevent feedback loop
+                    
+                    var (scriptTuple, selectedEffect) = tuple;
+                    var (init, frame, beat, point) = scriptTuple;
+                    if (selectedEffect?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true)
                     {
-                        SelectedEffect.Parameters["init"]  = ScriptInit;
-                        SelectedEffect.Parameters["frame"] = ScriptFrame;
-                        SelectedEffect.Parameters["beat"]  = ScriptBeat;
-                        SelectedEffect.Parameters["point"] = ScriptPoint;
+                        selectedEffect.Parameters["init"]  = init;
+                        selectedEffect.Parameters["frame"] = frame;
+                        selectedEffect.Parameters["beat"]  = beat;
+                        selectedEffect.Parameters["point"] = point;
+                        
+                        // Trigger live compilation if enabled
+                        if (LiveApply)
+                        {
+                            CompileRequested?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                 });
         }

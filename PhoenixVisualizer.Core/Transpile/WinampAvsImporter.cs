@@ -109,8 +109,8 @@ namespace PhoenixVisualizer.Core.Transpile
                     title = s.Replace("\0", "").Trim();
             }
 
-            // Extract readable ASCII "code-ish" fragments
-            var ascii = ExtractAsciiChunks(bytes);
+            // Extract readable ASCII "code-ish" fragments using proper binary parsing
+            var ascii = ExtractBinaryAsciiChunks(bytes);
 
             // Heuristics:
             // - point: anything that sets x= or y= OR references i and trig/PI
@@ -138,8 +138,15 @@ namespace PhoenixVisualizer.Core.Transpile
             }
 
             // Coalesce and sanitize
-            string Coalesce(IEnumerable<string> lines) =>
-                string.Join("\n", lines.Distinct().Take(400));
+            string Coalesce(IEnumerable<string> lines)
+            {
+                var cleaned = lines.Distinct()
+                    .Where(line => !string.IsNullOrWhiteSpace(line))
+                    .Select(line => CleanScriptLine(line))
+                    .Where(line => !string.IsNullOrWhiteSpace(line))
+                    .Take(400);
+                return string.Join("\n", cleaned);
+            };
 
             var init  = Coalesce(initLines);
             var frame = Coalesce(frameLines);
@@ -195,22 +202,161 @@ namespace PhoenixVisualizer.Core.Transpile
             catch { return DecodeLatin1(bytes); }
         }
 
-        private static string DecodeLatin1(byte[] bytes) => Encoding.GetEncoding("latin-1").GetString(bytes);
+        private static string DecodeLatin1(byte[] bytes) => Encoding.GetEncoding("iso-8859-1").GetString(bytes);
 
-        private static IEnumerable<string> ExtractAsciiChunks(byte[] b)
+        private static IEnumerable<string> ExtractBinaryAsciiChunks(byte[] b)
         {
-            var s = DecodeLatin1(b);
-            // pull out medium+ length printable runs, then split at semicolons for "statements"
-            var runs = Regex.Matches(s, @"[ -~]{10,}").Cast<Match>().Select(m => m.Value);
-            foreach (var run in runs)
+            // Based on Winamp AVS binary format analysis
+            // Skip the signature: "Nullsoft AVS Preset 0.2\x1a"
+            var signature = Encoding.ASCII.GetBytes("Nullsoft AVS Preset 0.2");
+            int startPos = 0;
+            
+            // Find signature
+            for (int i = 0; i <= b.Length - signature.Length; i++)
             {
-                foreach (var part in run.Split(';'))
+                bool found = true;
+                for (int j = 0; j < signature.Length; j++)
                 {
-                    var line = (part + ";").Trim();
-                    if (line.Length >= 8 && line.Contains('='))
-                        yield return line;
+                    if (b[i + j] != signature[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    startPos = i + signature.Length;
+                    // Skip the version byte and terminator
+                    if (startPos < b.Length && b[startPos] == 0x1A) startPos++;
+                    break;
                 }
             }
+
+            // Extract strings using Winamp's length-prefixed format
+            var strings = new List<string>();
+            int pos = startPos;
+            
+            while (pos < b.Length - 4)
+            {
+                // Read 4-byte length (little-endian)
+                int length = b[pos] | (b[pos + 1] << 8) | (b[pos + 2] << 16) | (b[pos + 3] << 24);
+                pos += 4;
+                
+                if (length <= 0 || length > 10000 || pos + length > b.Length) break;
+                
+                // Extract the string data
+                var stringData = new byte[length];
+                Array.Copy(b, pos, stringData, 0, length);
+                pos += length;
+                
+                // Convert to string and check if it looks like code
+                var str = Encoding.ASCII.GetString(stringData);
+                if (ContainsScriptPattern(str))
+                {
+                    strings.Add(str);
+                }
+            }
+            
+            // Also look for embedded ASCII in the binary data
+            var asciiRuns = ExtractAsciiRuns(b, startPos);
+            strings.AddRange(asciiRuns);
+            
+            return strings.Distinct();
+        }
+        
+        private static IEnumerable<string> ExtractAsciiRuns(byte[] data, int startPos)
+        {
+            var runs = new List<string>();
+            var currentRun = new List<byte>();
+            
+            for (int i = startPos; i < data.Length; i++)
+            {
+                byte b = data[i];
+                if (b >= 32 && b <= 126) // Printable ASCII
+                {
+                    currentRun.Add(b);
+                }
+                else if (b == 9 || b == 10 || b == 13) // Tab, LF, CR
+                {
+                    currentRun.Add(b);
+                }
+                else
+                {
+                    // End of run
+                    if (currentRun.Count >= 10)
+                    {
+                        var runStr = Encoding.ASCII.GetString(currentRun.ToArray());
+                        if (ContainsScriptPattern(runStr))
+                        {
+                            runs.Add(runStr);
+                        }
+                    }
+                    currentRun.Clear();
+                }
+            }
+            
+            // Handle final run
+            if (currentRun.Count >= 10)
+            {
+                var runStr = Encoding.ASCII.GetString(currentRun.ToArray());
+                if (ContainsScriptPattern(runStr))
+                {
+                    runs.Add(runStr);
+                }
+            }
+            
+            return runs;
+        }
+        
+        private static bool ContainsScriptPattern(string text)
+        {
+            // Look for common AVS script patterns
+            return text.Contains("=") || // Variable assignment
+                   text.Contains("sin(") || text.Contains("cos(") || text.Contains("tan(") || // Math functions
+                   text.Contains("getosc(") || text.Contains("getspec(") || // AVS functions
+                   text.Contains("if(") || text.Contains("above(") || text.Contains("below(") || // Conditionals
+                   text.Contains("x=") || text.Contains("y=") || text.Contains("n=") || // Common variables
+                   text.Contains("red=") || text.Contains("green=") || text.Contains("blue=") || // Color variables
+                   Regex.IsMatch(text, @"[a-zA-Z_][a-zA-Z0-9_]*\s*=") || // Variable assignments
+                   Regex.IsMatch(text, @"[a-zA-Z_][a-zA-Z0-9_]*\s*\("); // Function calls
+        }
+        
+        private static string CleanScriptLine(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) return "";
+            
+            // Remove any remaining non-printable characters
+            var cleaned = new string(line.Where(c => 
+                (c >= 32 && c <= 126) || // Printable ASCII
+                c == 9 || c == 10 || c == 13 // Tab, LF, CR
+            ).ToArray());
+            
+            // Remove common artifacts and noise
+            cleaned = Regex.Replace(cleaned, @"[◇◆■□▪▫▬▭▮▯▰▱▲△▴▵▶▷▸▹►▻▼▽▾▿◀◁◂◃◄◅◆◇◈◉◊○◌◍◎●◐◑◒◓◔◕◖◗◘◙◚◛◜◝◞◟◠◡◢◣◤◥◦◧◨◩◪◫◬◭◮◯]", "");
+            cleaned = Regex.Replace(cleaned, @"[^\x20-\x7E\t\n\r]", ""); // Remove any remaining non-printable
+            
+            // Remove specific binary artifacts that appear in AVS files
+            cleaned = Regex.Replace(cleaned, @"\$@[A-Za-z\s]+Config\$\/", ""); // Remove $@AVS Config$/ patterns
+            cleaned = Regex.Replace(cleaned, @"\$[A-Za-z\s]{3,}\$", ""); // Remove $...$ patterns (only long ones)
+            cleaned = Regex.Replace(cleaned, @"@[A-Z]{2,}[0-9_]*", ""); // Remove @variable patterns (only uppercase)
+            cleaned = Regex.Replace(cleaned, @"\+%[A-Z]{2,}[0-9_]*", ""); // Remove +%variable patterns (only uppercase)
+            cleaned = Regex.Replace(cleaned, @"\\""[A-Za-z0-9_]+", ""); // Remove "variable patterns
+            
+            // Remove common binary noise patterns
+            cleaned = Regex.Replace(cleaned, @"[A-Z]{3,}[0-9]*\.[0-9]+\+", ""); // Remove version-like patterns
+            cleaned = Regex.Replace(cleaned, @"[A-Z]{3,}\([A-Za-z0-9\s,]*\)", ""); // Remove function-like noise (only uppercase)
+            
+            // Clean up whitespace and normalize
+            cleaned = Regex.Replace(cleaned, @"\s+", " "); // Normalize whitespace
+            cleaned = cleaned.Trim();
+            
+            // Ensure proper statement termination
+            if (!cleaned.EndsWith(";") && !cleaned.EndsWith("}") && !cleaned.EndsWith(")"))
+            {
+                cleaned += ";";
+            }
+            
+            return cleaned;
         }
     }
 }

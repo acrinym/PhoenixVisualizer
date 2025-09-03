@@ -1137,6 +1137,7 @@ public partial class MainWindow : Window
         private void OnPhxEditorClick(object? sender, RoutedEventArgs e)
         {
             var phxEditor = new PhoenixVisualizer.Editor.Views.PhxEditorWindow();
+            phxEditor.DataContext = new PhoenixVisualizer.Editor.ViewModels.PhxEditorViewModel();
             phxEditor.Show();
         }
 

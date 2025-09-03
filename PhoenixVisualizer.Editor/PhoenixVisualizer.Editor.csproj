@@ -24,8 +24,8 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-    <PackageReference Include="ReactiveUI" Version="$(ReactiveUIVersion)" />
-    <PackageReference Include="AvaloniaEdit" Version="0.10.12" />
+    <PackageReference Include="ReactiveUI" Version="19.5.41" />
+    <ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

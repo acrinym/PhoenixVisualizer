@@ -96,7 +96,7 @@
         </DockPanel>
 
         <!-- Effect Stack with drag & drop reorder & accepting drops from Catalog -->
-        <ListBox Grid.Row="3"
+        <ListBox Grid.Row="3" x:Name="EffectStackListBox"
                  ItemsSource="{Binding EffectStack}"
                  SelectedItem="{Binding SelectedEffect}">
           <ListBox.ItemTemplate>

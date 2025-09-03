@@ -60,19 +60,32 @@ namespace PhoenixVisualizer.Editor.Views
 
             WireUpCommands(_vm);
             WireUpSelection(_vm);
+            
+            // Wire up live compilation
+            _vm.CompileRequested += (_, __) => CompileFromStack();
 
             // Optionally load builtin parameter docs (*.json) from "Presets/Params"
             TryLoadBuiltinParamDocs();
 
             // Load catalog from disk (Presets/Effects) in addition to reflection-based defaults
             TryLoadEffectCatalogDocs();
+            
+            // Wire up drag and drop for Effect Stack
+            WireUpDragAndDrop();
         }
 
         private void WireUpCommands(PhxEditorViewModel vm)
         {
-            // Wire up compile and test commands - TODO: Fix ReactiveCommand subscription
-            // vm.CompileCommand.Execute().Subscribe(x => CompileFromStack()).DisposeWith(_disposables);
-            // vm.TestCodeCommand.Execute().Subscribe(x => { CompileFromStack(); vm.StatusText = "Test running."; }).DisposeWith(_disposables);
+            // Wire up compile and test commands
+            vm.CompileCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => CompileFromStack())
+                .DisposeWith(_disposables);
+
+            vm.TestCodeCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => { CompileFromStack(); vm.StatusText = "Test running."; })
+                .DisposeWith(_disposables);
 
             vm.ImportAvsCommand
                 .ObserveOn(RxApp.MainThreadScheduler)
@@ -146,7 +159,7 @@ namespace PhoenixVisualizer.Editor.Views
                   }
                   
                   ParamRegistry.Register(sel.Id, defs);
-                  _parameterEditor.LoadFor(sel.Id, sel.DisplayName);
+                  _parameterEditor.LoadFor(sel.Id, sel.DisplayName ?? "Unknown");
                   
                   // Live-sync parameter changes back into SelectedEffect.Parameters
                   ParamRegistry.ValueChanged += (vizId, key, value) =>
@@ -227,7 +240,7 @@ namespace PhoenixVisualizer.Editor.Views
                 var graph = WinampAvsImporter.Import(bytes);
                 _vm.EffectStack.Clear();
                 foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
-                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault() ?? null;
                 _vm.CurrentFilePath = path;
                 _vm.StatusText = $"Imported AVS: {Path.GetFileName(path)}";
             }
@@ -237,7 +250,7 @@ namespace PhoenixVisualizer.Editor.Views
                 var graph = PhxVizSerializer.Load(bytes);
                 _vm.EffectStack.Clear();
                 foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
-                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault() ?? null;
                 _vm.CurrentFilePath = path;
                 _vm.StatusText = $"Loaded Phoenix preset: {Path.GetFileName(path)}";
             }
@@ -246,15 +259,7 @@ namespace PhoenixVisualizer.Editor.Views
                 _vm.StatusText = "Unsupported file type.";
             }
             
-            // Populate script panes if superscope selected
-            if (_vm.SelectedEffect?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                var sel = _vm.SelectedEffect;
-                _vm.ScriptInit = sel.Parameters.TryGetValue("init", out var i) ? Convert.ToString(i) ?? "" : "";
-                _vm.ScriptFrame = sel.Parameters.TryGetValue("frame", out var f) ? Convert.ToString(f) ?? "" : "";
-                _vm.ScriptBeat = sel.Parameters.TryGetValue("beat", out var b) ? Convert.ToString(b) ?? "" : "";
-                _vm.ScriptPoint = sel.Parameters.TryGetValue("point", out var p) ? Convert.ToString(p) ?? "" : "";
-            }
+            // The ViewModel will automatically populate script panes when SelectedEffect changes
             
             // Immediately compile so user sees content
             CompileFromStack();
@@ -363,24 +368,67 @@ namespace PhoenixVisualizer.Editor.Views
             }
             catch { /* optional */ }
         }
+        
+        private void WireUpDragAndDrop()
+        {
+            var effectStackListBox = this.FindControl<ListBox>("EffectStackListBox");
+            if (effectStackListBox == null) return;
+            
+            // Enable drag and drop for reordering and file drops
+            effectStackListBox.AddHandler(DragDrop.DragOverEvent, OnStackDragOver);
+            effectStackListBox.AddHandler(DragDrop.DropEvent, OnStackDrop);
+        }
 
         // ----- Drag & Drop from catalog into stack -----
         public void OnStackDragEnter(object? sender, DragEventArgs e) { e.DragEffects = DragDropEffects.Copy; }
         public void OnStackDragLeave(object? sender, DragEventArgs e) { }
         public void OnStackDragOver(object? sender, DragEventArgs e)
         {
-            if (!e.Data.Contains("application/x-phx-node")) e.DragEffects = DragDropEffects.None;
-            else e.DragEffects = DragDropEffects.Copy;
+            if (e.Data.Contains("application/x-phx-node"))
+            {
+                e.DragEffects = DragDropEffects.Copy;
+            }
+            else if (e.Data.Contains(DataFormats.Files))
+            {
+                var files = e.Data.GetFiles()?.ToList();
+                if (files != null && files.Any() && Path.GetExtension(files.First().Name).ToLowerInvariant() == ".avs")
+                {
+                    e.DragEffects = DragDropEffects.Copy;
+                }
+                else
+                {
+                    e.DragEffects = DragDropEffects.None;
+                }
+            }
+            else
+            {
+                e.DragEffects = DragDropEffects.None;
+            }
         }
         public void OnStackDrop(object? sender, DragEventArgs e)
         {
             if (_vm == null) return;
+            
+            // Handle effect node drops
             if (e.Data.Get("application/x-phx-node") is string typeKey)
             {
                 var node = EffectNodeCatalog.Create(typeKey);
                 _vm.EffectStack.Add(node);
                 _vm.SelectedEffect = node;
                 CompileFromStack();
+            }
+            // Handle file drops
+            else if (e.Data.Contains(DataFormats.Files))
+            {
+                var files = e.Data.GetFiles()?.ToList();
+                if (files != null && files.Any())
+                {
+                    var file = files.First();
+                    if (Path.GetExtension(file.Name).ToLowerInvariant() == ".avs")
+                    {
+                        _ = Task.Run(async () => await LoadFileAsync(file.Path.LocalPath));
+                    }
+                }
             }
         }
     }
