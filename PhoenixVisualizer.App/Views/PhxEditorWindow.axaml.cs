@@ -206,11 +206,26 @@ public partial class PhxEditorWindow : Window
 
     private void SetupParameterEditor()
     {
-        // Parameter editor is now handled via XAML binding
-        // The ParameterEditor control is automatically bound to ViewModel properties
+        try
+        {
+            // Find the ContentControl that will host our ParameterEditor
+            var hostControl = this.FindControl<ContentControl>("ParamPanelHost");
+            if (hostControl == null)
+            {
+                Debug.WriteLine("PHX Editor: ParamPanelHost ContentControl not found");
+                return;
+            }
 
-        // Get reference to the ParameterEditor control for manual updates if needed
-        _parameterEditor = this.FindControl<ParameterEditor>("ParamPanelHost") ?? null!;
+            // Create a new ParameterEditor and add it to the ContentControl
+            _parameterEditor = new ParameterEditor();
+            hostControl.Content = _parameterEditor;
+            
+            Debug.WriteLine("PHX Editor: ParameterEditor created and added to host");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"PHX Editor: SetupParameterEditor error: {ex}");
+        }
     }
 
     private void WireUpEffectSelection()

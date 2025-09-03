@@ -54,7 +54,9 @@
         <!-- Right: Parameter panel host (live, no extra wiring needed) -->
         <Border Grid.Row="1" Grid.Column="1" Margin="0,10,10,10" Background="#13151d"
                 CornerRadius="6" BorderBrush="#22252d" BorderThickness="1">
-            <ContentControl x:Name="ParamPanelHost"/>
+            <ContentControl x:Name="ParamPanelHost">
+                <!-- We'll create and add the ParameterEditor programmatically -->
+            </ContentControl>
         </Border>
     </Grid>
 
