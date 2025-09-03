@@ -1,4 +1,4 @@
-using PhoenixVisualizer.Editor.Rendering;
+using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
 using PhoenixVisualizer.Plugins.Avs;
 

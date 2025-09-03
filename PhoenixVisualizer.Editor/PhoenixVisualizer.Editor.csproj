@@ -24,6 +24,8 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="ReactiveUI" Version="$(ReactiveUIVersion)" />
+    <PackageReference Include="AvaloniaEdit" Version="0.10.12" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +36,8 @@
     <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj" />
   </ItemGroup>
 
 </Project>

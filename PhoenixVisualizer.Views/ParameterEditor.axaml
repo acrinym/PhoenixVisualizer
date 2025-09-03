@@ -1,0 +1,29 @@
+<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/ParameterEditor.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="400"
+             x:Class="PhoenixVisualizer.App.Views.ParameterEditor">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PanelBackground" Color="#2d2d30"/>
+        <SolidColorBrush x:Key="TextColor" Color="#f1f1f1"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007acc"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3e3e42"/>
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource PanelBackground}"
+            BorderBrush="{StaticResource BorderColor}"
+            BorderThickness="1">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ParametersPanel" Margin="10" Spacing="10">
+                <!-- Parameters will be dynamically added here -->
+                <TextBlock Text="Select an effect to edit parameters"
+                          Foreground="{StaticResource TextColor}"
+                          Opacity="0.6"
+                          TextAlignment="Center"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

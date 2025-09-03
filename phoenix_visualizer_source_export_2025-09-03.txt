@@ -1,7 +1,7 @@
 ﻿================================================================================
 PHOENIX VISUALIZER - SOURCE CODE EXPORT (STREAMLINED)
 ================================================================================
-Generated: 09/03/2025 00:24:06
+Generated: 09/03/2025 14:58:01
 Description: Streamlined source code export containing ONLY essential source files.
              Excludes: binaries, obj/bin directories, generated files, documentation,
              large files, and compiled assemblies.
@@ -17,41 +17,60 @@ Description: Streamlined source code export containing ONLY essential source fil
 ================================================================================
 BUILD STATUS & ERROR TRACKING
 ================================================================================
-Build started at: 09/03/2025 00:24:06
+Build started at: 09/03/2025 14:58:01
 === DOTNET BUILD OUTPUT ===
 Build Command: dotnet build PhoenixVisualizer.sln
-Build Timestamp: 09/03/2025 00:24:06
+Build Timestamp: 09/03/2025 14:58:01
 
   Determining projects to restore...
-  All projects are up-to-date for restore.
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj : warning NU1604: Project dependency ReactiveUI does not contain an inclusive lower bound. Include a lower bound in the dependency version to ensure consistent restore results. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.sln]
+  Restored D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj (in 280 ms).
+  Restored D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj (in 363 ms).
+  12 of 14 projects are up-to-date for restore.
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj : warning NU1604: Project dependency ReactiveUI does not contain an inclusive lower bound. Include a lower bound in the dependency version to ensure consistent restore results.
   PhoenixVisualizer.Plots -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plots\bin\Debug\net8.0\PhoenixVisualizer.Plots.dll
   PhoenixVisualizer.Core -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.dll
   PhoenixVisualizer.PluginHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.PluginHost\bin\Debug\net8.0\PhoenixVisualizer.PluginHost.dll
   PhoenixVisualizer.Audio -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Audio\bin\Debug\net8.0\PhoenixVisualizer.Audio.dll
   PhoenixVisualizer.Plugins.Ape.Phoenix -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Ape.Phoenix\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Ape.Phoenix.dll
-  PhoenixVisualizer.AvsEngine -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
-  PhoenixVisualizer.ApeHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.ApeHost\bin\Debug\net8.0\PhoenixVisualizer.ApeHost.dll
   PhoenixVisualizer.Plugins.Avs -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Avs\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Avs.dll
+  PhoenixVisualizer.AvsEngine -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
   PhoenixVisualizer.Audio.TestRunner -> D:\GitHub\AMrepo\PhoenixVisualizer.Audio.TestRunner\bin\Debug\net8.0\PhoenixVisualizer.Audio.TestRunner.dll
   PhoenixVisualizer.Visuals -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\bin\Debug\net8.0\PhoenixVisualizer.Visuals.dll
+  PhoenixVisualizer.Parameters -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Parameters\bin\Debug\net8.0\PhoenixVisualizer.Parameters.dll
+  PhoenixVisualizer.ApeHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.ApeHost\bin\Debug\net8.0\PhoenixVisualizer.ApeHost.dll
+  PhoenixVisualizer.Rendering -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Rendering\bin\Debug\net8.0\PhoenixVisualizer.Rendering.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\Views\PhxEditorWindow.axaml.cs(145,49): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj]
   PhoenixVisualizer.Editor -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\bin\Debug\net8.0\PhoenixVisualizer.Editor.dll
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxPreviewWindow.axaml.cs(60,21): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\MainWindow.axaml.cs(96,68): warning CS0436: The type 'AvaloniaAvsRenderer' in 'D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Rendering\AvaloniaAvsRenderer.cs' conflicts with the imported type 'AvaloniaAvsRenderer' in 'PhoenixVisualizer.Rendering, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Rendering\AvaloniaAvsRenderer.cs'. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\ViewModels\PhxEditorViewModel.cs(101,36): warning CS0067: The event 'PhxEditorViewModel.CompileCompleted' is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\ViewModels\PhxEditorViewModel.cs(100,30): warning CS0067: The event 'PhxEditorViewModel.CompileStarted' is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
   PhoenixVisualizer -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\PhoenixVisualizer.dll
 
 Build succeeded.
-    0 Warning(s)
+
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj : warning NU1604: Project dependency ReactiveUI does not contain an inclusive lower bound. Include a lower bound in the dependency version to ensure consistent restore results. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.sln]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj : warning NU1604: Project dependency ReactiveUI does not contain an inclusive lower bound. Include a lower bound in the dependency version to ensure consistent restore results.
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\Views\PhxEditorWindow.axaml.cs(145,49): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxPreviewWindow.axaml.cs(60,21): warning CS8601: Possible null reference assignment. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\MainWindow.axaml.cs(96,68): warning CS0436: The type 'AvaloniaAvsRenderer' in 'D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Rendering\AvaloniaAvsRenderer.cs' conflicts with the imported type 'AvaloniaAvsRenderer' in 'PhoenixVisualizer.Rendering, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Rendering\AvaloniaAvsRenderer.cs'. [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\ViewModels\PhxEditorViewModel.cs(101,36): warning CS0067: The event 'PhxEditorViewModel.CompileCompleted' is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\ViewModels\PhxEditorViewModel.cs(100,30): warning CS0067: The event 'PhxEditorViewModel.CompileStarted' is never used [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+    7 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:03.52
+Time Elapsed 00:00:11.94
 
 === BUILD SUMMARY ===
 Build Exit Code: 0
 Build Status: SUCCESS
-Build Completed: 09/03/2025 00:24:10
+Build Completed: 09/03/2025 14:58:13
 Total Errors: 0
-Total Warnings: 0
+Total Warnings: 10
 
 === BUILD SUCCESS ===
-âœ… Build completed successfully with 0 warnings
+âœ… Build completed successfully with 10 warnings
 This export captures a working build state.
 
 =================================================================================
@@ -759,6 +778,7 @@ public sealed class AvsHostControl : NativeControlHost
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using PhoenixVisualizer.App.Services;
 using PhoenixVisualizer.App.ViewModels;
 
@@ -777,10 +797,10 @@ namespace PhoenixVisualizer.App.Controls
 
         private void OnParamTargetChanged(object? obj)
         {
-            if (DataContext is ParameterEditorViewModel vm)
-            {
-                vm.SetTarget(obj);
-            }
+            var vm = DataContext as ParameterEditorViewModel;
+            if (vm is null) return;
+            if (Dispatcher.UIThread.CheckAccess()) vm.SetTarget(obj);
+            else Dispatcher.UIThread.Post(() => vm.SetTarget(obj));
         }
 
         public void SetTarget(object? obj)
@@ -897,6 +917,7 @@ namespace PhoenixVisualizer.Models
     <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Ape.Phoenix\PhoenixVisualizer.Plugins.Ape.Phoenix.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -909,6 +930,8 @@ namespace PhoenixVisualizer.Models
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <!-- Bind ReactiveUI to Avalonia dispatcher -->
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="AvaloniaEdit" Version="0.10.12" />
     <PackageReference Include="ReactiveUI" Version="19.5.41" />
@@ -924,6 +947,10 @@ namespace PhoenixVisualizer.Models
 
 
 [PhoenixVisualizer.App\Program.cs]
+using Avalonia;
+using Avalonia.ReactiveUI; // NEW
+using ReactiveUI;
+
 namespace PhoenixVisualizer.App;
 
 sealed class Program
@@ -932,14 +959,17 @@ sealed class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            .UseReactiveUI() // NEW
             .LogToTrace();
 }
 
@@ -1557,6 +1587,122 @@ public sealed class RenderSurface : Control
         float dt = 1f / 60f; // ~60 FPS
         float tau = smoothingMs / 1000f;
         return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
+    }
+}
+
+
+[PhoenixVisualizer.App\Rendering\SanityVisualizer.cs]
+using PhoenixVisualizer.PluginHost;
+using SkiaSharp;
+
+namespace PhoenixVisualizer.App.Rendering
+{
+    public class SanityVisualizer : IVisualizerPlugin
+    {
+        public string Id => "sanity";
+        public string Name => "Sanity Visualizer";
+        public string DisplayName => "Sanity Visualizer";
+        public string Description => "Default sanity check visualizer";
+        public string Author => "Phoenix Visualizer";
+        public string Version => "1.0";
+
+        public void Initialize(int width, int height)
+        {
+            // No initialization needed
+        }
+
+        public void Resize(int width, int height)
+        {
+            // No resize handling needed
+        }
+
+        public void Dispose()
+        {
+            // No cleanup needed
+        }
+
+        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+        {
+            // Draw a simple test pattern
+            canvas.Clear(0xFF1A1A1A);
+            
+            var centerX = canvas.Width / 2f;
+            var centerY = canvas.Height / 2f;
+            
+            canvas.DrawText("Sanity Visualizer", centerX - 100, centerY, 0xFFFFFFFF, 24);
+            canvas.DrawText("Ready for content", centerX - 80, centerY + 30, 0xFFAAAAAA, 16);
+        }
+    }
+}
+
+
+[PhoenixVisualizer.App\Rendering\UnifiedPhoenixVisualizer.cs]
+using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.Core.Transpile;
+using SkiaSharp;
+
+namespace PhoenixVisualizer.App.Rendering
+{
+    public class UnifiedPhoenixVisualizer : IVisualizerPlugin
+    {
+        private UnifiedGraph? _graph;
+        private int _width;
+        private int _height;
+
+        public string Id => "unified_phoenix";
+        public string Name => "Unified Phoenix Visualizer";
+        public string DisplayName => "Phoenix Visualizer";
+        public string Description => "Renders Phoenix unified graph";
+        public string Author => "Phoenix Visualizer";
+        public string Version => "1.0";
+
+        public void Initialize(int width, int height)
+        {
+            _width = width;
+            _height = height;
+        }
+
+        public void Resize(int width, int height)
+        {
+            _width = width;
+            _height = height;
+        }
+
+        public void Dispose()
+        {
+            _graph = null;
+        }
+
+        public void LoadGraph(UnifiedGraph graph)
+        {
+            _graph = graph;
+        }
+
+        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+        {
+            canvas.Clear(0xFF0A0A0A);
+            
+            if (_graph == null || _graph.Nodes.Count == 0)
+            {
+                // Show no content message
+                var centerX = _width / 2f;
+                var centerY = _height / 2f;
+                canvas.DrawText("No Phoenix content loaded", centerX - 120, centerY, 0xFFFFFFFF, 20);
+                return;
+            }
+
+            // Render each node in the graph
+            
+            canvas.DrawText($"Phoenix Graph: {_graph.Nodes.Count} nodes", 10, 30, 0xFFAAAAAA, 16);
+            
+            // Simple visualization of the graph structure
+            for (int i = 0; i < _graph.Nodes.Count; i++)
+            {
+                var node = _graph.Nodes[i];
+                var y = 60 + (i * 30);
+                canvas.DrawText($"{i + 1}. {node.DisplayName} ({node.TypeKey})", 10, y, 0xFFFFFFFF, 14);
+            }
+        }
     }
 }
 
@@ -4121,6 +4267,7 @@ namespace PhoenixVisualizer.App.Services
 
 [PhoenixVisualizer.App\Services\ParameterBus.cs]
 using System;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.App.Services
 {
@@ -4140,7 +4287,14 @@ namespace PhoenixVisualizer.App.Services
             if (!ReferenceEquals(_current, target))
             {
                 _current = target;
-                TargetChanged?.Invoke(_current);
+                if (Dispatcher.UIThread.CheckAccess())
+                {
+                    TargetChanged?.Invoke(_current);
+                }
+                else
+                {
+                    Dispatcher.UIThread.Post(() => TargetChanged?.Invoke(_current));
+                }
             }
         }
     }
@@ -5217,6 +5371,7 @@ namespace PhoenixVisualizer.App.ViewModels
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive;
+using System.Reactive.Concurrency; // NEW
 using System.Reactive.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -5227,10 +5382,12 @@ namespace PhoenixVisualizer.App.ViewModels
 {
     public partial class PhxEditorViewModel : ReactiveObject
     {
+        private static IScheduler Ui => RxApp.MainThreadScheduler; // NEW
         public PhxEditorSettings Settings { get; } = new PhxEditorSettings();
 
         [Reactive] public string StatusText { get; set; } = "Ready";
         [Reactive] public string StatusMessage { get; set; } = "Ready";
+        [Reactive] public string PresetName { get; set; } = "Untitled";
         [Reactive] public string InitCode { get; set; } = "// Initialization code";
         [Reactive] public string RenderCode { get; set; } = "// Render code";
         [Reactive] public string FrameCode { get; set; } = "// Frame code";
@@ -5245,6 +5402,7 @@ namespace PhoenixVisualizer.App.ViewModels
             get => _isCompiling; 
             private set 
             { 
+                // Always dispatch to UI thread to avoid ReactiveCommand thread issues
                 if (Dispatcher.UIThread.CheckAccess())
                 {
                     this.RaiseAndSetIfChanged(ref _isCompiling, value);
@@ -5261,8 +5419,25 @@ namespace PhoenixVisualizer.App.ViewModels
             } 
         }
         public bool IsCompileEnabled => !IsCompiling;
+        
+        // Add a computed property that reflects whether there's anything to run
+        public bool HasCodeToRun =>
+            !string.IsNullOrWhiteSpace(InitCode) ||
+            !string.IsNullOrWhiteSpace(FrameCode) ||
+            !string.IsNullOrWhiteSpace(PointCode) ||
+            !string.IsNullOrWhiteSpace(BeatCode);
         public ObservableCollection<string> Logs { get; } = new();
-        public void Log(string msg) => Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
+        public void Log(string msg) 
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
+            }
+            else
+            {
+                Dispatcher.UIThread.Post(() => Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}"));
+            }
+        }
 
         // Commands
         public ReactiveCommand<Unit, Unit> SavePresetCommand { get; set; } = ReactiveCommand.Create(() => { });
@@ -5297,7 +5472,6 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public PhxEditorViewModel()
         {
-            var canRun = this.WhenAnyValue(x => x.IsCompiling).Select(c => !c);
             InitializeCommands();
             
             // Create a dummy SelectedEffect to avoid null reference exceptions
@@ -5306,10 +5480,8 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public void InitializeCommands()
         {
-            // Ensure all command updates happen on the UI thread
-            var canRun = this.WhenAnyValue(x => x.IsCompiling)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Select(c => !c);
+            // ensure CanExecute and outputs are marshalled to the UI thread
+            var canRun = this.WhenAnyValue(x => x.HasCodeToRun);
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
             SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
@@ -5323,33 +5495,16 @@ namespace PhoenixVisualizer.App.ViewModels
             AddEffectCommand = ReactiveCommand.Create(AddEffect);
             SaveCodeCommand = ReactiveCommand.Create(SaveCode);
             
-            CompileCommand = ReactiveCommand.CreateFromTask(async () =>
-            {
-                CompileStarted?.Invoke();
-                IsCompiling = true;
-                var ok = false;
-                try
-                {
-                    Log("Compile started.");
-                    await DoCompileAsync(); // parse/transpile/build â†’ swap into runtime/preview
-                    ok = true;
-                    Log("Compile completed.");
-                }
-                catch (Exception ex)
-                {
-                    Log("Compile failed: " + ex.Message);
-                    ok = false;
-                }
-                finally
-                {
-                    IsCompiling = false;
-                    CompileCompleted?.Invoke(ok);
-                }
-            }, canRun);
-            
-            TestCodeCommand = ReactiveCommand.CreateFromTask(async () => await DoTestAsync(), canRun);
-            ImportAvsCommand = ReactiveCommand.CreateFromTask(async () => await DoImportAsync(), canRun);
-            ExportAvsCommand = ReactiveCommand.CreateFromTask(async () => await DoExportAsync(), canRun);
+            CompileCommand = ReactiveCommand.Create(() => Unit.Default, canRun);
+            TestCodeCommand = ReactiveCommand.Create(() => Unit.Default, canRun);
+            ImportAvsCommand = ReactiveCommand.CreateFromTask(
+                async () => await DoImportAsync(),
+                canRun,
+                outputScheduler: Ui);
+            ExportAvsCommand = ReactiveCommand.CreateFromTask(
+                async () => await DoExportAsync(),
+                canRun,
+                outputScheduler: Ui);
             PlayCommand = ReactiveCommand.Create(Play);
             PauseCommand = ReactiveCommand.Create(Pause);
             RestartCommand = ReactiveCommand.Create(Restart);
@@ -5389,22 +5544,22 @@ namespace PhoenixVisualizer.App.ViewModels
         private async Task DoCompileAsync() 
         { 
             await Task.Delay(100); 
-            Debug.WriteLine("DoCompileAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoCompileAsync called"));
         }
         private async Task DoTestAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoTestAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoTestAsync called"));
         }
         private async Task DoImportAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoImportAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoImportAsync called"));
         }
         private async Task DoExportAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoExportAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoExportAsync called"));
         }
 
         // AVS Import/Export methods
@@ -7208,13 +7363,14 @@ namespace PhoenixVisualizer.Views
 }
 
 
-[PhoenixVisualizer.App\Views\PhxEditorWindow.axaml]
-<Window x:Class="PhoenixVisualizer.Views.PhxEditorWindow"
+[PhoenixVisualizer.App\Views\PhxPreviewWindow.axaml]
+<Window x:Class="PhoenixVisualizer.Views.PhxPreviewWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="using:PhoenixVisualizer.App.Views"
+        xmlns:r="using:PhoenixVisualizer.App.Rendering"
         xmlns:local="using:PhoenixVisualizer.Views"
         xmlns:vm="using:PhoenixVisualizer.App.ViewModels"
         mc:Ignorable="d"
@@ -7259,7 +7415,8 @@ namespace PhoenixVisualizer.Views
         <!-- Left: Preview surface -->
         <Border Grid.Row="1" Grid.Column="0" Margin="10" Background="#0c0c11"
                 CornerRadius="6" BorderBrush="#22252d" BorderThickness="1">
-            <Canvas x:Name="PreviewCanvas"/>
+            <!-- live render surface -->
+            <r:RenderSurface x:Name="PreviewSurface"/>
         </Border>
 
         <!-- Right: Parameter panel host (live, no extra wiring needed) -->
@@ -7274,11 +7431,12 @@ namespace PhoenixVisualizer.Views
     <!-- Logs will be added in a future update -->
 </Window>
 
-[PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs]
+[PhoenixVisualizer.App\Views\PhxPreviewWindow.axaml.cs]
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Runtime.InteropServices;
@@ -7292,10 +7450,15 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.Core; // ParameterSystem
+using PhoenixVisualizer.App.Rendering;
+using PhoenixVisualizer.App.Views; // UnifiedAvsVisualizer
+using PhoenixVisualizer.App.Services; // UnifiedAvsData, UnifiedAvsService, etc.
 // Note: Using the simpler IEffectNode from Nodes namespace, not the advanced one from Effects.Interfaces
 // The advanced EffectsGraphManager will be integrated in a future phase
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System.Reactive.Disposables; // NEW
 using System.Reactive.Linq;
 
 // Reference classes from the App namespaces
@@ -7312,17 +7475,18 @@ namespace PhoenixVisualizer.Views;
 /// PHX Editor Window - Advanced Visual Effects Composer
 /// Complete AVS Editor++ with effect stack, code editing, and live preview
 /// </summary>
-public partial class PhxEditorWindow : Window
+public partial class PhxPreviewWindow : Window
 {
+    private readonly CompositeDisposable _disposables = new(); // NEW
     public PhoenixVisualizer.App.ViewModels.PhxEditorViewModel ViewModel { get; private set; } = null!;
 
-    private PhxPreviewRenderer _previewRenderer;
+    private RenderSurface? _preview; // actual drawing control
     private ParameterEditor _parameterEditor;
     private PhxCodeEngine _codeEngine;
     private PresetService _presetService;
     // Using the basic EffectRegistry for Phase 4 - advanced graph manager integration in future phase
 
-    public PhxEditorWindow()
+    public PhxPreviewWindow()
     {
         InitializeComponent();
         // Defensive: keep VM binding even if template changes
@@ -7339,7 +7503,7 @@ public partial class PhxEditorWindow : Window
 
         // Initialize required fields
         _codeEngine = new PhxCodeEngine();
-        _previewRenderer = null!;
+        _preview = null!;
         _parameterEditor = null!;
         _presetService = new PresetService();
 
@@ -7368,6 +7532,8 @@ public partial class PhxEditorWindow : Window
 
         // Initialize effect instantiation pipeline
         InitializeEffectPipeline();
+        
+        this.Closed += (_, __) => _disposables.Dispose(); // NEW
     }
 
 
@@ -7396,9 +7562,19 @@ public partial class PhxEditorWindow : Window
         var vm = ViewModel;
         if (vm != null)
         {
-            // Wire up the compile command to execute code
-            vm.CompileCommand.Subscribe(_ => CompileCode());
-            vm.TestCodeCommand.Subscribe(_ => TestCode());
+            // route the VM commands to real editor behaviors
+            vm.CompileCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => CompileFromEditor());
+            vm.TestCodeCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => TestFromEditor());
+            vm.ImportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(async _ => await ImportAvsPresetAsync());
+            vm.ExportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(async _ => await ExportPresetAsync());
         }
     }
 
@@ -7477,8 +7653,10 @@ public partial class PhxEditorWindow : Window
 
     private void SetupPreviewRendering()
     {
-        // Create the preview renderer
-        _previewRenderer = new PhxPreviewRenderer(PreviewCanvas, ViewModel);
+        _preview = this.FindControl<RenderSurface>("PreviewSurface");
+        if (_preview == null) return;
+        // show something by default so the surface is obviously alive
+        // _preview.SetPlugin(new SanityVisualizer()); // TODO: Create a default visualizer
     }
 
     private void SetupParameterEditor()
@@ -7555,9 +7733,22 @@ public partial class PhxEditorWindow : Window
         // The ParameterEditor already updates the EffectParam objects directly
     }
 
+    // NEW: keep file pickers strictly on UI thread, do-nothing when nothing loaded is already handled in handlers
     private void WireUpPresetCommands()
     {
-        // Preset commands are already wired up in ViewModel
+        var vm = ViewModel;
+        if (vm != null)
+        {
+            vm.ImportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => ImportAvsPreset())
+              .DisposeWith(_disposables);
+
+            vm.ExportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => ExportAvsPreset())
+              .DisposeWith(_disposables);
+        }
     }
     
     private void WireUpSettingsAndPreview()
@@ -7570,7 +7761,7 @@ public partial class PhxEditorWindow : Window
                 var dlg = new Views.PhxEditorSettingsDialog { DataContext = ViewModel.Settings };
                 dlg.ShowDialog(this);
                 // Apply settings immediately
-                _previewRenderer?.ApplySettings(ViewModel.Settings);
+                // _previewRenderer?.ApplySettings(ViewModel.Settings); // TODO: Implement settings application
                 // Save settings for persistence
                 ViewModel.Settings.Save();
             });
@@ -7679,6 +7870,237 @@ public partial class PhxEditorWindow : Window
         catch (Exception ex)
         {
             ViewModel.StatusMessage = $"Error importing AVS preset: {ex.Message}";
+        }
+    }
+
+    // ===== ADVANCED EDITOR FUNCTIONALITY =====
+    // Build UnifiedAvsData from editor code blocks
+    private UnifiedAvsData BuildUnifiedFromEditor()
+    {
+        // Create a detection result for the editor-generated content
+        var detection = new DetectionResult(
+            AvsFileType.PhoenixText,
+            1.0f, // High confidence for editor-generated content
+            new List<string> { "Editor", "Phoenix" },
+            "Generated from PHX Editor"
+        );
+
+        // Build combined code from all sections
+        var combinedCode = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(ViewModel.InitCode))
+            combinedCode.AppendLine("// INIT").AppendLine(ViewModel.InitCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.FrameCode))
+            combinedCode.AppendLine("// FRAME").AppendLine(ViewModel.FrameCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.PointCode))
+            combinedCode.AppendLine("// POINT").AppendLine(ViewModel.PointCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.BeatCode))
+            combinedCode.AppendLine("// BEAT").AppendLine(ViewModel.BeatCode.Trim());
+
+        var superscopes = new List<UnifiedSuperscope>
+        {
+            new UnifiedSuperscope(
+                Name: "Main",
+                InitCode: string.IsNullOrWhiteSpace(ViewModel.InitCode) ? null : ViewModel.InitCode.Trim(),
+                FrameCode: string.IsNullOrWhiteSpace(ViewModel.FrameCode) ? null : ViewModel.FrameCode.Trim(),
+                PointCode: string.IsNullOrWhiteSpace(ViewModel.PointCode) ? null : ViewModel.PointCode.Trim(),
+                BeatCode: string.IsNullOrWhiteSpace(ViewModel.BeatCode) ? null : ViewModel.BeatCode.Trim(),
+                SourceType: "Phoenix",
+                CombinedCode: combinedCode.ToString()
+            )
+        };
+
+        var data = new UnifiedAvsData(
+            FileType: AvsFileType.PhoenixText,
+            Superscopes: superscopes,
+            Effects: new List<UnifiedEffect>(),
+            Detection: detection,
+            RawText: combinedCode.ToString(),
+            RawBinary: null
+        );
+
+        Debug.WriteLine($"### JUSTIN DEBUG: Built UnifiedAvsData from editor - {data.Superscopes.Count} superscopes");
+        return data;
+    }
+
+    // Use a plugin for the preview surface
+    private void UsePluginFor(UnifiedAvsData data)
+    {
+        if (_preview == null) return;
+
+        // Create a visualizer and load the data
+        var visualizer = new UnifiedAvsVisualizer();
+        visualizer.LoadAvsData(data);
+        _preview.SetPlugin(visualizer);
+
+        Debug.WriteLine($"### JUSTIN DEBUG: Set plugin for preview - {data.FileType} with {data.Superscopes.Count} superscopes");
+    }
+
+    // Compile code from editor
+    private void CompileFromEditor()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Compiling...";
+            Debug.WriteLine("### JUSTIN DEBUG: CompileFromEditor() called");
+
+            var data = BuildUnifiedFromEditor();
+            UsePluginFor(data);
+
+            ViewModel.StatusMessage = "Compiled successfully";
+            Debug.WriteLine($"### JUSTIN DEBUG: Compilation successful - {data.FileType} with {data.Superscopes.Count} superscopes");
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Compilation failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Compilation error - {ex.Message}");
+        }
+    }
+
+    // Test code from editor
+    private void TestFromEditor()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Testing...";
+            Debug.WriteLine("### JUSTIN DEBUG: TestFromEditor() called");
+
+            var data = BuildUnifiedFromEditor();
+            UsePluginFor(data);
+
+            // Force a visual refresh to start rendering
+            if (_preview != null)
+            {
+                _preview.InvalidateVisual();
+            }
+
+            ViewModel.StatusMessage = "Test running";
+            Debug.WriteLine($"### JUSTIN DEBUG: Test started - {data.FileType} with {data.Superscopes.Count} superscopes");
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Test failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Test error - {ex.Message}");
+        }
+    }
+
+    // Import AVS preset
+    private async Task ImportAvsPresetAsync()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Importing AVS preset...";
+            Debug.WriteLine("### JUSTIN DEBUG: ImportAvsPresetAsync() called");
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = "Import AVS Preset",
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("AVS Presets") { Patterns = new[] { "*.avs" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var results = await this.StorageProvider.OpenFilePickerAsync(options);
+            if (results.Count > 0)
+            {
+                var file = results[0];
+                var content = await File.ReadAllTextAsync(file.Path.LocalPath);
+                
+                // Parse AVS content into editor code blocks
+                ParseAvsToEditor(content);
+                
+                ViewModel.StatusMessage = "AVS preset imported";
+                Debug.WriteLine($"### JUSTIN DEBUG: Imported AVS preset - {file.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Import failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Import error - {ex.Message}");
+        }
+    }
+
+    // Export preset
+    private async Task ExportPresetAsync()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Exporting preset...";
+            Debug.WriteLine("### JUSTIN DEBUG: ExportPresetAsync() called");
+
+            var options = new FilePickerSaveOptions
+            {
+                Title = "Export Preset",
+                DefaultExtension = ".phx",
+                FileTypeChoices = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("Phoenix Presets") { Patterns = new[] { "*.phx" } },
+                    new FilePickerFileType("AVS Presets") { Patterns = new[] { "*.avs" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var result = await this.StorageProvider.SaveFilePickerAsync(options);
+            if (result != null)
+            {
+                var data = BuildUnifiedFromEditor();
+                var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(result.Path.LocalPath, json);
+                
+                ViewModel.StatusMessage = "Preset exported";
+                Debug.WriteLine($"### JUSTIN DEBUG: Exported preset - {result.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Export failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Export error - {ex.Message}");
+        }
+    }
+
+    // Parse AVS content into editor code blocks
+    private void ParseAvsToEditor(string avsContent)
+    {
+        try
+        {
+            // Simple parsing - extract code blocks
+            var lines = avsContent.Split('\n');
+            var initCode = new List<string>();
+            var frameCode = new List<string>();
+            var pointCode = new List<string>();
+            var beatCode = new List<string>();
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("//") || string.IsNullOrEmpty(trimmed))
+                    continue;
+
+                // Simple heuristic - assign to appropriate code block
+                if (trimmed.Contains("init") || trimmed.Contains("Init"))
+                    initCode.Add(line);
+                else if (trimmed.Contains("frame") || trimmed.Contains("Frame"))
+                    frameCode.Add(line);
+                else if (trimmed.Contains("point") || trimmed.Contains("Point"))
+                    pointCode.Add(line);
+                else if (trimmed.Contains("beat") || trimmed.Contains("Beat"))
+                    beatCode.Add(line);
+                else
+                    pointCode.Add(line); // Default to point code
+            }
+
+            ViewModel.InitCode = string.Join("\n", initCode);
+            ViewModel.FrameCode = string.Join("\n", frameCode);
+            ViewModel.PointCode = string.Join("\n", pointCode);
+            ViewModel.BeatCode = string.Join("\n", beatCode);
+
+            Debug.WriteLine($"### JUSTIN DEBUG: Parsed AVS content - {lines.Length} lines");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"### JUSTIN DEBUG: Parse error - {ex.Message}");
         }
     }
 }
@@ -8916,6 +9338,8 @@ public class PhxEditorViewModel : ReactiveObject
 
         LogPerformanceEvent("Performance monitoring disposed");
     }
+
+
 }
 
 /// <summary>
@@ -9197,9 +9621,6 @@ public class PresetMetadata
         ? $"{new FileInfo(FilePath).Length / 1024} KB"
         : "Unknown";
 }
-
-
-
 
 [PhoenixVisualizer.App\Views\PluginInstallationWizard.axaml]
 <Window xmlns="https://github.com/avaloniaui"
@@ -41510,6 +41931,32 @@ public sealed class PresetScheduler
 
 
 
+[PhoenixVisualizer.Core\Serialization\PhxVizSerializer.cs]
+using System;
+using System.Text.Json;
+using PhoenixVisualizer.Core.Transpile;
+
+namespace PhoenixVisualizer.Core.Serialization
+{
+    public static class PhxVizSerializer
+    {
+        public static byte[] Save(UnifiedGraph graph)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(graph, options);
+            return System.Text.Encoding.UTF8.GetBytes(json);
+        }
+
+        public static UnifiedGraph Load(byte[] bytes)
+        {
+            var json = System.Text.Encoding.UTF8.GetString(bytes);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            return JsonSerializer.Deserialize<UnifiedGraph>(json, options) ?? new UnifiedGraph();
+        }
+    }
+}
+
+
 [PhoenixVisualizer.Core\Services\AccessibilityService.cs]
 using System.Text.Json;
 
@@ -46866,6 +47313,274 @@ namespace PhoenixVisualizer.Core.Services
 }
 
 
+[PhoenixVisualizer.Core\Transpile\UnifiedEffectNode.cs]
+using System;
+using System.Collections.Generic;
+
+namespace PhoenixVisualizer.Core.Transpile
+{
+    public class UnifiedEffectNode
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string TypeKey { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public Dictionary<string, object> Parameters { get; set; } = new();
+    }
+
+    public class UnifiedGraph
+    {
+        public List<UnifiedEffectNode> Nodes { get; set; } = new();
+    }
+}
+
+
+[PhoenixVisualizer.Core\Transpile\WinampAvsExporter.cs]
+using System;
+
+namespace PhoenixVisualizer.Core.Transpile
+{
+    public static class WinampAvsExporter
+    {
+        public static byte[] Export(UnifiedGraph graph)
+        {
+            // TODO: Implement actual AVS export logic
+            var content = "// Exported Phoenix preset\n";
+            foreach (var node in graph.Nodes)
+            {
+                if (node.TypeKey == "superscope")
+                {
+                    content += $"// {node.DisplayName}\n";
+                    content += $"// INIT\n{node.Parameters.GetValueOrDefault("init", "")}\n";
+                    content += $"// FRAME\n{node.Parameters.GetValueOrDefault("frame", "")}\n";
+                    content += $"// BEAT\n{node.Parameters.GetValueOrDefault("beat", "")}\n";
+                    content += $"// POINT\n{node.Parameters.GetValueOrDefault("point", "")}\n";
+                }
+            }
+            return System.Text.Encoding.UTF8.GetBytes(content);
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Core\Transpile\WinampAvsImporter.cs]
+using System;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+
+namespace PhoenixVisualizer.Core.Transpile
+{
+    public static class WinampAvsImporter
+    {
+        public static UnifiedGraph Import(byte[] bytes)
+        {
+            var graph = new UnifiedGraph();
+            if (bytes == null || bytes.Length == 0) return graph;
+
+            if (LooksLikeNullsoftBinary(bytes))
+            {
+                return ImportNullsoftBinary(bytes);
+            }
+
+            var text = DecodeBestEffort(bytes);
+            if (LooksLikePhoenixAvsText(text))
+            {
+                return ImportPhoenixAvsText(text);
+            }
+
+            // Fallback: treat as single script payload (point)
+            graph.Nodes.Add(MakeSuperscope("Imported Script", init: "", frame: "", beat: "", point: text));
+            return graph;
+        }
+
+        // ---------- Phoenix AVS (text) ----------
+        private static UnifiedGraph ImportPhoenixAvsText(string text)
+        {
+            var graph = new UnifiedGraph();
+            // Split into [presetXX] blocks, keep header bits above first preset too
+            var blocks = Regex.Split(text, @"(?im)^\s*\[(?:preset\d+)\]\s*$")
+                              .Select(s => s.Trim()).ToList();
+
+            // Quick scan for single-block (no [preset]) files
+            if (blocks.Count == 1 && text.IndexOf("INIT", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                graph.Nodes.Add(ParsePresetBlock("Superscope", text));
+                return graph;
+            }
+
+            // Multi-preset: scan the whole text for [presetXX] headers and take each region
+            var presetMatches = Regex.Matches(text, @"(?im)^\s*\[(preset\d+)\]\s*$");
+            var starts = presetMatches.Cast<Match>().Select(m => m.Index).Concat(new[] { text.Length }).ToArray();
+            for (int i = 0; i < presetMatches.Count; i++)
+            {
+                var from = starts[i];
+                var to   = starts[i + 1];
+                var name = presetMatches[i].Groups[1].Value;
+                var slice = text.Substring(from, to - from);
+
+                // Try to read "sn=Superscope (...)" else default name
+                var disp = Regex.Match(slice, @"(?im)^\s*sn\s*=\s*(.+)$").Success
+                    ? Regex.Match(slice, @"(?im)^\s*sn\s*=\s*(.+)$").Groups[1].Value.Trim()
+                    : name;
+
+                var node = ParsePresetBlock(disp, slice);
+                if (node != null)
+                    graph.Nodes.Add(node);
+            }
+
+            if (graph.Nodes.Count == 0)
+                graph.Nodes.Add(MakeSuperscope("Empty Preset"));
+
+            return graph;
+        }
+
+        private static UnifiedEffectNode ParsePresetBlock(string displayName, string block)
+        {
+            // Sections are tagged with uppercase keywords on their own lines:
+            // INIT / FRAME / BEAT / CODE(=POINT)
+            string Grab(string tag)
+            {
+                // Capture everything from TAG line to next ALL CAPS tag or block end
+                var rx = new Regex($@"(?ims)^\s*{tag}\s*\r?\n(.*?)(?=^\s*(INIT|FRAME|BEAT|CODE)\s*$|^\s*\[\w+]|$)");
+                var m = rx.Match(block);
+                return m.Success ? m.Groups[1].Value.Trim() : "";
+            }
+
+            var init  = Grab("INIT");
+            var frame = Grab("FRAME");
+            var beat  = Grab("BEAT");
+            var point = Grab("CODE"); // Phoenix AVS uses CODE for point section
+
+            // Samples (n=) if present
+            var samples = 512;
+            var nMatch = Regex.Match(block, @"(?im)^\s*n\s*=\s*(\d+(\.\d+)?)");
+            if (nMatch.Success && int.TryParse(nMatch.Groups[1].Value.Split('.')[0], out var nVal))
+                samples = Math.Clamp(nVal, 1, 128000);
+
+            return MakeSuperscope(displayName, init, frame, beat, point, samples);
+        }
+
+        // ---------- Nullsoft AVS (binary) ----------
+        private static UnifiedGraph ImportNullsoftBinary(byte[] bytes)
+        {
+            // Title / author if present
+            var title = "Imported AVS";
+            var mTitle = Regex.Match(DecodeLatin1(bytes), @"(?!Nullsoft AVS Preset)[ -~]{6,}");
+            if (mTitle.Success)
+            {
+                var s = mTitle.Value.Trim();
+                if (!s.StartsWith("Nullsoft AVS"))
+                    title = s.Replace("\0", "").Trim();
+            }
+
+            // Extract readable ASCII "code-ish" fragments
+            var ascii = ExtractAsciiChunks(bytes);
+
+            // Heuristics:
+            // - point: anything that sets x= or y= OR references i and trig/PI
+            // - init: lines that set n= and avoid i-heavy math
+            // - frame: the rest
+            var pointLines = new List<string>();
+            var initLines  = new List<string>();
+            var frameLines = new List<string>();
+
+            foreach (var line in ascii)
+            {
+                var s = line.Trim();
+                if (s.Length < 8 || !s.Contains('=')) continue;
+
+                bool looksPoint = s.Contains("x=") || s.Contains("y=") ||
+                                  Regex.IsMatch(s, @"\bi\b") && Regex.IsMatch(s, @"\b(\$PI|sin|cos|rad)"); // i + trig
+                bool setsN      = Regex.IsMatch(s, @"(?<![a-zA-Z])n\s*=");
+
+                if (looksPoint)
+                    pointLines.Add(s);
+                else if (setsN && !Regex.IsMatch(s, @"\bi\b"))
+                    initLines.Add(s);
+                else
+                    frameLines.Add(s);
+            }
+
+            // Coalesce and sanitize
+            string Coalesce(IEnumerable<string> lines) =>
+                string.Join("\n", lines.Distinct().Take(400));
+
+            var init  = Coalesce(initLines);
+            var frame = Coalesce(frameLines);
+            var point = Coalesce(pointLines);
+
+            // Reasonable default if nothing detected
+            if (string.IsNullOrWhiteSpace(point)) point = "// (no obvious point code found)\n// x=...; y=...;";
+            if (string.IsNullOrWhiteSpace(init))  init  = "n=400;";
+            var node = MakeSuperscope(title, init, frame, beat: "", point: point);
+            return new UnifiedGraph { Nodes = new List<UnifiedEffectNode> { node } };
+        }
+
+        // ---------- helpers ----------
+        private static UnifiedEffectNode MakeSuperscope(string displayName,
+            string init = "", string frame = "", string beat = "", string point = "", int samples = 512)
+        {
+            var node = new UnifiedEffectNode
+            {
+                TypeKey = "superscope",
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Superscope" : displayName
+            };
+            node.Parameters["init"] = init ?? "";
+            node.Parameters["frame"] = frame ?? "";
+            node.Parameters["beat"] = beat ?? "";
+            node.Parameters["point"] = point ?? "";
+            node.Parameters["samples"] = samples;
+            return node;
+        }
+
+        private static bool LooksLikeNullsoftBinary(byte[] b)
+        {
+            var magic = Encoding.ASCII.GetBytes("Nullsoft AVS Preset 0.2");
+            if (b.Length < magic.Length) return false;
+            for (int i = 0; i < magic.Length; i++)
+                if (b[i] != magic[i]) return false;
+            // Binary guard: first 256 bytes not mostly printable
+            int printable = 0, total = Math.Min(256, b.Length);
+            for (int i = 0; i < total; i++)
+            {
+                byte x = b[i];
+                if ((x >= 32 && x <= 126) || x == 9 || x == 10 || x == 13) printable++;
+            }
+            return printable < total * 0.9;
+        }
+
+        private static bool LooksLikePhoenixAvsText(string t)
+            => t.IndexOf("[avs]", StringComparison.OrdinalIgnoreCase) >= 0
+            || Regex.IsMatch(t, @"(?mi)^\s*sn\s*=\s*Superscope");
+
+        private static string DecodeBestEffort(byte[] bytes)
+        {
+            try { return Encoding.UTF8.GetString(bytes); }
+            catch { return DecodeLatin1(bytes); }
+        }
+
+        private static string DecodeLatin1(byte[] bytes) => Encoding.GetEncoding("latin-1").GetString(bytes);
+
+        private static IEnumerable<string> ExtractAsciiChunks(byte[] b)
+        {
+            var s = DecodeLatin1(b);
+            // pull out medium+ length printable runs, then split at semicolons for "statements"
+            var runs = Regex.Matches(s, @"[ -~]{10,}").Cast<Match>().Select(m => m.Value);
+            foreach (var run in runs)
+            {
+                foreach (var part in run.Split(';'))
+                {
+                    var line = (part + ";").Trim();
+                    if (line.Length >= 8 && line.Contains('='))
+                        yield return line;
+                }
+            }
+        }
+    }
+}
+
+
 [PhoenixVisualizer.Core\Utils\CoreUtils.cs]
 using System.Collections.Generic;
 
@@ -48933,6 +49648,57 @@ public partial class App : Application
     }
 }
 
+[PhoenixVisualizer.Editor\Converters\BoolToVisibilityConverter.cs]
+using Avalonia.Data.Converters;
+using Avalonia;
+using Avalonia.Controls;
+using System;
+using System.Globalization;
+
+namespace PhoenixVisualizer.Editor.Converters;
+
+public sealed class BoolToVisibilityConverter : IValueConverter
+{
+    public static readonly BoolToVisibilityConverter Instance = new();
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => (value is bool b && b) ? (object)1 : (object)0;
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+
+[PhoenixVisualizer.Editor\Converters\StringToDocumentConverter.cs]
+using Avalonia.Data.Converters;
+using AvaloniaEdit.Document;
+using System;
+using System.Globalization;
+
+namespace PhoenixVisualizer.Editor.Converters;
+
+public sealed class StringToDocumentConverter : IValueConverter
+{
+    public static readonly StringToDocumentConverter Instance = new();
+    
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string text)
+        {
+            return new TextDocument(text);
+        }
+        return new TextDocument();
+    }
+    
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is TextDocument document)
+        {
+            return document.Text;
+        }
+        return string.Empty;
+    }
+}
+
+
 [PhoenixVisualizer.Editor\GlobalUsings.cs]
 global using System;
 global using System.IO;
@@ -49040,6 +49806,8 @@ namespace PhoenixVisualizer.Editor.Models
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="ReactiveUI" Version="$(ReactiveUIVersion)" />
+    <PackageReference Include="AvaloniaEdit" Version="0.10.12" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49050,6 +49818,8 @@ namespace PhoenixVisualizer.Editor.Models
     <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj" />
   </ItemGroup>
 
 </Project>
@@ -49288,168 +50058,6 @@ public sealed class CanvasAdapter : ISkiaCanvas
     public float GetLineWidth()
     {
         return _lineWidth;
-    }
-}
-
-
-[PhoenixVisualizer.Editor\Rendering\RenderSurface.cs]
-using Avalonia;
-using Avalonia.Media;
-using Avalonia.Threading;
-
-using PhoenixVisualizer.Audio;
-using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Plugins.Avs;
-
-namespace PhoenixVisualizer.Editor.Rendering;
-
-public sealed class RenderSurface : Control
-{
-    private readonly VlcAudioService _audio;
-    private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin();
-    private Timer? _timer;
-
-    // FFT smoothing
-    private readonly float[] _smoothFft = new float[2048];
-    private bool _fftInit;
-
-    // Simple beat/BPM estimation
-    private float _prevEnergy;
-    private DateTime _lastBeat = DateTime.MinValue;
-    private double _bpm;
-
-    // Resize tracking
-    private int _lastWidth;
-    private int _lastHeight;
-
-    public RenderSurface()
-    {
-        _audio = new VlcAudioService();
-    }
-
-    public void SetPlugin(IVisualizerPlugin plugin)
-    {
-        _plugin?.Dispose();
-        _plugin = plugin;
-        System.Diagnostics.Debug.WriteLine($"[RenderSurface] SetPlugin: {plugin.DisplayName} ({plugin.Id})");
-        if (Bounds.Width > 0 && Bounds.Height > 0)
-        {
-            _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
-        }
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
-        _audio.Initialize();
-        _timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render), null, 0, 16);
-    }
-
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        _timer?.Dispose();
-        _timer = null;
-        _plugin?.Dispose();
-        _audio.Dispose();
-        base.OnDetachedFromVisualTree(e);
-    }
-
-    public bool Open(string path) => _audio.Open(path);
-    public bool Play() => _audio.Play();
-    public void Pause() => _audio.Pause();
-    public void Stop() => _audio.Stop();
-
-    public override void Render(DrawingContext context)
-    {
-        var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
-
-        // Handle dynamic resize
-        int w = (int)Bounds.Width;
-        int h = (int)Bounds.Height;
-        if (w != _lastWidth || h != _lastHeight)
-        {
-            _lastWidth = w;
-            _lastHeight = h;
-            _plugin?.Resize(w, h);
-        }
-
-        // Audio data
-        var fft = _audio.GetSpectrumData();
-        var wave = _audio.GetWaveformData();
-        double pos = _audio.GetPositionSeconds();
-        double total = _audio.GetLengthSeconds();
-
-        // Smooth FFT
-        if (!_fftInit)
-        {
-            Array.Copy(fft, _smoothFft, Math.Min(fft.Length, _smoothFft.Length));
-            _fftInit = true;
-        }
-        else
-        {
-            int n = Math.Min(fft.Length, _smoothFft.Length);
-            const float alpha = 0.2f;
-            for (int i = 0; i < n; i++)
-            {
-                _smoothFft[i] = _smoothFft[i] + alpha * (fft[i] - _smoothFft[i]);
-            }
-        }
-
-        // Feature extraction
-        int len = _smoothFft.Length;
-        float energy = 0f;
-        float volumeSum = 0f;
-        float peak = 0f;
-        float bass = 0f, mid = 0f, treble = 0f;
-        int bassEnd = len / 3;
-        int midEnd = 2 * len / 3;
-
-        for (int i = 0; i < len; i++)
-        {
-            float v = MathF.Abs(_smoothFft[i]);
-            volumeSum += v;
-            energy += v * v;
-            if (v > peak) peak = v;
-            if (i < bassEnd) bass += v;
-            else if (i < midEnd) mid += v;
-            else treble += v;
-        }
-
-        float volume = volumeSum / len;
-        float rms = MathF.Sqrt(energy / len);
-
-        // crude beat detection via energy jump
-        bool beat = false;
-        var now = DateTime.UtcNow;
-        if (energy > _prevEnergy * 1.5f && energy > 1e-6f)
-        {
-            beat = true;
-            if (_lastBeat != DateTime.MinValue)
-            {
-                _bpm = 60.0 / (now - _lastBeat).TotalSeconds;
-            }
-            _lastBeat = now;
-        }
-        _prevEnergy = _prevEnergy * 0.9f + energy * 0.1f;
-
-        // Use AudioFeaturesImpl.Create() instead of direct constructor
-        var features = AudioFeaturesImpl.Create(
-            _smoothFft,  // fft
-            wave,        // waveform  
-            rms,         // rms
-            _bpm,        // bpm
-            beat         // beat
-        );
-
-        try
-        {
-            _plugin?.RenderFrame(features, adapter);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Plugin render failed: {ex}");
-        }
     }
 }
 
@@ -51140,6 +51748,141 @@ public partial class MainWindowViewModel : ViewModelBase
 }
 
 
+[PhoenixVisualizer.Editor\ViewModels\PhxEditorViewModel.cs]
+using System;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using ReactiveUI;
+using System.Collections.ObjectModel;
+using PhoenixVisualizer.Core.Transpile;
+
+namespace PhoenixVisualizer.Editor.ViewModels
+{
+    public class PhxEditorViewModel : ReactiveObject
+    {
+        private static IScheduler Ui => RxApp.MainThreadScheduler;
+
+        public ReactiveCommand<Unit, Unit> ImportAvsCommand { get; }
+        public ReactiveCommand<Unit, Unit> ReimportCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExportAvsCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExportPhxVisCommand { get; }
+        public ReactiveCommand<Unit, Unit> CompileCommand { get; }
+        public ReactiveCommand<Unit, Unit> TestCodeCommand { get; }
+        public ReactiveCommand<Unit, Unit> NewPhxVisCommand { get; }
+        public ReactiveCommand<Unit, Unit> ToggleUndockCommand { get; }
+
+        public ObservableCollection<UnifiedEffectNode> EffectStack { get; } = new();
+        private UnifiedEffectNode? _selectedEffect;
+        public UnifiedEffectNode? SelectedEffect
+        {
+            get => _selectedEffect;
+            set => this.RaiseAndSetIfChanged(ref _selectedEffect, value);
+        }
+
+        // Code panes (Superscope only)
+        private string _scriptInit = "", _scriptFrame = "", _scriptBeat = "", _scriptPoint = "";
+        public string ScriptInit { get => _scriptInit; set => this.RaiseAndSetIfChanged(ref _scriptInit, value); }
+        public string ScriptFrame { get => _scriptFrame; set => this.RaiseAndSetIfChanged(ref _scriptFrame, value); }
+        public string ScriptBeat { get => _scriptBeat; set => this.RaiseAndSetIfChanged(ref _scriptBeat, value); }
+        public string ScriptPoint { get => _scriptPoint; set => this.RaiseAndSetIfChanged(ref _scriptPoint, value); }
+
+        private bool _isSuperscopeSelected;
+        public bool IsSuperscopeSelected { get => _isSuperscopeSelected; private set => this.RaiseAndSetIfChanged(ref _isSuperscopeSelected, value); }
+
+        private bool _liveApply = true;
+        public bool LiveApply { get => _liveApply; set => this.RaiseAndSetIfChanged(ref _liveApply, value); }
+
+        // File state
+        private string? _currentFilePath;
+        public string? CurrentFilePath { get => _currentFilePath; set => this.RaiseAndSetIfChanged(ref _currentFilePath, value); }
+
+        private bool _isUndocked;
+        public bool IsUndocked { get => _isUndocked; set => this.RaiseAndSetIfChanged(ref _isUndocked, value); }
+        public string PreviewDockButtonText => IsUndocked ? "Redock Preview" : "Undock Preview";
+
+        private string _statusText = "";
+        public string StatusText { get => _statusText; set => this.RaiseAndSetIfChanged(ref _statusText, value); }
+
+        public PhxEditorViewModel()
+        {
+            var canRun = Observable.Return(true).ObserveOn(Ui).DistinctUntilChanged();
+
+            ImportAvsCommand = ReactiveCommand.CreateFromTask(
+                () => Task.CompletedTask,
+                canRun,
+                outputScheduler: Ui);
+
+            ReimportCommand = ReactiveCommand.CreateFromTask(
+                () => Task.CompletedTask,
+                canRun,
+                outputScheduler: Ui);
+
+            ExportAvsCommand = ReactiveCommand.CreateFromTask(
+                () => Task.CompletedTask,
+                canRun,
+                outputScheduler: Ui);
+
+            ExportPhxVisCommand = ReactiveCommand.CreateFromTask(
+                () => Task.CompletedTask,
+                canRun,
+                outputScheduler: Ui);
+
+            NewPhxVisCommand = ReactiveCommand.Create(
+                () => { /* handled in window */ }, outputScheduler: Ui);
+
+            CompileCommand = ReactiveCommand.Create(
+                () => { /* handled in window */ },
+                outputScheduler: Ui);
+
+            TestCodeCommand = ReactiveCommand.Create(
+                () => { /* handled in window */ },
+                outputScheduler: Ui);
+
+            ToggleUndockCommand = ReactiveCommand.Create(
+                () => { /* handled in window */ },
+                outputScheduler: Ui);
+
+            // Selection drives code visibility + text panes (Superscope only)
+            this.WhenAnyValue(x => x.SelectedEffect)
+                .ObserveOn(Ui)
+                .Subscribe(sel =>
+                {
+                    var isScope = sel?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true;
+                    IsSuperscopeSelected = isScope;
+                    if (isScope && sel != null)
+                    {
+                        ScriptInit  = sel.Parameters.TryGetValue("init", out var i) ? Convert.ToString(i) ?? "" : "";
+                        ScriptFrame = sel.Parameters.TryGetValue("frame", out var f) ? Convert.ToString(f) ?? "" : "";
+                        ScriptBeat  = sel.Parameters.TryGetValue("beat", out var b) ? Convert.ToString(b) ?? "" : "";
+                        ScriptPoint = sel.Parameters.TryGetValue("point", out var p) ? Convert.ToString(p) ?? "" : "";
+                    }
+                    else
+                    {
+                        ScriptInit = ScriptFrame = ScriptBeat = ScriptPoint = "";
+                    }
+                    this.RaisePropertyChanged(nameof(PreviewDockButtonText));
+                });
+
+            // Push edits back into the selected Superscope node
+            this.WhenAnyValue(x => x.ScriptInit,  x => x.ScriptFrame, x => x.ScriptBeat, x => x.ScriptPoint, x => x.SelectedEffect)
+                .Throttle(TimeSpan.FromMilliseconds(120), Ui)
+                .ObserveOn(Ui)
+                .Subscribe(_ =>
+                {
+                    if (SelectedEffect?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        SelectedEffect.Parameters["init"]  = ScriptInit;
+                        SelectedEffect.Parameters["frame"] = ScriptFrame;
+                        SelectedEffect.Parameters["beat"]  = ScriptBeat;
+                        SelectedEffect.Parameters["point"] = ScriptPoint;
+                    }
+                });
+        }
+    }
+}
+
+
 [PhoenixVisualizer.Editor\ViewModels\RelayCommand.cs]
 namespace PhoenixVisualizer.Editor.ViewModels;
 
@@ -51474,7 +52217,7 @@ using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
 using PhoenixVisualizer.Editor.Models;
-using PhoenixVisualizer.Editor.Rendering;
+using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -52043,7 +52786,7 @@ namespace PhoenixVisualizer.Editor.Views
 }
 
 [PhoenixVisualizer.Editor\Views\MainWindow.axaml.cs]
-using PhoenixVisualizer.Editor.Rendering;
+using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
 using PhoenixVisualizer.Plugins.Avs;
 
@@ -52087,6 +52830,689 @@ public partial class MainWindow : Window
         }
     }
 }
+
+[PhoenixVisualizer.Editor\Views\ParameterEditor.axaml]
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PhoenixVisualizer.Editor.Views.ParameterEditor">
+  <ScrollViewer>
+    <StackPanel x:Name="Root" Margin="6" Spacing="8"/>
+  </ScrollViewer>
+</UserControl>
+
+
+[PhoenixVisualizer.Editor\Views\ParameterEditor.axaml.cs]
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using PhoenixVisualizer.Parameters;
+using System.Collections.Generic;
+
+namespace PhoenixVisualizer.Editor.Views;
+
+public partial class ParameterEditor : UserControl
+{
+    public string? VisualizerId { get; private set; }
+    public string VisualizerName { get; private set; } = "";
+
+    public ParameterEditor()
+    {
+        InitializeComponent();
+        ParamRegistry.DefinitionsChanged += OnDefs;
+    }
+
+    public void LoadFor(string visualizerId, string visualizerName)
+    {
+        VisualizerId = visualizerId;
+        VisualizerName = visualizerName;
+        Rebuild();
+    }
+
+    private void OnDefs(string vid) { if (VisualizerId == vid) Rebuild(); }
+
+    private void Rebuild()
+    {
+        Root.Children.Clear();
+        if (VisualizerId is null) return;
+        
+        var defs = ParamRegistry.GetDefs(VisualizerId);
+        var vals = ParamRegistry.GetValues(VisualizerId);
+        
+        foreach (var def in defs.Values)
+        {
+            Control ctrl = def.Type switch
+            {
+                ParamType.Checkbox => BuildCheckbox(def, vals),
+                ParamType.Dropdown => BuildDropdown(def, vals),
+                ParamType.Color    => BuildText(def, vals),
+                ParamType.Slider or ParamType.Dial => BuildSlider(def, vals),
+                ParamType.File or ParamType.Directory => BuildText(def, vals),
+                _ => BuildText(def, vals)
+            };
+            
+            var panel = new StackPanel { Spacing = 4 };
+            panel.Children.Add(new TextBlock { Text = def.Label, FontWeight = Avalonia.Media.FontWeight.Bold });
+            panel.Children.Add(ctrl);
+            if (!string.IsNullOrWhiteSpace(def.Description))
+                panel.Children.Add(new TextBlock { Text = def.Description, Classes = { "muted" } });
+            
+            Root.Children.Add(panel);
+        }
+    }
+
+    private Control BuildCheckbox(ParamDef def, IReadOnlyDictionary<string, object?> vals)
+    {
+        var cb = new CheckBox { IsChecked = vals.TryGetValue(def.Key, out var v) && v is bool b && b };
+        cb.IsCheckedChanged += (_, __) => Update(def.Key, cb.IsChecked ?? false);
+        return cb;
+    }
+
+    private Control BuildDropdown(ParamDef def, IReadOnlyDictionary<string, object?> vals)
+    {
+        var combo = new ComboBox { ItemsSource = def.Options ?? new(), SelectedIndex = 0 };
+        if (vals.TryGetValue(def.Key, out var v) && v is string s && def.Options is { Count: >0 })
+            combo.SelectedIndex = Math.Max(0, def.Options.IndexOf(s));
+        combo.SelectionChanged += (_, __) =>
+        {
+            var sel = combo.SelectedItem as string ?? "";
+            Update(def.Key, sel);
+        };
+        return combo;
+    }
+
+    private Control BuildSlider(ParamDef def, IReadOnlyDictionary<string, object?> vals)
+    {
+        var min = def.Min ?? 0; var max = def.Max ?? 1;
+        var s = new Slider { Minimum = min, Maximum = max, TickFrequency = (max-min)/100.0 };
+        if (vals.TryGetValue(def.Key, out var v) && v is IConvertible)
+            s.Value = Convert.ToDouble(v);
+        s.PropertyChanged += (_, e) =>
+        {
+            if (e.Property.Name == nameof(Slider.Value))
+                Update(def.Key, s.Value);
+        };
+        return s;
+    }
+
+    private Control BuildText(ParamDef def, IReadOnlyDictionary<string, object?> vals)
+    {
+        var tb = new TextBox { Text = vals.TryGetValue(def.Key, out var v) ? v?.ToString() ?? "" : "" };
+        tb.LostFocus += (_, __) => Update(def.Key, tb.Text ?? "");
+        return tb;
+    }
+
+    private void Update(string key, object? value)
+    {
+        if (VisualizerId is null) return;
+        ParamRegistry.Set(VisualizerId, key, value);
+    }
+}
+
+
+[PhoenixVisualizer.Editor\Views\PhxEditorWindow.axaml]
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:r="using:PhoenixVisualizer.Rendering"
+        xmlns:views="using:PhoenixVisualizer.Editor.Views"
+        xmlns:app="using:PhoenixVisualizer.Editor.Views"
+        xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
+        xmlns:converters="using:PhoenixVisualizer.Editor.Converters"
+        x:Class="PhoenixVisualizer.Editor.Views.PhxEditorWindow"
+        x:DataType="vm:PhxEditorViewModel"
+        Width="1280" Height="830" Title="Phoenix Visualizer - PHX Editor">
+  <Grid RowDefinitions="Auto,*" >
+    <!-- Toolbar -->
+    <StackPanel Orientation="Horizontal" Spacing="8" Margin="8">
+      <Button Content="Import AVS"   Command="{Binding ImportAvsCommand}" />
+      <Button Content="Reimport"     Command="{Binding ReimportCommand}" />
+      <Button Content="New Phoenix"  Command="{Binding NewPhxVisCommand}" />
+      <Button Content="Export AVS"   Command="{Binding ExportAvsCommand}" />
+      <Button Content="Export PHXVis" Command="{Binding ExportPhxVisCommand}" />
+      <Separator Width="12"/>
+      <Button Content="Compile" Command="{Binding CompileCommand}" />
+      <Button Content="Test"    Command="{Binding TestCodeCommand}" />
+      <Separator Width="12"/>
+      <Button Content="{Binding PreviewDockButtonText}" Command="{Binding ToggleUndockCommand}" />
+      <CheckBox Content="Live Apply" IsChecked="{Binding LiveApply}" Margin="8,0,0,0"/>
+      <TextBlock Text="{Binding StatusText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <!-- 3-pane layout -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*,Auto,2*">
+      <!-- LEFT: Code editor (visible when Superscope selected) -->
+      <Border Grid.Column="0" Background="#151515" Padding="6">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Unified Phoenix Code" FontWeight="Bold" Margin="0,0,0,6"/>
+          <TabControl IsVisible="{Binding IsSuperscopeSelected}">
+            <TabItem Header="Init">
+              <edit:TextEditor x:Name="InitEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptInit, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Frame">
+              <edit:TextEditor x:Name="FrameEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptFrame, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Beat">
+              <edit:TextEditor x:Name="BeatEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptBeat, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Point">
+              <edit:TextEditor x:Name="PointEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptPoint, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+          </TabControl>
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="1" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />
+
+      <!-- MIDDLE: Stack + Parameters -->
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,*" ColumnDefinitions="*">
+        <TextBlock Text="Effect Stack" FontWeight="Bold" Margin="6,0,0,6"/>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding EffectStack}"
+                 SelectedItem="{Binding SelectedEffect}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DisplayName}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="2" Text="Parameters" FontWeight="Bold" Margin="6,12,0,6"/>
+        <!-- The ParameterEditor user control already exists in your project -->
+        <app:ParameterEditor Grid.Row="3" x:Name="ParameterEditor"/>
+      </Grid>
+
+      <GridSplitter Grid.Column="3" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />
+
+      <!-- RIGHT: Docked Preview -->
+      <Border Grid.Column="4" Background="#0E0E0E">
+        <Grid>
+          <r:RenderSurface x:Name="PreviewSurface"/>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>
+
+
+[PhoenixVisualizer.Editor\Views\PhxEditorWindow.axaml.cs]
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using ReactiveUI;
+using System;
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using PhoenixVisualizer.Core.Transpile;
+using PhoenixVisualizer.Core.Serialization;
+using PhoenixVisualizer.Editor.ViewModels;
+using PhoenixVisualizer.Core;
+using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.Editor.Views;
+using PhoenixVisualizer.Parameters;
+
+namespace PhoenixVisualizer.Editor.Views
+{
+    public partial class PhxEditorWindow : Window
+    {
+        private readonly CompositeDisposable _disposables = new();
+        private RenderSurface? _preview;
+        private PhxEditorViewModel? _vm;
+        private ParameterEditor? _parameterEditor;
+        private Window? _undockedPreviewWindow;
+        private RenderSurface? _undockedSurface;
+        private bool _fileDialogOpen = false;
+
+        public PhxEditorWindow()
+        {
+            InitializeComponent();
+            this.Opened += OnOpened;
+            this.Closed += (_, __) => _disposables.Dispose();
+        }
+
+        private void OnOpened(object? sender, EventArgs e)
+        {
+            _preview = this.FindControl<RenderSurface>("PreviewSurface");
+            _parameterEditor = this.FindControl<ParameterEditor>("ParameterEditor");
+            if (_preview != null) _preview.SetPlugin(new SanityVisualizer());
+
+            _vm = DataContext as PhxEditorViewModel;
+            if (_vm == null) return;
+
+            // Register baseline parameter for samples
+            const string VizId = "unified_phoenix";
+            ParamRegistry.Register(VizId, new List<ParamDef>
+            {
+                new() { Key = "samples", Label = "Samples", Type = ParamType.Slider, DefaultValue = 512.0, Min = 16, Max = 4096 }
+            });
+            _parameterEditor?.LoadFor(VizId, "Unified Phoenix");
+
+            WireUpCommands(_vm);
+            WireUpSelection(_vm);
+
+            // Optionally load builtin parameter docs (*.json) from "Presets/Params"
+            TryLoadBuiltinParamDocs();
+        }
+
+        private void WireUpCommands(PhxEditorViewModel vm)
+        {
+            // Wire up compile and test commands - TODO: Fix ReactiveCommand subscription
+            // vm.CompileCommand.Execute().Subscribe(x => CompileFromStack()).DisposeWith(_disposables);
+            // vm.TestCodeCommand.Execute().Subscribe(x => { CompileFromStack(); vm.StatusText = "Test running."; }).DisposeWith(_disposables);
+
+            vm.ImportAvsCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ => await ImportAvsAsync())
+                .DisposeWith(_disposables);
+
+            vm.ReimportCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ => await ReimportAsync())
+                .DisposeWith(_disposables);
+
+            vm.ExportAvsCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ => await ExportAvsAsync())
+                .DisposeWith(_disposables);
+
+            vm.ExportPhxVisCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(async _ => await ExportPhxVisAsync())
+                .DisposeWith(_disposables);
+
+            vm.NewPhxVisCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => NewPhxVis())
+                .DisposeWith(_disposables);
+
+            vm.ToggleUndockCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => ToggleUndockPreview())
+                .DisposeWith(_disposables);
+
+            // Live apply: when scripts change and LiveApply is on, recompile
+            vm.WhenAnyValue(x => x.ScriptInit, x => x.ScriptFrame, x => x.ScriptBeat, x => x.ScriptPoint, x => x.LiveApply)
+                .Throttle(TimeSpan.FromMilliseconds(120), RxApp.MainThreadScheduler)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => { if (_vm?.LiveApply == true) CompileFromStack(); })
+                .DisposeWith(_disposables);
+
+            // Parameters live updates: refresh compile if a node param changes
+            ParamRegistry.ValueChanged += (vid, key, value) =>
+            {
+                if (_vm?.EffectStack.Any(n => n.Id == vid) == true && _vm.LiveApply)
+                    CompileFromStack();
+            };
+        }
+
+        private void WireUpSelection(PhxEditorViewModel vm)
+        {
+            vm.WhenAnyValue(x => x.SelectedEffect)
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(sel =>
+              {
+                  if (sel == null || _parameterEditor == null) return;
+                  
+                  // Convert node parameters to ParamDef structure
+                  var defs = new List<ParamDef>();
+                  foreach (var (k, v) in sel.Parameters)
+                  {
+                      var (ptype, defVal, min, max) = v switch
+                      {
+                          bool b   => (ParamType.Checkbox, (object)b, 0d, 1d),
+                          int i    => (ParamType.Slider, (object)(double)i, 0d, 4096d),
+                          double d => (ParamType.Slider, (object)d, 0d, 1d),
+                          string s => (ParamType.Text, (object)s, 0d, 1d),
+                          _        => (ParamType.Text, (object)(v?.ToString() ?? ""), 0d, 1d)
+                      };
+                      defs.Add(new ParamDef { Key = k, Label = k, Type = ptype, DefaultValue = defVal, Min = min, Max = max });
+                  }
+                  
+                  ParamRegistry.Register(sel.Id, defs);
+                  _parameterEditor.LoadFor(sel.Id, sel.DisplayName);
+                  
+                  // Live-sync parameter changes back into SelectedEffect.Parameters
+                  ParamRegistry.ValueChanged += (vizId, key, value) =>
+                  {
+                      if (vizId == sel.Id && sel.Parameters.ContainsKey(key))
+                          sel.Parameters[key] = value;
+                  };
+              })
+              .DisposeWith(_disposables);
+        }
+
+        private void CompileFromStack()
+        {
+            if (_vm == null) return;
+            var target = _vm.IsUndocked ? _undockedSurface : _preview;
+            if (target == null)
+            {
+                _vm.StatusText = "No preview surface.";
+                return;
+            }
+            if (_vm.EffectStack.Count == 0)
+            {
+                target.SetPlugin(new SanityVisualizer()); // only when truly empty
+                _vm.StatusText = "No nodes; showing generic visualizer.";
+                return;
+            }
+            var plugin = new UnifiedPhoenixVisualizer();
+            plugin.LoadGraph(new UnifiedGraph { Nodes = _vm.EffectStack.ToList() });
+            target.SetPlugin(plugin);
+            _vm.StatusText = "Compiled current stack.";
+        }
+
+        private async Task ImportAvsAsync()
+        {
+            if (StorageProvider == null || _vm == null || _fileDialogOpen) return;
+            _fileDialogOpen = true;
+            
+            try
+            {
+                var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = "Import AVS",
+                    AllowMultiple = false,
+                    FileTypeFilter = new List<FilePickerFileType>
+                    {
+                        new FilePickerFileType("Winamp AVS (*.avs)") { Patterns = new[] { "*.avs" } },
+                        new FilePickerFileType("Phoenix Preset (*.phxviz)") { Patterns = new[] { "*.phxviz" } }
+                    }
+                });
+                var f = files?.FirstOrDefault(); if (f == null) return;
+                await LoadFileAsync(f.Path.LocalPath);
+            }
+            finally
+            {
+                _fileDialogOpen = false;
+            }
+        }
+
+        private async Task ReimportAsync()
+        {
+            if (_vm?.CurrentFilePath is string path && File.Exists(path))
+            {
+                await LoadFileAsync(path);
+            }
+            else
+            {
+                await ImportAvsAsync(); // fall back to picker if nothing loaded
+            }
+        }
+
+        private async Task LoadFileAsync(string path)
+        {
+            if (_vm == null) return;
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (ext == ".avs")
+            {
+                var bytes = await File.ReadAllBytesAsync(path);
+                var graph = WinampAvsImporter.Import(bytes);
+                _vm.EffectStack.Clear();
+                foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
+                _vm.CurrentFilePath = path;
+                _vm.StatusText = $"Imported AVS: {Path.GetFileName(path)}";
+            }
+            else if (ext == ".phxviz")
+            {
+                var bytes = await File.ReadAllBytesAsync(path);
+                var graph = PhxVizSerializer.Load(bytes);
+                _vm.EffectStack.Clear();
+                foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
+                _vm.CurrentFilePath = path;
+                _vm.StatusText = $"Loaded Phoenix preset: {Path.GetFileName(path)}";
+            }
+            else
+            {
+                _vm.StatusText = "Unsupported file type.";
+            }
+            
+            // Populate script panes if superscope selected
+            if (_vm.SelectedEffect?.TypeKey.Equals("superscope", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var sel = _vm.SelectedEffect;
+                _vm.ScriptInit = sel.Parameters.TryGetValue("init", out var i) ? Convert.ToString(i) ?? "" : "";
+                _vm.ScriptFrame = sel.Parameters.TryGetValue("frame", out var f) ? Convert.ToString(f) ?? "" : "";
+                _vm.ScriptBeat = sel.Parameters.TryGetValue("beat", out var b) ? Convert.ToString(b) ?? "" : "";
+                _vm.ScriptPoint = sel.Parameters.TryGetValue("point", out var p) ? Convert.ToString(p) ?? "" : "";
+            }
+            
+            // Immediately compile so user sees content
+            CompileFromStack();
+        }
+
+        private async Task ExportAvsAsync()
+        {
+            if (StorageProvider == null || _vm == null || _vm.EffectStack.Count == 0) return;
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Export AVS",
+                SuggestedFileName = "preset.avs",
+                DefaultExtension = "avs",
+                FileTypeChoices = new List<FilePickerFileType> { new FilePickerFileType("Winamp AVS (*.avs)") { Patterns = new[] { "*.avs" } } }
+            });
+            if (file == null) return;
+            var bytes = WinampAvsExporter.Export(new UnifiedGraph { Nodes = _vm.EffectStack.ToList() });
+            await File.WriteAllBytesAsync(file.Path.LocalPath, bytes);
+            _vm.StatusText = $"Exported AVS: {file.Name}";
+        }
+
+        private async Task ExportPhxVisAsync()
+        {
+            if (StorageProvider == null || _vm == null) return;
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Export Phoenix Preset",
+                SuggestedFileName = "preset.phxviz",
+                DefaultExtension = "phxviz",
+                FileTypeChoices = new List<FilePickerFileType> { new FilePickerFileType("Phoenix Preset (*.phxviz)") { Patterns = new[] { "*.phxviz" } } }
+            });
+            if (file == null) return;
+            var bytes = PhxVizSerializer.Save(new UnifiedGraph { Nodes = _vm.EffectStack.ToList() });
+            await File.WriteAllBytesAsync(file.Path.LocalPath, bytes);
+            _vm.StatusText = $"Exported Phoenix preset: {file.Name}";
+        }
+
+        private void NewPhxVis()
+        {
+            if (_vm == null) return;
+            _vm.EffectStack.Clear();
+            var node = new UnifiedEffectNode
+            {
+                TypeKey = "superscope",
+                DisplayName = "Superscope",
+            };
+            node.Parameters["init"] = "";
+            node.Parameters["frame"] = "";
+            node.Parameters["beat"] = "";
+            node.Parameters["point"] = "";
+            node.Parameters["samples"] = 512;
+            _vm.EffectStack.Add(node);
+            _vm.SelectedEffect = node;
+            _vm.CurrentFilePath = null;
+            _vm.StatusText = "New Phoenix preset created.";
+            CompileFromStack();
+        }
+
+        private void ToggleUndockPreview()
+        {
+            if (_vm == null) return;
+            if (!_vm.IsUndocked)
+            {
+                // Undock: create a modal window and move the surface
+                _undockedSurface = new RenderSurface();
+                _undockedPreviewWindow = new Window
+                {
+                    Width = 800, Height = 600, Title = "Preview",
+                    Content = _undockedSurface
+                };
+                _undockedPreviewWindow.Closed += (_, __) =>
+                {
+                    // Redock
+                    if (_preview != null)
+                    {
+                        // Refresh compile into docked surface
+                        CompileFromStack();
+                    }
+                    _vm.IsUndocked = false;
+                    _vm.RaisePropertyChanged(nameof(_vm.PreviewDockButtonText));
+                    _undockedSurface = null;
+                    _undockedPreviewWindow = null;
+                };
+                _vm.IsUndocked = true;
+                _vm.RaisePropertyChanged(nameof(_vm.PreviewDockButtonText));
+                _undockedPreviewWindow.Show(this);
+                // render current content into undocked surface
+                CompileFromStack();
+            }
+            else
+            {
+                // Redock explicitly
+                _undockedPreviewWindow?.Close();
+            }
+        }
+
+        private void TryLoadBuiltinParamDocs()
+        {
+            try
+            {
+                var exe = AppContext.BaseDirectory;
+                var folder = Path.Combine(exe, "Presets", "Params");
+                PhoenixVisualizer.Parameters.ParamJson.LoadFolder(folder);
+            }
+            catch { /* optional */ }
+        }
+    }
+
+
+}
+
+
+[PhoenixVisualizer.Parameters\ParameterCore.cs]
+using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace PhoenixVisualizer.Parameters;
+
+public enum ParamType { Slider, Checkbox, Dropdown, Color, Text, Dial, File, Directory }
+
+public sealed class ParamDef
+{
+    public required string Key { get; init; }
+    public required string Label { get; init; }
+    public ParamType Type { get; init; } = ParamType.Text;
+    public object? DefaultValue { get; init; }
+    public double? Min { get; init; }
+    public double? Max { get; init; }
+    public List<string>? Options { get; init; }
+    public string Category { get; init; } = "General";
+    public string? Description { get; init; }
+    public bool RequiresRestart { get; init; }
+}
+
+public static class ParamRegistry
+{
+    private static readonly ConcurrentDictionary<string, Dictionary<string, ParamDef>> _defs = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object?>> _vals = new();
+
+    public static void Register(string visualizerId, IEnumerable<ParamDef> defs)
+    {
+        _defs[visualizerId] = defs.ToDictionary(d => d.Key, d => d, StringComparer.OrdinalIgnoreCase);
+        _vals.TryAdd(visualizerId, new());
+        foreach (var d in defs)
+            _vals[visualizerId].TryAdd(d.Key, d.DefaultValue);
+        DefinitionsChanged?.Invoke(visualizerId);
+    }
+
+    public static IReadOnlyDictionary<string, ParamDef> GetDefs(string visualizerId)
+        => _defs.TryGetValue(visualizerId, out var d) ? d : new Dictionary<string, ParamDef>();
+
+    public static IReadOnlyDictionary<string, object?> GetValues(string visualizerId)
+        => _vals.TryGetValue(visualizerId, out var v) ? v : new ConcurrentDictionary<string, object?>();
+
+    public static event Action<string, string, object?>? ValueChanged;
+    public static event Action<string>? DefinitionsChanged;
+
+    public static void Set(string visualizerId, string key, object? value)
+    {
+        var map = _vals.GetOrAdd(visualizerId, _ => new());
+        map[key] = value;
+        ValueChanged?.Invoke(visualizerId, key, value);
+    }
+
+    public static bool TryGet(string visualizerId, string key, out object? value)
+    {
+        value = null;
+        return _vals.TryGetValue(visualizerId, out var map) && map.TryGetValue(key, out value);
+    }
+}
+
+public static class ParamJson
+{
+    private static readonly JsonSerializerOptions Opt = new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    public sealed class ParamDoc
+    {
+        public string VisualizerId { get; set; } = "";
+        public string VisualizerName { get; set; } = "";
+        public List<ParamDef> Definitions { get; set; } = new();
+        public Dictionary<string, object?> Values { get; set; } = new();
+    }
+
+    public static byte[] Save(string vizId, string vizName)
+    {
+        var doc = new ParamDoc
+        {
+            VisualizerId = vizId,
+            VisualizerName = vizName,
+            Definitions = ParamRegistry.GetDefs(vizId).Values.ToList(),
+            Values = ParamRegistry.GetValues(vizId).ToDictionary(kv => kv.Key, kv => kv.Value)
+        };
+        return JsonSerializer.SerializeToUtf8Bytes(doc, Opt);
+    }
+
+    public static void Load(byte[] json)
+    {
+        var doc = JsonSerializer.Deserialize<ParamDoc>(json, Opt) ?? new();
+        ParamRegistry.Register(doc.VisualizerId, doc.Definitions);
+        foreach (var (k, v) in doc.Values)
+            ParamRegistry.Set(doc.VisualizerId, k, v);
+    }
+
+    // Load all *.json param docs from a folder
+    public static void LoadFolder(string folder)
+    {
+        if (!Directory.Exists(folder)) return;
+        foreach (var file in Directory.EnumerateFiles(folder, "*.json"))
+        {
+            try { Load(File.ReadAllBytes(file)); } catch { /* skip bad docs */ }
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj]
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+</Project>
+
 
 [PhoenixVisualizer.Plots\Class1.cs]
 namespace PhoenixVisualizer.Plots;
@@ -55951,13 +57377,1045 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
 </Project>
 
 
+[PhoenixVisualizer.Rendering\AvaloniaAvsRenderer.cs]
+using Avalonia.Media.Imaging;
+
+using PhoenixVisualizer.Core.Services;
+
+namespace PhoenixVisualizer.App.Rendering
+{
+    public sealed class AvaloniaAvsRenderer : IAvsRenderer
+    {
+        private Canvas? _canvas;
+        private RenderTargetBitmap? _rt;
+        private readonly List<RenderCommand> _commands = new();
+        private bool _disposed;
+
+        // Current state
+        private float _r = 1, _g = 1, _b = 1, _a = 1;
+
+        public Task InitializeAsync(Dictionary<string, object> variables)
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task<object> RenderFrameAsync(Dictionary<string, object> variables, Dictionary<string, object> audioData)
+        {
+            if (_canvas == null)
+            {
+                return new { success = false, message = "No canvas" };
+            }
+
+            EnsureRenderTarget();
+            if (_rt == null) return new { success = false, message = "No render target" };
+
+            using (var dc = _rt.CreateDrawingContext())
+            {
+                foreach (var cmd in _commands)
+                {
+                    switch (cmd.Type)
+                    {
+                        case RenderCommandType.Clear:
+                            dc.FillRectangle(new SolidColorBrush(Colors.Black), new Rect(new Point(0, 0), _rt.Size));
+                            break;
+                        case RenderCommandType.SetColor:
+                            _r = cmd.Red; _g = cmd.Green; _b = cmd.Blue; _a = cmd.Alpha;
+                            break;
+                        case RenderCommandType.DrawLine:
+                            dc.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(
+                                (byte)(_a * 255), (byte)(_r * 255), (byte)(_g * 255), (byte)(_b * 255))), cmd.Thickness),
+                                new Point(cmd.X1, cmd.Y1), new Point(cmd.X2, cmd.Y2));
+                            break;
+                        case RenderCommandType.DrawCircle:
+                            var brush = new SolidColorBrush(Color.FromArgb(
+                                (byte)(_a * 255), (byte)(_r * 255), (byte)(_g * 255), (byte)(_b * 255)));
+                            var pen = cmd.Filled ? null : new Pen(brush, 1);
+                            dc.DrawEllipse(cmd.Filled ? brush : null, pen, new Point(cmd.X, cmd.Y), cmd.Radius, cmd.Radius);
+                            break;
+                        case RenderCommandType.DrawRectangle:
+                            var rectBrush = new SolidColorBrush(Color.FromArgb(
+                                (byte)(_a * 255), (byte)(_r * 255), (byte)(_g * 255), (byte)(_b * 255)));
+                            var rectPen = cmd.Filled ? null : new Pen(rectBrush, 1);
+                            dc.DrawRectangle(cmd.Filled ? rectBrush : null, rectPen, new Rect(cmd.X, cmd.Y, cmd.Width, cmd.Height));
+                            break;
+                        case RenderCommandType.DrawText:
+                            var textBrush = new SolidColorBrush(Color.FromArgb(
+                                (byte)(_a * 255), (byte)(_r * 255), (byte)(_g * 255), (byte)(_b * 255)));
+                            var ft = new FormattedText(cmd.Text ?? string.Empty, System.Globalization.CultureInfo.CurrentCulture,
+                                FlowDirection.LeftToRight, new Typeface("Arial"), cmd.FontSize, textBrush);
+                            dc.DrawText(ft, new Point(cmd.X, cmd.Y));
+                            break;
+                    }
+                }
+            }
+
+            // Present: replace canvas content with Image of RT
+            _canvas.Children.Clear();
+            _canvas.Children.Add(new Image { Source = _rt, Width = _canvas.Bounds.Width, Height = _canvas.Bounds.Height });
+
+            var result = new { success = true, commands = _commands.Count };
+            _commands.Clear();
+            return await Task.FromResult(result);
+        }
+
+        public Task ClearFrameAsync(string? color = null)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.Clear, Color = color });
+            return Task.CompletedTask;
+        }
+
+        public Task SetBlendModeAsync(string mode, float opacity)
+        {
+            // Not yet used in this minimal implementation
+            return Task.CompletedTask;
+        }
+
+        public Task SetTransformAsync(float x, float y, float rotation, float scale)
+        {
+            // Not applied in this minimal implementation
+            return Task.CompletedTask;
+        }
+
+        public Task SetColorAsync(float red, float green, float blue, float alpha)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.SetColor, Red = red, Green = green, Blue = blue, Alpha = alpha });
+            return Task.CompletedTask;
+        }
+
+        public Task DrawLineAsync(float x1, float y1, float x2, float y2, float thickness = 1.0f)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.DrawLine, X1 = x1, Y1 = y1, X2 = x2, Y2 = y2, Thickness = thickness });
+            return Task.CompletedTask;
+        }
+
+        public Task DrawCircleAsync(float x, float y, float radius, bool filled = true)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.DrawCircle, X = x, Y = y, Radius = radius, Filled = filled });
+            return Task.CompletedTask;
+        }
+
+        public Task DrawRectangleAsync(float x, float y, float width, float height, bool filled = true)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.DrawRectangle, X = x, Y = y, Width = width, Height = height, Filled = filled });
+            return Task.CompletedTask;
+        }
+
+        public Task DrawTextAsync(string text, float x, float y, float fontSize = 12.0f)
+        {
+            _commands.Add(new RenderCommand { Type = RenderCommandType.DrawText, Text = text, X = x, Y = y, FontSize = fontSize });
+            return Task.CompletedTask;
+        }
+
+        public object GetRenderTarget() => _rt ?? (object)new();
+
+        public Task SetRenderTargetAsync(object renderTarget)
+        {
+            // Not used; we bind via SetRenderCanvas
+            return Task.CompletedTask;
+        }
+
+        public Task<object> GetFrameBufferAsync()
+        {
+            return Task.FromResult<object>(_rt ?? new object());
+        }
+
+        public Task<object> TakeScreenshotAsync()
+        {
+            return Task.FromResult<object>(new { success = _rt != null });
+        }
+
+        public void SetRenderCanvas(Canvas canvas)
+        {
+            _canvas = canvas;
+            EnsureRenderTarget();
+        }
+
+        private void EnsureRenderTarget()
+        {
+            if (_canvas == null) return;
+            var size = new PixelSize(Math.Max(1, (int)_canvas.Bounds.Width), Math.Max(1, (int)_canvas.Bounds.Height));
+            if (_rt == null || !_rt.Size.Equals(size))
+            {
+                _rt = new RenderTargetBitmap(size);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _rt = null;
+            _commands.Clear();
+            _canvas = null;
+        }
+    }
+}
+
+
+
+
+[PhoenixVisualizer.Rendering\CanvasAdapter.cs]
+using Avalonia.Platform;
+using SkiaSharp;
+
+namespace PhoenixVisualizer.Rendering
+{
+    public class CanvasAdapter : ISkiaCanvas
+    {
+        private readonly DrawingContext _context;
+        private readonly double _width;
+        private readonly double _height;
+
+        public CanvasAdapter(DrawingContext context, double width, double height)
+        {
+            _context = context;
+            _width = width;
+            _height = height;
+        }
+
+        public int Width => (int)_width;
+        public int Height => (int)_height;
+        public float FrameBlend { get; set; }
+
+        public void Clear(uint color)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawText(string text, float x, float y, uint color, float fontSize = 16)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawLine(float x1, float y1, float x2, float y2, uint color, float thickness = 1)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawCircle(float x, float y, float radius, uint color, bool filled = false)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawRectangle(float x, float y, float width, float height, uint color, bool filled = false)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawLines(System.Span<(float x, float y)> points, float thickness, uint color)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawRect(float x, float y, float width, float height, uint color, bool filled = false)
+        {
+            // Implementation would go here
+        }
+
+        public void FillRect(float x, float y, float width, float height, uint color)
+        {
+            // Implementation would go here
+        }
+
+        public void FillCircle(float cx, float cy, float radius, uint color)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawPoint(float x, float y, uint color, float size = 1.0f)
+        {
+            // Implementation would go here
+        }
+
+        public void Fade(uint color, float alpha)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawPolygon(System.Span<(float x, float y)> points, uint color, bool filled = false)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawArc(float x, float y, float radius, float startAngle, float sweepAngle, uint color, float thickness = 1.0f)
+        {
+            // Implementation would go here
+        }
+
+        private float _lineWidth = 1.0f;
+
+        public void SetLineWidth(float width)
+        {
+            _lineWidth = Math.Max(0.1f, width);
+        }
+
+        public float GetLineWidth()
+        {
+            return _lineWidth;
+        }
+    }
+}
+
+
+
+
+[PhoenixVisualizer.Rendering\ColorHelpers.cs]
+namespace PhoenixVisualizer.App.Rendering;
+
+/// <summary>ðŸŽ¨ Small helpers for color/brush conversion.</summary>
+public static class ColorHelpers
+{
+    public static IBrush BrushFromRgba(uint rgba)
+        => new SolidColorBrush(Color.FromUInt32(rgba));
+}
+
+
+[PhoenixVisualizer.Rendering\GlobalUsings.cs]
+global using System;
+global using System.Collections.Generic;
+global using System.Threading.Tasks;
+global using System.Timers;
+global using System.Linq;
+global using Avalonia;
+global using Avalonia.Controls;
+global using Avalonia.Media;
+global using Avalonia.Platform;
+global using Avalonia.VisualTree;
+global using Avalonia.Threading;
+global using PhoenixVisualizer.Core;
+global using PhoenixVisualizer.PluginHost;
+
+
+[PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj]
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.PluginHost\PhoenixVisualizer.PluginHost.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.AvsEngine\PhoenixVisualizer.AvsEngine.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.3" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+  </ItemGroup>
+</Project>
+
+
+[PhoenixVisualizer.Rendering\PhxEditorViewModel.cs]
+using Avalonia.Media;
+
+namespace PhoenixVisualizer.Rendering
+{
+    public class PhxPreviewViewModel
+    {
+        public PhxEditorSettings Settings { get; set; } = new();
+    }
+
+    public class PhxEditorSettings
+    {
+        public Color BackgroundColor { get; set; } = Colors.Black;
+        public bool ClearEveryFrame { get; set; } = true;
+    }
+}
+
+
+[PhoenixVisualizer.Rendering\PhxPreviewRenderer.cs]
+using Avalonia;
+using Avalonia.Controls;
+using SkiaSharp;
+using System;
+using System.Diagnostics;
+using PhoenixVisualizer.Core;
+
+namespace PhoenixVisualizer.Rendering
+{
+    public sealed class PhxPreviewRenderer
+    {
+        private readonly Canvas _canvas;
+        private readonly PhxPreviewViewModel _vm;
+        private readonly object _sync = new();
+        private PhxEditorSettings _settings;
+
+        public PhxPreviewRenderer(Canvas canvas, PhxPreviewViewModel vm)
+        {
+            _canvas = canvas;
+            _vm = vm;
+            _settings = vm.Settings;
+            HookRenderLoop();
+        }
+
+        public void ApplySettings(PhxEditorSettings settings)
+        {
+            lock (_sync) _settings = settings;
+        }
+
+        private void HookRenderLoop()
+        {
+            _canvas.AttachedToVisualTree += (_, __) => Start();
+            _canvas.DetachedFromVisualTree += (_, __) => Stop();
+        }
+
+        private void Start() { /* start timer/renderer */ }
+        private void Stop() { /* stop timer/renderer */ }
+
+        private void Render(SKCanvas sk, Size size, float t, float dt)
+        {
+            PhxEditorSettings s; lock (_sync) s = _settings;
+            var bg = new SKColor(s.BackgroundColor.R, s.BackgroundColor.G, s.BackgroundColor.B, s.BackgroundColor.A);
+            if (s.ClearEveryFrame) sk.Clear(bg);
+            // TODO: if !ClearEveryFrame, rely on visualizer draw style (accumulation trails)
+            // PixelDoubling: render to smaller RT and scale with nearest
+            // VSync handled by swapchain setup (see platform-specific)
+            // ShowFps: overlay after drawing
+            // draw active visualizer frame here...
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Rendering\RenderSurface.cs]
+using System.Diagnostics;
+
+using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Core.Services;
+using PhoenixVisualizer.Core.Config;
+using PhoenixVisualizer.Core.Models;
+using PhoenixVisualizer.PluginHost;
+using PhoenixVisualizer.Plugins.Avs;
+
+namespace PhoenixVisualizer.Rendering;
+
+public sealed class RenderSurface : Control
+{
+    private IAudioProvider _audio;
+    private IVisualizerPlugin? _plugin = new AvsVisualizerPlugin(); // keep a sensible default
+    private Timer? _timer;
+
+    // FFT smoothing
+    private readonly float[] _smoothFft = new float[2048];
+    private bool _fftInit;
+
+    // FPS
+    private DateTime _fpsWindowStart = DateTime.UtcNow;
+    private int _framesInWindow;
+
+    // Simple beat/BPM estimation
+    private float _prevEnergy;
+    private DateTime _lastBeat = DateTime.MinValue;
+    private double _bpm;
+
+    // random preset scheduler
+    private readonly PresetScheduler _presetScheduler = new();
+
+    // Resize tracking
+    private int _lastWidth;
+    private int _lastHeight;
+
+    // cache settings; reload at most once per second
+    private VisualizerSettings _vz = VisualizerSettings.Load();
+    private DateTime _lastVzLoad = DateTime.UtcNow;
+    private const int SettingsReloadMs = 1000; // 1 Hz
+    
+    // Performance monitoring
+    private readonly PluginPerformanceMonitor _perfMonitor = new();
+    private readonly Stopwatch _renderStopwatch = new();
+
+    // Events
+    public event Action<double>? FpsChanged;
+    public event Action<double>? BpmChanged;
+    public event Action<double, double>? PositionChanged;
+
+    // Public property to access current plugin
+    public IVisualizerPlugin? CurrentPlugin => _plugin;
+
+    public RenderSurface()
+    {
+        // Default to VLC audio service
+        _audio = new VlcAudioService();
+    }
+    
+    public RenderSurface(IAudioProvider audioService)
+    {
+        _audio = audioService ?? throw new ArgumentNullException(nameof(audioService));
+    }
+
+    public void SetPlugin(IVisualizerPlugin plugin)
+    {
+        _plugin?.Dispose();
+        _plugin = plugin;
+        if (Bounds.Width > 0 && Bounds.Height > 0)
+        {
+            _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
+        }
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
+        var audioInitResult = _audio.Initialize();
+        _timer = new Timer(16);
+        _timer.Elapsed += (_, __) => Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render);
+        _timer.Start();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _timer?.Dispose();
+        _timer = null;
+        _plugin?.Dispose();
+        _audio.Dispose();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    public bool Open(string path) 
+    {
+        var result = _audio.Open(path);
+        return result;
+    }
+    
+    public bool Play() 
+    {
+        var result = _audio.Play();
+        return result;
+    }
+    
+    public void Pause() 
+    {
+        _audio.Pause();
+    }
+    
+    public void Stop() 
+    {
+        _audio.Stop();
+    }
+
+    public IAudioProvider? GetAudioService() => _audio;
+    
+    public void SetAudioService(IAudioProvider audioService)
+    {
+        if (audioService == null) return;
+        
+        // Dispose the old audio service
+        _audio?.Dispose();
+        
+        // Set the new one
+        _audio = audioService;
+        
+        Debug.WriteLine($"[RenderSurface] Audio service switched to: {audioService.GetType().Name}");
+    }
+    
+    public PluginPerformanceMonitor GetPerformanceMonitor() => _perfMonitor;
+
+    public override void Render(DrawingContext context)
+    {
+        // Early exit if no audio provider
+        if (_audio == null) return;
+
+        var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
+
+        // Handle dynamic resize for plugins that support it
+        int w = (int)Bounds.Width;
+        int h = (int)Bounds.Height;
+        if (w != _lastWidth || h != _lastHeight)
+        {
+            _lastWidth = w;
+            _lastHeight = h;
+            _plugin?.Resize(w, h);
+        }
+
+        // 1) Get fresh audio data - but only if audio service is ready
+        float[] fft;
+        float[] wave;
+        double pos = 0;
+        double total = 0;
+        
+        if (_audio != null && _audio.IsReadyToPlay)
+        {
+            fft = _audio.GetSpectrumData();
+            wave = _audio.GetWaveformData();
+            pos = _audio.GetPositionSeconds();
+            total = _audio.GetLengthSeconds();
+            
+            // Debug: Check if we're getting actual audio data
+            float fftSum = fft.Sum(f => MathF.Abs(f));
+            float waveSum = wave.Sum(f => MathF.Abs(f));
+            
+            if (fftSum < 0.001f || waveSum < 0.001f)
+            {
+                // Audio data appears to be silent/zero - this might be the issue
+                System.Diagnostics.Debug.WriteLine($"[RenderSurface] Audio data appears silent - FFT sum: {fftSum:F6}, Wave sum: {waveSum:F6}");
+            }
+        }
+        else
+        {
+            // Fallback if audio service is not ready
+            fft = new float[2048];
+            wave = new float[2048];
+            
+            // Debug: Log why audio service isn't ready
+            if (_audio != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RenderSurface] Audio service not ready: {_audio.GetStatus()}");
+            }
+        }
+
+        // Load settings at most once per second
+        if ((DateTime.UtcNow - _lastVzLoad).TotalMilliseconds >= SettingsReloadMs)
+        {
+            _vz = VisualizerSettings.Load();
+            _lastVzLoad = DateTime.UtcNow;
+        }
+        var vz = _vz;
+
+        // 2) FFT smoothing
+        if (!_fftInit)
+        {
+            // First time: copy raw data
+            Array.Copy(fft, _smoothFft, fft.Length);
+            _fftInit = true;
+        }
+        else
+        {
+            // Apply smoothing
+            float smoothingAlpha = TimeDeltaToAlpha(vz.SmoothingMs);
+            for (int i = 0; i < _smoothFft.Length; i++)
+            {
+                _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha) + fft[i] * smoothingAlpha;
+            }
+        }
+
+        // 1) Input gain
+        float gain = MathF.Pow(10f, vz.InputGainDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] *= gain;
+        for (int i = 0; i < wave.Length; i++) wave[i] = Math.Clamp(wave[i] * gain, -1f, 1f);
+
+        // 2) Noise gate
+        float gateLin = MathF.Pow(10f, vz.NoiseGateDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++)
+            if (_smoothFft[i] < gateLin) _smoothFft[i] = 0f;
+
+        // 3) Spectral scaling
+        if (vz.SpectrumScale == SpectrumScale.Sqrt)
+        {
+            for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] = MathF.Sqrt(_smoothFft[i]);
+        }
+        else if (vz.SpectrumScale == SpectrumScale.Log)
+        {
+            const float eps = 1e-12f;
+            for (int i = 0; i < _smoothFft.Length; i++)
+                _smoothFft[i] = MathF.Log10(_smoothFft[i] + eps) * 0.5f + 1f;
+        }
+
+        // 4) Floor/Ceiling clamp
+        float floorLin = MathF.Pow(10f, vz.FloorDb / 20f);
+        float ceilingLin = MathF.Pow(10f, vz.CeilingDb / 20f);
+        for (int i = 0; i < _smoothFft.Length; i++)
+            _smoothFft[i] = Math.Clamp(_smoothFft[i], floorLin, ceilingLin);
+
+        // Feature extraction
+        int len = _smoothFft.Length;
+        float energy = 0f;
+        float volumeSum = 0f;
+        float peak = 0f;
+        float bass = 0f, mid = 0f, treble = 0f;
+        int bassEnd = len / 3;
+        int midEnd = 2 * len / 3;
+
+        for (int i = 0; i < len; i++)
+        {
+            float v = MathF.Abs(_smoothFft[i]);
+            volumeSum += v;
+            energy += v * v;
+            if (v > peak) peak = v;
+            if (i < bassEnd) bass += v;
+            else if (i < midEnd) mid += v;
+            else treble += v;
+        }
+
+        float volume = volumeSum / len;
+        float rms = MathF.Sqrt(energy / len);
+
+        // 5) Auto gain control
+        if (vz.AutoGain)
+        {
+            float err = vz.TargetRms - rms;
+            float agc = 1f + err * 0.5f;
+            agc = Math.Clamp(agc, 0.85f, 1.15f);
+            for (int i = 0; i < _smoothFft.Length; i++) _smoothFft[i] *= agc;
+            for (int i = 0; i < wave.Length; i++) wave[i] *= agc;
+            volume *= agc;
+            rms *= agc;
+            energy *= agc * agc;
+        }
+
+        // 6) Beat detection with user sensitivity + cooldown
+        bool beat = false;
+        var now = DateTime.UtcNow;
+        double mult = Math.Max(1.05, vz.BeatSensitivityOrDefault());
+        if (energy > _prevEnergy * mult && energy > 1e-8)
+        {
+            if ((now - _lastBeat).TotalMilliseconds > Math.Max(0, vz.BeatCooldownMs))
+            {
+                beat = true;
+                if (_lastBeat != DateTime.MinValue)
+                {
+                    _bpm = 60.0 / (now - _lastBeat).TotalSeconds;
+                    Dispatcher.UIThread.Post(() => BpmChanged?.Invoke(_bpm), DispatcherPriority.Background);
+                }
+                _lastBeat = now;
+            }
+        }
+        float alpha = TimeDeltaToAlpha(vz.SmoothingMs);
+        _prevEnergy = _prevEnergy * (1 - alpha) + energy * alpha;
+
+        // 7) Optional frame blending
+        adapter.FrameBlend = Math.Clamp(vz.FrameBlend, 0f, 1f);
+
+        // Use playback position as t (preferred for visual sync)
+        double t = pos;
+
+        // Random preset switching via scheduler - temporarily disabled to prevent crash
+        // TODO: Re-enable after fixing null reference issues
+
+        try
+        {
+            if (_plugin == null)
+            {
+                return;
+            }
+            
+            // Start performance monitoring
+            _renderStopwatch.Restart();
+            
+            // Debug: Log what we're sending to the plugin
+            float fftSum = _smoothFft.Sum(f => MathF.Abs(f));
+            float waveSum = wave.Sum(f => MathF.Abs(f));
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] Sending to plugin '{_plugin.Id}': FFT sum: {fftSum:F6}, Wave sum: {waveSum:F6}, RMS: {rms:F6}, Beat: {beat}, BPM: {_bpm:F1}");
+            
+            // Create PluginHost AudioFeatures for plugin rendering
+            var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
+                _smoothFft,  // fft
+                wave,        // waveform
+                rms,         // rms
+                _bpm,        // bpm
+                beat,        // beat
+                t            // timeSeconds
+            );
+            
+            _plugin.RenderFrame(pluginFeatures, adapter);
+            
+            // Record performance metrics
+            _renderStopwatch.Stop();
+            var renderTimeMs = _renderStopwatch.Elapsed.TotalMilliseconds;
+            
+            // Start monitoring if not already monitoring this plugin
+            if (_plugin.Id != null)
+            {
+                if (_perfMonitor.GetMetrics(_plugin.Id) == null)
+                {
+                    _perfMonitor.StartMonitoring(_plugin.Id, _plugin.DisplayName);
+                }
+                _perfMonitor.RecordFrame(_plugin.Id, renderTimeMs);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Plugin render failed - log the error for debugging
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] Plugin render failed: {ex.Message}");
+        }
+
+        // push position to UI listeners
+        Dispatcher.UIThread.Post(() => PositionChanged?.Invoke(pos, total), DispatcherPriority.Background);
+
+        // FPS tracking
+        _framesInWindow++;
+        var span = now - _fpsWindowStart;
+        if (span.TotalSeconds >= 1)
+        {
+            double fps = _framesInWindow / span.TotalSeconds;
+            _framesInWindow = 0;
+            _fpsWindowStart = now;
+            Dispatcher.UIThread.Post(() => FpsChanged?.Invoke(fps), DispatcherPriority.Background);
+        }
+    }
+
+    private static float TimeDeltaToAlpha(float smoothingMs)
+    {
+        if (smoothingMs <= 0) return 1f;
+        float dt = 1f / 60f; // ~60 FPS
+        float tau = smoothingMs / 1000f;
+        return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
+    }
+}
+
+
+[PhoenixVisualizer.Rendering\SanityVisualizer.cs]
+using PhoenixVisualizer.PluginHost;
+using SkiaSharp;
+
+namespace PhoenixVisualizer.Rendering
+{
+    public class SanityVisualizer : IVisualizerPlugin
+    {
+        public string Id => "sanity";
+        public string Name => "Sanity Visualizer";
+        public string DisplayName => "Sanity Visualizer";
+        public string Description => "Default sanity check visualizer";
+        public string Author => "Phoenix Visualizer";
+        public string Version => "1.0";
+
+        private int _width;
+        private int _height;
+
+        public void Initialize(int width, int height) 
+        { 
+            _width = width; 
+            _height = height; 
+        }
+        
+        public void Resize(int width, int height) 
+        { 
+            _width = width; 
+            _height = height; 
+        }
+        
+        public void Dispose() { }
+
+        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+        {
+            canvas.Clear(0xFF1A1A1A);
+            var centerX = _width / 2f;
+            var centerY = _height / 2f;
+            canvas.DrawText("Sanity Visualizer", centerX - 100, centerY, 0xFFFFFFFF, 24);
+            canvas.DrawText("Ready for content", centerX - 80, centerY + 30, 0xFFAAAAAA, 16);
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Rendering\UnifiedPhoenixVisualizer.cs]
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using PhoenixVisualizer.Parameters;
+using PhoenixVisualizer.Core.Transpile;
+using SkiaSharp;
+
+namespace PhoenixVisualizer.Rendering
+{
+    /// <summary>
+    /// Renders a UnifiedGraph using Skia. Pulls live values from ParamRegistry so UI edits show up immediately.
+    /// No Nullsoft calls, no host dependency.
+    /// </summary>
+    public sealed class UnifiedPhoenixVisualizer : IVisualizerPlugin, IDisposable
+    {
+        private UnifiedGraph? _graph;
+        private bool _disposed;
+
+        // If your host provides audio features, you can wire them via SetAudioFeatures(...) later.
+        // For now we keep a simple time accumulator.
+        private double _t;
+
+        // Keep a weak cache of per-node sampling parameters for speed (still reads live from ParamRegistry).
+        private readonly Dictionary<string, int> _samplesCache = new();
+
+        public string Id => "unified_phoenix";
+        public string Name => "Unified Phoenix Visualizer";
+        public string DisplayName => "Phoenix Visualizer";
+        public string Description => "Renders Phoenix unified graph";
+        public string Author => "Phoenix Visualizer";
+        public string Version => "1.0";
+
+        public void Initialize(int width, int height) 
+        { 
+            // Not used in this implementation
+        }
+        
+        public void Resize(int width, int height) 
+        { 
+            // Not used in this implementation
+        }
+
+        public void LoadGraph(UnifiedGraph graph)
+        {
+            _graph = graph ?? throw new ArgumentNullException(nameof(graph));
+            _samplesCache.Clear();
+
+            // Register parameter definitions so the ParameterEditor can populate controls immediately.
+            foreach (var n in graph.Nodes)
+            {
+                var defs = new List<ParamDef>();
+                foreach (var (k, v) in n.Parameters)
+                {
+                    var (ptype, defVal, min, max) = v switch
+                    {
+                        bool b   => (ParamType.Checkbox, (object)b, 0d, 1d),
+                        int i    => (ParamType.Slider, (object)(double)i, 0d, 4096d),
+                        double d => (ParamType.Slider, (object)d, 0d, 1d),
+                        string s => (ParamType.Text, (object)s, 0d, 1d),
+                        _        => (ParamType.Text, (object)(v?.ToString() ?? ""), 0d, 1d)
+                    };
+                    defs.Add(new ParamDef { Key = k, Label = k, Type = ptype, DefaultValue = defVal, Min = min, Max = max });
+                }
+                ParamRegistry.Register(n.Id, defs);
+            }
+        }
+
+        /// <summary>
+        /// Host calls this once per frame.
+        /// </summary>
+        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+        {
+            if (_disposed) return;
+            _t = features.TimeSeconds;
+
+            canvas.Clear(0xFF000000);
+            if (_graph is null || _graph.Nodes.Count == 0) return;
+
+            // Each node type can draw; for now Superscope is primary. You can extend switch(TypeKey) here.
+            foreach (var node in _graph.Nodes)
+            {
+                switch (node.TypeKey.ToLowerInvariant())
+                {
+                    case "superscope":
+                        DrawSuperscope(node, canvas, canvas.Width, canvas.Height);
+                        break;
+
+                    // Add more node types here: blur, colormap, movement, convolution, etc.
+                    default:
+                        // Unknown node -> draw a faint placeholder label so it's visibly "there"
+                        canvas.DrawText(node.DisplayName ?? node.TypeKey, 8, canvas.Height - 8, 0x18FFFFFF, 12);
+                        break;
+                }
+            }
+        }
+
+        private void DrawSuperscope(UnifiedEffectNode node, ISkiaCanvas canvas, int w, int h)
+        {
+            // Pull samples (live); default 512
+            var samples = GetInt(node, "samples", 512, 16, 8192);
+
+            // Colors (optional user params; fall back to white)
+            var color = ParseColor(GetString(node, "color", "#FFFFFFFF"));
+
+            // Stroke width (nice tweak)
+            var stroke = GetDouble(node, "stroke", 1.0, 0.5, 10.0);
+
+            // NOTE: We don't interpret the Phoenix scripts here (that's a full VM).
+            // For now: a clean, stable waveform/scope that shows parameter responsiveness (samples, color, stroke).
+            // The editor work (import, code panes, params, compile) is fully active; rendering will plug into your VM later.
+
+            float midY = h * 0.5f;
+            float amp = h * 0.25f;
+            // To avoid ISkiaCanvas.DrawPath issues on some hosts, render as line segments.
+            var points = new List<(float x, float y)>();
+            for (int i = 0; i < samples; i++)
+            {
+                float x = i / (float)Math.Max(1, samples - 1) * w;
+                // Simple shape that depends on time and i; replace with VM-evaluated x/y later.
+                double phase = _t * 2.0 + i * 0.02;
+                float y = midY + (float)(Math.Sin(phase) * amp * 0.90 + Math.Sin(phase * 0.5) * amp * 0.10);
+                points.Add((x, y));
+            }
+
+            // Draw as line segments
+            canvas.DrawLines(points.ToArray(), (float)stroke, color);
+        }
+
+        private int GetInt(UnifiedEffectNode n, string key, int fallback, int min, int max)
+        {
+            if (ParamRegistry.TryGet(n.Id, key, out var v) && v is IConvertible)
+            {
+                try { return Math.Clamp(Convert.ToInt32(v), min, max); } catch { /* ignore */ }
+            }
+            if (n.Parameters.TryGetValue(key, out var dv) && dv is IConvertible)
+            {
+                try { return Math.Clamp(Convert.ToInt32(dv), min, max); } catch { /* ignore */ }
+            }
+            return fallback;
+        }
+
+        private double GetDouble(UnifiedEffectNode n, string key, double fallback, double min, double max)
+        {
+            if (ParamRegistry.TryGet(n.Id, key, out var v) && v is IConvertible)
+            {
+                try { return Math.Clamp(Convert.ToDouble(v), min, max); } catch { /* ignore */ }
+            }
+            if (n.Parameters.TryGetValue(key, out var dv) && dv is IConvertible)
+            {
+                try { return Math.Clamp(Convert.ToDouble(dv), min, max); } catch { /* ignore */ }
+            }
+            return fallback;
+        }
+
+        private string GetString(UnifiedEffectNode n, string key, string fallback)
+        {
+            if (ParamRegistry.TryGet(n.Id, key, out var v) && v is string s) return s;
+            if (n.Parameters.TryGetValue(key, out var dv) && dv is string sd) return sd;
+            return fallback;
+        }
+
+        private static uint ParseColor(string hex)
+        {
+            // Accept #RGB, #RRGGBB, #AARRGGBB
+            if (string.IsNullOrWhiteSpace(hex)) return 0xFFFFFFFF;
+            var s = hex.Trim().TrimStart('#');
+            try
+            {
+                if (s.Length == 3)
+                {
+                    var r = Convert.ToInt32(new string(s[0], 2), 16);
+                    var g = Convert.ToInt32(new string(s[1], 2), 16);
+                    var b = Convert.ToInt32(new string(s[2], 2), 16);
+                    return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
+                }
+                if (s.Length == 6)
+                {
+                    var r = Convert.ToInt32(s.Substring(0, 2), 16);
+                    var g = Convert.ToInt32(s.Substring(2, 2), 16);
+                    var b = Convert.ToInt32(s.Substring(4, 2), 16);
+                    return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
+                }
+                if (s.Length == 8)
+                {
+                    var a = Convert.ToInt32(s.Substring(0, 2), 16);
+                    var r = Convert.ToInt32(s.Substring(2, 2), 16);
+                    var g = Convert.ToInt32(s.Substring(4, 2), 16);
+                    var b = Convert.ToInt32(s.Substring(6, 2), 16);
+                    return (uint)((a << 24) | (r << 16) | (g << 8) | b);
+                }
+            }
+            catch { /* fall through */ }
+            return 0xFFFFFFFF;
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+        }
+    }
+}
+
+
 [PhoenixVisualizer.sln]
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.App", "PhoenixVisualizer.App\PhoenixVisualizer.csproj", "{B26C6768-569E-4278-BD36-FB926B1C862B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer", "PhoenixVisualizer.App\PhoenixVisualizer.csproj", "{B26C6768-569E-4278-BD36-FB926B1C862B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Core", "PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj", "{017A1E00-4209-499C-A2AC-174CE5E4D39F}"
 EndProject
@@ -55981,65 +58439,1139 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Editor", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Audio.TestRunner", "..\PhoenixVisualizer.Audio.TestRunner\PhoenixVisualizer.Audio.TestRunner.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Rendering", "PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj", "{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixVisualizer.Parameters", "PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj", "{6249A440-44E7-49E8-B2DC-62D245F3C085}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|x64.Build.0 = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Debug|x86.Build.0 = Debug|Any CPU
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|x64.ActiveCfg = Release|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|x64.Build.0 = Release|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|x86.ActiveCfg = Release|Any CPU
+		{B26C6768-569E-4278-BD36-FB926B1C862B}.Release|x86.Build.0 = Release|Any CPU
 		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|x64.Build.0 = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Debug|x86.Build.0 = Debug|Any CPU
 		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|x64.ActiveCfg = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|x64.Build.0 = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|x86.ActiveCfg = Release|Any CPU
+		{017A1E00-4209-499C-A2AC-174CE5E4D39F}.Release|x86.Build.0 = Release|Any CPU
 		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|x64.Build.0 = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Debug|x86.Build.0 = Debug|Any CPU
 		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|x64.ActiveCfg = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|x64.Build.0 = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|x86.ActiveCfg = Release|Any CPU
+		{36E31B92-4CEC-4963-9684-E7C15D0B0282}.Release|x86.Build.0 = Release|Any CPU
 		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|x64.Build.0 = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Debug|x86.Build.0 = Debug|Any CPU
 		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|x64.ActiveCfg = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|x64.Build.0 = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|x86.ActiveCfg = Release|Any CPU
+		{FCB2349E-8D95-4055-AA42-F6804DAEB723}.Release|x86.Build.0 = Release|Any CPU
 		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|x64.Build.0 = Debug|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Debug|x86.Build.0 = Debug|Any CPU
 		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|x64.ActiveCfg = Release|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|x64.Build.0 = Release|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|x86.ActiveCfg = Release|Any CPU
+		{DE8CFA80-0B31-4440-8ABE-52E8237E3707}.Release|x86.Build.0 = Release|Any CPU
 		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|x64.Build.0 = Debug|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Debug|x86.Build.0 = Debug|Any CPU
 		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|x64.ActiveCfg = Release|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|x64.Build.0 = Release|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|x86.ActiveCfg = Release|Any CPU
+		{B542A8EA-91C9-4FF2-A8F7-A4CC2C24DB0F}.Release|x86.Build.0 = Release|Any CPU
 		{7209476C-053D-462A-921C-B831EC147B27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7209476C-053D-462A-921C-B831EC147B27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Debug|x64.Build.0 = Debug|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Debug|x86.Build.0 = Debug|Any CPU
 		{7209476C-053D-462A-921C-B831EC147B27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7209476C-053D-462A-921C-B831EC147B27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Release|x64.ActiveCfg = Release|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Release|x64.Build.0 = Release|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Release|x86.ActiveCfg = Release|Any CPU
+		{7209476C-053D-462A-921C-B831EC147B27}.Release|x86.Build.0 = Release|Any CPU
 		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|x64.Build.0 = Debug|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Debug|x86.Build.0 = Debug|Any CPU
 		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|x64.ActiveCfg = Release|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|x64.Build.0 = Release|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|x86.ActiveCfg = Release|Any CPU
+		{DED38882-0530-4276-A322-2AEDFBA707E3}.Release|x86.Build.0 = Release|Any CPU
 		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|x64.Build.0 = Debug|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Debug|x86.Build.0 = Debug|Any CPU
 		{957492FD-B771-4EAE-BAE9-270932330078}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{957492FD-B771-4EAE-BAE9-270932330078}.Release|Any CPU.Build.0 = Release|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Release|x64.ActiveCfg = Release|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Release|x64.Build.0 = Release|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Release|x86.ActiveCfg = Release|Any CPU
+		{957492FD-B771-4EAE-BAE9-270932330078}.Release|x86.Build.0 = Release|Any CPU
 		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|x64.Build.0 = Debug|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Debug|x86.Build.0 = Debug|Any CPU
 		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|x64.ActiveCfg = Release|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|x64.Build.0 = Release|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|x86.ActiveCfg = Release|Any CPU
+		{5FF40775-A468-48DB-AA3C-C7391826B8D5}.Release|x86.Build.0 = Release|Any CPU
 		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|x64.Build.0 = Debug|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Debug|x86.Build.0 = Debug|Any CPU
 		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|x64.ActiveCfg = Release|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|x64.Build.0 = Release|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|x86.ActiveCfg = Release|Any CPU
+		{7BCE3585-6AEA-4854-A441-EB6BD940BB6F}.Release|x86.Build.0 = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.Build.0 = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|x64.Build.0 = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Debug|x86.Build.0 = Debug|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|x64.ActiveCfg = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|x64.Build.0 = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|x86.ActiveCfg = Release|Any CPU
+		{1568C941-3B1A-4CE1-95C6-A7D1E32DC075}.Release|x86.Build.0 = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|x64.Build.0 = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Debug|x86.Build.0 = Debug|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|x64.ActiveCfg = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|x64.Build.0 = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|x86.ActiveCfg = Release|Any CPU
+		{6249A440-44E7-49E8-B2DC-62D245F3C085}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
+
+
+[PhoenixVisualizer.Views\GlobalUsings.cs]
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using Avalonia;
+global using Avalonia.Controls;
+global using Avalonia.Layout;
+global using Avalonia.Media;
+global using ReactiveUI;
+global using ReactiveUI.Fody;
+global using PhoenixVisualizer.Core;
+
+
+[PhoenixVisualizer.Views\ParameterEditor.axaml]
+<!-- PhoenixVisualizer/PhoenixVisualizer.App/Views/ParameterEditor.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="400"
+             x:Class="PhoenixVisualizer.App.Views.ParameterEditor">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PanelBackground" Color="#2d2d30"/>
+        <SolidColorBrush x:Key="TextColor" Color="#f1f1f1"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007acc"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3e3e42"/>
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource PanelBackground}"
+            BorderBrush="{StaticResource BorderColor}"
+            BorderThickness="1">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ParametersPanel" Margin="10" Spacing="10">
+                <!-- Parameters will be dynamically added here -->
+                <TextBlock Text="Select an effect to edit parameters"
+                          Foreground="{StaticResource TextColor}"
+                          Opacity="0.6"
+                          TextAlignment="Center"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>
+
+
+[PhoenixVisualizer.Views\ParameterEditor.axaml.cs]
+using System;
+using System.Collections.Generic;
+using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Media;
+using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.Core;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using EffectParam = PhoenixVisualizer.Core.Nodes.EffectParam;
+
+namespace PhoenixVisualizer.App.Views;
+
+/// <summary>
+/// ViewModel for Parameter Editor - handles reactive parameter binding with ParameterSystem
+/// </summary>
+public class ParameterEditorViewModel : ReactiveObject
+{
+    private Dictionary<string, ParameterSystem.ParameterDefinition> _parameterDefinitions = new();
+    private Dictionary<string, ParameterSystem.ParameterValue> _parameterValues = new();
+    private string _visualizerId = "";
+    private string _visualizerName = "";
+
+    public Dictionary<string, ParameterSystem.ParameterDefinition> ParameterDefinitions
+    {
+        get => _parameterDefinitions;
+        set => this.RaiseAndSetIfChanged(ref _parameterDefinitions, value);
+    }
+
+    public Dictionary<string, ParameterSystem.ParameterValue> ParameterValues
+    {
+        get => _parameterValues;
+        set => this.RaiseAndSetIfChanged(ref _parameterValues, value);
+    }
+
+    public string VisualizerId
+    {
+        get => _visualizerId;
+        set => this.RaiseAndSetIfChanged(ref _visualizerId, value);
+    }
+
+    public string VisualizerName
+    {
+        get => _visualizerName;
+        set => this.RaiseAndSetIfChanged(ref _visualizerName, value);
+    }
+
+    public ParameterEditorViewModel()
+    {
+        // React to parameter changes
+        this.WhenAnyValue(x => x.ParameterDefinitions)
+            .Subscribe(_ => UpdateParameterControls());
+
+        this.WhenAnyValue(x => x.ParameterValues)
+            .Subscribe(_ => UpdateParameterControls());
+    }
+
+    private void UpdateParameterControls()
+    {
+        // This will be handled by the view
+    }
+
+    /// <summary>
+    /// Load parameters for a specific visualizer
+    /// </summary>
+    public void LoadVisualizerParameters(string visualizerId, string visualizerName)
+    {
+        VisualizerId = visualizerId;
+        VisualizerName = visualizerName;
+
+        ParameterDefinitions = ParameterSystem.GetVisualizerParameters(visualizerId);
+        ParameterValues = ParameterSystem.GetVisualizerParameterValues(visualizerId);
+    }
+
+    /// <summary>
+    /// Update a parameter value
+    /// </summary>
+    public void UpdateParameterValue(string parameterKey, object value)
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.SetParameterValue(VisualizerId, parameterKey, value);
+
+            // Update local copy
+            if (ParameterValues.ContainsKey(parameterKey))
+            {
+                ParameterValues[parameterKey].Value = value;
+                ParameterValues[parameterKey].LastModified = DateTime.Now;
+                ParameterValues[parameterKey].IsModified = true;
+
+                // Notify UI of the change
+                this.RaisePropertyChanged(nameof(ParameterValues));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reset parameter to default
+    /// </summary>
+    public void ResetParameterToDefault(string parameterKey)
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.ResetParameterToDefault(VisualizerId, parameterKey);
+
+            // Reload values
+            ParameterValues = ParameterSystem.GetVisualizerParameterValues(VisualizerId);
+        }
+    }
+
+    /// <summary>
+    /// Reset all parameters to defaults
+    /// </summary>
+    public void ResetAllToDefaults()
+    {
+        if (!string.IsNullOrEmpty(VisualizerId))
+        {
+            ParameterSystem.ResetAllParametersToDefaults(VisualizerId);
+
+            // Reload values
+            ParameterValues = ParameterSystem.GetVisualizerParameterValues(VisualizerId);
+        }
+    }
+}
+
+/// <summary>
+/// Parameter Editor - Dynamically generates UI controls for effect parameters
+/// Supports sliders, checkboxes, colors, and dropdowns with real-time binding
+/// </summary>
+public partial class ParameterEditor : UserControl
+{
+    public static readonly StyledProperty<string> VisualizerIdProperty =
+        AvaloniaProperty.Register<ParameterEditor, string>(nameof(VisualizerId));
+
+    public static readonly StyledProperty<string> VisualizerNameProperty =
+        AvaloniaProperty.Register<ParameterEditor, string>(nameof(VisualizerName));
+
+    public string VisualizerId
+    {
+        get => GetValue(VisualizerIdProperty);
+        set => SetValue(VisualizerIdProperty, value);
+    }
+
+    public string VisualizerName
+    {
+        get => GetValue(VisualizerNameProperty);
+        set => SetValue(VisualizerNameProperty, value);
+    }
+
+    private ParameterEditorViewModel _viewModel;
+
+    public ParameterEditor()
+    {
+        InitializeComponent();
+        _viewModel = new ParameterEditorViewModel();
+
+        // React to parameter changes
+        _viewModel.WhenAnyValue(x => x.ParameterDefinitions)
+            .Subscribe(_ => UpdateParameterControls());
+
+        _viewModel.WhenAnyValue(x => x.ParameterValues)
+            .Subscribe(_ => UpdateParameterControls());
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == VisualizerIdProperty || change.Property == VisualizerNameProperty)
+        {
+            if (!string.IsNullOrEmpty(VisualizerId) && !string.IsNullOrEmpty(VisualizerName))
+            {
+                _viewModel.LoadVisualizerParameters(VisualizerId, VisualizerName);
+            }
+        }
+    }
+
+    private void UpdateParameterControls()
+    {
+        // Clear existing controls
+        ParametersPanel.Children.Clear();
+
+        if (_viewModel?.ParameterDefinitions == null || _viewModel.ParameterDefinitions.Count == 0)
+        {
+            // Show default message
+            var textBlock = new TextBlock
+            {
+                Text = "Select a visualizer to edit parameters",
+                Foreground = Brushes.White,
+                Opacity = 0.6,
+                TextAlignment = Avalonia.Media.TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+            ParametersPanel.Children.Add(textBlock);
+            return;
+        }
+
+        // Add visualizer header
+        var header = new TextBlock
+        {
+            Text = $"{_viewModel.VisualizerName} Parameters",
+            FontWeight = FontWeight.Bold,
+            Foreground = Brushes.White,
+            FontSize = 14,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        ParametersPanel.Children.Add(header);
+
+        // Group parameters by category
+        var categories = _viewModel.ParameterDefinitions
+            .GroupBy(p => p.Value.Category)
+            .OrderBy(g => g.Key);
+
+        foreach (var categoryGroup in categories)
+        {
+            // Category header
+            if (!string.IsNullOrEmpty(categoryGroup.Key) && categoryGroup.Key != "General")
+            {
+                var categoryHeader = new TextBlock
+                {
+                    Text = categoryGroup.Key,
+                    FontWeight = FontWeight.SemiBold,
+                    Foreground = Brushes.LightBlue,
+                    FontSize = 12,
+                    Margin = new Thickness(0, 10, 0, 5)
+                };
+                ParametersPanel.Children.Add(categoryHeader);
+            }
+
+            // Generate controls for each parameter in this category
+            foreach (var kvp in categoryGroup.OrderBy(p => p.Value.Label))
+            {
+                var container = CreateParameterContainer(kvp.Key, kvp.Value);
+                ParametersPanel.Children.Add(container);
+            }
+        }
+
+        // Add reset buttons at the bottom
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10,
+            Margin = new Thickness(0, 20, 0, 0)
+        };
+
+        var resetAllButton = new Button
+        {
+            Content = "Reset All",
+            Background = Brushes.DarkRed,
+            Foreground = Brushes.White,
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        resetAllButton.Click += (s, e) => _viewModel.ResetAllToDefaults();
+
+        buttonPanel.Children.Add(resetAllButton);
+        ParametersPanel.Children.Add(buttonPanel);
+    }
+
+    private Control CreateParameterContainer(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var container = new StackPanel
+        {
+            Spacing = 5,
+            Margin = new Thickness(0, 0, 0, 15)
+        };
+
+        // Parameter label and description
+        var label = new TextBlock
+        {
+            Text = paramDef.Label,
+            Foreground = Brushes.White,
+            FontWeight = FontWeight.Medium,
+            FontSize = 12
+        };
+        container.Children.Add(label);
+
+        if (!string.IsNullOrEmpty(paramDef.Description))
+        {
+            var description = new TextBlock
+            {
+                Text = paramDef.Description,
+                Foreground = Brushes.Gray,
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            container.Children.Add(description);
+        }
+
+        // Parameter control
+        var control = CreateParameterControl(paramKey, paramDef);
+        container.Children.Add(control);
+
+        return container;
+    }
+
+    private Control CreateParameterControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        return paramDef.Type switch
+        {
+            ParameterSystem.ParameterType.Slider => CreateSliderControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Checkbox => CreateCheckboxControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Color => CreateColorControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Dropdown => CreateDropdownControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Dial => CreateDialControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Text => CreateTextControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.File => CreateFileControl(paramKey, paramDef),
+            ParameterSystem.ParameterType.Directory => CreateDirectoryControl(paramKey, paramDef),
+            _ => CreateTextBlock($"Unsupported parameter type: {paramDef.Type}")
+        };
+    }
+
+    private Control CreateSliderControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value
+            : paramDef.DefaultValue;
+
+        var slider = new Slider
+        {
+            Minimum = Convert.ToDouble(paramDef.MinValue ?? 0),
+            Maximum = Convert.ToDouble(paramDef.MaxValue ?? 100),
+            Value = Convert.ToDouble(currentValue ?? paramDef.DefaultValue),
+            Height = 25,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        // Value display
+        var valueText = new TextBlock
+        {
+            Text = $"{slider.Value:F2}",
+            Foreground = Brushes.LightGray,
+            FontSize = 10,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Margin = new Thickness(0, 0, 0, 5)
+        };
+
+        // Handle value changes
+        slider.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Value")
+            {
+                valueText.Text = $"{slider.Value:F2}";
+                _viewModel.UpdateParameterValue(paramKey, slider.Value);
+            }
+        };
+
+        // Container for slider and value display
+        var container = new StackPanel { Spacing = 5 };
+        container.Children.Add(slider);
+        container.Children.Add(valueText);
+
+        return container;
+    }
+
+    private Control CreateCheckboxControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value
+            : paramDef.DefaultValue;
+
+        var checkbox = new CheckBox
+        {
+            Content = paramDef.Label,
+            IsChecked = Convert.ToBoolean(currentValue ?? paramDef.DefaultValue),
+            Foreground = Brushes.White,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        // Handle value changes
+        checkbox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "IsChecked")
+            {
+                _viewModel.UpdateParameterValue(paramKey, checkbox.IsChecked ?? false);
+            }
+        };
+
+        return checkbox;
+    }
+
+    private Control CreateColorControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        // For now, use a text box for color input
+        // In a full implementation, this would be a color picker
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "#FFFFFF",
+            Watermark = "#RRGGBB",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30
+        };
+
+        // Handle value changes
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        return textBox;
+    }
+
+    private Control CreateDropdownControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var comboBox = new ComboBox
+        {
+            ItemsSource = paramDef.Options,
+            SelectedItem = currentValue ?? paramDef.DefaultValue?.ToString(),
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30
+        };
+
+        // Handle selection changes
+        comboBox.SelectionChanged += (s, e) =>
+        {
+            if (comboBox.SelectedItem is string selectedValue)
+            {
+                _viewModel.UpdateParameterValue(paramKey, selectedValue);
+            }
+        };
+
+        return comboBox;
+    }
+
+    private Control CreateDialControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        // For now, use a slider as a dial substitute
+        return CreateSliderControl(paramKey, paramDef);
+    }
+
+    private Control CreateTextControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30
+        };
+
+        // Handle value changes
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        return textBox;
+    }
+
+    private Control CreateFileControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var container = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var browseButton = new Button
+        {
+            Content = "Browse...",
+            Height = 30,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        browseButton.Click += (s, e) =>
+        {
+            // TODO: Implement file dialog
+            // For now, just update with current value
+            _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+        };
+
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        container.Children.Add(textBox);
+        container.Children.Add(browseButton);
+
+        return container;
+    }
+
+    private Control CreateDirectoryControl(string paramKey, ParameterSystem.ParameterDefinition paramDef)
+    {
+        var currentValue = _viewModel.ParameterValues.ContainsKey(paramKey)
+            ? _viewModel.ParameterValues[paramKey].Value?.ToString()
+            : paramDef.DefaultValue?.ToString();
+
+        var container = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+
+        var textBox = new TextBox
+        {
+            Text = currentValue ?? "",
+            Margin = new Thickness(0, 5, 0, 0),
+            Height = 30,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var browseButton = new Button
+        {
+            Content = "Browse...",
+            Height = 30,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+
+        browseButton.Click += (s, e) =>
+        {
+            // TODO: Implement directory dialog
+            // For now, just update with current value
+            _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+        };
+
+        textBox.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Text")
+            {
+                _viewModel.UpdateParameterValue(paramKey, textBox.Text);
+            }
+        };
+
+        container.Children.Add(textBox);
+        container.Children.Add(browseButton);
+
+        return container;
+    }
+
+    private Control CreateTextBlock(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            Foreground = Brushes.Orange,
+            FontSize = 11,
+            Margin = new Thickness(0, 5, 0, 0)
+        };
+    }
+
+    /// <summary>
+    /// Public method to update parameters programmatically for visualizers
+    /// </summary>
+    public void UpdateParameters(string visualizerId, string visualizerName)
+    {
+        _viewModel.LoadVisualizerParameters(visualizerId, visualizerName);
+    }
+
+    /// <summary>
+    /// Public method to update parameters for effects (legacy support)
+    /// </summary>
+    public void UpdateParameters(string effectName, Dictionary<string, EffectParam> parameters)
+    {
+        // For backward compatibility with effect parameters
+        // This is a simplified implementation that just shows the effect name
+        ParametersPanel.Children.Clear();
+
+        var header = new TextBlock
+        {
+            Text = $"{effectName} Parameters (Legacy)",
+            FontWeight = FontWeight.Bold,
+            Foreground = Brushes.White,
+            FontSize = 14,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        ParametersPanel.Children.Add(header);
+
+        if (parameters != null && parameters.Count > 0)
+        {
+            foreach (var kvp in parameters)
+            {
+                var container = new StackPanel
+                {
+                    Spacing = 5,
+                    Margin = new Thickness(0, 0, 0, 10)
+                };
+
+                var label = new TextBlock
+                {
+                    Text = kvp.Value.Label,
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeight.Medium,
+                    FontSize = 12
+                };
+                container.Children.Add(label);
+
+                var valueText = new TextBlock
+                {
+                    Text = kvp.Value.Type switch
+                    {
+                        "slider" => $"{kvp.Value.FloatValue:F2}",
+                        "checkbox" => kvp.Value.BoolValue.ToString(),
+                        "color" => kvp.Value.ColorValue,
+                        "dropdown" => kvp.Value.StringValue,
+                        _ => "N/A"
+                    },
+                    Foreground = Brushes.LightGray,
+                    FontSize = 10
+                };
+                container.Children.Add(valueText);
+
+                ParametersPanel.Children.Add(container);
+            }
+        }
+        else
+        {
+            var noParamsText = new TextBlock
+            {
+                Text = "No parameters available for this effect",
+                Foreground = Brushes.Gray,
+                FontSize = 11,
+                TextAlignment = Avalonia.Media.TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+            ParametersPanel.Children.Add(noParamsText);
+        }
+    }
+
+    /// <summary>
+    /// Public method to get current parameter values
+    /// </summary>
+    public Dictionary<string, object> GetCurrentParameterValues()
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var kvp in _viewModel.ParameterValues)
+        {
+            result[kvp.Key] = kvp.Value.Value;
+        }
+        return result;
+    }
+}
+
+
+[PhoenixVisualizer.Views\ParameterEditorViewModel.cs]
+using ReactiveUI;
+using System.Collections.Generic;
+
+namespace PhoenixVisualizer.Views
+{
+    public class ParameterEditorViewModel : ReactiveObject
+    {
+        private string _visualizerId = "";
+        private string _visualizerName = "";
+        private Dictionary<string, ParameterSystem.ParameterDefinition> _parameters = new();
+
+        public string VisualizerId 
+        { 
+            get => _visualizerId; 
+            set => this.RaiseAndSetIfChanged(ref _visualizerId, value); 
+        }
+        
+        public string VisualizerName 
+        { 
+            get => _visualizerName; 
+            set => this.RaiseAndSetIfChanged(ref _visualizerName, value); 
+        }
+        
+        public Dictionary<string, ParameterSystem.ParameterDefinition> Parameters 
+        { 
+            get => _parameters; 
+            set => this.RaiseAndSetIfChanged(ref _parameters, value); 
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Views\ParameterEditorWindow.axaml]
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:PhoenixVisualizer.App.Controls"
+        x:Class="PhoenixVisualizer.App.Views.ParameterEditorWindow"
+        Width="380" Height="560"
+        CanResize="True"
+        Title="Parameter Editor">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="10" BorderThickness="0,0,0,1" BorderBrush="#222">
+      <TextBlock Text="Live Parameter Editor" FontSize="16" FontWeight="Bold"/>
+    </Border>
+    <controls:ParameterPanel/>
+  </DockPanel>
+</Window>
+
+
+[PhoenixVisualizer.Views\ParameterEditorWindow.axaml.cs]
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+namespace PhoenixVisualizer.App.Views
+{
+    public partial class ParameterEditorWindow : Window
+    {
+        public ParameterEditorWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Views\ParameterPanel.axaml]
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PhoenixVisualizer.Views"
+                            x:Class="PhoenixVisualizer.Views.ParameterPanel"
+             x:DataType="vm:ParameterEditorViewModel">
+  <UserControl.DataContext>
+    <vm:ParameterEditorViewModel/>
+  </UserControl.DataContext>
+
+  <UserControl.Resources>
+    <!-- Section header style -->
+    <Style x:Key="SectionHeader" Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,16,0,8"/>
+      <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+    <Style x:Key="LabelText" Selector="TextBlock.label">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+  </UserControl.Resources>
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="8" BorderThickness="0,0,0,1" BorderBrush="#202020">
+      <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="Parameter Editor" FontWeight="Bold" />
+          <TextBlock Text="Â·" Opacity=".4"/>
+          <TextBlock Text="{Binding TargetTypeName}" Opacity=".8"/>
+        </StackPanel>
+        <Button Grid.Column="1" Content="Refresh" Command="{Binding RefreshCommand}" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Sections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ParameterSection">
+            <StackPanel Margin="12,6">
+              <TextBlock Classes="section" Text="{Binding Title}" />
+
+              <!-- Parameter editors -->
+              <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ParamVM">
+                    <!-- Switch on concrete VM type via derived templates -->
+                    <ContentControl>
+                      <ContentControl.DataTemplates>
+                        <!-- Number -->
+                        <DataTemplate x:DataType="vm:NumberParamVM">
+                          <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Margin="0,4">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                              <TextBox Width="80" Text="{Binding ValueText, Mode=TwoWay}"/>
+                              <TextBlock Text="{Binding Suffix}" Opacity=".6" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                                    Minimum="{Binding Min}" Maximum="{Binding Max}"
+                                    Value="{Binding Value, Mode=TwoWay}"
+                                    TickFrequency="{Binding Step}" IsSnapToTickEnabled="True"/>
+                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,22,0,0"
+                                       Text="{Binding Description}" Opacity=".55" FontSize="11"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Bool -->
+                        <DataTemplate x:DataType="vm:BoolParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding Value, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Enum -->
+                        <DataTemplate x:DataType="vm:EnumParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding Choices}"
+                                      SelectedItem="{Binding SelectedChoice, Mode=TwoWay}"
+                                      MinWidth="160"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Color -->
+                        <DataTemplate x:DataType="vm:ColorParamVM">
+                          <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <Border Grid.Column="1" Width="28" Height="22" CornerRadius="4"
+                                    BorderThickness="1" BorderBrush="#333">
+                              <Border.Background>
+                                <SolidColorBrush Color="{Binding Value}"/>
+                              </Border.Background>
+                            </Border>
+                            <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0"
+                                     Watermark="#RRGGBB or #AARRGGBB"
+                                     Text="{Binding Hex, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+
+                        <!-- Text -->
+                        <DataTemplate x:DataType="vm:TextParamVM">
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                            <TextBlock Classes="label" Text="{Binding Label}" />
+                            <TextBox Grid.Column="1" Width="220" Text="{Binding Value, Mode=TwoWay}"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ContentControl.DataTemplates>
+                    </ContentControl>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>
+
+
+[PhoenixVisualizer.Views\ParameterPanel.axaml.cs]
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+namespace PhoenixVisualizer.Views
+{
+    public partial class ParameterPanel : UserControl
+    {
+        public ParameterPanel()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+    }
+}
+
+
+[PhoenixVisualizer.Views\PhoenixVisualizer.Views.csproj]
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.3" />
+    <PackageReference Include="ReactiveUI" Version="19.5.41" />
+    <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+  </ItemGroup>
+</Project>
 
 
 [PhoenixVisualizer.Visuals\AdvancedAvsPlugin.cs]

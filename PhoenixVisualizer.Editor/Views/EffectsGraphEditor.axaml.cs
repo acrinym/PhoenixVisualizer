@@ -12,7 +12,7 @@ using PhoenixVisualizer.Core.Effects.Interfaces;
 using PhoenixVisualizer.Core.Effects.Models;
 using PhoenixVisualizer.Core.Effects.Nodes.AvsEffects;
 using PhoenixVisualizer.Editor.Models;
-using PhoenixVisualizer.Editor.Rendering;
+using PhoenixVisualizer.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
 using System;
 using System.Collections.Generic;

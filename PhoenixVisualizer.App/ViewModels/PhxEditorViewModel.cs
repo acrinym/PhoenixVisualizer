@@ -1,6 +1,7 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive;
+using System.Reactive.Concurrency; // NEW
 using System.Reactive.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -11,10 +12,12 @@ namespace PhoenixVisualizer.App.ViewModels
 {
     public partial class PhxEditorViewModel : ReactiveObject
     {
+        private static IScheduler Ui => RxApp.MainThreadScheduler; // NEW
         public PhxEditorSettings Settings { get; } = new PhxEditorSettings();
 
         [Reactive] public string StatusText { get; set; } = "Ready";
         [Reactive] public string StatusMessage { get; set; } = "Ready";
+        [Reactive] public string PresetName { get; set; } = "Untitled";
         [Reactive] public string InitCode { get; set; } = "// Initialization code";
         [Reactive] public string RenderCode { get; set; } = "// Render code";
         [Reactive] public string FrameCode { get; set; } = "// Frame code";
@@ -46,6 +49,13 @@ namespace PhoenixVisualizer.App.ViewModels
             } 
         }
         public bool IsCompileEnabled => !IsCompiling;
+        
+        // Add a computed property that reflects whether there's anything to run
+        public bool HasCodeToRun =>
+            !string.IsNullOrWhiteSpace(InitCode) ||
+            !string.IsNullOrWhiteSpace(FrameCode) ||
+            !string.IsNullOrWhiteSpace(PointCode) ||
+            !string.IsNullOrWhiteSpace(BeatCode);
         public ObservableCollection<string> Logs { get; } = new();
         public void Log(string msg) 
         {
@@ -100,9 +110,8 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public void InitializeCommands()
         {
-            // Create a simple boolean property that's always true for now
-            // This avoids the complex observable chain that's causing thread issues
-            var canRun = Observable.Return(true);
+            // ensure CanExecute and outputs are marshalled to the UI thread
+            var canRun = this.WhenAnyValue(x => x.HasCodeToRun);
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
             SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
@@ -116,34 +125,16 @@ namespace PhoenixVisualizer.App.ViewModels
             AddEffectCommand = ReactiveCommand.Create(AddEffect);
             SaveCodeCommand = ReactiveCommand.Create(SaveCode);
             
-            CompileCommand = ReactiveCommand.CreateFromTask(async () =>
-            {
-                // Ensure we're on UI thread for all UI updates
-                await Dispatcher.UIThread.InvokeAsync(() => CompileStarted?.Invoke());
-                IsCompiling = true;
-                var ok = false;
-                try
-                {
-                    Log("Compile started.");
-                    await DoCompileAsync(); // parse/transpile/build → swap into runtime/preview
-                    ok = true;
-                    Log("Compile completed.");
-                }
-                catch (Exception ex)
-                {
-                    Log("Compile failed: " + ex.Message);
-                    ok = false;
-                }
-                finally
-                {
-                    IsCompiling = false;
-                    await Dispatcher.UIThread.InvokeAsync(() => CompileCompleted?.Invoke(ok));
-                }
-            }, canRun);
-            
-            TestCodeCommand = ReactiveCommand.CreateFromTask(async () => await DoTestAsync(), canRun);
-            ImportAvsCommand = ReactiveCommand.CreateFromTask(async () => await DoImportAsync(), canRun);
-            ExportAvsCommand = ReactiveCommand.CreateFromTask(async () => await DoExportAsync(), canRun);
+            CompileCommand = ReactiveCommand.Create(() => Unit.Default, canRun);
+            TestCodeCommand = ReactiveCommand.Create(() => Unit.Default, canRun);
+            ImportAvsCommand = ReactiveCommand.CreateFromTask(
+                async () => await DoImportAsync(),
+                canRun,
+                outputScheduler: Ui);
+            ExportAvsCommand = ReactiveCommand.CreateFromTask(
+                async () => await DoExportAsync(),
+                canRun,
+                outputScheduler: Ui);
             PlayCommand = ReactiveCommand.Create(Play);
             PauseCommand = ReactiveCommand.Create(Pause);
             RestartCommand = ReactiveCommand.Create(Restart);

@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.ReactiveUI; // NEW
 using ReactiveUI;
 
 namespace PhoenixVisualizer.App;
@@ -19,5 +20,6 @@ sealed class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            .UseReactiveUI() // NEW
             .LogToTrace();
 }

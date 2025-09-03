@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Runtime.InteropServices;
@@ -15,10 +16,15 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Platform.Storage;
 using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.Core; // ParameterSystem
+using PhoenixVisualizer.App.Rendering;
+using PhoenixVisualizer.App.Views; // UnifiedAvsVisualizer
+using PhoenixVisualizer.App.Services; // UnifiedAvsData, UnifiedAvsService, etc.
 // Note: Using the simpler IEffectNode from Nodes namespace, not the advanced one from Effects.Interfaces
 // The advanced EffectsGraphManager will be integrated in a future phase
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System.Reactive.Disposables; // NEW
 using System.Reactive.Linq;
 
 // Reference classes from the App namespaces
@@ -35,17 +41,18 @@ namespace PhoenixVisualizer.Views;
 /// PHX Editor Window - Advanced Visual Effects Composer
 /// Complete AVS Editor++ with effect stack, code editing, and live preview
 /// </summary>
-public partial class PhxEditorWindow : Window
+public partial class PhxPreviewWindow : Window
 {
+    private readonly CompositeDisposable _disposables = new(); // NEW
     public PhoenixVisualizer.App.ViewModels.PhxEditorViewModel ViewModel { get; private set; } = null!;
 
-    private PhxPreviewRenderer _previewRenderer;
+    private RenderSurface? _preview; // actual drawing control
     private ParameterEditor _parameterEditor;
     private PhxCodeEngine _codeEngine;
     private PresetService _presetService;
     // Using the basic EffectRegistry for Phase 4 - advanced graph manager integration in future phase
 
-    public PhxEditorWindow()
+    public PhxPreviewWindow()
     {
         InitializeComponent();
         // Defensive: keep VM binding even if template changes
@@ -62,7 +69,7 @@ public partial class PhxEditorWindow : Window
 
         // Initialize required fields
         _codeEngine = new PhxCodeEngine();
-        _previewRenderer = null!;
+        _preview = null!;
         _parameterEditor = null!;
         _presetService = new PresetService();
 
@@ -91,6 +98,8 @@ public partial class PhxEditorWindow : Window
 
         // Initialize effect instantiation pipeline
         InitializeEffectPipeline();
+        
+        this.Closed += (_, __) => _disposables.Dispose(); // NEW
     }
 
 
@@ -119,9 +128,19 @@ public partial class PhxEditorWindow : Window
         var vm = ViewModel;
         if (vm != null)
         {
-            // Wire up the compile command to execute code
-            vm.CompileCommand.Subscribe(_ => CompileCode());
-            vm.TestCodeCommand.Subscribe(_ => TestCode());
+            // route the VM commands to real editor behaviors
+            vm.CompileCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => CompileFromEditor());
+            vm.TestCodeCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => TestFromEditor());
+            vm.ImportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(async _ => await ImportAvsPresetAsync());
+            vm.ExportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(async _ => await ExportPresetAsync());
         }
     }
 
@@ -200,8 +219,10 @@ public partial class PhxEditorWindow : Window
 
     private void SetupPreviewRendering()
     {
-        // Create the preview renderer
-        _previewRenderer = new PhxPreviewRenderer(PreviewCanvas, ViewModel);
+        _preview = this.FindControl<RenderSurface>("PreviewSurface");
+        if (_preview == null) return;
+        // show something by default so the surface is obviously alive
+        // _preview.SetPlugin(new SanityVisualizer()); // TODO: Create a default visualizer
     }
 
     private void SetupParameterEditor()
@@ -278,9 +299,22 @@ public partial class PhxEditorWindow : Window
         // The ParameterEditor already updates the EffectParam objects directly
     }
 
+    // NEW: keep file pickers strictly on UI thread, do-nothing when nothing loaded is already handled in handlers
     private void WireUpPresetCommands()
     {
-        // Preset commands are already wired up in ViewModel
+        var vm = ViewModel;
+        if (vm != null)
+        {
+            vm.ImportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => ImportAvsPreset())
+              .DisposeWith(_disposables);
+
+            vm.ExportAvsCommand
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(_ => ExportAvsPreset())
+              .DisposeWith(_disposables);
+        }
     }
     
     private void WireUpSettingsAndPreview()
@@ -293,7 +327,7 @@ public partial class PhxEditorWindow : Window
                 var dlg = new Views.PhxEditorSettingsDialog { DataContext = ViewModel.Settings };
                 dlg.ShowDialog(this);
                 // Apply settings immediately
-                _previewRenderer?.ApplySettings(ViewModel.Settings);
+                // _previewRenderer?.ApplySettings(ViewModel.Settings); // TODO: Implement settings application
                 // Save settings for persistence
                 ViewModel.Settings.Save();
             });
@@ -402,6 +436,237 @@ public partial class PhxEditorWindow : Window
         catch (Exception ex)
         {
             ViewModel.StatusMessage = $"Error importing AVS preset: {ex.Message}";
+        }
+    }
+
+    // ===== ADVANCED EDITOR FUNCTIONALITY =====
+    // Build UnifiedAvsData from editor code blocks
+    private UnifiedAvsData BuildUnifiedFromEditor()
+    {
+        // Create a detection result for the editor-generated content
+        var detection = new DetectionResult(
+            AvsFileType.PhoenixText,
+            1.0f, // High confidence for editor-generated content
+            new List<string> { "Editor", "Phoenix" },
+            "Generated from PHX Editor"
+        );
+
+        // Build combined code from all sections
+        var combinedCode = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(ViewModel.InitCode))
+            combinedCode.AppendLine("// INIT").AppendLine(ViewModel.InitCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.FrameCode))
+            combinedCode.AppendLine("// FRAME").AppendLine(ViewModel.FrameCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.PointCode))
+            combinedCode.AppendLine("// POINT").AppendLine(ViewModel.PointCode.Trim());
+        if (!string.IsNullOrWhiteSpace(ViewModel.BeatCode))
+            combinedCode.AppendLine("// BEAT").AppendLine(ViewModel.BeatCode.Trim());
+
+        var superscopes = new List<UnifiedSuperscope>
+        {
+            new UnifiedSuperscope(
+                Name: "Main",
+                InitCode: string.IsNullOrWhiteSpace(ViewModel.InitCode) ? null : ViewModel.InitCode.Trim(),
+                FrameCode: string.IsNullOrWhiteSpace(ViewModel.FrameCode) ? null : ViewModel.FrameCode.Trim(),
+                PointCode: string.IsNullOrWhiteSpace(ViewModel.PointCode) ? null : ViewModel.PointCode.Trim(),
+                BeatCode: string.IsNullOrWhiteSpace(ViewModel.BeatCode) ? null : ViewModel.BeatCode.Trim(),
+                SourceType: "Phoenix",
+                CombinedCode: combinedCode.ToString()
+            )
+        };
+
+        var data = new UnifiedAvsData(
+            FileType: AvsFileType.PhoenixText,
+            Superscopes: superscopes,
+            Effects: new List<UnifiedEffect>(),
+            Detection: detection,
+            RawText: combinedCode.ToString(),
+            RawBinary: null
+        );
+
+        Debug.WriteLine($"### JUSTIN DEBUG: Built UnifiedAvsData from editor - {data.Superscopes.Count} superscopes");
+        return data;
+    }
+
+    // Use a plugin for the preview surface
+    private void UsePluginFor(UnifiedAvsData data)
+    {
+        if (_preview == null) return;
+
+        // Create a visualizer and load the data
+        var visualizer = new UnifiedAvsVisualizer();
+        visualizer.LoadAvsData(data);
+        _preview.SetPlugin(visualizer);
+
+        Debug.WriteLine($"### JUSTIN DEBUG: Set plugin for preview - {data.FileType} with {data.Superscopes.Count} superscopes");
+    }
+
+    // Compile code from editor
+    private void CompileFromEditor()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Compiling...";
+            Debug.WriteLine("### JUSTIN DEBUG: CompileFromEditor() called");
+
+            var data = BuildUnifiedFromEditor();
+            UsePluginFor(data);
+
+            ViewModel.StatusMessage = "Compiled successfully";
+            Debug.WriteLine($"### JUSTIN DEBUG: Compilation successful - {data.FileType} with {data.Superscopes.Count} superscopes");
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Compilation failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Compilation error - {ex.Message}");
+        }
+    }
+
+    // Test code from editor
+    private void TestFromEditor()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Testing...";
+            Debug.WriteLine("### JUSTIN DEBUG: TestFromEditor() called");
+
+            var data = BuildUnifiedFromEditor();
+            UsePluginFor(data);
+
+            // Force a visual refresh to start rendering
+            if (_preview != null)
+            {
+                _preview.InvalidateVisual();
+            }
+
+            ViewModel.StatusMessage = "Test running";
+            Debug.WriteLine($"### JUSTIN DEBUG: Test started - {data.FileType} with {data.Superscopes.Count} superscopes");
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Test failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Test error - {ex.Message}");
+        }
+    }
+
+    // Import AVS preset
+    private async Task ImportAvsPresetAsync()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Importing AVS preset...";
+            Debug.WriteLine("### JUSTIN DEBUG: ImportAvsPresetAsync() called");
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = "Import AVS Preset",
+                AllowMultiple = false,
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("AVS Presets") { Patterns = new[] { "*.avs" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var results = await this.StorageProvider.OpenFilePickerAsync(options);
+            if (results.Count > 0)
+            {
+                var file = results[0];
+                var content = await File.ReadAllTextAsync(file.Path.LocalPath);
+                
+                // Parse AVS content into editor code blocks
+                ParseAvsToEditor(content);
+                
+                ViewModel.StatusMessage = "AVS preset imported";
+                Debug.WriteLine($"### JUSTIN DEBUG: Imported AVS preset - {file.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Import failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Import error - {ex.Message}");
+        }
+    }
+
+    // Export preset
+    private async Task ExportPresetAsync()
+    {
+        try
+        {
+            ViewModel.StatusMessage = "Exporting preset...";
+            Debug.WriteLine("### JUSTIN DEBUG: ExportPresetAsync() called");
+
+            var options = new FilePickerSaveOptions
+            {
+                Title = "Export Preset",
+                DefaultExtension = ".phx",
+                FileTypeChoices = new List<FilePickerFileType>
+                {
+                    new FilePickerFileType("Phoenix Presets") { Patterns = new[] { "*.phx" } },
+                    new FilePickerFileType("AVS Presets") { Patterns = new[] { "*.avs" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var result = await this.StorageProvider.SaveFilePickerAsync(options);
+            if (result != null)
+            {
+                var data = BuildUnifiedFromEditor();
+                var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(result.Path.LocalPath, json);
+                
+                ViewModel.StatusMessage = "Preset exported";
+                Debug.WriteLine($"### JUSTIN DEBUG: Exported preset - {result.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel.StatusMessage = $"Export failed: {ex.Message}";
+            Debug.WriteLine($"### JUSTIN DEBUG: Export error - {ex.Message}");
+        }
+    }
+
+    // Parse AVS content into editor code blocks
+    private void ParseAvsToEditor(string avsContent)
+    {
+        try
+        {
+            // Simple parsing - extract code blocks
+            var lines = avsContent.Split('\n');
+            var initCode = new List<string>();
+            var frameCode = new List<string>();
+            var pointCode = new List<string>();
+            var beatCode = new List<string>();
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("//") || string.IsNullOrEmpty(trimmed))
+                    continue;
+
+                // Simple heuristic - assign to appropriate code block
+                if (trimmed.Contains("init") || trimmed.Contains("Init"))
+                    initCode.Add(line);
+                else if (trimmed.Contains("frame") || trimmed.Contains("Frame"))
+                    frameCode.Add(line);
+                else if (trimmed.Contains("point") || trimmed.Contains("Point"))
+                    pointCode.Add(line);
+                else if (trimmed.Contains("beat") || trimmed.Contains("Beat"))
+                    beatCode.Add(line);
+                else
+                    pointCode.Add(line); // Default to point code
+            }
+
+            ViewModel.InitCode = string.Join("\n", initCode);
+            ViewModel.FrameCode = string.Join("\n", frameCode);
+            ViewModel.PointCode = string.Join("\n", pointCode);
+            ViewModel.BeatCode = string.Join("\n", beatCode);
+
+            Debug.WriteLine($"### JUSTIN DEBUG: Parsed AVS content - {lines.Length} lines");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"### JUSTIN DEBUG: Parse error - {ex.Message}");
         }
     }
 }
@@ -1639,6 +1904,8 @@ public class PhxEditorViewModel : ReactiveObject
 
         LogPerformanceEvent("Performance monitoring disposed");
     }
+
+
 }
 
 /// <summary>
@@ -1920,5 +2187,3 @@ public class PresetMetadata
         ? $"{new FileInfo(FilePath).Length / 1024} KB"
         : "Unknown";
 }
-
-

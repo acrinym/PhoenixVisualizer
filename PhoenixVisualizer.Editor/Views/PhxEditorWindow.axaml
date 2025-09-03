@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:r="using:PhoenixVisualizer.Rendering"
+        xmlns:views="using:PhoenixVisualizer.Editor.Views"
+        xmlns:app="using:PhoenixVisualizer.Editor.Views"
+        xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
+        xmlns:converters="using:PhoenixVisualizer.Editor.Converters"
+        x:Class="PhoenixVisualizer.Editor.Views.PhxEditorWindow"
+        x:DataType="vm:PhxEditorViewModel"
+        Width="1280" Height="830" Title="Phoenix Visualizer - PHX Editor">
+  <Grid RowDefinitions="Auto,*" >
+    <!-- Toolbar -->
+    <StackPanel Orientation="Horizontal" Spacing="8" Margin="8">
+      <Button Content="Import AVS"   Command="{Binding ImportAvsCommand}" />
+      <Button Content="Reimport"     Command="{Binding ReimportCommand}" />
+      <Button Content="New Phoenix"  Command="{Binding NewPhxVisCommand}" />
+      <Button Content="Export AVS"   Command="{Binding ExportAvsCommand}" />
+      <Button Content="Export PHXVis" Command="{Binding ExportPhxVisCommand}" />
+      <Separator Width="12"/>
+      <Button Content="Compile" Command="{Binding CompileCommand}" />
+      <Button Content="Test"    Command="{Binding TestCodeCommand}" />
+      <Separator Width="12"/>
+      <Button Content="{Binding PreviewDockButtonText}" Command="{Binding ToggleUndockCommand}" />
+      <CheckBox Content="Live Apply" IsChecked="{Binding LiveApply}" Margin="8,0,0,0"/>
+      <TextBlock Text="{Binding StatusText}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <!-- 3-pane layout -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*,Auto,2*">
+      <!-- LEFT: Code editor (visible when Superscope selected) -->
+      <Border Grid.Column="0" Background="#151515" Padding="6">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Unified Phoenix Code" FontWeight="Bold" Margin="0,0,0,6"/>
+          <TabControl IsVisible="{Binding IsSuperscopeSelected}">
+            <TabItem Header="Init">
+              <edit:TextEditor x:Name="InitEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptInit, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Frame">
+              <edit:TextEditor x:Name="FrameEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptFrame, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Beat">
+              <edit:TextEditor x:Name="BeatEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptBeat, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+            <TabItem Header="Point">
+              <edit:TextEditor x:Name="PointEditor" ShowLineNumbers="True" FontFamily="Consolas"
+                               SyntaxHighlighting="C#" Document="{Binding ScriptPoint, Converter={x:Static converters:StringToDocumentConverter.Instance}}"/>
+            </TabItem>
+          </TabControl>
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="1" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />
+
+      <!-- MIDDLE: Stack + Parameters -->
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,*" ColumnDefinitions="*">
+        <TextBlock Text="Effect Stack" FontWeight="Bold" Margin="6,0,0,6"/>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding EffectStack}"
+                 SelectedItem="{Binding SelectedEffect}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DisplayName}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="2" Text="Parameters" FontWeight="Bold" Margin="6,12,0,6"/>
+        <!-- The ParameterEditor user control already exists in your project -->
+        <app:ParameterEditor Grid.Row="3" x:Name="ParameterEditor"/>
+      </Grid>
+
+      <GridSplitter Grid.Column="3" Width="6" Background="#2B2B2B" ResizeBehavior="BasedOnAlignment" />
+
+      <!-- RIGHT: Docked Preview -->
+      <Border Grid.Column="4" Background="#0E0E0E">
+        <Grid>
+          <r:RenderSurface x:Name="PreviewSurface"/>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>
