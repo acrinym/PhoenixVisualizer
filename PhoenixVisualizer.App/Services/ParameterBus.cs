@@ -1,4 +1,5 @@
 using System;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.App.Services
 {
@@ -18,7 +19,14 @@ namespace PhoenixVisualizer.App.Services
             if (!ReferenceEquals(_current, target))
             {
                 _current = target;
-                TargetChanged?.Invoke(_current);
+                if (Dispatcher.UIThread.CheckAccess())
+                {
+                    TargetChanged?.Invoke(_current);
+                }
+                else
+                {
+                    Dispatcher.UIThread.Post(() => TargetChanged?.Invoke(_current));
+                }
             }
         }
     }

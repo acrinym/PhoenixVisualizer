@@ -1,6 +1,7 @@
 // PhoenixVisualizer/PhoenixVisualizer.App/App.axaml.cs
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
+using ReactiveUI;
 using System;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,7 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+
 #if PHOENIX_ONLY
         try
         {

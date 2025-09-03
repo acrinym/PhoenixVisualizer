@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using PhoenixVisualizer.App.Services;
 using PhoenixVisualizer.App.ViewModels;
 
@@ -19,10 +20,10 @@ namespace PhoenixVisualizer.App.Controls
 
         private void OnParamTargetChanged(object? obj)
         {
-            if (DataContext is ParameterEditorViewModel vm)
-            {
-                vm.SetTarget(obj);
-            }
+            var vm = DataContext as ParameterEditorViewModel;
+            if (vm is null) return;
+            if (Dispatcher.UIThread.CheckAccess()) vm.SetTarget(obj);
+            else Dispatcher.UIThread.Post(() => vm.SetTarget(obj));
         }
 
         public void SetTarget(object? obj)

@@ -92,7 +92,6 @@ namespace PhoenixVisualizer.App.ViewModels
         {
             // Ensure all command updates happen on the UI thread
             var canRun = this.WhenAnyValue(x => x.IsCompiling)
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Select(c => !c);
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
@@ -173,22 +172,22 @@ namespace PhoenixVisualizer.App.ViewModels
         private async Task DoCompileAsync() 
         { 
             await Task.Delay(100); 
-            Debug.WriteLine("DoCompileAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoCompileAsync called"));
         }
         private async Task DoTestAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoTestAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoTestAsync called"));
         }
         private async Task DoImportAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoImportAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoImportAsync called"));
         }
         private async Task DoExportAsync() 
         { 
             await Task.Delay(50); 
-            Debug.WriteLine("DoExportAsync called"); 
+            await Dispatcher.UIThread.InvokeAsync(() => Debug.WriteLine("DoExportAsync called"));
         }
 
         // AVS Import/Export methods
