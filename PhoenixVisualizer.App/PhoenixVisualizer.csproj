@@ -21,13 +21,23 @@
     <Content Include="..\libs\bass.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Copy Winamp visualization plugins to output directory -->
+  <!-- PHOENIX-ONLY: strip legacy Winamp hosts from build/output -->
   <ItemGroup>
-    <Content Include="..\plugins\vis\*.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>plugins\vis\%(Filename)%(Extension)</Link>
-    </Content>
+    <Content Remove="..\plugins\vis\**\*" />
+    <None Include="..\plugins\vis\**\*">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <PackagePath></PackagePath>
+    </None>
+    <!-- PHOENIX-ONLY: quarantine vendor dumps -->
+    <Content Remove="..\libs\basswa_extracted\**\*" />
+    <Content Remove="..\libs\BassWinamp_extracted\**\*" />
+    <Content Remove="..\libs\Milkdrop2\**\*" />
   </ItemGroup>
+  
+  <PropertyGroup>
+    <!-- PHOENIX-ONLY guard to assert PEL/PEE runtime in debug -->
+    <DefineConstants>$(DefineConstants);PHOENIX_ONLY</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />

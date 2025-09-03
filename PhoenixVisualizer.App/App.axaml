@@ -9,7 +9,31 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
   
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+      <Application.Styles>
+    <FluentTheme />
+    <!-- High-contrast defaults for dark editor surfaces -->
+    <Style Selector="Window#PhxEditor TextBlock">
+      <Setter Property="Foreground" Value="#EEE"/>
+    </Style>
+    <Style Selector="Window#PhxEditor Button">
+      <Setter Property="Foreground" Value="#EEE"/>
+      <Setter Property="Background" Value="#2B2B2B"/>
+    </Style>
+    <Style Selector="Window#PhxEditor Button:pointerover">
+      <Setter Property="Background" Value="#3A3A3A"/>
+    </Style>
+    <Style Selector="Window#PhxEditor Border">
+      <Setter Property="BorderBrush" Value="#444"/>
+    </Style>
+    <Style Selector="Window#ParameterEditorWindow TextBlock">
+      <Setter Property="Foreground" Value="#EEE"/>
+    </Style>
+    <Style Selector="Window#ParameterEditorWindow Button">
+      <Setter Property="Foreground" Value="#EEE"/>
+      <Setter Property="Background" Value="#2B2B2B"/>
+    </Style>
+    <Style Selector="Window#ParameterEditorWindow Button:pointerover">
+      <Setter Property="Background" Value="#3A3A3A"/>
+    </Style>
+  </Application.Styles>
 </Application>

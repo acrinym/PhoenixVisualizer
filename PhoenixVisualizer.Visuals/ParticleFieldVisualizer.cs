@@ -14,7 +14,7 @@ namespace PhoenixVisualizer.Visuals;
 public class ParticleFieldVisualizer : BaseVisualizer
 {
     // Particle system
-    private Particle[] _particles;
+    private Particle[] _particles = Array.Empty<Particle>();
     private int _particleCount = 1000;
     private float _time = 0.0f;
     private int _width = 800;

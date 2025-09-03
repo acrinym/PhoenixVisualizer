@@ -23,13 +23,8 @@
             <!-- New controls -->
             <Button x:Name="BtnTempoPitch" Content="Tempo/Pitch" Margin="0,0,8,0"/>
             <Button x:Name="BtnSettings" Content="Settings" Margin="0,0,8,0"/>
-            <Button x:Name="BtnEditor" Content="AVS Editor" Margin="0,0,8,0"/>
             <Button x:Name="BtnPhxEditor" Content="PHX Editor" Margin="0,0,8,0" Background="Purple" Foreground="White" ToolTip.Tip="Open Phoenix Plugin Editor"/>
             <ComboBox x:Name="CmbPlugin" Width="160"/>
-            <TextBox x:Name="TxtPreset" Width="320" Watermark="points=256;mode=line;source=fft"/>
-            <Button x:Name="BtnLoadPreset" Content="Load Preset"/>
-            <Button x:Name="BtnExecutePreset" Content="Execute Preset" Background="Green" Foreground="White" ToolTip.Tip="Execute the AVS preset in the text box (or press E key)"/>
-            <Button x:Name="BtnImportPreset" Content="Import Preset"/>
             <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in Mode" ToolTip.Tip="Switch between built-in visualizers"/>
         </StackPanel>
 

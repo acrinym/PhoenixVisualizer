@@ -164,7 +164,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             // Calculate current frame delay
             var currentDelay = CalculateCurrentDelay(audioFeatures);
 
-            if (currentDelay > 0 && currentDelay < _frameBuffer.Length)
+            if (currentDelay > 0 && _frameBuffer != null && currentDelay < _frameBuffer.Length)
             {
                 // Get delayed frame from buffer
                 var delayedFrame = GetDelayedFrame(currentDelay);
@@ -224,7 +224,10 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         private void StoreFrameInBuffer(ImageBuffer frame)
         {
             // Store frame at current index
-            _frameBuffer[_currentFrameIndex] = frame;
+            if (_frameBuffer != null)
+            {
+                _frameBuffer[_currentFrameIndex] = frame;
+            }
 
             // Advance buffer index
             _currentFrameIndex = (_currentFrameIndex + 1) % _bufferSize;
@@ -250,7 +253,7 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
             var delayedIndex = (_currentFrameIndex - delay + _bufferSize) % _bufferSize;
 
             // Return delayed frame
-            return _frameBuffer[delayedIndex];
+            return _frameBuffer != null ? _frameBuffer[delayedIndex] : new ImageBuffer(1, 1);
         }
 
         private ImageBuffer GetEnhancedDelayedFrame(int delay)

@@ -358,7 +358,7 @@ public static class GlobalParameterSystem
     /// <summary>
     /// Register global parameters for a visualizer
     /// </summary>
-    public static void RegisterGlobalParameters(string visualizerId, GlobalCategory[] categories = null)
+    public static void RegisterGlobalParameters(string visualizerId, GlobalCategory[]? categories = null)
     {
         categories ??= Enum.GetValues<GlobalCategory>();
 
@@ -798,7 +798,7 @@ public static class ParameterSystemExtensions
     /// Register global parameters for a visualizer with specific categories
     /// </summary>
     public static void RegisterGlobalParameters(this object visualizer, string visualizerId,
-        GlobalParameterSystem.GlobalCategory[] categories = null)
+        GlobalParameterSystem.GlobalCategory[]? categories = null)
     {
         GlobalParameterSystem.RegisterGlobalParameters(visualizerId, categories);
     }

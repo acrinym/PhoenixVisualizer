@@ -58,9 +58,12 @@ namespace PhoenixVisualizer.Core.Effects.Nodes.AvsEffects
         #region Private Fields
 
         private int[]? _transformationTable;
-        private int _tableWidth, _tableHeight;
+        private int _tableWidth;
+#pragma warning disable CS0414 // Field is assigned but its value is never used
+        private int _tableHeight;
         private int _lastEffectType;
         private bool _expressionChanged;
+#pragma warning restore CS0414
         private readonly object _renderLock = new object();
 
         #endregion
