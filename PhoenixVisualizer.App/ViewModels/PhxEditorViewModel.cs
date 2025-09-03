@@ -100,10 +100,9 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public void InitializeCommands()
         {
-            // Ensure all command updates happen on the UI thread
-            var canRun = this.WhenAnyValue(x => x.IsCompiling)
-                .Select(c => !c)
-                .DistinctUntilChanged();
+            // Create a simple boolean property that's always true for now
+            // This avoids the complex observable chain that's causing thread issues
+            var canRun = Observable.Return(true);
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
             SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
