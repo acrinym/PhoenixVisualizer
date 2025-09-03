@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using PhoenixVisualizer.Views;
+using Avalonia.Threading;
 
 namespace PhoenixVisualizer.App.ViewModels
 {
@@ -23,7 +24,26 @@ namespace PhoenixVisualizer.App.ViewModels
         [Reactive] public EffectStackItem? SelectedEffect { get; set; } = null;
 
         private bool _isCompiling;
-        public bool IsCompiling { get => _isCompiling; private set { this.RaiseAndSetIfChanged(ref _isCompiling, value); this.RaisePropertyChanged(nameof(IsCompileEnabled)); } }
+        public bool IsCompiling 
+        { 
+            get => _isCompiling; 
+            private set 
+            { 
+                if (Dispatcher.UIThread.CheckAccess())
+                {
+                    this.RaiseAndSetIfChanged(ref _isCompiling, value);
+                    this.RaisePropertyChanged(nameof(IsCompileEnabled));
+                }
+                else
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        this.RaiseAndSetIfChanged(ref _isCompiling, value);
+                        this.RaisePropertyChanged(nameof(IsCompileEnabled));
+                    });
+                }
+            } 
+        }
         public bool IsCompileEnabled => !IsCompiling;
         public ObservableCollection<string> Logs { get; } = new();
         public void Log(string msg) => Logs.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
@@ -70,7 +90,10 @@ namespace PhoenixVisualizer.App.ViewModels
 
         public void InitializeCommands()
         {
-            var canRun = this.WhenAnyValue(x => x.IsCompiling).Select(c => !c);
+            // Ensure all command updates happen on the UI thread
+            var canRun = this.WhenAnyValue(x => x.IsCompiling)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Select(c => !c);
             
             SavePresetCommand = ReactiveCommand.Create(SavePreset);
             SaveAsPresetCommand = ReactiveCommand.Create(SaveAsPreset);
@@ -147,10 +170,26 @@ namespace PhoenixVisualizer.App.ViewModels
         private void DeleteSelectedPreset() { Debug.WriteLine("DeleteSelectedPreset called"); }
 
         // Async methods
-        private async Task DoCompileAsync() { await Task.Delay(100); Debug.WriteLine("DoCompileAsync called"); }
-        private async Task DoTestAsync() { await Task.Delay(50); Debug.WriteLine("DoTestAsync called"); }
-        private async Task DoImportAsync() { await Task.Delay(50); Debug.WriteLine("DoImportAsync called"); }
-        private async Task DoExportAsync() { await Task.Delay(50); Debug.WriteLine("DoExportAsync called"); }
+        private async Task DoCompileAsync() 
+        { 
+            await Task.Delay(100); 
+            Debug.WriteLine("DoCompileAsync called"); 
+        }
+        private async Task DoTestAsync() 
+        { 
+            await Task.Delay(50); 
+            Debug.WriteLine("DoTestAsync called"); 
+        }
+        private async Task DoImportAsync() 
+        { 
+            await Task.Delay(50); 
+            Debug.WriteLine("DoImportAsync called"); 
+        }
+        private async Task DoExportAsync() 
+        { 
+            await Task.Delay(50); 
+            Debug.WriteLine("DoExportAsync called"); 
+        }
 
         // AVS Import/Export methods
         public async Task ImportPresetFromAvs(string path)
