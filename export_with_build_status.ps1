@@ -31,6 +31,7 @@ Description: Streamlined source code export containing ONLY essential source fil
              - XAML files (.axaml)
              - Project files (.csproj, .sln)
              - Small configuration files
+             - Markdown build info and info on current state, documentation, etc.
 
              Generated automatically on: $date
 
@@ -108,7 +109,7 @@ Write-Host "Collecting source files..." -ForegroundColor Cyan
 # Get only essential source files (EXCLUDE binaries and bloated files)
 $files = Get-ChildItem -Recurse -File | Where-Object {
     # Include only these file extensions
-    $_.Extension -match "\.(cs|axaml|csproj|sln)$" -and
+    $_.Extension -match "\.(cs|axaml|csproj|sln|md)$" -and
     # Exclude problematic directories and files
     $_.FullName -notmatch "\\bin\\|\\obj\\|\\\.git\\|\\\.dotnet\\|\\\.vscode\\|libs_etc\\|libs\\|misc\\|tools\\|DreamDictionary\\" -and
     $_.Name -notmatch "^\..*" -and  # Exclude hidden files
