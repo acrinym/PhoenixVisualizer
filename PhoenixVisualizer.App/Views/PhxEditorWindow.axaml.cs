@@ -76,6 +76,9 @@ public partial class PhxEditorWindow : Window
 
         // Set up parameter editor
         SetupParameterEditor();
+        
+        // Wire up settings and preview buttons
+        WireUpSettingsAndPreview();
 
         // Wire up effect selection changes
         WireUpEffectSelection();
@@ -263,6 +266,35 @@ public partial class PhxEditorWindow : Window
     private void WireUpPresetCommands()
     {
         // Preset commands are already wired up in ViewModel
+    }
+    
+    private void WireUpSettingsAndPreview()
+    {
+        try
+        {
+            var btnSettings = this.FindControl<Button>("BtnSettings");
+            btnSettings?.AddHandler(Button.ClickEvent, (_, __) =>
+            {
+                var dlg = new Views.PhxEditorSettingsDialog { DataContext = ViewModel.Settings };
+                dlg.ShowDialog(this);
+                // Apply settings immediately
+                _previewRenderer?.ApplySettings(ViewModel.Settings);
+                // Save settings for persistence
+                ViewModel.Settings.Save();
+            });
+
+            var btnUndock = this.FindControl<Button>("BtnUndockPreview");
+            btnUndock?.AddHandler(Button.ClickEvent, (_, __) =>
+            {
+                // Open a modal preview window
+                var previewWindow = new PreviewModalWindow();
+                previewWindow.Show(this);
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"PHX Editor: WireUpSettingsAndPreview error: {ex}");
+        }
     }
 
     protected override void OnClosed(EventArgs e)

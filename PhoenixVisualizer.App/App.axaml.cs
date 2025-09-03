@@ -1,7 +1,11 @@
 // PhoenixVisualizer/PhoenixVisualizer.App/App.axaml.cs
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
+using System;
+using System.IO;
+using System.Linq;
 
+using PhoenixVisualizer.App.ViewModels;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Views;
@@ -19,6 +23,27 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+#if PHOENIX_ONLY
+        try
+        {
+            var exeDir = AppContext.BaseDirectory;
+            var legacyVis = Path.Combine(exeDir, "plugins", "vis");
+            if (Directory.Exists(legacyVis) &&
+                Directory.EnumerateFiles(legacyVis, "*.dll", SearchOption.AllDirectories).Any())
+            {
+                throw new InvalidOperationException("PHOENIX-ONLY assert: found legacy Winamp host DLLs under plugins\\vis. Remove them from the build.");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+            throw;
+        }
+#endif
+
+        // Load and apply settings
+        var settings = PhxEditorSettings.Load();
+        settings.ApplyTheme();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // ============================================================================
@@ -48,6 +73,8 @@ public partial class App : Application
             PluginRegistry.Register("phoenix_kaleidoscope", "🔥 Phoenix Kaleidoscope", () => new PhoenixKaleidoscopePlugin());
             PluginRegistry.Register("phoenix_particle_fountain", "🔥 Phoenix Particle Fountain", () => new PhoenixParticleFountainPlugin());
             PluginRegistry.Register("phoenix_circular_bars", "🎨 Phoenix Circular Bars", () => new PhoenixCircularBarsPlugin());
+            PluginRegistry.Register("sacred_snowflakes", "❄️ Sacred Snowflakes", () => new SacredSnowflakeVisualizer(),
+                "Symmetrical snowflakes from sacred geometry; reacts to bass/mid/treble and 7.83Hz base", "1.0", "Phoenix Team");
 
             // ============================================================================
             // 🎭 SUPERSCOPE VISUALIZERS
