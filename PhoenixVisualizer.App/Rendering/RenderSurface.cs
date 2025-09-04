@@ -56,6 +56,8 @@ public sealed class RenderSurface : Control
     {
         // Default to VLC audio service
         _audio = new VlcAudioService();
+        Focusable = false;                // do not ever steal focus from text inputs
+        IsHitTestVisible = false;         // preview is passive; clicks stay in editor
     }
     
     public RenderSurface(IAudioProvider audioService)

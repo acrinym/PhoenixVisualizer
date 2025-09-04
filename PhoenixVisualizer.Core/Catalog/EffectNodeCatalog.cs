@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using PhoenixVisualizer.Core.Transpile;
 using PhoenixVisualizer.Core.Effects.Nodes;
 
+#nullable enable
+
 namespace PhoenixVisualizer.Core.Catalog;
 
 public sealed record NodeMeta(
@@ -100,9 +102,15 @@ public static class EffectNodeCatalog
         try { ReflectBuiltInNodesFromAssembly(typeof(BaseEffectNode).Assembly); } catch { /* optional */ }
     }
 
+    private static void SafeRegister(string? typeKey, NodeMeta meta)
+    {
+        if (!string.IsNullOrEmpty(typeKey))
+            _byKey[typeKey!] = meta;
+    }
+
     public static void Register(NodeMeta meta)
     {
-        _byKey[meta.TypeKey] = meta;
+        SafeRegister(meta.TypeKey, meta);
         CatalogChanged?.Invoke();
     }
 
@@ -126,18 +134,27 @@ public static class EffectNodeCatalog
                 foreach (var def in doc.Effects)
                 {
                     var localDef = def; // avoid modified closure
-                    Register(new NodeMeta(
-                        localDef.TypeKey, localDef.DisplayName ?? localDef.TypeKey, localDef.Category ?? "Custom",
+                    var typeKey = localDef.TypeKey ?? "unknown";
+                    var displayName = localDef.DisplayName ?? localDef.TypeKey ?? "Unknown";
+                    var category = localDef.Category ?? "Custom";
+                    
+                    var tags = localDef.Tags ?? new List<string>();
+                    var icon = localDef.Icon ?? "";
+                    
+#pragma warning disable CS8601 // Null values are handled by null-coalescing operators above
+                    SafeRegister(typeKey, new NodeMeta(
+                        typeKey!, displayName!, category!,
                         CreateNode: () =>
                         {
-                            var n = new UnifiedEffectNode { TypeKey = localDef.TypeKey, DisplayName = localDef.DisplayName ?? localDef.TypeKey };
+                            var n = new UnifiedEffectNode { TypeKey = typeKey, DisplayName = displayName };
                             if (localDef.Parameters is not null)
-                                foreach (var (k, v) in localDef.Parameters) n.Parameters[k] = v;
+                                foreach (var (k, v) in localDef.Parameters) n.Parameters[k] = v ?? "";
                             return n;
                         },
-                        Tags: localDef.Tags,
-                        Icon: localDef.Icon
+                        Tags: tags!,
+                        Icon: icon!
                     ));
+#pragma warning restore CS8601
                 }
             }
             catch { /* ignore malformed */ }

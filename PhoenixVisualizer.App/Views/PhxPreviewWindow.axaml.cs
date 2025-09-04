@@ -57,7 +57,7 @@ public partial class PhxPreviewWindow : Window
         InitializeComponent();
         // Defensive: keep VM binding even if template changes
         if (DataContext is null) DataContext = new PhoenixVisualizer.App.ViewModels.PhxEditorViewModel();
-        ViewModel = DataContext as PhoenixVisualizer.App.ViewModels.PhxEditorViewModel;
+        ViewModel = DataContext as PhoenixVisualizer.App.ViewModels.PhxEditorViewModel ?? new PhoenixVisualizer.App.ViewModels.PhxEditorViewModel();
         if (ViewModel == null)
         {
             ViewModel = new PhoenixVisualizer.App.ViewModels.PhxEditorViewModel();

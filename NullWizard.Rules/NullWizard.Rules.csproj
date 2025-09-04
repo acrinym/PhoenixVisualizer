@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>NullWizard.Rules</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>NullWizard.Rules</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>NullWizard Contributors</Authors>
+    <Description>Version-specific and package rules for NullWizard</Description>
+    <PackageTags>null;rules;roslyn;.net</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NullWizard.Core\NullWizard.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="NullWizardAnalyzerTitle" xml:space="preserve">
+    <value>Null handling suggestion</value>
+  </data>
+  <data name="NullWizardAnalyzerMessageFormat" xml:space="preserve">
+    <value>Consider applying null handling pattern for '{0}'</value>
+  </data>
+  <data name="NullWizardAnalyzerDescription" xml:space="preserve">
+    <value>NullWizard suggests appropriate null handling patterns based on codebase analysis.</value>
+  </data>
+</root>

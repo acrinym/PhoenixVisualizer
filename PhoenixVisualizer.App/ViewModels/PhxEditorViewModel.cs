@@ -96,9 +96,9 @@ namespace PhoenixVisualizer.App.ViewModels
         public ReactiveCommand<Unit, Unit> LoadSelectedPresetCommand { get; set; } = ReactiveCommand.Create(() => { });
         public ReactiveCommand<Unit, Unit> DeletePresetCommand { get; set; } = ReactiveCommand.Create(() => { });
 
-        // Events
-        public event Action? CompileStarted;
-        public event Action<bool>? CompileCompleted;
+        // Events - commented out as unused
+        // public event Action? CompileStarted;
+        // public event Action<bool>? CompileCompleted;
 
         public PhxEditorViewModel()
         {

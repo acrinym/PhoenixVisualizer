@@ -117,6 +117,11 @@ namespace PhoenixVisualizer.Editor.Views
                 .Subscribe(_ => ToggleUndockPreview())
                 .DisposeWith(_disposables);
 
+            vm.AddNodeCommand
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => AddSelectedNode())
+                .DisposeWith(_disposables);
+
             // Live apply: when scripts change and LiveApply is on, recompile
             vm.WhenAnyValue(x => x.ScriptInit, x => x.ScriptFrame, x => x.ScriptBeat, x => x.ScriptPoint, x => x.LiveApply)
                 .Throttle(TimeSpan.FromMilliseconds(120), RxApp.MainThreadScheduler)
@@ -165,7 +170,7 @@ namespace PhoenixVisualizer.Editor.Views
                   ParamRegistry.ValueChanged += (vizId, key, value) =>
                   {
                       if (vizId == sel.Id && sel.Parameters.ContainsKey(key))
-                          sel.Parameters[key] = value;
+                          sel.Parameters[key] = value ?? "";
                   };
               })
               .DisposeWith(_disposables);
@@ -240,7 +245,7 @@ namespace PhoenixVisualizer.Editor.Views
                 var graph = WinampAvsImporter.Import(bytes);
                 _vm.EffectStack.Clear();
                 foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
-                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault() ?? null;
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
                 _vm.CurrentFilePath = path;
                 _vm.StatusText = $"Imported AVS: {Path.GetFileName(path)}";
             }
@@ -250,7 +255,7 @@ namespace PhoenixVisualizer.Editor.Views
                 var graph = PhxVizSerializer.Load(bytes);
                 _vm.EffectStack.Clear();
                 foreach (var n in graph.Nodes) _vm.EffectStack.Add(n);
-                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault() ?? null;
+                _vm.SelectedEffect = _vm.EffectStack.FirstOrDefault();
                 _vm.CurrentFilePath = path;
                 _vm.StatusText = $"Loaded Phoenix preset: {Path.GetFileName(path)}";
             }
@@ -301,7 +306,7 @@ namespace PhoenixVisualizer.Editor.Views
         {
             if (_vm == null) return;
             _vm.EffectStack.Clear();
-            var node = EffectNodeCatalog.Create("superscope");
+            var node = PhoenixVisualizer.Core.Transpile.EffectNodeCatalog.Create("superscope");
             _vm.EffectStack.Add(node);
             _vm.SelectedEffect = node;
             _vm.CurrentFilePath = null;
@@ -364,7 +369,7 @@ namespace PhoenixVisualizer.Editor.Views
             {
                 var exe = AppContext.BaseDirectory;
                 var folder = Path.Combine(exe, "Presets", "Effects");
-                EffectNodeCatalog.LoadFolder(folder);
+                PhoenixVisualizer.Core.Catalog.EffectNodeCatalog.LoadFolder(folder);
             }
             catch { /* optional */ }
         }
@@ -412,7 +417,7 @@ namespace PhoenixVisualizer.Editor.Views
             // Handle effect node drops
             if (e.Data.Get("application/x-phx-node") is string typeKey)
             {
-                var node = EffectNodeCatalog.Create(typeKey);
+                var node = PhoenixVisualizer.Core.Transpile.EffectNodeCatalog.Create(typeKey);
                 _vm.EffectStack.Add(node);
                 _vm.SelectedEffect = node;
                 CompileFromStack();
@@ -430,6 +435,64 @@ namespace PhoenixVisualizer.Editor.Views
                     }
                 }
             }
+        }
+
+        private void AddSelectedNode()
+        {
+            if (_vm == null) return;
+            var kind = _vm.SelectedNodeType?.ToLowerInvariant() ?? "superscope";
+            var node = PhoenixVisualizer.Core.Transpile.EffectNodeCatalog.Create(kind);
+            _vm.EffectStack.Add(node);
+            _vm.SelectedEffect = node;
+            CompileFromStack();
+            _vm.StatusText = $"Added node: {node.DisplayName}";
+        }
+
+        // ----- Palette → start drag -----
+        public async void OnPalettePointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (sender is not ListBox lb) return;
+            if (e.GetCurrentPoint(lb).Properties.IsLeftButtonPressed == false) return;
+            var sel = lb.SelectedItem as string;
+            if (string.IsNullOrEmpty(sel)) return;
+            var data = new DataObject();
+            data.Set("phx/palette-node", sel);
+            await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
+        }
+
+        // ----- Stack accept palette drop / support external reorder behavior -----
+        public void OnEffectStackDragOver(object? sender, DragEventArgs e)
+        {
+            if (e.Data.Contains("phx/palette-node")) e.DragEffects = DragDropEffects.Copy;
+            else e.DragEffects = DragDropEffects.Move; // Reorder handled by behavior
+        }
+        public void OnEffectStackDrop(object? sender, DragEventArgs e)
+        {
+            if (_vm == null) return;
+            if (!e.Data.Contains("phx/palette-node")) return; // reorder handled in behavior
+            var type = e.Data.Get("phx/palette-node") as string ?? "Superscope";
+            var node = PhoenixVisualizer.Core.Transpile.EffectNodeCatalog.Create(type);
+            // compute insert index from drop position
+            var lb = sender as ListBox;
+            int insert = _vm.EffectStack.Count;
+            if (lb != null)
+            {
+                var pos = e.GetPosition(lb);
+                for (int i = 0; i < _vm.EffectStack.Count; i++)
+                {
+                    if (lb.ContainerFromIndex(i) is Control c)
+                    {
+                        var r = c.Bounds;
+                        var y = c.TranslatePoint(new Avalonia.Point(0, 0), lb)!.Value.Y;
+                        if (pos.Y < y + r.Height / 2) { insert = i; break; }
+                    }
+                }
+            }
+            _vm.EffectStack.Insert(Math.Clamp(insert, 0, _vm.EffectStack.Count), node);
+            _vm.SelectedEffect = node;
+            _vm.IsDirty = true;
+            CompileFromStack();
+            e.Handled = true;
         }
     }
 

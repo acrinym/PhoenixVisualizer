@@ -22,6 +22,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
         public ReactiveCommand<Unit, Unit> TestCodeCommand { get; }
         public ReactiveCommand<Unit, Unit> NewPhxVisCommand { get; }
         public ReactiveCommand<Unit, Unit> ToggleUndockCommand { get; }
+        public ReactiveCommand<Unit, Unit> AddNodeCommand { get; }
         public ReactiveCommand<object, Unit> AddByTypeKeyCommand { get; }
         public ReactiveCommand<Unit, Unit> RemoveSelectedCommand { get; }
         public ReactiveCommand<Unit, Unit> DuplicateSelectedCommand { get; }
@@ -29,6 +30,10 @@ namespace PhoenixVisualizer.Editor.ViewModels
         public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
 
         public ObservableCollection<UnifiedEffectNode> EffectStack { get; } = new();
+        public ObservableCollection<string> AvailableNodes { get; } =
+            new(new[] { "Superscope", "Oscilloscope", "Movement", "Colorize" });
+        private string? _selectedNodeType = "Superscope";
+        public string? SelectedNodeType { get => _selectedNodeType; set => this.RaiseAndSetIfChanged(ref _selectedNodeType, value); }
         private UnifiedEffectNode? _selectedEffect;
         public UnifiedEffectNode? SelectedEffect { get => _selectedEffect; set => this.RaiseAndSetIfChanged(ref _selectedEffect, value); }
 
@@ -66,6 +71,13 @@ namespace PhoenixVisualizer.Editor.ViewModels
         public string PreviewDockButtonText => IsUndocked ? "Redock Preview" : "Undock Preview";
 
         private string _statusText = "";
+
+        private bool _isDirty;
+        public bool IsDirty
+        {
+            get => _isDirty;
+            set => this.RaiseAndSetIfChanged(ref _isDirty, value);
+        }
         public string StatusText { get => _statusText; set => this.RaiseAndSetIfChanged(ref _statusText, value); }
         
         // Event for requesting compilation from the ViewModel
@@ -110,6 +122,10 @@ namespace PhoenixVisualizer.Editor.ViewModels
                 () => { /* handled in window */ },
                 outputScheduler: Ui);
 
+            AddNodeCommand = ReactiveCommand.Create(
+                () => { /* handled in window */ },
+                outputScheduler: Ui);
+
             AddByTypeKeyCommand = ReactiveCommand.Create<object>(param =>
             {
                 string typeKey;
@@ -126,7 +142,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
                     return;
                 }
                 
-                var nodeMeta = EffectNodeCatalog.TryGet(typeKey, out var m) ? m :
+                var nodeMeta = PhoenixVisualizer.Core.Catalog.EffectNodeCatalog.TryGet(typeKey, out var m) ? m :
                     new NodeMeta(typeKey, typeKey, "Custom", () => new UnifiedEffectNode{ TypeKey = typeKey, DisplayName = typeKey });
                 var node = nodeMeta.CreateNode();
                 EffectStack.Add(node);
@@ -177,7 +193,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
             // setup catalog backing view
             _catalogView = new ReadOnlyObservableCollection<NodeMeta>(_catalogBacking);
-            EffectNodeCatalog.CatalogChanged += RefreshCatalog;
+            PhoenixVisualizer.Core.Catalog.EffectNodeCatalog.CatalogChanged += RefreshCatalog;
             RefreshCatalog();
             
             // Trigger compilation when effect stack changes
@@ -240,7 +256,7 @@ namespace PhoenixVisualizer.Editor.ViewModels
 
         private void RefreshCatalog()
         {
-            var all = EffectNodeCatalog.All();
+            var all = PhoenixVisualizer.Core.Catalog.EffectNodeCatalog.All();
             var filter = _catalogFilter?.Trim() ?? "";
             var cat = _catalogCategory ?? "All";
             var filtered = all.Where(m =>
