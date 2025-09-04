@@ -90,7 +90,7 @@ affected by a change to the BASS_WA interface are listed.
 1.4 - 05/01/2004
 ----------------
 *Removed some trash code, only the dll did not get any smaller some way :(
-*Given proper credit to Saïd Bougribate aka KarLKoX, because I've taken some code from his winamp dll.
+*Given proper credit to Saï¿½d Bougribate aka KarLKoX, because I've taken some code from his winamp dll.
 *Rewritten some functions in a try to make them faster.
 *Some minor bugs removed, really minor :)
 
@@ -114,7 +114,7 @@ affected by a change to the BASS_WA interface are listed.
 
 Credits - Code Contributors
 =================================
-Some function names, Winamp vis header and Fake Winamp window code - Saïd Bougribate
+Some function names, Winamp vis header and Fake Winamp window code - Saï¿½d Bougribate
 
 
 Credits - API/Sample Contributors

@@ -1,48 +1,68 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="using:PhoenixVisualizer.App.ViewModels"
-        x:Class="PhoenixVisualizer.Views.PhxEditorSettingsDialog"
-        x:DataType="local:PhxEditorSettings"
-        Title="Preview Settings" Width="420" Height="360"
-        WindowStartupLocation="CenterOwner" CanResize="False">
-  <StackPanel Margin="16" Spacing="10">
-    <TextBlock Text="Preview Rendering" FontWeight="Bold" Margin="0,0,0,6"/>
-    <CheckBox Content="Clear every frame" IsChecked="{Binding ClearEveryFrame}"/>
-    <CheckBox Content="Pixel doubling (nearest upscale)" IsChecked="{Binding PixelDoubling}"/>
-    <CheckBox Content="VSync (cap to monitor refresh)" IsChecked="{Binding VSync}"/>
-    <CheckBox Content="Show FPS overlay" IsChecked="{Binding ShowFps}"/>
-    <CheckBox Content="Show performance/watch overlay" IsChecked="{Binding ShowOverlay}"/>
+        x:Class="PhoenixVisualizer.App.Views.PhxEditorSettingsDialog"
+        x:DataType="viewmodels:PhxEditorSettings"
+        xmlns:viewmodels="clr-namespace:PhoenixVisualizer.App.ViewModels"
+        Title="Phoenix Visualizer Settings"
+        Width="450" Height="550"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource MaterialBackground}">
+  <StackPanel Margin="24" Spacing="16" Background="{DynamicResource MaterialSurface}">
+    <TextBlock Text="Rendering" FontWeight="Bold" Margin="0,0,0,8" 
+               Foreground="{DynamicResource MaterialTextPrimary}" FontSize="16"/>
+    <CheckBox Content="Clear every frame" IsChecked="{Binding ClearEveryFrame}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
+    <CheckBox Content="Pixel doubling" IsChecked="{Binding PixelDoubling}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
+    <CheckBox Content="VSync" IsChecked="{Binding VSync}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
+    <CheckBox Content="Show FPS" IsChecked="{Binding ShowFps}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
+    <CheckBox Content="Show overlay" IsChecked="{Binding ShowOverlay}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
     <StackPanel Orientation="Horizontal" Spacing="8">
-      <TextBlock VerticalAlignment="Center" Text="Overlay scale"/>
-      <Slider Width="160" Minimum="0.75" Maximum="2.0" Value="{Binding OverlayScale}"/>
-      <TextBlock Text="{Binding OverlayScale, StringFormat='{}{0:0.00}x'}" VerticalAlignment="Center"/>
+      <TextBlock VerticalAlignment="Center" Text="Overlay scale" 
+                 Foreground="{DynamicResource MaterialTextPrimary}"/>
+      <Slider Width="100" Minimum="0.75" Maximum="2.0" Value="{Binding OverlayScale}"/>
+      <TextBlock VerticalAlignment="Center" Text="{Binding OverlayScale}" 
+                 Foreground="{DynamicResource MaterialTextPrimary}"/>
     </StackPanel>
-    <Separator/>
-    <TextBlock Text="Color/Space" FontWeight="Bold" Margin="0,0,0,6"/>
-    <CheckBox Content="Linear color blending" IsChecked="{Binding LinearColor}"/>
+    <CheckBox Content="Linear color space" IsChecked="{Binding LinearColor}" 
+               Foreground="{DynamicResource MaterialTextPrimary}"/>
+    <Separator Background="{DynamicResource MaterialElevation2}"/>
+    <TextBlock Text="Theme" FontWeight="Bold" Margin="0,0,0,8" 
+               Foreground="{DynamicResource MaterialTextPrimary}" FontSize="16"/>
     <StackPanel Orientation="Horizontal" Spacing="8">
-      <TextBlock VerticalAlignment="Center" Text="Background"/>
-      <TextBox Width="120" Text="{Binding BackgroundColorHex}" Watermark="#000000"/>
-      <TextBlock VerticalAlignment="Center" Text="(Hex color)" Opacity="0.7"/>
-    </StackPanel>
-    <Separator/>
-    <TextBlock Text="Theme" FontWeight="Bold" Margin="0,0,0,6"/>
-    <StackPanel Orientation="Horizontal" Spacing="8">
-      <TextBlock VerticalAlignment="Center" Text="Application Theme"/>
-      <ComboBox Width="150" SelectedItem="{Binding ThemeName}">
+      <TextBlock VerticalAlignment="Center" Text="Application Theme" 
+                 Foreground="{DynamicResource MaterialTextPrimary}"/>
+      <ComboBox Width="150" SelectedItem="{Binding ThemeName}" 
+                Background="{DynamicResource MaterialSurface}"
+                Foreground="{DynamicResource MaterialTextPrimary}">
         <ComboBoxItem>Dark</ComboBoxItem>
         <ComboBoxItem>Light</ComboBoxItem>
         <ComboBoxItem>Neon</ComboBoxItem>
         <ComboBoxItem>Minimal</ComboBoxItem>
+        <ComboBoxItem>Material</ComboBoxItem>
+        <ComboBoxItem>Amanda</ComboBoxItem>
       </ComboBox>
     </StackPanel>
-    <Separator/>
-    <TextBlock Text="Other" FontWeight="Bold" Margin="0,0,0,6"/>
-    <TextBlock Text="Set as desktop wallpaper (Windows) — TODO" FontStyle="Italic" Opacity="0.7"/>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-      <Button Content="Apply" Click="OnApply"/>
-      <Button Content="OK" IsDefault="True" Click="OnOK"/>
-      <Button Content="Cancel" Click="OnClose"/>
+    <Separator Background="{DynamicResource MaterialElevation2}"/>
+    <TextBlock Text="Other" FontWeight="Bold" Margin="0,0,0,8" 
+               Foreground="{DynamicResource MaterialTextPrimary}" FontSize="16"/>
+    <TextBlock Text="Set as desktop wallpaper (Windows) — TODO" FontStyle="Italic" Opacity="0.7" 
+               Foreground="{DynamicResource MaterialTextSecondary}"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,16,0,0">
+      <Button Content="Apply" Click="OnApply" 
+               Background="{DynamicResource MaterialPrimary}" 
+               Foreground="White" CornerRadius="4" Margin="4"/>
+      <Button Content="OK" IsDefault="True" Click="OnOK" 
+               Background="{DynamicResource MaterialPrimary}" 
+               Foreground="White" CornerRadius="4" Margin="4"/>
+      <Button Content="Cancel" Click="OnClose" 
+               Background="{DynamicResource MaterialSurface}" 
+               Foreground="{DynamicResource MaterialTextPrimary}" 
+               CornerRadius="4" Margin="4"/>
     </StackPanel>
   </StackPanel>
 </Window>

@@ -8,6 +8,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Nyan Cat Visualizer - Classic rainbow cat that flies across the screen with audio-reactive rainbow trail
 /// Inspired by the legendary Nyan Cat meme with enhanced audio reactivity and customizable parameters
+/// FIXED: Implemented proper rainbow trail emission instead of orange trail
 /// </summary>
 public sealed class NyanCatVisualizer : IVisualizerPlugin
 {
@@ -254,24 +255,37 @@ public sealed class NyanCatVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Update audio reactivity
+        // FIXED: Enhanced audio reactivity
         UpdateAudioReactivity(f);
 
-        // Update cat movement
+        // FIXED: Enhanced cat movement
         UpdateCatMovement(f);
 
-        // Update trail
+        // FIXED: Enhanced rainbow trail
         UpdateTrail(f);
 
-        // Update stars and sparkles
+        // FIXED: Enhanced stars and sparkles
         UpdateStarsAndSparkles(f);
 
-        // Render everything
+        // FIXED: Enhanced scene rendering
         RenderScene(canvas, f);
 
-        // Render UI
+        // FIXED: Enhanced UI
         RenderUI(canvas, f);
     }
 

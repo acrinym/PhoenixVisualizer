@@ -1,0 +1,249 @@
+--- a/PhoenixVisualizer.Visuals\MinecartRollercoasterVisualizer.cs
++++ b/PhoenixVisualizer.Visuals\MinecartRollercoasterVisualizer.cs
+@@ -148,46 +148,96 @@
+ 
+     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+     {
+-        // FIXED: Audio-reactive time and animation updates
+-        var energy = f.Energy;
+-        var bass = f.Bass;
+-        var mid = f.Mid;
+-        var treble = f.Treble;
+-        var beat = f.Beat;
+-        var volume = f.Volume;
+-        
+-        // Audio-reactive animation speed
+-        var baseSpeed = 0.016f;
+-        var energySpeed = energy * 0.02f;
+-        var trebleSpeed = treble * 0.015f;
+-        var beatSpeed = beat ? 0.03f : 0f;
+-        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+-
+-        // FIXED: Enhanced audio reactivity
+-        UpdateAudioReactivity(f);
+-
+-        // FIXED: Enhanced game logic with audio reactivity
+-        UpdateTrack(f);
+-        UpdateCarts(f);
+-        UpdateParticles(f);
+-        UpdateScenery(f);
+-
+-        // FIXED: Enhanced scene rendering
+-        RenderBackground(canvas, f);
+-        RenderScenery(canvas, f);
+-        RenderTrack(canvas, f);
+-        RenderCarts(canvas, f);
+-        RenderParticles(canvas, f);
+-        RenderUI(canvas, f);
+-
+-        // FIXED: Enhanced camera effects
+-        if (_cameraShake > 0)
+-        {
+-            var baseShakeDecay = 0.9f;
+-            var energyShakeDecay = energy * 0.05f;
+-            var beatShakeDecay = beat ? 0.1f : 0f;
+-            _cameraShake *= baseShakeDecay + energyShakeDecay + beatShakeDecay;
+-        }
++        // Stable, deterministic track + cart rendering (no rainbow anemone)
++        // Clear frame
++        canvas.Clear(0xFF000000);
++
++        int W = canvas.Width;
++        int H = canvas.Height;
++        float cx = W * 0.5f;
++        float cy = H * 0.6f;
++        _time += 0.016f * (1f + f.Energy * 2f + (f.Beat ? 0.5f : 0f));
++
++        // Perspective parameters
++        float zNear = 60f, zFar = 1200f, fov = 1.2f;
++        float railHalf = 18f;   // half distance between rails
++        int steps = 180;        // number of sample points forward
++        float dz = 8f;          // distance between samples in Z
++
++        // Track centerline as smooth S-curve; audio modulates curvature, not color
++        float k1 = 0.0025f + f.Bass * 0.0015f;
++        float k2 = 0.0030f + f.Mid * 0.0015f;
++
++        // Previous projected points for rails
++        float pxL = 0, pyL = 0, pxR = 0, pyR = 0;
++        bool first = True;
++
++        for (int i = 0; i < steps; i++)
++        {
++            float z = i * dz + 1f;
++            // Parametric centerline in 3D
++            float x = MathF.Sin((_time * 0.3f) + z * k1) * 140f;
++            float y = MathF.Cos((_time * 0.2f) + z * k2) * 70f - z * 0.02f;
++
++            // Tangent (approx) for normal computation
++            float x2 = MathF.Sin((_time * 0.3f) + (z + 1) * k1) * 140f;
++            float y2 = MathF.Cos((_time * 0.2f) + (z + 1) * k2) * 70f - (z + 1) * 0.02f;
++            float tx = x2 - x, ty = y2 - y;
++            float len = MathF.Max(0.001f, MathF.Sqrt(tx*tx + ty*ty));
++            float nx = -ty / len, ny = tx / len;
++
++            // Rail world points
++            float xL = x + nx * railHalf, yL = y + ny * railHalf;
++            float xR = x - nx * railHalf, yR = y - ny * railHalf;
++
++            // Perspective projection
++            float p = fov / (z / 200f + 1f);
++            float sxL = cx + xL * p, syL = cy + yL * p;
++            float sxR = cx + xR * p, syR = cy + yR * p;
++
++            uint railColor = 0xFFBBBBBBu;
++
++            if (!first)
++            {
++                canvas.DrawLine(pxL, pyL, sxL, syL, railColor, 2.0f);
++                canvas.DrawLine(pxR, pyR, sxR, syR, railColor, 2.0f);
++                // sleepers
++                if ((i % 3) == 0)
++                {
++                    canvas.DrawLine(sxL, syL, sxR, syR, 0xFF888888u, 1.5f);
++                }
++            }
++            first = False;
++            pxL = sxL; pyL = syL; pxR = sxR; pyR = syR;
++        }
++
++        // Draw player cart as a small chassis on the nearest rail segment
++        float cartZ = 30f;
++        float px = MathF.Sin((_time * 0.3f) + cartZ * k1) * 140f;
++        float py = MathF.Cos((_time * 0.2f) + cartZ * k2) * 70f - cartZ * 0.02f;
++        float px2 = MathF.Sin((_time * 0.3f) + (cartZ + 1) * k1) * 140f;
++        float py2 = MathF.Cos((_time * 0.2f) + (cartZ + 1) * k2) * 70f - (cartZ + 1) * 0.02f;
++        float ttx = px2 - px, tty = py2 - py;
++        float tlen = MathF.Max(0.001f, MathF.Sqrt(ttx*ttx + tty*tty));
++        float nnx = -tty / tlen, nny = ttx / tlen;
++
++        float cartX = px;
++        float cartY = py - 8f + (f.Beat ? -6f : 0f); // subtle beat bounce
++
++        float cartP = fov / (cartZ / 200f + 1f);
++        float scx = cx + cartX * cartP;
++        float scy = cy + cartY * cartP;
++
++        // cart body
++        float cw = 36f * cartP;
++        float ch = 22f * cartP;
++        canvas.FillRect(scx - cw*0.5f, scy - ch*0.5f, cw, ch, 0xFF2222FFu);
++        // wheels
++        float wxOff = 10f * cartP;
++        float wyOff = ch*0.5f + 4f*cartP;
++        canvas.DrawCircle(scx - wxOff, scy + wyOff, 3f*cartP, 0xFFFFFFFFu, true);
++        canvas.DrawCircle(scx + wxOff, scy + wyOff, 3f*cartP, 0xFFFFFFFFu, true);
++    }
+     }
+ 
+     private void UpdateAudioReactivity(AudioFeatures f)
+
+
+--- a/PhoenixVisualizer.App\Rendering\RenderSurface.cs
++++ b/PhoenixVisualizer.App\Rendering\RenderSurface.cs
+@@ -136,7 +136,7 @@
+         // Early exit if no audio provider
+         if (_audio == null) return;
+ 
+-        var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
++        var adapter = new BudgetCanvas(new CanvasAdapter(context, Bounds.Width, Bounds.Height), 40000);
+ 
+         // Handle dynamic resize for plugins that support it
+         int w = (int)Bounds.Width;
+@@ -371,6 +371,61 @@
+         float tau = smoothingMs / 1000f;
+         return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
+     }
+-}
+-
+-
++
++    private sealed class BudgetCanvas : ISkiaCanvas
++    {
++        private readonly ISkiaCanvas _inner;
++        private readonly int _maxCalls;
++        private int _calls;
++        private float _lineWidth = 1f;
++
++        public BudgetCanvas(ISkiaCanvas inner, int maxCalls = 30000)
++        {
++            _inner = inner;
++            _maxCalls = maxCalls;
++        }
++
++        private bool Allow() => _calls++ < _maxCalls;
++
++        public int Width => _inner.Width;
++        public int Height => _inner.Height;
++        public float FrameBlend { get => _inner.FrameBlend; set => _inner.FrameBlend = value; }
++
++        public void Clear(uint color) { if (Allow()) _inner.Clear(color); }
++        public void SetLineWidth(float width) { _lineWidth = width; _inner.SetLineWidth(width); }
++        public float GetLineWidth() => _inner.GetLineWidth();
++
++        public void DrawLine(float x1, float y1, float x2, float y2, uint color, float thickness = 0)
++        { if (Allow()) _inner.DrawLine(x1, y1, x2, y2, color, thickness); }
++
++        public void DrawLines(Span<(float x, float y)> pts, float thickness, uint color)
++        { if (Allow()) _inner.DrawLines(pts, thickness, color); }
++
++        public void DrawRect(float x, float y, float width, float height, uint color, bool filled = false)
++        { if (Allow()) _inner.DrawRect(x, y, width, height, color, filled); }
++
++        public void FillRect(float x, float y, float width, float height, uint color)
++        { if (Allow()) _inner.FillRect(x, y, width, height, color); }
++
++        public void DrawCircle(float cx, float cy, float radius, uint color, bool filled = false)
++        { if (Allow()) _inner.DrawCircle(cx, cy, radius, color, filled); }
++
++        public void FillCircle(float cx, float cy, float radius, uint color)
++        { if (Allow()) _inner.FillCircle(cx, cy, radius, color); }
++
++        public void DrawPoint(float x, float y, uint color, float size = 1f)
++        { if (Allow()) _inner.DrawPoint(x, y, color, size); }
++
++        public void DrawText(string text, float x, float y, uint color, float size = 12f)
++        { if (Allow()) _inner.DrawText(text, x, y, color, size); }
++
++        public void Fade(uint argb, float alpha)
++        { if (Allow()) _inner.Fade(argb, alpha); }
++
++        public void DrawPolygon(Span<(float x, float y)> pts, uint color, bool filled = false)
++        { if (Allow()) _inner.DrawPolygon(pts, color, filled); }
++
++        public void DrawArc(float x, float y, float radius, float startDeg, float sweepDeg, uint color, float thickness = 1f)
++        { if (Allow()) _inner.DrawArc(x, y, radius, startDeg, sweepDeg, color, thickness); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\FlameFractal.cs
++++ b/PhoenixVisualizer.Visuals\FlameFractal.cs
+@@ -15,6 +15,7 @@
+ 
+     // Algorithm constants
+     private const int POINT_BUFFER_SIZE = 10;
++    private const int MAX_POINTS_PER_FRAME = 20000;
+     private const int MAXLEV = 4;
+     private const int MAXKINDS = 10;
+     private const int MAX_COLORS = 128;
+@@ -130,6 +131,7 @@
+         _totalPoints = 0;
+ 
+         // Start recursive fractal generation
++        _totalPoints = 0; _numPoints = 0;
+         Recurse(0.0, 0.0, 0, canvas);
+ 
+         // Render any remaining points
+@@ -217,8 +219,8 @@
+         }
+     }
+ 
+-    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas)
+-    {
++    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas) {
++            if (_totalPoints >= MAX_POINTS_PER_FRAME) return false;
+         if (level == _maxLevels)
+         {
+             _totalPoints++;
+
+

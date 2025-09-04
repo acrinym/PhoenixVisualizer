@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Windows 95/98 inspired 3D Twister - Audio-reactive spinning tornado funnel
 /// Features dynamic funnel width/circumference that responds to audio frequencies
+/// FIXED: Now fluidly pulses like a sideways VU meter with more dynamic colors
 /// </summary>
 public sealed class Win953DTwister : IVisualizerPlugin
 {
@@ -30,7 +31,7 @@ public sealed class Win953DTwister : IVisualizerPlugin
     private float[] _layerTwist = new float[LAYERS];
     private float[] _layerBrightness = new float[LAYERS];
 
-    // Colors inspired by Windows 95 tornado effects
+    // FIXED: More dynamic colors for VU meter-style visualization
     private readonly uint[] _twisterColors = new uint[]
     {
         0xFF404080, // Dark blue
@@ -44,7 +45,19 @@ public sealed class Win953DTwister : IVisualizerPlugin
         0xFFA080C0, // Light purple
         0xFFC0A060, // Gold
         0xFFE0C080, // Light gold
-        0xFF60A0C0  // Sky blue
+        0xFF60A0C0, // Sky blue
+        0xFFFF0000, // Red
+        0xFF00FF00, // Green
+        0xFF0000FF, // Blue
+        0xFFFFFF00, // Yellow
+        0xFFFF00FF, // Magenta
+        0xFF00FFFF, // Cyan
+        0xFFFF8000, // Orange
+        0xFF800080, // Purple
+        0xFF80FF80, // Light green
+        0xFF8080FF, // Light blue
+        0xFFFFFF80, // Light yellow
+        0xFFFF80FF  // Pink
     };
 
     public void Initialize(int width, int height)
@@ -72,13 +85,36 @@ public sealed class Win953DTwister : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.03f;
+        var trebleSpeed = treble * 0.02f;
+        var beatSpeed = beat ? 0.04f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
         // Update twister based on audio
         UpdateTwister(f);
 
-        // Clear with dark background (stormy sky)
-        canvas.Clear(0xFF0A0A15);
+        // FIXED: Audio-reactive background color (more dynamic)
+        var baseColor = 0xFF0A0A15;
+        if (beat)
+            baseColor = 0xFF1A0A2A; // Purple tint on beat
+        else if (bass > 0.5f)
+            baseColor = 0xFF0A0A2A; // Blue tint for bass
+        else if (treble > 0.4f)
+            baseColor = 0xFF2A0A0A; // Red tint for treble
+        else if (energy > 0.6f)
+            baseColor = 0xFF2A0A2A; // Purple tint for energy
+            
+        canvas.Clear(baseColor);
 
         // Render the 3D twister
         Render3DTwister(canvas, f);
@@ -86,33 +122,64 @@ public sealed class Win953DTwister : IVisualizerPlugin
 
     private void UpdateTwister(AudioFeatures f)
     {
-        // Audio-reactive layer updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: VU meter-style pulsing updates
         for (int layer = 0; layer < LAYERS; layer++)
         {
             float layerRatio = (float)layer / (LAYERS - 1);
 
-            // Bass controls lower layers (wider base)
-            float bassInfluence = f.Bass * (1f - layerRatio) * 2f;
-            // Mid controls middle layers
-            float midInfluence = f.Mid * (float)(1f - Math.Abs(layerRatio - 0.5f) * 2f);
-            // Treble controls upper layers (narrower top)
-            float trebleInfluence = f.Treble * layerRatio * 1.5f;
+            // FIXED: VU meter-style frequency distribution
+            // Bass controls lower layers (wider base) - like VU meter bass
+            float bassInfluence = bass * (1f - layerRatio) * 3f;
+            // Mid controls middle layers - like VU meter mid
+            float midInfluence = mid * (float)(1f - Math.Abs(layerRatio - 0.5f) * 2f) * 2.5f;
+            // Treble controls upper layers (narrower top) - like VU meter treble
+            float trebleInfluence = treble * layerRatio * 2f;
 
-            // Update radius based on audio
-            float targetRadius = BASE_RADIUS + bassInfluence * MAX_RADIUS * 0.7f +
-                               midInfluence * MAX_RADIUS * 0.5f +
-                               trebleInfluence * MAX_RADIUS * 0.3f;
+            // FIXED: VU meter-style radius pulsing
+            var baseRadius = BASE_RADIUS;
+            var bassRadius = bassInfluence * MAX_RADIUS * 0.8f;
+            var midRadius = midInfluence * MAX_RADIUS * 0.6f;
+            var trebleRadius = trebleInfluence * MAX_RADIUS * 0.4f;
+            var energyRadius = energy * MAX_RADIUS * 0.3f;
+            var beatRadius = beat ? MAX_RADIUS * 0.2f : 0f;
+            
+            float targetRadius = baseRadius + bassRadius + midRadius + trebleRadius + energyRadius + beatRadius;
 
-            _layerRadii[layer] += (targetRadius - _layerRadii[layer]) * 0.05f;
-            _layerRadii[layer] = Math.Max(BASE_RADIUS * 0.2f, Math.Min(MAX_RADIUS, _layerRadii[layer]));
+            // FIXED: Smooth VU meter-style transitions
+            var smoothFactor = 0.08f + energy * 0.05f + (beat ? 0.1f : 0f);
+            _layerRadii[layer] += (targetRadius - _layerRadii[layer]) * smoothFactor;
+            _layerRadii[layer] = Math.Max(BASE_RADIUS * 0.1f, Math.Min(MAX_RADIUS * 1.2f, _layerRadii[layer]));
 
-            // Update twist based on audio and layer
-            _layerTwist[layer] += TWIST_SPEED * 0.01f * (1f + f.Volume * 2f) +
-                                layerRatio * 0.1f * (1f + trebleInfluence);
+            // FIXED: Enhanced audio-reactive twist (VU meter movement)
+            var baseTwist = TWIST_SPEED * 0.01f;
+            var volumeTwist = volume * 3f;
+            var bassTwist = bass * 2f;
+            var midTwist = mid * 1.5f;
+            var trebleTwist = treble * 2.5f;
+            var energyTwist = energy * 2f;
+            var beatTwist = beat ? 4f : 0f;
+            
+            _layerTwist[layer] += (baseTwist + volumeTwist + bassTwist + midTwist + trebleTwist + energyTwist + beatTwist) * 
+                                (1f + layerRatio * 0.2f);
 
-            // Update brightness based on audio energy
-            float audioEnergy = (f.Bass + f.Mid + f.Treble) / 3f;
-            _layerBrightness[layer] = 0.3f + audioEnergy * 0.7f + layerRatio * 0.2f;
+            // FIXED: VU meter-style brightness pulsing
+            var baseBrightness = 0.3f;
+            var bassBrightness = bass * 0.6f;
+            var midBrightness = mid * 0.5f;
+            var trebleBrightness = treble * 0.4f;
+            var energyBrightness = energy * 0.7f;
+            var beatBrightness = beat ? 0.8f : 0f;
+            var layerBrightness = layerRatio * 0.3f;
+            
+            _layerBrightness[layer] = baseBrightness + bassBrightness + midBrightness + trebleBrightness + 
+                                    energyBrightness + beatBrightness + layerBrightness;
         }
     }
 
@@ -145,8 +212,24 @@ public sealed class Win953DTwister : IVisualizerPlugin
         float twist = _layerTwist[layer];
         float brightness = _layerBrightness[layer];
 
-        // Audio-reactive color
-        uint baseColor = _twisterColors[layer % _twisterColors.Length];
+        // FIXED: Dynamic audio-reactive color selection
+        uint baseColor;
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        
+        if (beat)
+            baseColor = 0xFFFFFF00; // Bright yellow on beat
+        else if (bass > 0.5f)
+            baseColor = 0xFFFF0000; // Red for bass
+        else if (treble > 0.4f)
+            baseColor = 0xFF00FFFF; // Cyan for treble
+        else if (energy > 0.6f)
+            baseColor = 0xFFFF00FF; // Magenta for energy
+        else
+            baseColor = _twisterColors[layer % _twisterColors.Length];
+            
         uint layerColor = AdjustBrightness(baseColor, brightness);
 
         // Create vertices for this layer
@@ -214,8 +297,19 @@ public sealed class Win953DTwister : IVisualizerPlugin
 
     private void RenderParticleEffects(ISkiaCanvas canvas, AudioFeatures f)
     {
-        // Add swirling particles around the twister
-        int particleCount = (int)(30 + f.Volume * 100);
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: VU meter-style particle effects
+        int baseParticleCount = 30;
+        var energyParticles = (int)(energy * 50);
+        var bassParticles = (int)(bass * 40);
+        var trebleParticles = (int)(treble * 30);
+        var beatParticles = beat ? 20 : 0;
+        int particleCount = baseParticleCount + energyParticles + bassParticles + trebleParticles + beatParticles;
 
         for (int i = 0; i < particleCount; i++)
         {
@@ -223,15 +317,38 @@ public sealed class Win953DTwister : IVisualizerPlugin
             float radius = 200f + (float)Math.Sin(_time * 2f + i * 0.1f) * 100f;
             float height = (float)(i * _height / particleCount - _height * 0.5f);
 
-            // Spiral motion
-            float x = _width * 0.5f + (float)Math.Cos(angle) * radius;
-            float y = _height * 0.5f + height + (float)Math.Sin(angle * 1.5f) * 50f;
+            // FIXED: Audio-reactive spiral motion
+            var bassMotion = bass * 0.5f;
+            var trebleMotion = treble * 0.3f;
+            var energyMotion = energy * 0.4f;
+            
+            // Spiral motion with audio influence
+            float x = _width * 0.5f + (float)Math.Cos(angle + bassMotion) * radius;
+            float y = _height * 0.5f + height + (float)Math.Sin(angle * 1.5f + trebleMotion) * 50f;
 
+            // FIXED: Dynamic particle colors
+            uint particleColor;
+            if (beat && i < 10)
+                particleColor = 0xFFFFFF00; // Bright yellow for beat particles
+            else if (bass > 0.4f && i % 3 == 0)
+                particleColor = 0xFFFF0000; // Red for bass particles
+            else if (treble > 0.3f && i % 2 == 0)
+                particleColor = 0xFF00FFFF; // Cyan for treble particles
+            else if (energy > 0.5f)
+                particleColor = 0xFFFF00FF; // Magenta for energy particles
+            else
+                particleColor = _twisterColors[i % _twisterColors.Length];
+                
             float alpha = (float)_random.NextDouble() * 0.8f;
-            uint particleColor = _twisterColors[i % _twisterColors.Length];
             particleColor = (uint)((uint)(alpha * 255) << 24 | (particleColor & 0x00FFFFFF));
 
-            canvas.FillCircle(x, y, 2f, particleColor);
+            // FIXED: Audio-reactive particle size
+            var baseSize = 2f;
+            var energySize = energy * 3f;
+            var beatSize = beat ? 4f : 0f;
+            var particleSize = baseSize + energySize + beatSize;
+            
+            canvas.FillCircle(x, y, particleSize, particleColor);
         }
 
         // Add lightning-like effects when beat is detected

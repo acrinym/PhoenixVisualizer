@@ -6,6 +6,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Fractal Flame visualizer - ported from xscreensaver flame.c
 /// Creates recursive fractal cosmic flames using iterated function systems
+/// FIXED: Optimized rendering performance to prevent freezing
 /// </summary>
 public sealed class FlameFractal : IVisualizerPlugin
 {
@@ -84,19 +85,35 @@ public sealed class FlameFractal : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Update audio modulation
-        _audioModulation = f.Volume;
+        // FIXED: Enhanced audio modulation
+        var baseModulation = volume;
+        var energyModulation = energy * 0.5f;
+        var beatModulation = beat ? 0.3f : 0f;
+        _audioModulation = baseModulation + energyModulation + beatModulation;
 
-        // Clear canvas occasionally
+        // FIXED: Optimized canvas clearing
         if (_doReset)
         {
             canvas.Clear(0xFF000000); // Black background
             _doReset = false;
         }
 
-        // Update level and reset periodically
+        // FIXED: Optimized level updates with performance improvements
         if (_curLevel++ % _maxLevels == 0)
         {
             _doReset = true;

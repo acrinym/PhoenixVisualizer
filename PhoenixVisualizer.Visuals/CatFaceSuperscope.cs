@@ -4,6 +4,7 @@ namespace PhoenixVisualizer.Visuals;
 
 /// <summary>
 /// BIG Cat Face Emoji Visualizer - Large, expressive cat face that responds to audio
+/// FIXED: All elements now fully beat-reactive (face, ears, eyes, nose, mouth, whiskers)
 /// </summary>
 public sealed class CatFaceSuperscope : IVisualizerPlugin
 {
@@ -43,12 +44,13 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
         float mid = features.Mid;
         float treble = features.Treble;
         
-        // MUCH BIGGER cat face - emoji style
-        float faceScale = 0.7f + energy * 0.3f; // Much larger base size
-        float earTwitch = beat ? 0.15f : 0.05f; // More dramatic ear movement
-        float breathingIntensity = 1f + (bass + mid) * 0.2f; // More pronounced breathing
-        float eyeGlow = treble * 0.8f; // Bigger eye effects
-        float whiskerWave = mid * 0.5f; // More dramatic whisker movement
+        // FIXED: All elements fully beat-reactive
+        float faceScale = 0.7f + energy * 0.3f + bass * 0.2f; // Face size responds to energy and bass
+        float earTwitch = beat ? 0.25f : 0.05f + bass * 0.1f; // Ears respond to beat and bass
+        float breathingIntensity = 1f + (bass + mid) * 0.3f + energy * 0.2f; // Breathing responds to all frequencies
+        float eyeGlow = treble * 1.0f + energy * 0.5f; // Eyes respond to treble and energy
+        float whiskerWave = mid * 0.8f + treble * 0.3f; // Whiskers respond to mid and treble
+        float mouthReactivity = volume * 0.5f + bass * 0.3f; // Mouth responds to volume and bass
         
         // Calculate center position for the big cat face
         float centerX = _width * 0.5f;
@@ -74,10 +76,11 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             facePoints.Add((x, y));
         }
         
-        // Draw the big cat face outline
+        // FIXED: Face outline responds to all audio frequencies
         uint faceColor = beat ? 0xFFFF8844 : 0xFFFFAA66; // Warm orange
-        canvas.SetLineWidth(4.0f); // Thicker lines
-        canvas.DrawLines(facePoints.ToArray(), 4.0f, faceColor);
+        var faceLineWidth = 4.0f + bass * 2.0f + energy * 1.0f; // Line thickness responds to bass and energy
+        canvas.SetLineWidth(faceLineWidth);
+        canvas.DrawLines(facePoints.ToArray(), faceLineWidth, faceColor);
         
         // Close the face outline
         if (facePoints.Count > 1)
@@ -96,14 +99,19 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             (centerX - earSize * 0.55f, centerY - earSize * 2.0f)  // Tip
         };
         
-        // Add ear twitching animation
+        // FIXED: Ears respond to beat, bass, and energy
         if (beat)
         {
-            leftEarPoints[2].y += (float)Math.Sin(_time * 10) * earSize * 0.1f;
+            leftEarPoints[2].y += (float)Math.Sin(_time * 10) * earSize * 0.15f;
+        }
+        else
+        {
+            leftEarPoints[2].y += (float)Math.Sin(_time * 3 + bass * 2) * earSize * 0.05f;
         }
         
         uint earColor = beat ? 0xFFFF9966 : 0xFFFFAA77;
-        DrawTriangle(canvas, leftEarPoints[0], leftEarPoints[1], leftEarPoints[2], earColor);
+        var earLineWidth = 3.0f + bass * 1.5f; // Ear line thickness responds to bass
+        DrawTriangle(canvas, leftEarPoints[0], leftEarPoints[1], leftEarPoints[2], earColor, earLineWidth);
         
         // Right ear
         var rightEarPoints = new (float x, float y)[]
@@ -113,16 +121,20 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
             (centerX + earSize * 0.55f, centerY - earSize * 2.0f)   // Tip
         };
         
-        // Add ear twitching animation
+        // FIXED: Right ear responds to beat, bass, and energy
         if (beat)
         {
-            rightEarPoints[2].y += (float)Math.Sin(_time * 10 + 1f) * earSize * 0.1f;
+            rightEarPoints[2].y += (float)Math.Sin(_time * 10 + 1f) * earSize * 0.15f;
+        }
+        else
+        {
+            rightEarPoints[2].y += (float)Math.Sin(_time * 3 + bass * 2 + 0.5f) * earSize * 0.05f;
         }
         
-        DrawTriangle(canvas, rightEarPoints[0], rightEarPoints[1], rightEarPoints[2], earColor);
+        DrawTriangle(canvas, rightEarPoints[0], rightEarPoints[1], rightEarPoints[2], earColor, earLineWidth);
         
-        // BIG expressive cat eyes (emoji style)
-        float eyeSize = faceScale * Math.Min(_width, _height) * 0.08f; // Much bigger eyes
+        // FIXED: Eyes respond to treble, energy, and beat
+        float eyeSize = faceScale * Math.Min(_width, _height) * 0.08f + treble * faceScale * Math.Min(_width, _height) * 0.02f; // Eyes grow with treble
         uint eyeColor = beat ? 0xFFFF8800 : 0xFFFFAA00; // Bright orange
         uint pupilColor = 0xFF000000; // Black pupils
         
@@ -172,11 +184,12 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
                           centerX + earSize * 0.8f + whiskerLength, centerY + yOffset + waveOffset, whiskerColor, whiskerThickness);
         }
         
-        // BIG mouth (emoji style)
+        // FIXED: Mouth responds to volume, bass, and beat
         float mouthY = centerY + earSize * 0.6f;
-        float mouthWidth = faceScale * Math.Min(_width, _height) * 0.08f + volume * faceScale * Math.Min(_width, _height) * 0.1f;
+        float mouthWidth = faceScale * Math.Min(_width, _height) * 0.08f + mouthReactivity * faceScale * Math.Min(_width, _height) * 0.15f;
         uint mouthColor = beat ? 0xFFFF0000 : 0xFF333333;
-        canvas.DrawLine(centerX - mouthWidth, mouthY, centerX + mouthWidth, mouthY, mouthColor, 4.0f);
+        var mouthLineWidth = 4.0f + bass * 2.0f + volume * 1.0f; // Mouth line thickness responds to bass and volume
+        canvas.DrawLine(centerX - mouthWidth, mouthY, centerX + mouthWidth, mouthY, mouthColor, mouthLineWidth);
         
         // Add BIG audio-reactive particle effects around the cat
         if (beat || energy > 0.3f)
@@ -214,12 +227,12 @@ public sealed class CatFaceSuperscope : IVisualizerPlugin
         }
     }
     
-    private void DrawTriangle(ISkiaCanvas canvas, (float x, float y) p1, (float x, float y) p2, (float x, float y) p3, uint color)
+    private void DrawTriangle(ISkiaCanvas canvas, (float x, float y) p1, (float x, float y) p2, (float x, float y) p3, uint color, float lineWidth = 4.0f)
     {
         // Draw triangle by connecting three points
-        canvas.DrawLine(p1.x, p1.y, p2.x, p2.y, color, 4.0f);
-        canvas.DrawLine(p2.x, p2.y, p3.x, p3.y, color, 4.0f);
-        canvas.DrawLine(p3.x, p3.y, p1.x, p1.y, color, 4.0f);
+        canvas.DrawLine(p1.x, p1.y, p2.x, p2.y, color, lineWidth);
+        canvas.DrawLine(p2.x, p2.y, p3.x, p3.y, color, lineWidth);
+        canvas.DrawLine(p3.x, p3.y, p1.x, p1.y, color, lineWidth);
     }
 
     public void Dispose()

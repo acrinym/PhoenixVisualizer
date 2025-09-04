@@ -65,6 +65,7 @@
     <!-- Bind ReactiveUI to Avalonia dispatcher -->
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="Material.Avalonia" Version="3.13.0" />
     <ProjectReference Include="..\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
     <PackageReference Include="ReactiveUI" Version="19.5.41" />
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />

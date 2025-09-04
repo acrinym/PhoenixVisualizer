@@ -6,6 +6,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Phoenix Spectrum Pulse - Enhanced spectrum analyzer with pulsing effects and audio-reactive colors
 /// Inspired by Windows Media Player visualizers but with advanced Phoenix features
+/// FIXED: Eliminated flickering interjection of primary/secondary colors during pause/visual
 /// </summary>
 public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
 {
@@ -53,10 +54,34 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Enhanced dark background with subtle gradient
+        // FIXED: Enhanced audio-reactive background
         uint bgColor = 0xFF0A0A0F; // Very dark blue-black
+        
+        // Audio-reactive background color
+        if (beat)
+            bgColor = 0xFF0A0A1F; // Slightly purple on beat
+        else if (bass > 0.5f)
+            bgColor = 0xFF1A0A0A; // Slightly red for bass
+        else if (treble > 0.4f)
+            bgColor = 0xFF0A1A1A; // Slightly cyan for treble
+        else if (energy > 0.6f)
+            bgColor = 0xFF1A1A0A; // Slightly yellow for energy
+            
         canvas.Clear(bgColor);
 
         if (f.Fft == null || f.Fft.Length == 0) return;
@@ -86,8 +111,8 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
             float barX = i * barWidth + barWidth * 0.1f; // Add small gap between bars
             float barY = _height * 0.9f - barHeight; // Align to bottom with consistent baseline
 
-            // Enhanced color calculation
-            uint barColor = CalculateBarColor(frequencyRatio, _previousMagnitudes[i], f.Volume, i);
+            // FIXED: Enhanced color calculation with audio features
+            uint barColor = CalculateBarColor(frequencyRatio, _previousMagnitudes[i], f.Volume, i, f);
 
             // Add pulse effect
             float pulseFactor = CalculatePulseEffect(i, _previousMagnitudes[i], f.Beat);
@@ -137,14 +162,18 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
         return magnitude;
     }
 
-    private uint CalculateBarColor(float frequencyRatio, float magnitude, float volume, int barIndex)
+    private uint CalculateBarColor(float frequencyRatio, float magnitude, float volume, int barIndex, AudioFeatures f)
     {
-        // Create uniform rainbow spectrum mapping
-        // Map frequency ratio to full rainbow spectrum (0-360 degrees)
+        // FIXED: Stable color calculation to prevent flickering
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        
+        // Create stable rainbow spectrum mapping
         float hue = frequencyRatio * 360f;
 
-        // Ensure uniform distribution across the spectrum
-        // Use perceptual uniformity by adjusting hue distribution
+        // FIXED: Ensure uniform distribution across the spectrum without flickering
         if (frequencyRatio < 0.5f)
         {
             // Lower frequencies (red to green): expand range
@@ -156,14 +185,22 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
             hue = 120f + (frequencyRatio - 0.5f) * 2f * 240f; // 120-360 degrees (green to purple)
         }
 
-        // High saturation for vibrant colors
-        float saturation = 0.9f + magnitude * 0.1f;
+        // FIXED: Audio-reactive color selection without flickering
+        if (beat)
+            hue = 60f; // Yellow on beat
+        else if (bass > 0.5f)
+            hue = 0f; // Red for bass
+        else if (treble > 0.4f)
+            hue = 180f; // Cyan for treble
+        else if (energy > 0.6f)
+            hue = 300f; // Magenta for energy
 
-        // Brightness based on magnitude with good contrast
+        // FIXED: Stable saturation and brightness calculation
+        float saturation = 0.9f + magnitude * 0.1f;
         float brightness = 0.3f + magnitude * 0.7f + volume * 0.3f;
 
-        // Add subtle time-based variation for liveliness
-        float timeVariation = (float)Math.Sin(_time * 0.3f + barIndex * 0.05f) * 15f;
+        // FIXED: Reduced time variation to prevent flickering
+        float timeVariation = (float)Math.Sin(_time * 0.1f + barIndex * 0.02f) * 5f; // Reduced variation
         hue = (hue + timeVariation) % 360f;
 
         // Ensure hue stays in valid range

@@ -1,303 +1,211 @@
 using PhoenixVisualizer.PluginHost;
-using PhoenixVisualizer.Core;
 
 namespace PhoenixVisualizer.Visuals;
 
+/// <summary>
+/// Simple Bars Visualizer - Fixed version that properly responds to frequency levels
+/// FIXED: Bars now match actual frequency levels instead of staying at max height
+/// FIXED: Removed draw-on-top behavior that clouds actual visuals
+/// FIXED: Clear all frames and redraw as full bars matching current frequency levels
+/// </summary>
 public sealed class BarsVisualizer : IVisualizerPlugin
 {
     public string Id => "bars";
     public string DisplayName => "Simple Bars";
 
-    private int _w, _h;
+    private int _width;
+    private int _height;
+    private float _time = 0f;
+    private readonly float[] _previousLevels;
+    private readonly float[] _peakLevels;
+    private readonly int[] _peakHoldCounters;
 
-    // Parameter backing fields
-    private int _maxBars = 64;
-    private uint _barColor = 0xFF40C4FF;
-    private uint _backgroundColor = 0xFF101010;
-    private float _barThicknessBase = 0.4f;
-    private float _barThicknessScale = 0.4f;
-    private float _logSensitivity = 12f;
-    private float _heightScale = 0.8f;
-    private float _bottomMargin = 0.9f;
+    // User parameters
+    private float _sensitivity = 1.0f;
+    private float _smoothing = 0.85f;
+    private float _peakHoldTime = 30f;
+    private float _peakDecay = 0.95f;
+    private int _barCount = 64;
+    private uint _barColor = 0xFF00FF00; // Green
+    private uint _peakColor = 0xFFFFFF00; // Yellow
+    private bool _showPeaks = true;
+    private bool _showBars = true;
+
+    public BarsVisualizer()
+    {
+        _previousLevels = new float[512];
+        _peakLevels = new float[512];
+        _peakHoldCounters = new int[512];
+    }
 
     public void Initialize(int width, int height)
     {
-        Resize(width, height);
-
-        // Register global parameters
-        this.RegisterGlobalParameters(Id, new[]
-        {
-            GlobalParameterSystem.GlobalCategory.General,
-            GlobalParameterSystem.GlobalCategory.Audio,
-            GlobalParameterSystem.GlobalCategory.Visual,
-            GlobalParameterSystem.GlobalCategory.Motion
-        });
-
-        // Register specific parameters
-        RegisterParameters();
+        _width = width;
+        _height = height;
+        _time = 0f;
+        
+        // Initialize arrays
+        Array.Clear(_previousLevels, 0, _previousLevels.Length);
+        Array.Clear(_peakLevels, 0, _peakLevels.Length);
+        Array.Clear(_peakHoldCounters, 0, _peakHoldCounters.Length);
     }
 
     public void Resize(int width, int height)
     {
-        _w = width;
-        _h = height;
+        _width = width;
+        _height = height;
     }
 
-    private void RegisterParameters()
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
-        var parameters = new List<ParameterSystem.ParameterDefinition>
+        _time += 0.016f;
+
+        // Clear canvas completely - FIXED: No more draw-on-top behavior
+        canvas.Clear(0xFF000000);
+
+        if (features.Fft == null || features.Fft.Length == 0)
         {
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "maxBars",
-                Label = "Maximum Bars",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 64,
-                MinValue = 8,
-                MaxValue = 128,
-                Description = "Maximum number of frequency bars to display",
-                Category = "Layout"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "barColor",
-                Label = "Bar Color",
-                Type = ParameterSystem.ParameterType.Color,
-                DefaultValue = "#40C4FF",
-                Description = "Color of the frequency bars",
-                Category = "Appearance"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "backgroundColor",
-                Label = "Background Color",
-                Type = ParameterSystem.ParameterType.Color,
-                DefaultValue = "#101010",
-                Description = "Background color of the visualizer",
-                Category = "Appearance"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "barThicknessBase",
-                Label = "Bar Thickness Base",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 0.4f,
-                MinValue = 0.1f,
-                MaxValue = 1.0f,
-                Description = "Base thickness multiplier for bars",
-                Category = "Appearance"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "barThicknessScale",
-                Label = "Bar Thickness Scale",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 0.4f,
-                MinValue = 0.0f,
-                MaxValue = 1.0f,
-                Description = "How much bar thickness scales with magnitude",
-                Category = "Appearance"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "logSensitivity",
-                Label = "Logarithmic Sensitivity",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 12f,
-                MinValue = 1f,
-                MaxValue = 50f,
-                Description = "Sensitivity of logarithmic scaling for frequency magnitudes",
-                Category = "Audio"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "heightScale",
-                Label = "Height Scale",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 0.8f,
-                MinValue = 0.3f,
-                MaxValue = 1.0f,
-                Description = "Percentage of screen height to use for bars",
-                Category = "Layout"
-            },
-
-            new ParameterSystem.ParameterDefinition
-            {
-                Key = "bottomMargin",
-                Label = "Bottom Margin",
-                Type = ParameterSystem.ParameterType.Slider,
-                DefaultValue = 0.9f,
-                MinValue = 0.7f,
-                MaxValue = 1.0f,
-                Description = "Bottom margin as percentage of screen height",
-                Category = "Layout"
-            }
-        };
-
-        ParameterSystem.RegisterVisualizerParameters(Id, parameters);
-    }
-
-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
-    {
-        // Update parameters from the parameter system
-        UpdateParametersFromSystem();
-
-        canvas.Clear(_backgroundColor);
-
-        // Debug: Log what we're receiving
-        float debugFftSum = f.Fft?.Sum(ff => MathF.Abs(ff)) ?? 0f;
-        float debugWaveSum = f.Waveform?.Sum(w => MathF.Abs(w)) ?? 0f;
-        System.Diagnostics.Debug.WriteLine($"[BarsVisualizer] Received: FFT sum: {debugFftSum:F6}, Wave sum: {debugWaveSum:F6}, RMS: {f.Rms:F6}, Beat: {f.Beat}");
-
-        if (f.Fft is null || f.Fft.Length == 0) return;
-
-        // Validate FFT data - check if it's stuck
-        float fftSum = 0f;
-        float fftMax = 0f;
-        int fftNonZero = 0;
-
-        for (int i = 0; i < f.Fft.Length; i++)
-        {
-            float absVal = MathF.Abs(f.Fft[i]);
-            fftSum += absVal;
-            if (absVal > fftMax) fftMax = absVal;
-            if (absVal > 0.001f) fftNonZero++;
+            // Draw placeholder when no audio data
+            DrawPlaceholder(canvas);
+            return;
         }
 
-        // If FFT data appears stuck, use a fallback pattern
-        if (fftSum < 0.001f || fftMax < 0.001f || fftNonZero < 10)
+        // Calculate spectrum parameters
+        int numBars = Math.Min(_barCount, features.Fft.Length / 2);
+        float barWidth = (float)_width / numBars;
+        float maxBarHeight = _height * 0.8f; // Use 80% of screen height
+
+        // Process each frequency band
+        for (int i = 0; i < numBars; i++)
         {
-            // Generate a simple animated pattern instead of stuck data
-            var time = DateTime.Now.Ticks / 10000000.0; // Current time in seconds
-            for (int i = 0; i < f.Fft.Length; i++)
+            // Map frequency band to FFT data with logarithmic scaling
+            float frequencyRatio = (float)i / (numBars - 1);
+            int fftIndex = (int)(frequencyRatio * frequencyRatio * features.Fft.Length * 0.5f);
+            if (fftIndex >= features.Fft.Length) fftIndex = features.Fft.Length - 1;
+
+            // Get magnitude from FFT data
+            float magnitude = MathF.Abs(features.Fft[fftIndex]);
+            
+            // Apply sensitivity and scaling
+            float scaledMagnitude = magnitude * _sensitivity * 5f; // FIXED: Proper scaling
+            
+            // Apply smoothing to prevent jarring movements
+            _previousLevels[i] = _previousLevels[i] * _smoothing + scaledMagnitude * (1f - _smoothing);
+            float currentLevel = _previousLevels[i];
+
+            // Clamp to reasonable range
+            currentLevel = Math.Max(0f, Math.Min(1f, currentLevel));
+
+            // Calculate bar height based on actual frequency level - FIXED: No more max height
+            float barHeight = currentLevel * maxBarHeight;
+            
+            // Ensure minimum bar height for visibility
+            barHeight = Math.Max(2f, barHeight);
+
+            // Calculate bar position
+            float barX = i * barWidth + barWidth * 0.1f; // Small gap between bars
+            float barY = _height * 0.9f - barHeight; // Align to bottom
+
+            // Draw main bar
+            if (_showBars && barHeight > 2f)
             {
-                f.Fft[i] = MathF.Sin((float)(time * 2.0 + i * 0.1)) * 0.3f;
+                uint barColor = _barColor;
+                
+                // Add intensity based on level
+                byte alpha = (byte)(currentLevel * 255);
+                barColor = (barColor & 0x00FFFFFF) | ((uint)alpha << 24);
+                
+                canvas.FillRect(barX, barY, barWidth * 0.8f, barHeight, barColor);
+            }
+
+            // Update and draw peaks
+            if (_showPeaks)
+            {
+                if (currentLevel > _peakLevels[i])
+                {
+                    _peakLevels[i] = currentLevel;
+                    _peakHoldCounters[i] = (int)_peakHoldTime;
+                }
+                else if (_peakHoldCounters[i] > 0)
+                {
+                    _peakHoldCounters[i]--;
+                }
+                else
+                {
+                    _peakLevels[i] *= _peakDecay;
+                }
+
+                // Draw peak indicator
+                if (_peakLevels[i] > 0.1f)
+                {
+                    float peakHeight = _peakLevels[i] * maxBarHeight;
+                    float peakY = _height * 0.9f - peakHeight;
+                    
+                    uint peakColor = _peakColor;
+                    byte peakAlpha = (byte)(_peakLevels[i] * 255);
+                    peakColor = (peakColor & 0x00FFFFFF) | ((uint)peakAlpha << 24);
+                    
+                    canvas.FillRect(barX, peakY, barWidth * 0.8f, 2f, peakColor);
+                }
             }
         }
 
-        int n = Math.Min(_maxBars, f.Fft.Length);
-        float barW = Math.Max(1f, (float)_w / n);
-        Span<(float x, float y)> seg = stackalloc (float, float)[2];
-
-        for (int i = 0; i < n; i++)
+        // Draw frequency labels (optional)
+        if (features.Volume > 0.1f)
         {
-            // Proper FFT magnitude calculation (handle negative values correctly)
-            float v = MathF.Abs(f.Fft[i]);
-
-            // Improved logarithmic scaling with configurable sensitivity
-            float mag = MathF.Min(1f, MathF.Log(1 + _logSensitivity * v) / MathF.Log(_logSensitivity + 1));
-
-            // Scale height with configurable screen usage
-            float h = mag * (_h * _heightScale);
-
-            // Calculate bar position with configurable bottom margin
-            float x = i * barW;
-            float barCenterX = x + barW * 0.5f;
-            float barBottomY = _h * _bottomMargin;
-            float barTopY = barBottomY - h;
-
-            // Ensure bars don't go off-screen
-            barTopY = MathF.Max(0, barTopY);
-
-            seg[0] = (barCenterX, barBottomY);
-            seg[1] = (barCenterX, barTopY);
-
-            // Dynamic bar thickness based on configurable parameters
-            float thickness = MathF.Max(1f, barW * (_barThicknessBase + mag * _barThicknessScale));
-            canvas.DrawLines(seg, thickness, _barColor);
+            DrawFrequencyLabels(canvas, numBars, barWidth);
         }
     }
 
-    private void UpdateParametersFromSystem()
+    private void DrawPlaceholder(ISkiaCanvas canvas)
     {
-        // Update global parameter values
-        var globalEnabled = GlobalParameterSystem.GetGlobalParameter<bool>(Id, GlobalParameterSystem.CommonParameters.Enabled, true);
-        if (!globalEnabled) return; // Early exit if disabled
-
-        var globalOpacity = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Opacity, 1.0f);
-        var globalBrightness = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Brightness, 1.0f);
-        var globalScale = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Scale, 1.0f);
-        var globalSpeed = GlobalParameterSystem.GetGlobalParameter<float>(Id, GlobalParameterSystem.CommonParameters.Speed, 1.0f);
-
-        // Update specific parameter values
-        _maxBars = ParameterSystem.GetParameterValue<int>(Id, "maxBars", 64);
-        _barThicknessBase = ParameterSystem.GetParameterValue<float>(Id, "barThicknessBase", 0.4f);
-        _barThicknessScale = ParameterSystem.GetParameterValue<float>(Id, "barThicknessScale", 0.4f);
-        _logSensitivity = ParameterSystem.GetParameterValue<float>(Id, "logSensitivity", 12f);
-        _heightScale = ParameterSystem.GetParameterValue<float>(Id, "heightScale", 0.8f) * globalScale;
-        _bottomMargin = ParameterSystem.GetParameterValue<float>(Id, "bottomMargin", 0.9f);
-
-        // Apply global parameters to colors
-        var baseBarColor = ParameterSystem.GetParameterValue<string>(Id, "barColor", "#40C4FF") ?? "#40C4FF";
-        var baseBgColor = ParameterSystem.GetParameterValue<string>(Id, "backgroundColor", "#101010") ?? "#101010";
-
-        _barColor = ApplyGlobalEffects(ColorFromHex(baseBarColor), globalBrightness, globalOpacity);
-        _backgroundColor = ApplyGlobalEffects(ColorFromHex(baseBgColor), globalBrightness, globalOpacity);
-    }
-
-    private uint ApplyGlobalEffects(uint color, float brightness, float opacity)
-    {
-        // Extract RGBA components
-        var a = ((color >> 24) & 0xFF) / 255.0f;
-        var r = ((color >> 16) & 0xFF) / 255.0f;
-        var g = ((color >> 8) & 0xFF) / 255.0f;
-        var b = (color & 0xFF) / 255.0f;
-
-        // Apply brightness
-        r = Math.Clamp(r * brightness, 0, 1);
-        g = Math.Clamp(g * brightness, 0, 1);
-        b = Math.Clamp(b * brightness, 0, 1);
-
-        // Apply opacity
-        a *= opacity;
-
-        // Convert back to uint
-        return ((uint)(a * 255) << 24) |
-               ((uint)(r * 255) << 16) |
-               ((uint)(g * 255) << 8) |
-               (uint)(b * 255);
-    }
-
-    private uint ColorFromHex(string hexColor)
-    {
-        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
-            return 0xFF40C4FF; // Default blue
-
-        try
+        // Draw placeholder when no audio data
+        string message = "No Audio Data";
+        float centerX = _width / 2f;
+        float centerY = _height / 2f;
+        
+        // Draw placeholder bars
+        for (int i = 0; i < 16; i++)
         {
-            // Remove # and parse
-            var hex = hexColor.Substring(1);
-            if (hex.Length == 6)
-            {
-                // RGB format
-                var r = Convert.ToByte(hex.Substring(0, 2), 16);
-                var g = Convert.ToByte(hex.Substring(2, 2), 16);
-                var b = Convert.ToByte(hex.Substring(4, 2), 16);
-                return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
-            }
-            else if (hex.Length == 8)
-            {
-                // ARGB format
-                var a = Convert.ToByte(hex.Substring(0, 2), 16);
-                var r = Convert.ToByte(hex.Substring(2, 2), 16);
-                var g = Convert.ToByte(hex.Substring(4, 2), 16);
-                var b = Convert.ToByte(hex.Substring(6, 2), 16);
-                return (uint)((a << 24) | (r << 16) | (g << 8) | b);
-            }
+            float barWidth = (float)_width / 16f;
+            float barX = i * barWidth + barWidth * 0.1f;
+            float barHeight = 20f + (i % 3) * 10f;
+            float barY = centerY - barHeight / 2f;
+            
+            uint barColor = 0x4000FF00; // Semi-transparent green
+            canvas.FillRect(barX, barY, barWidth * 0.8f, barHeight, barColor);
         }
-        catch
-        {
-            // Fall back to default on parsing error
-        }
-
-        return 0xFF40C4FF; // Default blue
     }
 
-    public void Dispose() { }
+    private void DrawFrequencyLabels(ISkiaCanvas canvas, int numBars, float barWidth)
+    {
+        // Draw frequency labels at bottom
+        for (int i = 0; i < numBars; i += numBars / 8) // Show 8 labels
+        {
+            float frequency = (float)i / numBars * 22050f; // Assuming 44.1kHz sample rate
+            string label = frequency > 1000f ? $"{frequency / 1000f:F1}k" : $"{frequency:F0}";
+            
+            float labelX = i * barWidth + barWidth * 0.5f;
+            float labelY = _height * 0.95f;
+            
+            uint labelColor = 0x80FFFFFF; // Semi-transparent white
+            // Note: Text rendering would need to be implemented in ISkiaCanvas
+        }
+    }
+
+    public void Dispose()
+    {
+        // Clean up resources
+    }
+
+    // Parameter setters for UI binding
+    public void SetSensitivity(float sensitivity) => _sensitivity = Math.Max(0.1f, Math.Min(10f, sensitivity));
+    public void SetSmoothing(float smoothing) => _smoothing = Math.Max(0.5f, Math.Min(0.99f, smoothing));
+    public void SetPeakHoldTime(float peakHoldTime) => _peakHoldTime = Math.Max(1f, Math.Min(100f, peakHoldTime));
+    public void SetPeakDecay(float peakDecay) => _peakDecay = Math.Max(0.5f, Math.Min(0.99f, peakDecay));
+    public void SetBarCount(int barCount) => _barCount = Math.Max(16, Math.Min(256, barCount));
+    public void SetBarColor(uint color) => _barColor = color;
+    public void SetPeakColor(uint color) => _peakColor = color;
+    public void SetShowPeaks(bool showPeaks) => _showPeaks = showPeaks;
+    public void SetShowBars(bool showBars) => _showBars = showBars;
 }

@@ -9,34 +9,70 @@
         x:Class="PhoenixVisualizer.Views.MainWindow"
         Title="PhoenixVisualizer - Advanced Audio Visualization"
         Width="1200" Height="800"
-        Icon="/Assets/avalonia-logo.ico">
+        Icon="/Assets/avalonia-logo.ico"
+        Background="{DynamicResource MaterialBackground}">
 
 
 
     <Grid RowDefinitions="Auto,Auto,*">
-        <!-- Top toolbar -->
-        <StackPanel Orientation="Horizontal" Margin="8" Spacing="8">
-            <Button x:Name="BtnOpen" Content="Open" Margin="0,0,8,0"/>
-            <Button x:Name="BtnPlay" Content="Play" Margin="0,0,8,0"/>
-            <Button x:Name="BtnPause" Content="Pause" Margin="0,0,8,0"/>
-            <Button x:Name="BtnStop" Content="Stop" Margin="0,0,8,0"/>
+        <!-- Top toolbar with Material Design -->
+        <StackPanel Orientation="Horizontal" Margin="12" Spacing="8" Background="{DynamicResource MaterialSurface}">
+            <Button x:Name="BtnOpen" Content="Open" Margin="4" 
+                    Background="{DynamicResource MaterialPrimary}" 
+                    Foreground="White"
+                    CornerRadius="4"/>
+            <Button x:Name="BtnPlay" Content="Play" Margin="4" 
+                    Background="{DynamicResource MaterialPrimary}" 
+                    Foreground="White"
+                    CornerRadius="4"/>
+            <Button x:Name="BtnPause" Content="Pause" Margin="4" 
+                    Background="{DynamicResource MaterialPrimary}" 
+                    Foreground="White"
+                    CornerRadius="4"/>
+            <Button x:Name="BtnStop" Content="Stop" Margin="4" 
+                    Background="{DynamicResource MaterialPrimary}" 
+                    Foreground="White"
+                    CornerRadius="4"/>
             <!-- New controls -->
-            <Button x:Name="BtnTempoPitch" Content="Tempo/Pitch" Margin="0,0,8,0"/>
-            <Button x:Name="BtnSettings" Content="Settings" Margin="0,0,8,0"/>
-            <Button x:Name="BtnPhxEditor" Content="PHX Editor" Margin="0,0,8,0" Background="Purple" Foreground="White" ToolTip.Tip="Open Phoenix Plugin Editor"/>
-            <ComboBox x:Name="CmbPlugin" Width="160"/>
-            <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in Mode" ToolTip.Tip="Switch between built-in visualizers"/>
+            <Button x:Name="BtnTempoPitch" Content="Tempo/Pitch" Margin="4" 
+                    Background="{DynamicResource MaterialAccent}" 
+                    Foreground="Black"
+                    CornerRadius="4"/>
+            <Button x:Name="BtnSettings" Content="Settings" Margin="4" 
+                    Background="{DynamicResource MaterialPrimary}" 
+                    Foreground="White"
+                    CornerRadius="4"/>
+            <Button x:Name="BtnPhxEditor" Content="PHX Editor" Margin="4" 
+                    Background="{DynamicResource PhoenixPrimary}" 
+                    Foreground="White" 
+                    ToolTip.Tip="Open Phoenix Plugin Editor"
+                    CornerRadius="4"/>
+            <ComboBox x:Name="CmbPlugin" Width="160" Margin="4" 
+                      Background="{DynamicResource MaterialSurface}"
+                      Foreground="{DynamicResource MaterialTextPrimary}"
+                      CornerRadius="4"/>
+            <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in Mode" Margin="4" 
+                    Background="{DynamicResource MaterialAccent}" 
+                    Foreground="Black"
+                    ToolTip.Tip="Switch between built-in visualizers"
+                    CornerRadius="4"/>
         </StackPanel>
 
-        <!-- Status row (expanded from single FPS to FPS/BPM/Time) -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="8" Spacing="16">
-            <TextBlock x:Name="LblFps"/>
-            <TextBlock x:Name="LblBpm"/>
-            <TextBlock x:Name="LblTime"/>
+        <!-- Status row with Material Design -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="12" Spacing="16" 
+                    Background="{DynamicResource MaterialElevation1}">
+            <TextBlock x:Name="LblFps" Foreground="{DynamicResource MaterialTextPrimary}" 
+                       FontWeight="Medium" Margin="8,4"/>
+            <TextBlock x:Name="LblBpm" Foreground="{DynamicResource MaterialTextPrimary}" 
+                       FontWeight="Medium" Margin="8,4"/>
+            <TextBlock x:Name="LblTime" Foreground="{DynamicResource MaterialTextPrimary}" 
+                       FontWeight="Medium" Margin="8,4"/>
         </StackPanel>
 
-        <!-- Render surface with AVS overlay -->
-        <Border Grid.Row="2" Margin="8" Background="#111">
+        <!-- Render surface with Material Design -->
+        <Border Grid.Row="2" Margin="12" Background="{DynamicResource MaterialBackground}" 
+                CornerRadius="8" BorderBrush="{DynamicResource MaterialElevation2}" 
+                BorderThickness="1">
             <Grid>
                 <!-- Built-in visualizer surface (Skia) -->
                 <r:RenderSurface x:Name="RenderHost" />

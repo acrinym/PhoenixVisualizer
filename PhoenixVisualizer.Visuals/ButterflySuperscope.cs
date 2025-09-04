@@ -4,6 +4,7 @@ namespace PhoenixVisualizer.Visuals;
 
 /// <summary>
 /// Butterfly superscope visualization based on AVS superscope code
+/// FIXED: Cleaned up and made fully beat-reactive with enhanced audio responsiveness
 /// </summary>
 public sealed class ButterflySuperscope : IVisualizerPlugin
 {
@@ -33,12 +34,20 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
         // Clear with dark background
         canvas.Clear(0xFF000000);
         
-        // Update time
-        _time += 0.02f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = features.Energy;
+        var bass = features.Bass;
+        var mid = features.Mid;
+        var treble = features.Treble;
+        var beat = features.Beat;
+        var volume = features.Volume;
         
-        // Get audio data
-        float volume = features.Volume;
-        bool beat = features.Beat;
+        // Audio-reactive animation speed
+        var baseSpeed = 0.02f;
+        var energySpeed = energy * 0.03f;
+        var trebleSpeed = treble * 0.02f;
+        var beatSpeed = beat ? 0.05f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
         
         // Create points array for the butterfly
         var points = new System.Collections.Generic.List<(float x, float y)>();
@@ -81,20 +90,35 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
                     break;
             }
 
-            // Add wing flapping animation with audio reactivity
+            // FIXED: Enhanced audio-reactive wing flapping
             if (segment < 4) // Wings only
             {
+                // Base flapping rhythm
                 float baseFlap = (float)Math.Sin(_time * 3 + segmentT * Math.PI * 2) * 0.08f;
-                float audioFlap = volume * (float)Math.Sin(_time * 6) * 0.05f;
-                float beatFlap = beat ? (float)Math.Sin(_time * 10) * 0.03f : 0;
+                
+                // Audio-reactive flapping intensity
+                var bassFlap = bass * (float)Math.Sin(_time * 4 + segmentT * Math.PI) * 0.12f;
+                var midFlap = mid * (float)Math.Sin(_time * 6 + segmentT * Math.PI * 1.5f) * 0.08f;
+                var trebleFlap = treble * (float)Math.Sin(_time * 8 + segmentT * Math.PI * 2f) * 0.06f;
+                var energyFlap = energy * (float)Math.Sin(_time * 5 + segmentT * Math.PI * 0.5f) * 0.10f;
+                
+                // Beat-triggered dramatic flapping
+                var beatFlap = beat ? (float)Math.Sin(_time * 12 + segmentT * Math.PI * 3f) * 0.15f : 0f;
+                
+                // Combine all flapping effects
+                y += baseFlap + bassFlap + midFlap + trebleFlap + energyFlap + beatFlap;
 
-                y += baseFlap + audioFlap + beatFlap;
-
-                // Add slight wing curvature based on audio
+                // FIXED: Audio-reactive wing curvature and positioning
                 if (segment == 0 || segment == 3) // Lower wings
-                    y -= volume * 0.02f;
+                {
+                    y -= bass * 0.04f; // Bass pushes lower wings down
+                    x += mid * 0.02f; // Mid frequencies affect horizontal position
+                }
                 else // Upper wings
-                    y += volume * 0.02f;
+                {
+                    y += treble * 0.04f; // Treble lifts upper wings
+                    x += energy * 0.02f; // Energy affects horizontal position
+                }
             }
 
             // Convert from AVS coordinate system (-1 to 1) to screen coordinates
@@ -116,35 +140,66 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
         {
             int segment = (int)((i / (float)points.Count) * 6);
 
-            // Different colors for different parts
+            // FIXED: Audio-reactive color generation
             uint color;
             if (segment < 4) // Wings
             {
-                float hue = ((i / (float)points.Count) * 0.8f + _time * 0.2f) % 1.0f;
+                // Audio-reactive hue progression
+                var bassHue = bass * 0.3f;
+                var trebleHue = treble * 0.2f;
+                var energyHue = energy * 0.25f;
+                var beatHue = beat ? 0.1f : 0f;
+                
+                float hue = ((i / (float)points.Count) * 0.8f + _time * 0.2f + bassHue + trebleHue + energyHue + beatHue) % 1.0f;
                 color = GetRainbowColor(hue);
-                // Make wings brighter and more vibrant
-                color = AdjustBrightness(color, 1.2f);
+                
+                // Audio-reactive brightness
+                var baseBrightness = 1.2f;
+                var energyBrightness = energy * 0.4f;
+                var beatBrightness = beat ? 0.3f : 0f;
+                var totalBrightness = baseBrightness + energyBrightness + beatBrightness;
+                
+                color = AdjustBrightness(color, totalBrightness);
             }
             else // Body
             {
-                // Body is more subdued - warm brown/tan
-                color = beat ? 0xFFFFAA44 : 0xFFAA7744;
+                // Audio-reactive body color
+                if (beat)
+                    color = 0xFFFFAA44; // Bright orange on beat
+                else if (bass > 0.4f)
+                    color = 0xFFFF8844; // Warm orange for bass
+                else if (treble > 0.3f)
+                    color = 0xFFFFCC44; // Bright yellow for treble
+                else
+                    color = 0xFFAA7744; // Default warm brown
             }
 
             canvas.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, color, 2.0f);
         }
 
-        // Draw wing fills for more solid appearance
-        DrawWingFills(canvas, points, volume, beat);
+        // FIXED: Audio-reactive wing fills
+        DrawWingFills(canvas, points, features);
         
-        // Draw antennae
-        // Avoid green; use warm phoenix tones
-        uint antennaColor = beat ? 0xFFFFDD00 : 0xFFFF8800;
-        canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.4f, _height * 0.2f, antennaColor, 2.0f);
-        canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * 0.6f, _height * 0.2f, antennaColor, 2.0f);
+        // FIXED: Audio-reactive antennae
+        uint antennaColor;
+        if (beat)
+            antennaColor = 0xFFFFDD00; // Bright yellow on beat
+        else if (treble > 0.4f)
+            antennaColor = 0xFFFFFF00; // Bright yellow for treble
+        else if (bass > 0.3f)
+            antennaColor = 0xFFFFAA00; // Orange for bass
+        else
+            antennaColor = 0xFFFF8800; // Default warm orange
+            
+        // Audio-reactive antennae movement
+        var antennaWave = (float)Math.Sin(_time * 4 + treble * 2) * treble * 10f;
+        var antennaLength = 0.1f + energy * 0.05f;
+        
+        canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * (0.4f - antennaLength), _height * (0.2f + antennaWave), antennaColor, 2.0f);
+        canvas.DrawLine(_width * 0.5f, _height * 0.3f, _width * (0.6f + antennaLength), _height * (0.2f + antennaWave), antennaColor, 2.0f);
     }
 
-    private void DrawWingFills(ISkiaCanvas canvas, System.Collections.Generic.List<(float x, float y)> points, float volume, bool beat)
+    private void DrawWingFills(ISkiaCanvas canvas, System.Collections.Generic.List<(float x, float y)> points, AudioFeatures features)
     {
         // Find wing segments and draw simple fills
         var leftWingPoints = new System.Collections.Generic.List<(float x, float y)>();
@@ -159,16 +214,47 @@ public sealed class ButterflySuperscope : IVisualizerPlugin
                 rightWingPoints.Add(points[i]);
         }
 
-        // Draw translucent wing fills
+        // FIXED: Audio-reactive wing fill colors and transparency
+        var energy = features.Energy;
+        var bass = features.Bass;
+        var treble = features.Treble;
+        var beat = features.Beat;
+        
+        // Audio-reactive transparency
+        var baseAlpha = 0x44;
+        var energyAlpha = (byte)(energy * 0x33);
+        var beatAlpha = beat ? (byte)0x22 : (byte)0x00;
+        var totalAlpha = (byte)Math.Min(0xFF, baseAlpha + energyAlpha + beatAlpha);
+
         if (leftWingPoints.Count > 2)
         {
-            uint fillColor = 0x44FFAAAA; // Light pink with transparency
+            // Audio-reactive left wing color
+            uint fillColor;
+            if (beat)
+                fillColor = (uint)(totalAlpha << 24) | 0xFFFFAAAA; // Pink on beat
+            else if (bass > 0.4f)
+                fillColor = (uint)(totalAlpha << 24) | 0xFFFF8888; // Red-pink for bass
+            else if (treble > 0.3f)
+                fillColor = (uint)(totalAlpha << 24) | 0xFFFFCCCC; // Light pink for treble
+            else
+                fillColor = (uint)(totalAlpha << 24) | 0xFFFFAAAA; // Default pink
+                
             DrawFilledShape(canvas, leftWingPoints, fillColor);
         }
 
         if (rightWingPoints.Count > 2)
         {
-            uint fillColor = 0x44AAAAFF; // Light blue with transparency
+            // Audio-reactive right wing color
+            uint fillColor;
+            if (beat)
+                fillColor = (uint)(totalAlpha << 24) | 0xFFAAAAFF; // Blue on beat
+            else if (energy > 0.4f)
+                fillColor = (uint)(totalAlpha << 24) | 0xFF8888FF; // Bright blue for energy
+            else if (treble > 0.3f)
+                fillColor = (uint)(totalAlpha << 24) | 0xFFCCCCFF; // Light blue for treble
+            else
+                fillColor = (uint)(totalAlpha << 24) | 0xFFAAAAFF; // Default blue
+                
             DrawFilledShape(canvas, rightWingPoints, fillColor);
         }
     }

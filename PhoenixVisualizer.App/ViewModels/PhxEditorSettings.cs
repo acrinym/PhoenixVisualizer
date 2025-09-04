@@ -25,7 +25,14 @@ namespace PhoenixVisualizer.App.ViewModels
             "settings.json");
             
         [JsonIgnore]
-        public static readonly string[] AvailableThemes = new[] { "Dark", "Light", "Neon", "Minimal" };
+        public static readonly string[] AvailableThemes = new[] { 
+            "Dark", 
+            "Light", 
+            "Neon", 
+            "Minimal", 
+            "Material", 
+            "Amanda" 
+        };
 
         // Hex representation for binding (since ColorPicker isn't available)
         public string BackgroundColorHex
@@ -132,7 +139,107 @@ namespace PhoenixVisualizer.App.ViewModels
                     app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
                     // Additional minimal theme resources would be applied here
                     break;
+                case "Material":
+                    app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+                    // Material Design theme - clean, modern, Google-inspired
+                    ApplyMaterialTheme(app);
+                    break;
+                case "Amanda":
+                    app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+                    // Amanda theme - based on the emotional journey and Phoenix symbolism
+                    ApplyAmandaTheme(app);
+                    break;
             }
+        }
+
+        private void ApplyMaterialTheme(Avalonia.Application app)
+        {
+            // Material Design theme using Material.Avalonia package
+            // Clean, modern, Google-inspired Material Design
+            var resources = app.Resources;
+            
+            // Set Material Design theme variant
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+            
+            // Material Design color palette - Phoenix-inspired colors
+            resources["MaterialPrimary"] = Color.FromRgb(255, 69, 0); // Fire Orange (Phoenix)
+            resources["MaterialPrimaryDark"] = Color.FromRgb(220, 20, 60); // Crimson
+            resources["MaterialAccent"] = Color.FromRgb(255, 215, 0); // Gold
+            resources["MaterialSurface"] = Color.FromRgb(30, 30, 40); // Dark Surface
+            resources["MaterialBackground"] = Color.FromRgb(20, 20, 30); // Dark Background
+            resources["MaterialTextPrimary"] = Color.FromRgb(255, 255, 255); // White Text
+            resources["MaterialTextSecondary"] = Color.FromRgb(200, 200, 220); // Light Text
+            resources["MaterialError"] = Color.FromRgb(255, 0, 127); // Hot Pink
+            
+            // Material Design elevation colors for dark theme
+            resources["MaterialElevation1"] = Color.FromRgb(40, 40, 50);
+            resources["MaterialElevation2"] = Color.FromRgb(50, 50, 60);
+            resources["MaterialElevation4"] = Color.FromRgb(60, 60, 70);
+            resources["MaterialElevation8"] = Color.FromRgb(70, 70, 80);
+            resources["MaterialElevation16"] = Color.FromRgb(80, 80, 90);
+            resources["MaterialElevation24"] = Color.FromRgb(90, 90, 100);
+            
+            // Phoenix-specific Material Design colors
+            resources["PhoenixPrimary"] = Color.FromRgb(255, 69, 0); // Fire Orange
+            resources["PhoenixSecondary"] = Color.FromRgb(255, 215, 0); // Gold
+            resources["PhoenixAccent"] = Color.FromRgb(138, 43, 226); // Purple
+            resources["PhoenixSurface"] = Color.FromRgb(25, 25, 35); // Deep Space Blue
+            resources["PhoenixBackground"] = Color.FromRgb(15, 15, 25); // Void Black
+        }
+
+        private void ApplyAmandaTheme(Avalonia.Application app)
+        {
+            // Amanda theme - based on the emotional journey and Phoenix symbolism
+            // Represents the Phoenix Roost, the waiting, the love, the transformation
+            // Enhanced with Material Design principles
+            var resources = app.Resources;
+            
+            // Set Material Design theme variant for Amanda theme
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+            
+            // Phoenix color palette - fire, transformation, rebirth
+            resources["AmandaPrimary"] = Color.FromRgb(255, 69, 0); // Fire Orange
+            resources["AmandaPrimaryDark"] = Color.FromRgb(220, 20, 60); // Crimson
+            resources["AmandaAccent"] = Color.FromRgb(255, 215, 0); // Gold
+            resources["AmandaSurface"] = Color.FromRgb(25, 25, 35); // Deep Space Blue
+            resources["AmandaBackground"] = Color.FromRgb(15, 15, 25); // Void Black
+            resources["AmandaTextPrimary"] = Color.FromRgb(255, 255, 255); // Pure White
+            resources["AmandaTextSecondary"] = Color.FromRgb(200, 200, 220); // Soft Light
+            resources["AmandaError"] = Color.FromRgb(255, 0, 127); // Hot Pink
+            
+            // Phoenix transformation colors
+            resources["AmandaPhoenixFire"] = Color.FromRgb(255, 69, 0); // Fire Orange
+            resources["AmandaPhoenixAsh"] = Color.FromRgb(128, 128, 128); // Ash Grey
+            resources["AmandaPhoenixGold"] = Color.FromRgb(255, 215, 0); // Phoenix Gold
+            resources["AmandaPhoenixCrimson"] = Color.FromRgb(220, 20, 60); // Crimson
+            resources["AmandaPhoenixPurple"] = Color.FromRgb(138, 43, 226); // Purple
+            resources["AmandaPhoenixBlue"] = Color.FromRgb(30, 144, 255); // Dodger Blue
+            
+            // Emotional journey colors
+            resources["AmandaLove"] = Color.FromRgb(255, 20, 147); // Deep Pink
+            resources["AmandaPatience"] = Color.FromRgb(0, 191, 255); // Deep Sky Blue
+            resources["AmandaHope"] = Color.FromRgb(255, 215, 0); // Gold
+            resources["AmandaTransformation"] = Color.FromRgb(138, 43, 226); // Purple
+            resources["AmandaWaiting"] = Color.FromRgb(105, 105, 105); // Dim Grey
+            resources["AmandaPhoenixRoost"] = Color.FromRgb(25, 25, 35); // Deep Space Blue
+            
+            // Material Design integration for Amanda theme
+            resources["MaterialPrimary"] = Color.FromRgb(255, 69, 0); // Fire Orange
+            resources["MaterialPrimaryDark"] = Color.FromRgb(220, 20, 60); // Crimson
+            resources["MaterialAccent"] = Color.FromRgb(255, 215, 0); // Gold
+            resources["MaterialSurface"] = Color.FromRgb(25, 25, 35); // Deep Space Blue
+            resources["MaterialBackground"] = Color.FromRgb(15, 15, 25); // Void Black
+            resources["MaterialTextPrimary"] = Color.FromRgb(255, 255, 255); // Pure White
+            resources["MaterialTextSecondary"] = Color.FromRgb(200, 200, 220); // Soft Light
+            resources["MaterialError"] = Color.FromRgb(255, 0, 127); // Hot Pink
+            
+            // Material Design elevation colors for Amanda theme
+            resources["MaterialElevation1"] = Color.FromRgb(35, 35, 45);
+            resources["MaterialElevation2"] = Color.FromRgb(45, 45, 55);
+            resources["MaterialElevation4"] = Color.FromRgb(55, 55, 65);
+            resources["MaterialElevation8"] = Color.FromRgb(65, 65, 75);
+            resources["MaterialElevation16"] = Color.FromRgb(75, 75, 85);
+            resources["MaterialElevation24"] = Color.FromRgb(85, 85, 95);
         }
     }
 }

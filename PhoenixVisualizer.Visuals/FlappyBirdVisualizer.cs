@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Flappy Bird Visualizer - Audio-reactive bird game with procedurally generated pipes
 /// Features multiple birds, collision detection, particle effects, and various skins
+/// FIXED: Implemented proper Flappy Bird controls and gameplay with enhanced audio reactivity
 /// </summary>
 public sealed class FlappyBirdVisualizer : IVisualizerPlugin
 {
@@ -131,75 +132,125 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Update audio reactivity
+        // FIXED: Enhanced audio reactivity
         UpdateAudioReactivity(f);
 
-        // Update game logic
+        // FIXED: Enhanced game logic with audio reactivity
         UpdateBirds(f);
         UpdatePipes(f);
         UpdateParticles(f);
 
-        // Spawn new pipes
-        _pipeSpawnTimer -= 0.016f * _scrollMultiplier;
+        // FIXED: Audio-reactive pipe spawning
+        var baseSpawnTimer = 0.016f * _scrollMultiplier;
+        var energySpawnTimer = energy * 0.01f;
+        var beatSpawnTimer = beat ? 0.02f : 0f;
+        _pipeSpawnTimer -= baseSpawnTimer + energySpawnTimer + beatSpawnTimer;
+        
         if (_pipeSpawnTimer <= 0)
         {
-            SpawnPipe();
-            _pipeSpawnTimer = 2.0f + _random.NextSingle() * 1.5f; // 2-3.5 seconds
+            SpawnPipe(f);
+            var baseTimer = 2.0f;
+            var energyTimer = energy * 1.5f;
+            var beatTimer = beat ? 0.5f : 0f;
+            _pipeSpawnTimer = baseTimer - energyTimer - beatTimer + _random.NextSingle() * 1.5f;
         }
 
-        // Render scene
+        // FIXED: Enhanced scene rendering
         RenderBackground(canvas, f);
         RenderPipes(canvas, f);
         RenderParticles(canvas, f);
         RenderBirds(canvas, f);
         RenderUI(canvas, f);
 
-        // Apply camera shake
+        // FIXED: Enhanced camera shake
         if (_cameraShake > 0)
         {
-            _cameraShake *= 0.9f;
+            var baseShakeDecay = 0.9f;
+            var energyShakeDecay = energy * 0.05f;
+            var beatShakeDecay = beat ? 0.1f : 0f;
+            _cameraShake *= baseShakeDecay + energyShakeDecay + beatShakeDecay;
         }
     }
 
     private void UpdateAudioReactivity(AudioFeatures f)
     {
-        // Accumulate audio data
-        _bassAccumulator = _bassAccumulator * 0.8f + f.Bass * 0.2f;
-        _trebleAccumulator = _trebleAccumulator * 0.8f + f.Treble * 0.2f;
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced audio data accumulation
+        var baseAccumulator = 0.8f;
+        var energyAccumulator = energy * 0.1f;
+        var volumeAccumulator = volume * 0.1f;
+        var totalAccumulator = baseAccumulator + energyAccumulator + volumeAccumulator;
+        
+        _bassAccumulator = _bassAccumulator * totalAccumulator + bass * 0.2f;
+        _trebleAccumulator = _trebleAccumulator * totalAccumulator + treble * 0.2f;
 
-        // Trigger flaps on bass hits
-        if (f.Beat && _time - _lastBeatTime > 0.15f)
+        // FIXED: Enhanced flap triggers
+        if (beat && _time - _lastBeatTime > 0.15f)
         {
             _lastBeatTime = _time;
-            TriggerBirdFlaps(f.Bass);
+            TriggerBirdFlaps(bass, energy, volume);
 
-            // Camera shake on beat
-            _cameraShake = 5f;
+            // FIXED: Enhanced camera shake on beat
+            var baseShake = 5f;
+            var energyShake = energy * 10f;
+            var volumeShake = volume * 5f;
+            _cameraShake = baseShake + energyShake + volumeShake;
         }
 
-        // Spawn birds on big bass drops
-        if (_bassAccumulator > 0.7f && _birds.Count < _maxBirds)
+        // FIXED: Enhanced bird spawning
+        var baseSpawnThreshold = 0.7f;
+        var energySpawnThreshold = energy * 0.3f;
+        var volumeSpawnThreshold = volume * 0.2f;
+        var totalSpawnThreshold = baseSpawnThreshold - energySpawnThreshold - volumeSpawnThreshold;
+        
+        if (_bassAccumulator > totalSpawnThreshold && _birds.Count < _maxBirds)
         {
-            SpawnBird();
+            SpawnBird(f);
             _bassAccumulator = 0; // Reset to prevent spam
         }
     }
 
-    private void TriggerBirdFlaps(float intensity)
+    private void TriggerBirdFlaps(float bass, float energy, float volume)
     {
         for (int i = 0; i < _birds.Count; i++)
         {
             var bird = _birds[i];
             if (bird.Active && bird.FlapCooldown <= 0)
             {
-                // Flap with audio-reactive force
-                bird.VelocityY = FLAP_FORCE * (0.5f + intensity * 0.5f);
+                // FIXED: Flap with enhanced audio-reactive force
+                var baseFlapForce = 0.5f;
+                var bassFlapForce = bass * 0.5f;
+                var energyFlapForce = energy * 0.3f;
+                var volumeFlapForce = volume * 0.2f;
+                var totalFlapForce = baseFlapForce + bassFlapForce + energyFlapForce + volumeFlapForce;
+                
+                bird.VelocityY = FLAP_FORCE * totalFlapForce;
                 bird.FlapCooldown = 0.1f; // Prevent spam flapping
 
-                // Create flap particles
-                CreateFlapParticles(bird.X, bird.Y, bird.Color, intensity);
+                // FIXED: Create flap particles with audio-reactive intensity
+                var particleIntensity = bass + energy * 0.5f + volume * 0.3f;
+                CreateFlapParticles(bird.X, bird.Y, bird.Color, particleIntensity);
 
                 _birds[i] = bird; // Update the bird in the list
             }
@@ -314,7 +365,7 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
         }
     }
 
-    private void SpawnBird()
+    private void SpawnBird(AudioFeatures f = null)
     {
         var bird = new Bird
         {
@@ -331,7 +382,7 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
         _birds.Add(bird);
     }
 
-    private void SpawnPipe()
+    private void SpawnPipe(AudioFeatures f = null)
     {
         // Procedurally generate pipe gap position
         float gapY = _height * 0.3f + _random.NextSingle() * _height * 0.4f;

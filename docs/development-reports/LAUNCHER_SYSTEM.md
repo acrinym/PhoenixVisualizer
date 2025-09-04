@@ -260,7 +260,7 @@ pause
 Add the aliases to your PowerShell profile for permanent access:
 
 1. **Edit profile**: `notepad $PROFILE`
-2. **Add line**: `. "D:\GitHub\AMrepo\PhoenixVisualizer\run-phoenix.ps1"`
+2. **Add line**: `. "D:\GitHub\PhoenixVisualizer\run-phoenix.ps1"`
 3. **Save and restart**: PowerShell will load aliases automatically
 
 ### Environment-Specific Launchers

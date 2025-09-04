@@ -6,7 +6,7 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 {
     public string Id => "phoenix_particle_fountain";
     public string DisplayName => "🔥 Phoenix Particle Fountain";
-    public string Description => "GPU-like particle system with energy-driven emission and Phoenix fire colors";
+    public string Description => "FIXED: Audio-reactive particle fountain with proper emission outside center, true fountain behavior, and sound-reactive particles";
     public bool IsEnabled { get; set; } = true;
 
     private int _w, _h;
@@ -69,13 +69,29 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         var mid = features.Mid;
         var treble = features.Treble;
         var beat = features.Beat;
+        var volume = features.Volume;
+        var peak = features.Peak;
 
-        // Continuous emission with energy boost - ALWAYS emit particles
-        var baseEmissionRate = 12f; // Increased base emission
-        var energyEmissionRate = energy * 20f; // Increased energy-driven emission
-        var totalEmissionRate = baseEmissionRate + energyEmissionRate;
+        // FIXED: Make emission truly audio-reactive - no particles when no audio
+        if (volume < 0.01f && energy < 0.01f)
+        {
+            // No audio - just draw a dim base
+            var silentBaseX = _w / 2f;
+            var silentBaseY = _h * 0.8f;
+            var silentBaseRadius = 20f;
+            canvas.FillCircle(silentBaseX, silentBaseY, silentBaseRadius, 0x33000000);
+            return;
+        }
 
-        if (beat) totalEmissionRate *= 2.0f; // Increased beat boost
+        // Audio-reactive emission rates
+        var baseEmissionRate = Math.Max(5f, volume * 15f); // Base emission from volume
+        var energyEmissionRate = energy * 25f; // Energy-driven emission
+        var bassEmissionRate = bass * 10f; // Bass-driven emission
+        var beatEmissionRate = beat ? 15f : 0f; // Beat-driven burst
+        var totalEmissionRate = baseEmissionRate + energyEmissionRate + bassEmissionRate + beatEmissionRate;
+
+        // Peak detection for extra bursts
+        if (peak > 0.8f) totalEmissionRate *= 1.5f;
 
         // Emit particles based on accumulated emission
         var particlesToEmit = (int)totalEmissionRate;
@@ -85,8 +101,8 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         if (Random.Shared.NextSingle() < fractionalEmission)
             particlesToEmit++;
 
-        // Always emit at least some particles, even if we're at max
-        particlesToEmit = Math.Max(3, particlesToEmit);
+        // Ensure minimum emission when audio is present
+        particlesToEmit = Math.Max(2, particlesToEmit);
 
         for (int i = 0; i < particlesToEmit; i++)
         {
@@ -97,20 +113,28 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
         UpdateParticles(features);
         RenderParticles(canvas, features);
 
-        // Draw fountain base
+        // FIXED: Audio-reactive fountain base
         var baseX = _w / 2f;
         var baseY = _h * 0.8f;
-        var baseRadius = 30f + bass * 20f;
+        var baseRadius = 25f + bass * 25f + energy * 15f; // Bass and energy affect base size
         var baseColor = GetFireColor(bass);
         canvas.FillCircle(baseX, baseY, baseRadius, baseColor);
 
-        // Draw energy rings around base
+        // FIXED: Audio-reactive energy rings around base
         for (int ring = 1; ring <= 3; ring++)
         {
-            var ringRadius = baseRadius + ring * 15f;
-            var ringAlpha = (byte)(100 - ring * 30);
+            var ringRadius = baseRadius + ring * 12f + mid * 10f; // Mid frequencies affect ring spacing
+            var ringAlpha = (byte)(80 - ring * 20 + energy * 40); // Energy affects ring visibility
             var ringColor = (uint)(ringAlpha << 24 | 0xFFFF4400);
             canvas.DrawCircle(baseX, baseY, ringRadius, ringColor, false);
+        }
+
+        // FIXED: Add pulsing glow effect on beat
+        if (beat)
+        {
+            var glowRadius = baseRadius * 1.5f;
+            var glowColor = (uint)(60 << 24 | 0xFFFF6600);
+            canvas.FillCircle(baseX, baseY, glowRadius, glowColor);
         }
 
         // Draw particle count info (debug)
@@ -152,25 +176,34 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
             var baseX = _w / 2f;
             var baseY = _h * 0.8f;
 
-            // Random emission angle (mostly upward with some spread)
-            var angle = (float)(Math.PI * 0.5f + (Random.Shared.NextDouble() - 0.5f) * 0.6f);
-            var speed = 100f + features.Energy * 200f; // Speed from energy
+            // FIXED: More fountain-like emission - primarily upward with controlled spread
+            var baseAngle = Math.PI * 0.5f; // Straight up
+            var spreadAngle = features.Bass * 0.3f + 0.1f; // Bass controls spread
+            var angle = (float)(baseAngle + (Random.Shared.NextDouble() - 0.5f) * spreadAngle);
+            
+            // FIXED: Audio-reactive speed - bass controls height, treble controls spread
+            var baseSpeed = 80f + features.Energy * 150f;
+            var bassSpeed = features.Bass * 100f; // Bass adds upward velocity
+            var speed = baseSpeed + bassSpeed;
 
-            // Z-speed from bass (affects particle height)
-            var zSpeed = features.Bass * 150f + 50f;
+            // FIXED: Z-speed from bass (affects particle height and fountain effect)
+            var zSpeed = features.Bass * 200f + 30f;
+
+            // FIXED: Emission area controlled by mid frequencies
+            var emissionSpread = features.Mid * 40f + 20f;
 
             _particles[particleIndex] = new Particle
             {
-                x = baseX + (Random.Shared.NextSingle() - 0.5f) * 30f, // Wider emission area
+                x = baseX + (Random.Shared.NextSingle() - 0.5f) * emissionSpread, // Mid-controlled spread
                 y = baseY,
                 z = 0f,
-                vx = (float)Math.Cos(angle) * speed * 0.3f + (Random.Shared.NextSingle() - 0.5f) * 20f, // Add horizontal spread
+                vx = (float)Math.Cos(angle) * speed * 0.2f + (Random.Shared.NextSingle() - 0.5f) * features.Treble * 15f, // Treble adds horizontal movement
                 vy = -(float)Math.Sin(angle) * speed,
-                vz = zSpeed + (Random.Shared.NextSingle() - 0.5f) * 30f, // Add Z variation
+                vz = zSpeed + (Random.Shared.NextSingle() - 0.5f) * 20f, // Reduced Z variation for more consistent fountain
                 life = 1f,
-                maxLife = 3f + features.Energy * 4f + Random.Shared.NextSingle() * 3f, // Longer, more varied life
+                maxLife = 2.5f + features.Energy * 3f + Random.Shared.NextSingle() * 2f, // Slightly shorter life for better fountain effect
                 color = GetRainbowColor(Random.Shared.NextSingle(), features.Treble),
-                size = 2f + Random.Shared.NextSingle() * 6f, // More size variation
+                size = 1.5f + Random.Shared.NextSingle() * 4f + features.Bass * 3f, // Bass affects particle size
                 active = true
             };
 

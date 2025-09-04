@@ -1,4 +1,4 @@
-﻿# Phoenix Visualizer PROJECT STRUCTURE DUMP
+# Phoenix Visualizer PROJECT STRUCTURE DUMP
 
 [CSWinampSDK\TestProg\Form1.cs]
 using System;
@@ -6191,7 +6191,7 @@ When working correctly, you should see:
 âœ… WinampPluginWrapper.dll loaded successfully
 âœ… All function addresses obtained
 
-ðŸ” Testing with plugin: D:\GitHub\AMrepo\PhoenixVisualizer\plugins\vis\vis_milk2.dll
+ðŸ” Testing with plugin: D:\GitHub\PhoenixVisualizer\plugins\vis\vis_milk2.dll
 âœ… Plugin loaded successfully!
 ðŸ“ Plugin description: MilkDrop 2.0
 ðŸ“Š Module count: 1

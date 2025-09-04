@@ -1,0 +1,79 @@
+--- a/PhoenixVisualizer.Visuals\PhoenixSpectrumPulse.cs
++++ b/PhoenixVisualizer.Visuals\PhoenixSpectrumPulse.cs
+@@ -33,7 +33,16 @@
+         // Initialize pulse phases with random offsets for organic feel
+         for (int i = 0; i < MAX_BARS; i++)
+         {
+-            _pulsePhases[i] = (float)(_random.NextDouble() * Math.PI * 2);
++            float t = i / (float)(MAX_BARS - 1);
++            float hue = (t * 360f + _phase * 20f) % 360f;
++            uint color = HsvToRgb(hue, 0.9f, 0.95f);
++            if (features.Beat) color = 0xFFFFFFFF;
++
++            float value = _barValues[i]; // assume computed earlier
++            float barHeight = value * _height;
++            float x = i * barWidth;
++            float y0 = _height - barHeight;
++            canvas.FillRect(x, y0, barWidth * 0.9f, barHeight, color);
+         }
+     }
+ 
+
+
+--- a/PhoenixVisualizer.Visuals\NyanCatVisualizer.cs
++++ b/PhoenixVisualizer.Visuals\NyanCatVisualizer.cs
+@@ -964,6 +964,21 @@
+             curX2 -= invSlope2;
+         }
+     }
+-}
+-
+-
++
++        private static uint HsvToRgb(float h, float s, float v)
++        {
++            h = (h % 360f + 360f) % 360f;
++            float c = v * s;
++            float x = c * (1 - MathF.Abs((h / 60f) % 2 - 1));
++            float m = v - c;
++            float r=0,g=0,b=0;
++            if (h < 60)      { r=c; g=x; b=0; }
++            else if (h <120) { r=x; g=c; b=0; }
++            else if (h <180) { r=0; g=c; b=x; }
++            else if (h <240) { r=0; g=x; b=c; }
++            else if (h <300) { r=x; g=0; b=c; }
++            else             { r=c; g=0; b=x; }
++            byte R=(byte)((r+m)*255), G=(byte)((g+m)*255), B=(byte)((b+m)*255);
++            return 0xFF000000u | ((uint)R<<16) | ((uint)G<<8) | (uint)B;
++        }
++    }
+
+--- a/PhoenixVisualizer.Visuals\Win2KPipes.cs
++++ b/PhoenixVisualizer.Visuals\Win2KPipes.cs
+@@ -10,7 +10,10 @@
+ /// Features branching pipes that grow and turn in 3D space with audio reactivity
+ /// FIXED: Optimized drawing performance with LOD and enhanced audio reactivity
+ /// </summary>
+-public sealed class Win2KPipes : IVisualizerPlugin
++public sealed class Win2KPipes
++    {
++        private const int MAX_SEGMENTS = 2048;
++        private const int MAX_NEW_SEGMENTS_PER_FRAME = 12; : IVisualizerPlugin
+ {
+     public string Id => "win2k_pipes";
+     public string DisplayName => "ðŸ—ï¸ Win2K 3D Pipes";
+@@ -124,8 +127,8 @@
+         _colorShiftSpeed = speed;
+     }
+ 
+-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+-    {
++    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas) {
++        int newSegments = 0;
+         // FIXED: Audio-reactive time and performance optimizations
+         var energy = f.Energy;
+         var bass = f.Bass;
+
+
+
+

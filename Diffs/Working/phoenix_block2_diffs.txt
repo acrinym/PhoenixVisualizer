@@ -1,0 +1,226 @@
+--- a/PhoenixVisualizer.Visuals\ButterflySuperscope.cs
++++ b/PhoenixVisualizer.Visuals\ButterflySuperscope.cs
+@@ -351,6 +351,21 @@
+     {
+         // Nothing to clean up
+     }
+-}
+-
+-
++
++        private static uint HsvToRgb(float h, float s, float v)
++        {
++            h = (h % 360f + 360f) % 360f;
++            float c = v * s;
++            float x = c * (1 - MathF.Abs((h / 60f) % 2 - 1));
++            float m = v - c;
++            float r=0,g=0,b=0;
++            if (h < 60)      { r=c; g=x; b=0; }
++            else if (h <120) { r=x; g=c; b=0; }
++            else if (h <180) { r=0; g=c; b=x; }
++            else if (h <240) { r=0; g=x; b=c; }
++            else if (h <300) { r=x; g=0; b=c; }
++            else             { r=c; g=0; b=x; }
++            byte R=(byte)((r+m)*255), G=(byte)((g+m)*255), B=(byte)((b+m)*255);
++            return 0xFF000000u | ((uint)R<<16) | ((uint)G<<8) | (uint)B;
++        }
++    }
+
+--- a/PhoenixVisualizer.Visuals\MatrixRainVisualizer.cs
++++ b/PhoenixVisualizer.Visuals\MatrixRainVisualizer.cs
+@@ -37,52 +37,31 @@
+ 
+     public void Dispose() { }
+ 
+-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+     {
+-        // FIXED: Audio-reactive time and animation updates
+-        var energy = f.Energy;
+-        var bass = f.Bass;
+-        var mid = f.Mid;
+-        var treble = f.Treble;
+-        var beat = f.Beat;
+-        var volume = f.Volume;
+-        
+-        // Audio-reactive animation speed
+-        var baseSpeed = 0.016f;
+-        var energySpeed = energy * 0.02f;
+-        var trebleSpeed = treble * 0.015f;
+-        var beatSpeed = beat ? 0.03f : 0f;
+-        var totalSpeed = baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+-        
+-        // Calculate delta time for frame-rate independent animation
+-        float currentTime = (float)(DateTime.Now.Ticks / 10000000.0); // Current time in seconds
+-        float deltaTime = _lastFrameTime == 0 ? totalSpeed : Math.Min(currentTime - _lastFrameTime, 0.033f); // Cap at ~30 FPS equivalent
+-        _lastFrameTime = currentTime;
++        canvas.Clear(0xFF000000);
++        float speed = 2.0f + features.Volume * 12.0f + (features.Beat ? 6.0f : 0f);
+ 
+-        // FIXED: Enhanced audio-reactive background
+-        uint bgColor = 0xFF000000; // Black background
+-        if (beat)
+-            bgColor = 0xFF001100; // Slightly green on beat
+-        else if (bass > 0.5f)
+-            bgColor = 0xFF110000; // Slightly red for bass
+-        else if (treble > 0.4f)
+-            bgColor = 0xFF001111; // Slightly cyan for treble
+-        else if (energy > 0.6f)
+-            bgColor = 0xFF111100; // Slightly yellow for energy
+-            
+-        canvas.Clear(bgColor);
++        for (int c = 0; c < _columns.Length; c++)
++        {
++            var col = _columns[c];
++            col.Y += speed;
++            if (col.Y > _height + 40)
++            {
++                col.Y = -Random.Shared.Next(0, 120);
++                col.Size = Random.Shared.Next(10, 28);
++                col.Char = (char)Random.Shared.Next(0x30, 0x7A);
++            }
+ 
+-        // FIXED: Enhanced amplitude calculation
+-        var baseAmplitude = bass;
+-        var energyAmplitude = energy * 0.5f;
+-        var beatAmplitude = beat ? 0.3f : 0f;
+-        _amplitude = baseAmplitude + energyAmplitude + beatAmplitude;
++            // head
++            canvas.DrawText(col.Char.ToString(), col.X, col.Y, 0xFFFFFFFF, col.Size);
++            // tail
++            for (int t = 1; t <= 8; t++)
++                canvas.DrawText(col.Char.ToString(), col.X, col.Y - t * col.Size, 0x66A0FFA0, col.Size);
+ 
+-        // Initialize columns if needed
+-        if (_cols == 0 || _y == null || _speed == null)
+-        {
+-            InitializeColumns();
++            _columns[c] = col;
+         }
++    }
+ 
+         // FIXED: Enhanced parameters driven by audio
+         float colWidth = _width / (float)_cols;
+
+
+--- a/PhoenixVisualizer.Visuals\PhoenixParticleFountainPlugin.cs
++++ b/PhoenixVisualizer.Visuals\PhoenixParticleFountainPlugin.cs
+@@ -57,31 +57,23 @@
+ 
+     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
+     {
+-        // Clear with dark background
+-        canvas.Clear(0xFF000000);
+-
+-        // Update time
+-        _time += 0.02f;
+-
+-        // Get audio data
+-        var energy = features.Energy;
+-        var bass = features.Bass;
+-        var mid = features.Mid;
+-        var treble = features.Treble;
+-        var beat = features.Beat;
+-        var volume = features.Volume;
+-        var peak = features.Peak;
+-
+-        // FIXED: Make emission truly audio-reactive - no particles when no audio
+-        if (volume < 0.01f && energy < 0.01f)
+-        {
+-            // No audio - just draw a dim base
+-            var silentBaseX = _w / 2f;
+-            var silentBaseY = _h * 0.8f;
+-            var silentBaseRadius = 20f;
+-            canvas.FillCircle(silentBaseX, silentBaseY, silentBaseRadius, 0x33000000);
+-            return;
+-        }
++        canvas.Clear(_bgColor);
++
++        int spawn = Math.Clamp((int)(features.Volume * 60) + (features.Beat ? 30 : 0), 2, 120);
++        for (int i = 0; i < spawn; i++)
++        {
++            float angle = Random.Shared.NextSingle() * 6.28318f;
++            float speed = 0.6f + features.Energy * 2.4f;
++            EmitParticle(
++                _width * 0.5f, _height * 0.55f,
++                MathF.Cos(angle) * speed,
++                -MathF.Sin(angle) * speed - features.Bass * 1.0f
++            );
++        }
++
++        UpdateParticles(0.016f);
++        DrawParticles(canvas);
++    }
+ 
+         // Audio-reactive emission rates
+         var baseEmissionRate = Math.Max(5f, volume * 15f); // Base emission from volume
+
+
+--- a/PhoenixVisualizer.Visuals\Win953DTwister.cs
++++ b/PhoenixVisualizer.Visuals\Win953DTwister.cs
+@@ -83,41 +83,28 @@
+ 
+     public void Dispose() { }
+ 
+-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+-    {
+-        // FIXED: Audio-reactive time and animation updates
+-        var energy = f.Energy;
+-        var bass = f.Bass;
+-        var mid = f.Mid;
+-        var treble = f.Treble;
+-        var beat = f.Beat;
+-        var volume = f.Volume;
+-        
+-        // Audio-reactive animation speed
+-        var baseSpeed = 0.016f;
+-        var energySpeed = energy * 0.03f;
+-        var trebleSpeed = treble * 0.02f;
+-        var beatSpeed = beat ? 0.04f : 0f;
+-        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+-
+-        // Update twister based on audio
+-        UpdateTwister(f);
+-
+-        // FIXED: Audio-reactive background color (more dynamic)
+-        var baseColor = 0xFF0A0A15;
+-        if (beat)
+-            baseColor = 0xFF1A0A2A; // Purple tint on beat
+-        else if (bass > 0.5f)
+-            baseColor = 0xFF0A0A2A; // Blue tint for bass
+-        else if (treble > 0.4f)
+-            baseColor = 0xFF2A0A0A; // Red tint for treble
+-        else if (energy > 0.6f)
+-            baseColor = 0xFF2A0A2A; // Purple tint for energy
+-            
+-        canvas.Clear(baseColor);
+-
+-        // Render the 3D twister
+-        Render3DTwister(canvas, f);
++    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++    {
++        canvas.Clear(0xFF101010);
++
++        int bars = 48;
++        float w = _width / (float)bars;
++        for (int i = 0; i < bars; i++)
++        {
++            float t = i / (float)(bars - 1);
++            if (features.Fft == null || features.Fft.Length == 0) break;
++            int bin = Math.Min((int)(t * (features.Fft.Length - 1)), features.Fft.Length - 1);
++            float v = MathF.Abs(features.Fft[bin]);
++            // soft compress to [0..1]
++            v = v / (1f + v);
++            float h = MathF.Min(_height * 0.9f, v * _height * 0.9f);
++            float x = i * w;
++            float y = _height * 0.5f - h * 0.5f;
++
++            float hue = (t * 360f + _time * 25f) % 360f;
++            uint color = HsvToRgb(hue, 0.85f, 0.95f);
++            canvas.FillRect(x, y, w * 0.85f, h, color);
++        }
+     }
+ 
+     private void UpdateTwister(AudioFeatures f)
+
+

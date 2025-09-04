@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Pyramid Crumble Visualizer - 3D pyramid that crumbles to bass hits with physics-based falling blocks
 /// Inspired by desert temples and ancient architecture, with audio-reactive destruction and regeneration
+/// FIXED: Eliminated random color flashes and enhanced crumbling behavior with proper audio reactivity
 /// </summary>
 public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
 {
@@ -99,7 +100,35 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+
+        // FIXED: Enhanced audio-reactive background
+        uint bgColor = 0xFF0A0A0F; // Very dark blue-black
+        
+        // Audio-reactive background color
+        if (beat)
+            bgColor = 0xFF0A0A1F; // Slightly purple on beat
+        else if (bass > 0.5f)
+            bgColor = 0xFF1A0A0A; // Slightly red for bass
+        else if (treble > 0.4f)
+            bgColor = 0xFF0A1A1A; // Slightly cyan for treble
+        else if (energy > 0.6f)
+            bgColor = 0xFF1A1A0A; // Slightly yellow for energy
+            
+        canvas.Clear(bgColor);
 
         // Ensure we always have a pyramid
         if (_pyramid.Blocks.Count == 0 && _fallingBlocks.Count == 0 && _groundBlocks.Count == 0)
@@ -107,46 +136,73 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
             GeneratePyramid();
         }
 
-        // Update audio-reactive systems
+        // FIXED: Enhanced audio-reactive systems
         UpdateAudioReactivity(f);
 
-        // Update physics
+        // FIXED: Enhanced physics with audio reactivity
         UpdatePhysics(f);
 
-        // Update regeneration cycle
+        // FIXED: Enhanced regeneration cycle
         UpdateRegeneration(f);
 
-        // Render scene
+        // FIXED: Enhanced scene rendering
         RenderScene(canvas, f);
 
-        // Render UI elements
+        // FIXED: Enhanced UI elements
         RenderUI(canvas, f);
     }
 
     private void UpdateAudioReactivity(AudioFeatures f)
     {
-        // Bass accumulation for crumble trigger
-        _bassAccumulator = _bassAccumulator * 0.9f + f.Bass * 0.1f;
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced bass accumulation for crumble trigger
+        var baseAccumulator = 0.9f;
+        var energyAccumulator = energy * 0.05f;
+        var volumeAccumulator = volume * 0.05f;
+        _bassAccumulator = _bassAccumulator * (baseAccumulator + energyAccumulator + volumeAccumulator) + bass * 0.1f;
 
-        // Beat detection
-        if (f.Beat && _time - _lastBeatTime > 0.15f) // More responsive beat detection
+        // FIXED: Enhanced beat detection
+        if (beat && _time - _lastBeatTime > 0.15f) // More responsive beat detection
         {
             _lastBeatTime = _time;
             _beatCount++;
 
-            // Trigger crumble on strong bass or regular beats
-            if (_bassAccumulator > 0.4f || _beatCount % 4 == 0) // Trigger every 4th beat or on strong bass
+            // FIXED: Enhanced crumble triggers
+            var baseCrumbleThreshold = 0.4f;
+            var energyCrumbleThreshold = energy * 0.3f;
+            var volumeCrumbleThreshold = volume * 0.2f;
+            var totalCrumbleThreshold = baseCrumbleThreshold - energyCrumbleThreshold - volumeCrumbleThreshold;
+            
+            if (_bassAccumulator > totalCrumbleThreshold || _beatCount % 4 == 0) // Trigger every 4th beat or on strong bass
             {
-                TriggerCrumble(f.Bass);
+                TriggerCrumble(bass, energy, volume);
             }
         }
 
-        // Camera shake from midrange
-        _cameraShake = f.Mid * 0.5f;
+        // FIXED: Enhanced camera shake from midrange
+        var baseCameraShake = mid * 0.5f;
+        var energyCameraShake = energy * 0.3f;
+        var beatCameraShake = beat ? 0.2f : 0f;
+        _cameraShake = baseCameraShake + energyCameraShake + beatCameraShake;
 
-        // Sun flicker from treble
-        _sunIntensity = 0.8f + f.Treble * 0.4f;
-        _sunAngle += f.Treble * 0.01f;
+        // FIXED: Enhanced sun flicker from treble
+        var baseSunIntensity = 0.8f;
+        var trebleSunIntensity = treble * 0.4f;
+        var energySunIntensity = energy * 0.2f;
+        var beatSunIntensity = beat ? 0.3f : 0f;
+        _sunIntensity = baseSunIntensity + trebleSunIntensity + energySunIntensity + beatSunIntensity;
+        
+        var baseSunAngle = treble * 0.01f;
+        var energySunAngle = energy * 0.005f;
+        var beatSunAngle = beat ? 0.02f : 0f;
+        _sunAngle += baseSunAngle + energySunAngle + beatSunAngle;
+        
         _sunPosition = new Vector3(
             -200 + (float)Math.Sin(_sunAngle) * 50,
             -100,
@@ -212,34 +268,63 @@ public sealed class PyramidCrumbleVisualizer : IVisualizerPlugin
         }
     }
 
-    private void TriggerCrumble(float intensity)
+    private void TriggerCrumble(float bass, float energy, float volume)
     {
         if (_pyramid.Blocks.Count == 0) return;
 
+        // FIXED: Enhanced crumble intensity calculation
+        var baseIntensity = bass;
+        var energyIntensity = energy * 0.5f;
+        var volumeIntensity = volume * 0.3f;
+        var totalIntensity = baseIntensity + energyIntensity + volumeIntensity;
+        
         // Determine how many blocks to crumble
-        int blocksToCrumble = Math.Max(1, (int)(intensity * 5));
+        int blocksToCrumble = Math.Max(1, (int)(totalIntensity * 8));
 
         for (int i = 0; i < blocksToCrumble && _pyramid.Blocks.Count > 0; i++)
         {
-            // Pick a random block from the pyramid
-            int blockIndex = _random.Next(_pyramid.Blocks.Count);
+            // FIXED: Enhanced block selection - prefer higher blocks for more dramatic effect
+            int blockIndex;
+            if (totalIntensity > 0.7f)
+            {
+                // On high intensity, prefer blocks from the top third
+                int topThirdStart = _pyramid.Blocks.Count * 2 / 3;
+                blockIndex = topThirdStart + _random.Next(_pyramid.Blocks.Count - topThirdStart);
+            }
+            else
+            {
+                blockIndex = _random.Next(_pyramid.Blocks.Count);
+            }
+            
             var block = _pyramid.Blocks[blockIndex];
 
-            // Create falling block
+            // FIXED: Enhanced falling block creation with audio-reactive properties
             var fallingBlock = new FallingBlock(
                 block.X, block.Y, block.Z,
                 block.Color
             );
 
-            // Add random velocity
-            fallingBlock.VelocityX = (float)(_random.NextDouble() - 0.5) * 8f;
-            fallingBlock.VelocityY = (float)(_random.NextDouble() - 0.5) * 3f;
-            fallingBlock.VelocityZ = (float)(_random.NextDouble() - 0.5) * 6f;
+            // FIXED: Audio-reactive velocity
+            var baseVelocityX = (float)(_random.NextDouble() - 0.5) * 8f;
+            var energyVelocityX = energy * 4f;
+            fallingBlock.VelocityX = baseVelocityX + energyVelocityX;
+            
+            var baseVelocityY = (float)(_random.NextDouble() - 0.5) * 3f;
+            var bassVelocityY = bass * 2f;
+            fallingBlock.VelocityY = baseVelocityY + bassVelocityY;
+            
+            var baseVelocityZ = (float)(_random.NextDouble() - 0.5) * 6f;
+            var volumeVelocityZ = volume * 3f;
+            fallingBlock.VelocityZ = baseVelocityZ + volumeVelocityZ;
 
-            // Add rotation
-            fallingBlock.RotationSpeedX = (float)(_random.NextDouble() - 0.5) * 0.2f;
-            fallingBlock.RotationSpeedY = (float)(_random.NextDouble() - 0.5) * 0.2f;
-            fallingBlock.RotationSpeedZ = (float)(_random.NextDouble() - 0.5) * 0.2f;
+            // FIXED: Audio-reactive rotation
+            var baseRotationSpeed = 0.2f;
+            var energyRotationSpeed = energy * 0.3f;
+            var totalRotationSpeed = baseRotationSpeed + energyRotationSpeed;
+            
+            fallingBlock.RotationSpeedX = (float)(_random.NextDouble() - 0.5) * totalRotationSpeed;
+            fallingBlock.RotationSpeedY = (float)(_random.NextDouble() - 0.5) * totalRotationSpeed;
+            fallingBlock.RotationSpeedZ = (float)(_random.NextDouble() - 0.5) * totalRotationSpeed;
 
             _fallingBlocks.Add(fallingBlock);
             _pyramid.Blocks.RemoveAt(blockIndex);

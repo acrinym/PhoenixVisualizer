@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using PhoenixVisualizer.App.ViewModels;
 
-namespace PhoenixVisualizer.Views
+namespace PhoenixVisualizer.App.Views
 {
     public partial class PhxEditorSettingsDialog : Window
     {

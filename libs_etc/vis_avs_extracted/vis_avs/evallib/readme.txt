@@ -7,7 +7,7 @@
     ~~~~~~~~~~
 
  
-      ¦ resetVars
+      ï¿½ resetVars
       -----------
 
       void resetVars(void);
@@ -16,7 +16,7 @@
       expression or variables contents may be random instead of zero
 
 
-      ¦ evaluate
+      ï¿½ evaluate
       ----------
 
       double evaluate(char *expression, int *col);
@@ -29,11 +29,11 @@
     Limitations
     ~~~~~~~~~~~
 
-       ¦ you can set only up to 1024 variables.
-       ¦ only decimal and hexadecimal bases available
-       ¦ operators are limited to :
+       ï¿½ you can set only up to 1024 variables.
+       ï¿½ only decimal and hexadecimal bases available
+       ï¿½ operators are limited to :
                + - / * % & | 
-       ¦ functions are limited to :
+       ï¿½ functions are limited to :
                sin, cos, tan,
                asin, acos, atan,
                atan2, sqr, sqrt,

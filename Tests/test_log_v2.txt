@@ -6,9 +6,9 @@ Using launch settings from PhoenixVisualizer.App\Properties\launchSettings.json.
 [0000028102142f90] main libvlc debug: using multimedia timers as clock source
 [0000028102142f90] main libvlc debug:  min period: 1 ms, max period: 1000000 ms
 [0000028102142f90] main libvlc debug: searching plug-in modules
-[0000028102142f90] main libvlc debug: loading plugins cache file D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat
-[0000028102142f90] main libvlc warning: cannot read D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat: No such file or directory
-[0000028102142f90] main libvlc debug: recursively browsing `D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins'
+[0000028102142f90] main libvlc debug: loading plugins cache file D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat
+[0000028102142f90] main libvlc warning: cannot read D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins\plugins.dat: No such file or directory
+[0000028102142f90] main libvlc debug: recursively browsing `D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\libvlc\win-x64\plugins'
 [0000028102142f90] main libvlc debug: plug-ins loaded: 432 modules
 [00000281021430e0] main logger debug: looking for logger module matching "any": 1 candidates
 [00000281021430e0] main logger debug: using logger module "console"

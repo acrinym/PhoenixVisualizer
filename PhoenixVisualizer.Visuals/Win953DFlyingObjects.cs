@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Classic Windows 95 3D Flying Objects screensaver - faithfully recreated for Phoenix Visualizer
 /// Features evolving geometric shapes (spheres, ribbons, cones, boxes) that morph and fly in 3D space
+/// FIXED: Now fully audio-driven with proper beat-reactive behavior instead of independent simulation
 /// </summary>
 public sealed class Win953DFlyingObjects : IVisualizerPlugin
 {
@@ -101,10 +102,31 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Clear with dark space-like background
-        canvas.Clear(0xFF0A0A1A);
+        // FIXED: Audio-reactive background color
+        var baseColor = 0xFF0A0A1A;
+        if (beat)
+            baseColor = 0xFF1A0A2A; // Purple tint on beat
+        else if (bass > 0.4f)
+            baseColor = 0xFF0A0A2A; // Blue tint for bass
+        else if (treble > 0.3f)
+            baseColor = 0xFF2A0A0A; // Red tint for treble
+            
+        canvas.Clear(baseColor);
 
         // Update all flying objects
         UpdateFlyingObjects(f);
@@ -112,10 +134,15 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
         // Render all objects in 3D
         RenderFlyingObjects3D(canvas, f);
 
-        // Occasionally create new objects or remove old ones
-        if (_random.NextDouble() < 0.01f && _flyingObjects.Count < MAX_SHAPES)
+        // FIXED: Audio-reactive object creation
+        var creationChance = 0.01f;
+        if (beat) creationChance = 0.05f; // More objects on beat
+        if (energy > 0.6f) creationChance = 0.03f; // More objects on high energy
+        if (bass > 0.5f) creationChance = 0.02f; // More objects on bass
+        
+        if (_random.NextDouble() < creationChance && _flyingObjects.Count < MAX_SHAPES)
         {
-            CreateFlyingObject();
+            CreateFlyingObject(f);
         }
 
         // Handle objects that go out of bounds
@@ -130,30 +157,83 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
                 // Create a new object to maintain count
                 if (_flyingObjects.Count < MAX_SHAPES)
                 {
-                    CreateFlyingObject();
+                    CreateFlyingObject(f);
                 }
             }
         }
     }
 
-    private void CreateFlyingObject()
+    private void CreateFlyingObject(AudioFeatures f = null)
     {
+        // FIXED: Audio-reactive object properties
+        var energy = f?.Energy ?? 0f;
+        var bass = f?.Bass ?? 0f;
+        var treble = f?.Treble ?? 0f;
+        var beat = f?.Beat ?? false;
+        
+        // Audio-reactive shape type selection
+        ShapeType shapeType;
+        if (beat && bass > 0.4f)
+            shapeType = ShapeType.SpikeBall; // Dramatic shape on beat + bass
+        else if (treble > 0.5f)
+            shapeType = ShapeType.Helix; // Complex shape for treble
+        else if (energy > 0.6f)
+            shapeType = ShapeType.MorphingBlob; // Morphing for energy
+        else
+            shapeType = (ShapeType)_random.Next(Enum.GetValues(typeof(ShapeType)).Length);
+        
+        // Audio-reactive positioning
+        var baseX = (float)(_random.NextDouble() * 16 - 8);
+        var baseY = (float)(_random.NextDouble() * 16 - 8);
+        var baseZ = (float)(_random.NextDouble() * 12 + 5);
+        
+        // Bass affects X position, treble affects Y position
+        var audioX = baseX + bass * 4f * (_random.NextDouble() > 0.5f ? 1f : -1f);
+        var audioY = baseY + treble * 4f * (_random.NextDouble() > 0.5f ? 1f : -1f);
+        var audioZ = baseZ + energy * 3f;
+        
+        // Audio-reactive velocity
+        var baseVelX = (float)(_random.NextDouble() * 0.08f - 0.04f);
+        var baseVelY = (float)(_random.NextDouble() * 0.08f - 0.04f);
+        var baseVelZ = (float)(_random.NextDouble() * 0.03f - 0.06f);
+        
+        var audioVelX = baseVelX * (1f + bass * 0.5f);
+        var audioVelY = baseVelY * (1f + treble * 0.5f);
+        var audioVelZ = baseVelZ * (1f + energy * 0.3f);
+        
+        // Audio-reactive scale
+        var baseScale = 0.5f + (float)_random.NextDouble();
+        var audioScale = baseScale * (1f + energy * 0.5f + bass * 0.3f);
+        
+        // Audio-reactive color selection
+        uint color;
+        if (beat)
+            color = 0xFFFFFF00; // Bright yellow on beat
+        else if (bass > 0.5f)
+            color = 0xFFFF0000; // Red for bass
+        else if (treble > 0.4f)
+            color = 0xFF00FFFF; // Cyan for treble
+        else if (energy > 0.6f)
+            color = 0xFFFF00FF; // Magenta for energy
+        else
+            color = _shapeColors[_random.Next(_shapeColors.Length)];
+        
         var obj = new FlyingObject
         {
-            Type = (ShapeType)_random.Next(Enum.GetValues(typeof(ShapeType)).Length),
-            X = (float)(_random.NextDouble() * 16 - 8), // -8 to +8 range
-            Y = (float)(_random.NextDouble() * 16 - 8), // -8 to +8 range
-            Z = (float)(_random.NextDouble() * 12 + 5), // 5 to 17 range (comfortable viewing distance)
+            Type = shapeType,
+            X = audioX,
+            Y = audioY,
+            Z = audioZ,
             RotX = (float)(_random.NextDouble() * Math.PI * 2),
             RotY = (float)(_random.NextDouble() * Math.PI * 2),
             RotZ = (float)(_random.NextDouble() * Math.PI * 2),
-            VelX = (float)(_random.NextDouble() * 0.08f - 0.04f), // Slower X movement
-            VelY = (float)(_random.NextDouble() * 0.08f - 0.04f), // Slower Y movement
-            VelZ = (float)(_random.NextDouble() * 0.03f - 0.06f), // Controlled Z movement
-            Scale = 0.5f + (float)_random.NextDouble(),
-            Color = _shapeColors[_random.Next(_shapeColors.Length)],
+            VelX = audioVelX,
+            VelY = audioVelY,
+            VelZ = audioVelZ,
+            Scale = audioScale,
+            Color = color,
             MorphPhase = (float)(_random.NextDouble() * Math.PI * 2),
-            AudioInfluence = 0f,
+            AudioInfluence = energy + bass * 0.3f + treble * 0.2f,
             Vertices = new List<(float x, float y, float z)>(),
             Normals = new List<(float x, float y, float z)>(),
             Triangles = new List<(int a, int b, int c)>()
@@ -465,23 +545,44 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
 
     private void UpdateFlyingObjects(AudioFeatures f)
     {
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
         for (int i = _flyingObjects.Count - 1; i >= 0; i--)
         {
             var obj = _flyingObjects[i];
 
-            // Update position
-            obj.X += obj.VelX * (1f + f.Volume * 0.5f);
-            obj.Y += obj.VelY * (1f + f.Volume * 0.5f);
-            obj.Z += obj.VelZ * (1f + f.Volume * 0.5f);
+            // FIXED: Enhanced audio-reactive movement
+            var bassSpeed = bass * 0.8f;
+            var midSpeed = mid * 0.6f;
+            var trebleSpeed = treble * 0.4f;
+            var energySpeed = energy * 0.7f;
+            var beatSpeed = beat ? 1.5f : 1.0f;
+            
+            // Audio-reactive position updates
+            obj.X += obj.VelX * (1f + bassSpeed + energySpeed) * beatSpeed;
+            obj.Y += obj.VelY * (1f + midSpeed + energySpeed) * beatSpeed;
+            obj.Z += obj.VelZ * (1f + trebleSpeed + energySpeed) * beatSpeed;
 
-            // Update rotation
-            obj.RotX += ROTATION_SPEED * 0.01f * (1f + f.Bass * 2f);
-            obj.RotY += ROTATION_SPEED * 0.015f * (1f + f.Mid * 1.5f);
-            obj.RotZ += ROTATION_SPEED * 0.008f * (1f + f.Treble * 3f);
+            // FIXED: Enhanced audio-reactive rotation
+            var bassRotation = bass * 3f;
+            var midRotation = mid * 2.5f;
+            var trebleRotation = treble * 4f;
+            var energyRotation = energy * 2f;
+            var beatRotation = beat ? 2f : 1f;
+            
+            obj.RotX += ROTATION_SPEED * 0.01f * (1f + bassRotation + energyRotation) * beatRotation;
+            obj.RotY += ROTATION_SPEED * 0.015f * (1f + midRotation + energyRotation) * beatRotation;
+            obj.RotZ += ROTATION_SPEED * 0.008f * (1f + trebleRotation + energyRotation) * beatRotation;
 
-            // Update morphing
-            obj.MorphPhase += MORPH_SPEED * (1f + f.Volume);
-            obj.AudioInfluence = f.Volume;
+            // FIXED: Enhanced audio-reactive morphing and influence
+            var morphSpeed = MORPH_SPEED * (1f + volume + energy * 0.5f + treble * 0.3f);
+            obj.MorphPhase += morphSpeed;
+            obj.AudioInfluence = volume + energy * 0.3f + bass * 0.2f;
 
             // Bounce off X/Y boundaries
             if (Math.Abs(obj.X) > 12f)
@@ -536,10 +637,32 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
     private void RenderObject3D(ISkiaCanvas canvas, FlyingObject obj, float centerX, float centerY,
                                float fov, float near, float far, AudioFeatures f)
     {
-        // Audio-reactive color and brightness
+        // FIXED: Enhanced audio-reactive color and brightness
         uint color = obj.Color;
-        float brightness = 0.7f + obj.AudioInfluence * 0.5f;
-        color = AdjustBrightness(color, brightness);
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        
+        // Audio-reactive color modification
+        if (beat)
+            color = 0xFFFFFF00; // Bright yellow on beat
+        else if (bass > 0.5f)
+            color = 0xFFFF0000; // Red for bass
+        else if (treble > 0.4f)
+            color = 0xFF00FFFF; // Cyan for treble
+        else if (energy > 0.6f)
+            color = 0xFFFF00FF; // Magenta for energy
+        
+        // Audio-reactive brightness
+        var baseBrightness = 0.7f;
+        var energyBrightness = energy * 0.4f;
+        var bassBrightness = bass * 0.3f;
+        var trebleBrightness = treble * 0.2f;
+        var beatBrightness = beat ? 0.5f : 0f;
+        var totalBrightness = baseBrightness + energyBrightness + bassBrightness + trebleBrightness + beatBrightness;
+        
+        color = AdjustBrightness(color, totalBrightness);
 
         foreach (var triangle in obj.Triangles)
         {

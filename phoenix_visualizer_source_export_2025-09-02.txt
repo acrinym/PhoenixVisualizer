@@ -1,4 +1,4 @@
-﻿================================================================================
+================================================================================
 PHOENIX VISUALIZER - SOURCE CODE EXPORT (STREAMLINED)
 ================================================================================
 Generated: 09/02/2025 16:44:08
@@ -24,25 +24,25 @@ Build Timestamp: 09/02/2025 16:44:08
 
   Determining projects to restore...
   All projects are up-to-date for restore.
-  PhoenixVisualizer.Core -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.dll
-  PhoenixVisualizer.PluginHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.PluginHost\bin\Debug\net8.0\PhoenixVisualizer.PluginHost.dll
-  PhoenixVisualizer.Audio -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Audio\bin\Debug\net8.0\PhoenixVisualizer.Audio.dll
-  PhoenixVisualizer.AvsEngine -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
-  PhoenixVisualizer.Plugins.Avs -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Avs\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Avs.dll
-  PhoenixVisualizer.Plugins.Ape.Phoenix -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plugins.Ape.Phoenix\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Ape.Phoenix.dll
-  PhoenixVisualizer.ApeHost -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.ApeHost\bin\Debug\net8.0\PhoenixVisualizer.ApeHost.dll
-  PhoenixVisualizer.Plots -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Plots\bin\Debug\net8.0\PhoenixVisualizer.Plots.dll
-  PhoenixVisualizer.Visuals -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Visuals\bin\Debug\net8.0\PhoenixVisualizer.Visuals.dll
-  PhoenixVisualizer.Audio.TestRunner -> D:\GitHub\AMrepo\PhoenixVisualizer.Audio.TestRunner\bin\Debug\net8.0\PhoenixVisualizer.Audio.TestRunner.dll
-  PhoenixVisualizer.Editor -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.Editor\bin\Debug\net8.0\PhoenixVisualizer.Editor.dll
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(530,35): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(544,39): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-  PhoenixVisualizer -> D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\PhoenixVisualizer.dll
+  PhoenixVisualizer.Core -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Core\bin\Debug\net8.0\PhoenixVisualizer.Core.dll
+  PhoenixVisualizer.PluginHost -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.PluginHost\bin\Debug\net8.0\PhoenixVisualizer.PluginHost.dll
+  PhoenixVisualizer.Audio -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Audio\bin\Debug\net8.0\PhoenixVisualizer.Audio.dll
+  PhoenixVisualizer.AvsEngine -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.AvsEngine\bin\Debug\net8.0\PhoenixVisualizer.AvsEngine.dll
+  PhoenixVisualizer.Plugins.Avs -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Plugins.Avs\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Avs.dll
+  PhoenixVisualizer.Plugins.Ape.Phoenix -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Plugins.Ape.Phoenix\bin\Debug\net8.0\PhoenixVisualizer.Plugins.Ape.Phoenix.dll
+  PhoenixVisualizer.ApeHost -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.ApeHost\bin\Debug\net8.0\PhoenixVisualizer.ApeHost.dll
+  PhoenixVisualizer.Plots -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Plots\bin\Debug\net8.0\PhoenixVisualizer.Plots.dll
+  PhoenixVisualizer.Visuals -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Visuals\bin\Debug\net8.0\PhoenixVisualizer.Visuals.dll
+  PhoenixVisualizer.Audio.TestRunner -> D:\GitHub\PhoenixVisualizer.Audio.TestRunner\bin\Debug\net8.0\PhoenixVisualizer.Audio.TestRunner.dll
+  PhoenixVisualizer.Editor -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.Editor\bin\Debug\net8.0\PhoenixVisualizer.Editor.dll
+D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(530,35): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(544,39): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+  PhoenixVisualizer -> D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\bin\Debug\net8.0\PhoenixVisualizer.dll
 
 Build succeeded.
 
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(530,35): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
-D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(544,39): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\AMrepo\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(530,35): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
+D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\Views\PhxEditorWindow.axaml.cs(544,39): warning CA1416: This call site is reachable on all platforms. 'PerformanceCounter.NextValue()' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\GitHub\PhoenixVisualizer\PhoenixVisualizer.App\PhoenixVisualizer.csproj]
     2 Warning(s)
     0 Error(s)
 

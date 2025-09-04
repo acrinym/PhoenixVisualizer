@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Minecart Rollercoaster Visualizer - Procedural track generation with audio-reactive physics
 /// Features multiple carts, dynamic track shapes, particle effects, and various camera modes
+/// FIXED: Enhanced cart drawing and track visualization with proper audio reactivity
 /// </summary>
 public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
 {
@@ -147,18 +148,31 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Update audio reactivity
+        // FIXED: Enhanced audio reactivity
         UpdateAudioReactivity(f);
 
-        // Update game logic
-        UpdateTrack();
+        // FIXED: Enhanced game logic with audio reactivity
+        UpdateTrack(f);
         UpdateCarts(f);
         UpdateParticles(f);
-        UpdateScenery();
+        UpdateScenery(f);
 
-        // Render scene
+        // FIXED: Enhanced scene rendering
         RenderBackground(canvas, f);
         RenderScenery(canvas, f);
         RenderTrack(canvas, f);
@@ -166,28 +180,46 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         RenderParticles(canvas, f);
         RenderUI(canvas, f);
 
-        // Apply camera effects
+        // FIXED: Enhanced camera effects
         if (_cameraShake > 0)
         {
-            _cameraShake *= 0.9f;
+            var baseShakeDecay = 0.9f;
+            var energyShakeDecay = energy * 0.05f;
+            var beatShakeDecay = beat ? 0.1f : 0f;
+            _cameraShake *= baseShakeDecay + energyShakeDecay + beatShakeDecay;
         }
     }
 
     private void UpdateAudioReactivity(AudioFeatures f)
     {
-        // Accumulate audio data for smoother response
-        _bassAccumulator = _bassAccumulator * 0.8f + f.Bass * 0.2f;
-        _midAccumulator = _midAccumulator * 0.8f + f.Mid * 0.2f;
-        _trebleAccumulator = _trebleAccumulator * 0.8f + f.Treble * 0.2f;
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced audio data accumulation
+        var baseAccumulator = 0.8f;
+        var energyAccumulator = energy * 0.1f;
+        var volumeAccumulator = volume * 0.1f;
+        var totalAccumulator = baseAccumulator + energyAccumulator + volumeAccumulator;
+        
+        _bassAccumulator = _bassAccumulator * totalAccumulator + bass * 0.2f;
+        _midAccumulator = _midAccumulator * totalAccumulator + mid * 0.2f;
+        _trebleAccumulator = _trebleAccumulator * totalAccumulator + treble * 0.2f;
 
-        // Camera shake on beats
-        if (f.Beat)
+        // FIXED: Enhanced camera shake on beats
+        if (beat)
         {
-            _cameraShake = 8f;
+            var baseShake = 8f;
+            var energyShake = energy * 15f;
+            var volumeShake = volume * 10f;
+            _cameraShake = baseShake + energyShake + volumeShake;
         }
     }
 
-    private void UpdateTrack()
+    private void UpdateTrack(AudioFeatures f = null)
     {
         // Generate new track segments as we move forward
         while (_trackSegments.Count < TRACK_SEGMENTS)
@@ -303,7 +335,7 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         }
     }
 
-    private void UpdateScenery()
+    private void UpdateScenery(AudioFeatures f = null)
     {
         for (int i = _sceneryItems.Count - 1; i >= 0; i--)
         {

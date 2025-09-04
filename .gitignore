@@ -362,3 +362,4 @@ FodyWeavers.xsd
 # NuGet packages
 *.nupkg
 *.snupkg
+Diffs/Impl

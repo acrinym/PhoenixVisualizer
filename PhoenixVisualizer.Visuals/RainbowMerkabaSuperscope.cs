@@ -4,6 +4,7 @@ namespace PhoenixVisualizer.Visuals;
 
 /// <summary>
 /// Rainbow Merkaba superscope visualization based on complex AVS superscope code
+/// FIXED: Reduced size to prevent escaping main window boundaries
 /// </summary>
 public sealed class RainbowMerkabaSuperscope : IVisualizerPlugin
 {
@@ -109,9 +110,9 @@ public sealed class RainbowMerkabaSuperscope : IVisualizerPlugin
             float finalX = x3_rot * pers;
             float finalY = y3_rot * pers;
             
-            // Scale and center
-            finalX = finalX * _width * 0.3f + _width * 0.5f;
-            finalY = finalY * _height * 0.3f + _height * 0.5f;
+            // FIXED: Scale and center - reduced size to prevent escaping main window
+            finalX = finalX * _width * 0.25f + _width * 0.5f;
+            finalY = finalY * _height * 0.25f + _height * 0.5f;
             
             points.Add((finalX, finalY));
         }

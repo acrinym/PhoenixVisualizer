@@ -324,7 +324,7 @@ public partial class PhxPreviewWindow : Window
             var btnSettings = this.FindControl<Button>("BtnSettings");
             btnSettings?.AddHandler(Button.ClickEvent, (_, __) =>
             {
-                var dlg = new Views.PhxEditorSettingsDialog { DataContext = ViewModel.Settings };
+                var dlg = new PhxEditorSettingsDialog { DataContext = ViewModel.Settings };
                 dlg.ShowDialog(this);
                 // Apply settings immediately
                 // _previewRenderer?.ApplySettings(ViewModel.Settings); // TODO: Implement settings application

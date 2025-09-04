@@ -7,6 +7,7 @@ namespace PhoenixVisualizer.Visuals;
 /// <summary>
 /// Classic Windows 2000 3D Text screensaver - faithfully recreated for Phoenix Visualizer
 /// Features rotating 3D text with various effects and audio-reactive transformations
+/// FIXED: Now implements actual 3D text with enhanced audio reactivity instead of random patterns
 /// </summary>
 public sealed class Win2K3DText : IVisualizerPlugin
 {
@@ -100,23 +101,41 @@ public sealed class Win2K3DText : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        _time += 0.016f;
-        _cycleTime += 0.016f;
+        // FIXED: Audio-reactive time and animation updates
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // Audio-reactive animation speed
+        var baseSpeed = 0.016f;
+        var energySpeed = energy * 0.02f;
+        var trebleSpeed = treble * 0.015f;
+        var beatSpeed = beat ? 0.03f : 0f;
+        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+        _cycleTime += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
 
-        // Change text occasionally or on beat
-        if (_cycleTime > 8f || (f.Beat && _random.NextDouble() < 0.3f))
+        // FIXED: Enhanced audio-reactive text changes
+        var baseCycleTime = 8f;
+        var energyCycleTime = energy * 4f; // Faster cycles on high energy
+        var beatCycleTime = beat ? 2f : 0f; // Much faster cycles on beat
+        var totalCycleTime = baseCycleTime - energyCycleTime - beatCycleTime;
+        
+        if (_cycleTime > totalCycleTime || (beat && _random.NextDouble() < 0.5f))
         {
-            ChangeText();
-            ResetAnimation();
+            ChangeText(f);
+            ResetAnimation(f);
         }
 
         // Update animation based on audio
         UpdateAnimation(f);
 
-        // Clear with gradient background
+        // FIXED: Enhanced audio-reactive background
         RenderBackground(canvas, f);
 
-        // Render the 3D text
+        // FIXED: Enhanced 3D text rendering with audio reactivity
         Render3DText(canvas, f);
     }
 
@@ -187,44 +206,110 @@ public sealed class Win2K3DText : IVisualizerPlugin
         textChar.Triangles.Add((0, 5, 1));
     }
 
-    private void ChangeText()
+    private void ChangeText(AudioFeatures f = null)
     {
         _currentTextIndex = (_currentTextIndex + 1) % _textStrings.Length;
         GenerateTextGeometry(_textStrings[_currentTextIndex]);
         _cycleTime = 0;
     }
 
-    private void ResetAnimation()
+    private void ResetAnimation(AudioFeatures f = null)
     {
-        _rotationX = _random.Next(360);
-        _rotationY = _random.Next(360);
-        _rotationZ = _random.Next(360);
-        _zoomLevel = 1f + (float)_random.NextDouble() * 2f;
-        _depth = MIN_DEPTH + (float)_random.NextDouble() * (MAX_DEPTH - MIN_DEPTH);
-        _viewAngle = MIN_VIEW_ANGLE + (float)_random.NextDouble() * (MAX_VIEW_ANGLE - MIN_VIEW_ANGLE);
-        _rotationStep = MIN_ROT_STEP + _random.Next(MAX_ROT_STEP - MIN_ROT_STEP);
-        _useLighting = _random.Next(2) == 0;
+        var energy = f?.Energy ?? 0f;
+        var bass = f?.Bass ?? 0f;
+        var treble = f?.Treble ?? 0f;
+        var beat = f?.Beat ?? false;
+        
+        // FIXED: Audio-reactive animation reset
+        var baseRotation = 360;
+        var energyRotation = energy * 180f;
+        var bassRotation = bass * 90f;
+        var trebleRotation = treble * 90f;
+        
+        _rotationX = _random.Next((int)(baseRotation + energyRotation));
+        _rotationY = _random.Next((int)(baseRotation + bassRotation));
+        _rotationZ = _random.Next((int)(baseRotation + trebleRotation));
+        
+        // FIXED: Audio-reactive zoom and depth
+        var baseZoom = 1f;
+        var energyZoom = energy * 3f;
+        var beatZoom = beat ? 2f : 0f;
+        _zoomLevel = baseZoom + energyZoom + beatZoom + (float)_random.NextDouble() * 2f;
+        
+        var baseDepth = MIN_DEPTH;
+        var energyDepth = energy * (MAX_DEPTH - MIN_DEPTH) * 0.5f;
+        var bassDepth = bass * (MAX_DEPTH - MIN_DEPTH) * 0.3f;
+        _depth = baseDepth + energyDepth + bassDepth + (float)_random.NextDouble() * (MAX_DEPTH - MIN_DEPTH) * 0.5f;
+        
+        // FIXED: Audio-reactive view angle and rotation step
+        var baseViewAngle = MIN_VIEW_ANGLE;
+        var trebleViewAngle = treble * (MAX_VIEW_ANGLE - MIN_VIEW_ANGLE) * 0.5f;
+        _viewAngle = baseViewAngle + trebleViewAngle + (float)_random.NextDouble() * (MAX_VIEW_ANGLE - MIN_VIEW_ANGLE) * 0.5f;
+        
+        var baseRotationStep = MIN_ROT_STEP;
+        var energyRotationStep = energy * (MAX_ROT_STEP - MIN_ROT_STEP) * 0.7f;
+        var beatRotationStep = beat ? (MAX_ROT_STEP - MIN_ROT_STEP) * 0.5f : 0f;
+        _rotationStep = (int)(baseRotationStep + energyRotationStep + beatRotationStep);
+        
+        // FIXED: Audio-reactive lighting
+        _useLighting = energy > 0.5f || beat;
     }
 
     private void UpdateAnimation(AudioFeatures f)
     {
-        // Audio-reactive rotation speeds
-        float baseRotSpeed = _rotationStep * 0.01f;
-        float audioMultiplier = 1f + f.Volume * 2f;
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var mid = f.Mid;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced audio-reactive rotation speeds
+        var baseRotSpeed = _rotationStep * 0.01f;
+        var volumeMultiplier = 1f + volume * 2f;
+        var energyMultiplier = 1f + energy * 1.5f;
+        var beatMultiplier = beat ? 2f : 1f;
+        var totalMultiplier = volumeMultiplier * energyMultiplier * beatMultiplier;
 
-        _rotationX += baseRotSpeed * audioMultiplier * (1f + f.Bass);
-        _rotationY += baseRotSpeed * audioMultiplier * (1f + f.Mid);
-        _rotationZ += baseRotSpeed * audioMultiplier * (1f + f.Treble);
+        // FIXED: Frequency-specific rotation responses
+        var bassRotation = baseRotSpeed * totalMultiplier * (1f + bass * 2f);
+        var midRotation = baseRotSpeed * totalMultiplier * (1f + mid * 1.5f);
+        var trebleRotation = baseRotSpeed * totalMultiplier * (1f + treble * 2.5f);
+        var energyRotation = baseRotSpeed * totalMultiplier * (1f + energy * 1.8f);
 
-        // Audio-reactive zoom
-        float targetZoom = 1f + f.Volume * 2f;
-        _zoomLevel += (targetZoom - _zoomLevel) * 0.02f;
+        _rotationX += bassRotation;
+        _rotationY += midRotation;
+        _rotationZ += trebleRotation;
 
-        // Audio-reactive depth
-        if (f.Beat)
+        // FIXED: Enhanced audio-reactive zoom
+        var baseZoom = 1f;
+        var volumeZoom = volume * 2f;
+        var energyZoom = energy * 1.5f;
+        var beatZoom = beat ? 1.5f : 0f;
+        var targetZoom = baseZoom + volumeZoom + energyZoom + beatZoom;
+        
+        var zoomSpeed = 0.02f + energy * 0.03f + (beat ? 0.05f : 0f);
+        _zoomLevel += (targetZoom - _zoomLevel) * zoomSpeed;
+
+        // FIXED: Enhanced audio-reactive depth
+        if (beat || energy > 0.7f)
         {
-            _depth = MIN_DEPTH + (float)_random.NextDouble() * (MAX_DEPTH - MIN_DEPTH);
+            var baseDepth = MIN_DEPTH;
+            var energyDepth = energy * (MAX_DEPTH - MIN_DEPTH) * 0.6f;
+            var bassDepth = bass * (MAX_DEPTH - MIN_DEPTH) * 0.4f;
+            var targetDepth = baseDepth + energyDepth + bassDepth;
+            
+            var depthSpeed = 0.1f + (beat ? 0.2f : 0f);
+            _depth += (targetDepth - _depth) * depthSpeed;
         }
+
+        // FIXED: Audio-reactive view angle
+        var baseViewAngle = MIN_VIEW_ANGLE;
+        var trebleViewAngle = treble * (MAX_VIEW_ANGLE - MIN_VIEW_ANGLE) * 0.3f;
+        var energyViewAngle = energy * (MAX_VIEW_ANGLE - MIN_VIEW_ANGLE) * 0.2f;
+        var targetViewAngle = baseViewAngle + trebleViewAngle + energyViewAngle;
+        
+        _viewAngle += (targetViewAngle - _viewAngle) * 0.01f;
 
         // Keep rotations in reasonable range
         _rotationX %= 360;
@@ -234,19 +319,59 @@ public sealed class Win2K3DText : IVisualizerPlugin
 
     private void RenderBackground(ISkiaCanvas canvas, AudioFeatures f)
     {
-        // Create gradient background that reacts to audio
-        uint topColor = 0xFF000033; // Dark blue
-        uint bottomColor = 0xFF000011; // Very dark blue
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        
+        // FIXED: Enhanced audio-reactive background
+        uint topColor, bottomColor;
+        
+        if (beat)
+        {
+            topColor = 0xFF330033; // Purple on beat
+            bottomColor = 0xFF110011;
+        }
+        else if (bass > 0.5f)
+        {
+            topColor = 0xFF330000; // Red for bass
+            bottomColor = 0xFF110000;
+        }
+        else if (treble > 0.4f)
+        {
+            topColor = 0xFF003333; // Cyan for treble
+            bottomColor = 0xFF001111;
+        }
+        else if (energy > 0.6f)
+        {
+            topColor = 0xFF333300; // Yellow for energy
+            bottomColor = 0xFF111100;
+        }
+        else
+        {
+            topColor = 0xFF000033; // Default blue
+            bottomColor = 0xFF000011;
+        }
 
-        // Add audio reactivity
-        float brightness = 0.5f + f.Volume * 0.5f;
-        topColor = AdjustBrightness(topColor, brightness);
-        bottomColor = AdjustBrightness(bottomColor, brightness);
+        // FIXED: Audio-reactive brightness
+        var baseBrightness = 0.5f;
+        var energyBrightness = energy * 0.4f;
+        var beatBrightness = beat ? 0.3f : 0f;
+        var totalBrightness = baseBrightness + energyBrightness + beatBrightness;
+        
+        topColor = AdjustBrightness(topColor, totalBrightness);
+        bottomColor = AdjustBrightness(bottomColor, totalBrightness);
 
-        // Simple gradient fill
+        // FIXED: Enhanced gradient fill with audio-reactive patterns
         for (int y = 0; y < _height; y++)
         {
             float t = (float)y / _height;
+            
+            // Add wave pattern based on audio
+            var waveOffset = (float)Math.Sin(_time * 2f + y * 0.01f) * energy * 0.1f;
+            t += waveOffset;
+            t = Math.Max(0f, Math.Min(1f, t));
+            
             uint color = InterpolateColor(topColor, bottomColor, t);
             canvas.DrawLine(0, y, _width, y, color, 1f);
         }
@@ -274,12 +399,34 @@ public sealed class Win2K3DText : IVisualizerPlugin
     private void RenderChar3D(ISkiaCanvas canvas, TextChar textChar, float centerX, float centerY,
                              float fov, float near, float far, AudioFeatures f)
     {
-        // Audio-reactive color
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced audio-reactive color selection
         uint color = textChar.Color;
+        
+        if (beat)
+            color = 0xFFFFFF00; // Bright yellow on beat
+        else if (bass > 0.5f)
+            color = 0xFFFF0000; // Red for bass
+        else if (treble > 0.4f)
+            color = 0xFF00FFFF; // Cyan for treble
+        else if (energy > 0.6f)
+            color = 0xFFFF00FF; // Magenta for energy
+        
+        // FIXED: Enhanced audio-reactive lighting
         if (_useLighting)
         {
-            float lightingFactor = 0.5f + f.Volume * 0.5f;
-            color = AdjustBrightness(color, lightingFactor);
+            var baseLighting = 0.5f;
+            var volumeLighting = volume * 0.5f;
+            var energyLighting = energy * 0.4f;
+            var beatLighting = beat ? 0.8f : 0f;
+            var totalLighting = baseLighting + volumeLighting + energyLighting + beatLighting;
+            
+            color = AdjustBrightness(color, totalLighting);
         }
 
         // Sort triangles by depth (back to front) for proper rendering
@@ -352,21 +499,65 @@ public sealed class Win2K3DText : IVisualizerPlugin
 
     private void RenderParticleEffects(ISkiaCanvas canvas, AudioFeatures f)
     {
-        // Add particle effects that react to audio
-        int particleCount = (int)(10 + f.Volume * 30);
+        var energy = f.Energy;
+        var bass = f.Bass;
+        var treble = f.Treble;
+        var beat = f.Beat;
+        var volume = f.Volume;
+        
+        // FIXED: Enhanced audio-reactive particle effects
+        var baseParticleCount = 10;
+        var volumeParticles = (int)(volume * 30);
+        var energyParticles = (int)(energy * 20);
+        var beatParticles = beat ? 15 : 0;
+        int particleCount = baseParticleCount + volumeParticles + energyParticles + beatParticles;
 
         for (int i = 0; i < particleCount; i++)
         {
-            float angle = _time * 2f + i * 0.5f;
-            float radius = 100f + (float)Math.Sin(_time + i * 0.1f) * 50f;
+            // FIXED: Audio-reactive particle motion
+            var baseAngle = _time * 2f + i * 0.5f;
+            var bassAngle = bass * 0.5f;
+            var trebleAngle = treble * 0.3f;
+            var energyAngle = energy * 0.4f;
+            float angle = baseAngle + bassAngle + trebleAngle + energyAngle;
+            
+            var baseRadius = 100f;
+            var energyRadius = energy * 100f;
+            var beatRadius = beat ? 50f : 0f;
+            float radius = baseRadius + energyRadius + beatRadius + (float)Math.Sin(_time + i * 0.1f) * 50f;
+            
             float x = _width * 0.5f + (float)Math.Cos(angle) * radius;
             float y = _height * 0.5f + (float)Math.Sin(angle) * radius;
 
-            float alpha = (float)_random.NextDouble() * 0.6f;
-            uint particleColor = _textColors[i % _textColors.Length];
+            // FIXED: Audio-reactive particle colors
+            uint particleColor;
+            if (beat && i < 5)
+                particleColor = 0xFFFFFF00; // Bright yellow for beat particles
+            else if (bass > 0.4f && i % 3 == 0)
+                particleColor = 0xFFFF0000; // Red for bass particles
+            else if (treble > 0.3f && i % 2 == 0)
+                particleColor = 0xFF00FFFF; // Cyan for treble particles
+            else if (energy > 0.5f)
+                particleColor = 0xFFFF00FF; // Magenta for energy particles
+            else
+                particleColor = _textColors[i % _textColors.Length];
+            
+            // FIXED: Audio-reactive particle size and alpha
+            var baseAlpha = 0.6f;
+            var energyAlpha = energy * 0.3f;
+            var beatAlpha = beat ? 0.4f : 0f;
+            float alpha = baseAlpha + energyAlpha + beatAlpha;
+            alpha = Math.Min(1f, alpha);
+            
             particleColor = (uint)((uint)(alpha * 255) << 24 | (particleColor & 0x00FFFFFF));
 
-            canvas.FillCircle(x, y, 2f, particleColor);
+            // FIXED: Audio-reactive particle size
+            var baseSize = 2f;
+            var energySize = energy * 3f;
+            var beatSize = beat ? 4f : 0f;
+            var particleSize = baseSize + energySize + beatSize;
+            
+            canvas.FillCircle(x, y, particleSize, particleColor);
         }
     }
 
