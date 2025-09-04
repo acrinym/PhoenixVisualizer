@@ -242,8 +242,9 @@ public sealed class FlameFractal : IVisualizerPlugin
         }
     }
 
-    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas) {
-            if (_totalPoints >= MAX_POINTS_PER_FRAME) return false;
+    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas) 
+    {
+        if (_totalPoints >= MAX_POINTS_PER_FRAME) return false;
         if (level == _maxLevels)
         {
             _totalPoints++;

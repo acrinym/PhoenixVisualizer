@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Avalonia.Media;
 
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core.Services;

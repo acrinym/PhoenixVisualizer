@@ -40,7 +40,7 @@ public class ParticleSwarmEffectsNode : BaseEffectNode
             if (x > 1) x -= 1; if (y > 1) y -= 1;
             int px = (int)(x * dst.Width);
             int py = (int)(y * dst.Height);
-            DrawingUtils.DrawCircle(dst, px, py, 2, Colors.Cyan);
+            DrawingUtils.DrawCircle(dst, px, py, 2, unchecked((int)Colors.Cyan.ToUInt32()));
             _particles[i] = (x, y, dx, dy);
         }
         

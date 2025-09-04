@@ -1,4 +1,7 @@
 using Avalonia.Media.Imaging;
+using Avalonia.Media;
+using Avalonia.Controls;
+using Avalonia;
 
 using PhoenixVisualizer.Core.Services;
 

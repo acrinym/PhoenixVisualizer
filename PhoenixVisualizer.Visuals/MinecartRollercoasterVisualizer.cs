@@ -565,7 +565,7 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
                 VelocityX = (float)Math.Cos(angle) * 150f,
                 VelocityY = (float)Math.Sin(angle) * 150f,
                 VelocityZ = (_random.NextSingle() - 0.5f) * 50f,
-                Color = PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(_random.NextSingle(), 1.0f, 1.0f), // Rainbow colors
+                Color = PhoenixVisualizer.Core.ColorUtils.ColorUtil.HsvToRgb(_random.NextSingle(), 1.0f, 1.0f), // Rainbow colors
                 Life = 1.0f,
                 MaxLife = 1.0f,
                 Size = 3f,
@@ -935,7 +935,7 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 
-    private uint PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(float h, float s, float v)
+    private uint PhoenixVisualizer.Core.ColorUtils.ColorUtil.HsvToRgb(float h, float s, float v)
     {
         float c = v * s;
         float x = c * (1 - MathF.Abs((h * 6) % 2 - 1));

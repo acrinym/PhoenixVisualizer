@@ -4,7 +4,7 @@ using PhoenixVisualizer.Plugins.Avs;
 
 namespace PhoenixVisualizer.Editor.Views;
 
-using PhoenixVisualizer.App.Services;
+// using PhoenixVisualizer.App.Services; // Removed to avoid circular dependency
 
 public partial class MainWindow : Window
 {
@@ -82,7 +82,7 @@ public partial class MainWindow : Window
             var stack = (DataContext as MainWindowViewModel)?.CurrentNodeStack;
             if (stack == null) return;
             var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "phoenix_nodepreset.json");
-            NodePresetStorage.Save(path, stack);
+            // NodePresetStorage.Save(path, stack); // Temporarily disabled to avoid circular dependency
         } catch {}
     }
     
@@ -90,8 +90,8 @@ public partial class MainWindow : Window
     {
         try {
             var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "phoenix_nodepreset.json");
-            var stack = NodePresetStorage.Load(path);
-            (DataContext as MainWindowViewModel)?.LoadNodeStack(stack);
+            // var stack = NodePresetStorage.Load(path); // Temporarily disabled to avoid circular dependency
+            // (DataContext as MainWindowViewModel)?.LoadNodeStack(stack);
         } catch {}
     }
 }

@@ -1,4 +1,4 @@
-namespace PhoenixVisualizer.Core.Color
+namespace PhoenixVisualizer.Core.ColorUtils
 {
     public static class ColorUtil
     {

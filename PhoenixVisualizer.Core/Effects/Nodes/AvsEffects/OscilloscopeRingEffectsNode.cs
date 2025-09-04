@@ -33,10 +33,10 @@ public class OscilloscopeRingEffectsNode : BaseEffectNode
             double angle = i * (2 * Math.PI / wave.Length);
             int x = cx + (int)((Radius + wave[i] * 50) * Math.Cos(angle));
             int y = cy + (int)((Radius + wave[i] * 50) * Math.Sin(angle));
-            DrawingUtils.DrawLine(target, prevX, prevY, x, y, RingColor);
+            DrawingUtils.DrawLine(target, prevX, prevY, x, y, unchecked((int)RingColor.ToUInt32()));
             prevX = x; prevY = y;
         }
-        DrawingUtils.DrawLine(target, prevX, prevY, cx + Radius, cy, RingColor); // close loop
+        DrawingUtils.DrawLine(target, prevX, prevY, cx + Radius, cy, unchecked((int)RingColor.ToUInt32())); // close loop
         
         return target;
     }

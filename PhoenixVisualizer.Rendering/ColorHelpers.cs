@@ -1,3 +1,5 @@
+using Avalonia.Media;
+
 namespace PhoenixVisualizer.App.Rendering;
 
 /// <summary>🎨 Small helpers for color/brush conversion.</summary>

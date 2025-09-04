@@ -227,6 +227,23 @@ public partial class App : Application { private static SettingsService _setting
             PluginRegistry.Register("node_pixelsort_plasma", "🧪 PixelSort Plasma (Node)", () => new NodePixelSortPlasma());
             PluginRegistry.Register("node_text_beat_echo", "🅿️ Text Beat Echo (Node)", () => new NodeTextBeatEcho());
 
+            // ============================================================================
+            // 🌌 XSS (X-Style Shader) VISUALIZERS
+            // ============================================================================
+
+            // --- Core XSS Visualizers ---
+            PluginRegistry.Register("node_xs_fireworks", "🎆 XS Fireworks (Node)", () => new NodeXsFireworks());
+            PluginRegistry.Register("node_xs_plasma", "🌀 XS Plasma (Node)", () => new NodeXsPlasma());
+            PluginRegistry.Register("node_xs_vortex", "🌪️ XS Vortex (Node)", () => new NodeXsVortex());
+
+            // --- XScreenSaver-Inspired XSS Visualizers ---
+            PluginRegistry.Register("node_xs_lcdscrub", "🖥️ XS LCD Scrub (Node)", () => new NodeXsLcdScrub());
+            PluginRegistry.Register("node_xs_lightning", "⚡ XS Lightning (Node)", () => new NodeXsLightning());
+            PluginRegistry.Register("node_xs_lisa", "📐 XS Lisa (Node)", () => new NodeXsLisa());
+            PluginRegistry.Register("node_xs_penrose", "🔷 XS Penrose (Node)", () => new NodeXsPenrose());
+            PluginRegistry.Register("node_xs_rorschach", "🦋 XS Rorschach (Node)", () => new NodeXsRorschach());
+            PluginRegistry.Register("node_xs_rotor", "🌀 XS Rotor (Node)", () => new NodeXsRotor());
+
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
 

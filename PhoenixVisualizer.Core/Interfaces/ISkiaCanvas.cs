@@ -16,4 +16,11 @@ public interface ISkiaCanvas
     void FillCircle(float x, float y, float radius, uint color);
     void DrawRect(float x, float y, float width, float height, uint color, bool filled = false);
     void DrawPoint(float x, float y, uint color, float size = 1.0f);
+    
+    // Additional methods for XSS nodes
+    void Fade(uint color, float amount);
+    void SetLineWidth(float width);
+    void DrawPolyline(System.Span<(float x, float y)> points, uint color);
+    void DrawPolygon(System.Span<(float x, float y)> points, uint color, bool filled = false);
+    void FillRect(float x, float y, float width, float height, uint color);
 }

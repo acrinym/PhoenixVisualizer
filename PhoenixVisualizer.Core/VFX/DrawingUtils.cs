@@ -6,7 +6,7 @@ namespace PhoenixVisualizer.Core.VFX;
 
 public static class DrawingUtils
 {
-    public static void DrawLine(ImageBuffer buf, int x1, int y1, int x2, int y2, Color c)
+    public static void DrawLine(ImageBuffer buf, int x1, int y1, int x2, int y2, int c)
     {
         int dx = Math.Abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
         int dy = -Math.Abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
@@ -22,7 +22,7 @@ public static class DrawingUtils
         }
     }
 
-    public static void DrawCircle(ImageBuffer buf, int cx, int cy, int r, Color c)
+    public static void DrawCircle(ImageBuffer buf, int cx, int cy, int r, int c)
     {
         int x = r, y = 0, err = 0;
         while (x >= y)
@@ -34,7 +34,7 @@ public static class DrawingUtils
         }
     }
 
-    private static void PlotCircle(ImageBuffer buf, int cx, int cy, int x, int y, Color c)
+    private static void PlotCircle(ImageBuffer buf, int cx, int cy, int x, int y, int c)
     {
         void Plot(int px, int py)
         {
@@ -51,9 +51,10 @@ public static class DrawingUtils
         Plot(cx + x, cy - y);
     }
 
-    public static void DrawText(ImageBuffer buf, string text, Typeface typeface, int size, Color c, int x, int y)
+    public static void DrawText(ImageBuffer buf, string text, Typeface typeface, int size, int c, int x, int y)
     {
-        buf.DrawText(text, typeface, size, c, new System.Drawing.Point(x, y));
+        var color = System.Drawing.Color.FromArgb(c);
+        buf.DrawText(text, typeface, size, color, new System.Drawing.Point(x, y));
     }
 }
 
@@ -62,7 +63,7 @@ public class DrawingContextHelper
     public Typeface Typeface { get; set; } = new Typeface(new FontFamily("Arial"));
     public bool Antialias { get; set; } = true;
 
-    public void DrawText(ImageBuffer buf, string text, int size, Color c, int x, int y)
+    public void DrawText(ImageBuffer buf, string text, int size, int c, int x, int y)
     {
         DrawingUtils.DrawText(buf, text, Typeface, size, c, x, y);
     }

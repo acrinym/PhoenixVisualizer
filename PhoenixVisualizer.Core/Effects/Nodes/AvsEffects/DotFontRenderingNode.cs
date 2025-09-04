@@ -28,7 +28,7 @@ public class DotFontRenderingNode : BaseEffectNode
         var helper = new DrawingContextHelper();
         int x = target.Width / 2 - (Text.Length * Size / 4);
         int y = target.Height / 2 + (int)(Math.Sin(audio.Time) * 20);
-        helper.DrawText(target, Text, Size, TextColor, x, y);
+        helper.DrawText(target, Text, Size, unchecked((int)TextColor.ToUInt32()), x, y);
         
         return target;
     }

@@ -31,7 +31,7 @@ public class RotatingStarPatternsNode : BaseEffectNode
             int r = (int)(audio.Bass * 100 + i % 50);
             int x = cx + (int)(Math.Cos(angle) * r);
             int y = cy + (int)(Math.Sin(angle) * r);
-            DrawingUtils.DrawCircle(dst, x, y, 1, Colors.White);
+            DrawingUtils.DrawCircle(dst, x, y, 1, unchecked((int)Colors.White.ToUInt32()));
         }
         
         return dst;

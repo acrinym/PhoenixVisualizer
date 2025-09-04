@@ -5,7 +5,7 @@ global using System.Timers;
 global using System.Linq;
 global using Avalonia;
 global using Avalonia.Controls;
-global using Avalonia.Media;
+// global using Avalonia.Media; // Removed to avoid Color namespace conflicts
 global using Avalonia.Platform;
 global using Avalonia.VisualTree;
 global using Avalonia.Threading;

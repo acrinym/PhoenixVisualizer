@@ -134,7 +134,7 @@ public sealed class RainbowMerkabaSuperscope : IVisualizerPlugin
             float saturation = 0.8f + volume * 0.2f;
             float brightness = 0.7f + features.Bass * 0.3f;
 
-            uint color = PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(dynamicHue, saturation, brightness);
+            uint color = PhoenixVisualizer.Core.ColorUtils.ColorUtil.HsvToRgb(dynamicHue, saturation, brightness);
 
             // Thicker lines on beat
             float lineWidth = beat ? 2.5f : 1.0f;
@@ -149,7 +149,7 @@ public sealed class RainbowMerkabaSuperscope : IVisualizerPlugin
     }
 
     // HSV to RGB conversion for proper rainbow colors
-    private uint PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(float h, float s, float v)
+    private uint PhoenixVisualizer.Core.ColorUtils.ColorUtil.HsvToRgb(float h, float s, float v)
     {
         float c = v * s;
         float x = c * (1 - MathF.Abs((h * 6) % 2 - 1));

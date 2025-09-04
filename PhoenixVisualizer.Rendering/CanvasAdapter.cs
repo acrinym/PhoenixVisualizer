@@ -1,4 +1,5 @@
 using Avalonia.Platform;
+using Avalonia.Media;
 using SkiaSharp;
 
 namespace PhoenixVisualizer.Rendering
@@ -76,6 +77,11 @@ namespace PhoenixVisualizer.Rendering
         }
 
         public void DrawPolygon(System.Span<(float x, float y)> points, uint color, bool filled = false)
+        {
+            // Implementation would go here
+        }
+
+        public void DrawPolyline(System.Span<(float x, float y)> points, uint color)
         {
             // Implementation would go here
         }
