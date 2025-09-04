@@ -17,6 +17,8 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     private int _height;
     private float _time = 0f;
     private float _lastLevel = 0f;
+    private float _emaLevel = 0f;
+    private const float EMA_A = 0.35f;
     private float _lastBeatLevel = 0f;
     private float _beatPulsePhase = 0f;
 
@@ -47,8 +49,15 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         _time += 0.016f;
 
         canvas.Clear(0xFF000000);
-        
-        // Get audio data with proper scaling
+        // Band-weighted level
+        float level = (bass * 0.5f + mid * 0.35f + treble * 0.15f);
+        // EMA toward current to avoid "random" feel
+        _emaLevel = (_emaLevel == 0f) ? level : (_emaLevel * (1f - EMA_A) + level * EMA_A);
+        float beatBoost = beat ? 0.12f : 0f;
+        float pulse = MathF.Min(1f, _emaLevel + beatBoost);
+        // expose for subsequent drawing
+        float __pulseLevel = pulse;
+        //  Get audio data with proper scaling
         float energy = features.Energy;
         float rms = features.Rms;
         float volume = features.Volume;
@@ -202,7 +211,7 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         // Draw energy-based ripple effects
         for (int ripple = 0; ripple < 3; ripple++)
         {
-            float rippleRadius = maxRadius * (0.3f + ripple * 0.2f);
+            float rippleRadius = maxRadius * (0.6f + 0.8f * energyLevel);
             float rippleAlpha = energyLevel * (0.8f - ripple * 0.2f);
             byte alpha = (byte)(rippleAlpha * 255);
             

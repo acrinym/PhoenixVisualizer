@@ -1,0 +1,178 @@
+--- a/PhoenixVisualizer.Visuals\NodeRainbowSpectrum.cs
++++ b/PhoenixVisualizer.Visuals\NodeRainbowSpectrum.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Rainbow spectrum with HSV drift and trail
++    public sealed class NodeRainbowSpectrum : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeRainbowSpectrum()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("SpectrumAnalyzer").With("Bars", true).With("Smoothing", 0.30f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.35f),
++                EffectRegistry.Create("Trails").With("Decay", 0.88f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeBassBloom.cs
++++ b/PhoenixVisualizer.Visuals\NodeBassBloom.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Bass-heavy bloom pulses with chroma
++    public sealed class NodeBassBloom : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeBassBloom()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("BeatDetect").With("Sensitivity", 0.9f),
++                EffectRegistry.Create("Bloom").With("Radius", 8f).With("Intensity", 0.7f),
++                EffectRegistry.Create("ColorCycle").With("Speed", 0.25f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeVectorGrid.cs
++++ b/PhoenixVisualizer.Visuals\NodeVectorGrid.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Vector grid deforms with mid frequencies; subtle glow
++    public sealed class NodeVectorGrid : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeVectorGrid()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Grid").With("Size", 16).With("Thickness", 1.2f),
++                EffectRegistry.Create("Deform").With("Amount", 0.2f).With("Band", "Mid"),
++                EffectRegistry.Create("Glow").With("Radius", 4f).With("Intensity", 0.5f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeParticlesBeat.cs
++++ b/PhoenixVisualizer.Visuals\NodeParticlesBeat.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Particles emit on beats; gravity + fade
++    public sealed class NodeParticlesBeat : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeParticlesBeat()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("ParticleSystem").With("Max", 1200).With("EmitOnBeat", true).With("Rate", 220),
++                EffectRegistry.Create("Gravity").With("Y", 0.15f),
++                EffectRegistry.Create("Trails").With("Decay", 0.90f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodePlasmaWarp.cs
++++ b/PhoenixVisualizer.Visuals\NodePlasmaWarp.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Plasma + warp with bass spin
++    public sealed class NodePlasmaWarp : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodePlasmaWarp()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Plasma").With("Detail", 0.8f),
++                EffectRegistry.Create("PolarWarp").With("Spin", 0.18f).With("Zoom", 0.12f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.18f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeTextEcho.cs
++++ b/PhoenixVisualizer.Visuals\NodeTextEcho.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Text echo: text -> extrude/echo -> trails; tie to beat
++    public sealed class NodeTextEcho : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeTextEcho()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Text").With("Content", "PHOENIX").With("Size", 64),
++                EffectRegistry.Create("Echo").With("Count", 12).With("Decay", 0.88f),
++                EffectRegistry.Create("Trails").With("Decay", 0.90f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.App\App.axaml.cs
++++ b/PhoenixVisualizer.App\App.axaml.cs
+@@ -194,3 +194,11 @@
+ }
+ 
+ 
++
++            // --- Node-based Built-ins ---
++            PluginRegistry.Register("node_rainbow_spectrum", "🌈 Rainbow Spectrum (Node)", () => new NodeRainbowSpectrum());
++            PluginRegistry.Register("node_bass_bloom", "💥 Bass Bloom (Node)", () => new NodeBassBloom());
++            PluginRegistry.Register("node_vector_grid", "🕸 Vector Grid (Node)", () => new NodeVectorGrid());
++            PluginRegistry.Register("node_particles_beat", "✨ Particles Beat (Node)", () => new NodeParticlesBeat());
++            PluginRegistry.Register("node_plasma_warp", "🌀 Plasma Warp (Node)", () => new NodePlasmaWarp());
++            PluginRegistry.Register("node_text_echo", "🅿️ Text Echo (Node)", () => new NodeTextEcho());
+
+

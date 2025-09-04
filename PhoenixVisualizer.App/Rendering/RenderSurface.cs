@@ -43,6 +43,11 @@ public sealed class RenderSurface : Control
     // Performance monitoring
     private readonly PluginPerformanceMonitor _perfMonitor = new();
     private readonly Stopwatch _renderStopwatch = new();
+    private bool _showDiagnostics = false;
+    private float _uiSensitivity = 1.0f;
+    private float _uiSmoothing = 0.35f;
+    private const int FADE_TICKS_MAX = 8;
+    private int _fadeTicks = 0;
 
     // Events
     public event Action<double>? FpsChanged;
@@ -65,9 +70,15 @@ public sealed class RenderSurface : Control
         _audio = audioService ?? throw new ArgumentNullException(nameof(audioService));
     }
 
-    public void SetPlugin(IVisualizerPlugin plugin)
+    public void ToggleDiagnostics() => _showDiagnostics = !_showDiagnostics;
+    public void SetSensitivity(float sensitivity) => _uiSensitivity = sensitivity;
+    public void SetSmoothing(float smoothing) => _uiSmoothing = smoothing;
+    public void SetMaxDrawCalls(int maxCalls) { /* Implementation needed */ }
+
+        public void SetPlugin(IVisualizerPlugin plugin)
     {
-        _plugin?.Dispose();
+        
+            _fadeTicks = FADE_TICKS_MAX;_plugin?.Dispose();
         _plugin = plugin;
         if (Bounds.Width > 0 && Bounds.Height > 0)
         {
@@ -136,7 +147,7 @@ public sealed class RenderSurface : Control
         // Early exit if no audio provider
         if (_audio == null) return;
 
-        var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
+        var adapter = new BudgetCanvas(new CanvasAdapter(context, Bounds.Width, Bounds.Height), 40000);
 
         // Handle dynamic resize for plugins that support it
         int w = (int)Bounds.Width;
@@ -319,6 +330,8 @@ public sealed class RenderSurface : Control
             
             // Create PluginHost AudioFeatures for plugin rendering
             var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
+                gain: _uiSensitivity,
+                smoothing: _uiSmoothing,
                 _smoothFft,  // fft
                 wave,        // waveform
                 rms,         // rms
@@ -370,5 +383,68 @@ public sealed class RenderSurface : Control
         float dt = 1f / 60f; // ~60 FPS
         float tau = smoothingMs / 1000f;
         return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
+    }
+    if (_fadeTicks > 0 && adapter is BudgetCanvas bcFade) {
+                float a = _fadeTicks / (float)FADE_TICKS_MAX; // 1->0
+                bcFade.Fade(0xFF000000, a * 0.22f); // subtle dim
+                _fadeTicks--;
+            }
+        }
+
+    private sealed class BudgetCanvas : ISkiaCanvas
+    {
+        private readonly ISkiaCanvas _inner;
+        private readonly int _maxCalls;
+        private int _calls;
+        private float _lineWidth = 1f;
+
+        public BudgetCanvas(ISkiaCanvas inner, int maxCalls = 30000)
+        {
+            _inner = inner;
+            _maxCalls = maxCalls;
+        }
+
+        private bool Allow() => _calls++ < _maxCalls;
+
+        public int Width => _inner.Width;
+        public int Height => _inner.Height;
+        public float FrameBlend { get => _inner.FrameBlend; set => _inner.FrameBlend = value; }
+
+        public void Clear(uint color) { if (Allow()) _inner.Clear(color); }
+        public void SetLineWidth(float width) { _lineWidth = width; _inner.SetLineWidth(width); }
+        public float GetLineWidth() => _inner.GetLineWidth();
+
+        public void DrawLine(float x1, float y1, float x2, float y2, uint color, float thickness = 0)
+        { if (Allow()) _inner.DrawLine(x1, y1, x2, y2, color, thickness); }
+
+        public void DrawLines(Span<(float x, float y)> pts, float thickness, uint color)
+        { if (Allow()) _inner.DrawLines(pts, thickness, color); }
+
+        public void DrawRect(float x, float y, float width, float height, uint color, bool filled = false)
+        { if (Allow()) _inner.DrawRect(x, y, width, height, color, filled); }
+
+        public void FillRect(float x, float y, float width, float height, uint color)
+        { if (Allow()) _inner.FillRect(x, y, width, height, color); }
+
+        public void DrawCircle(float cx, float cy, float radius, uint color, bool filled = false)
+        { if (Allow()) _inner.DrawCircle(cx, cy, radius, color, filled); }
+
+        public void FillCircle(float cx, float cy, float radius, uint color)
+        { if (Allow()) _inner.FillCircle(cx, cy, radius, color); }
+
+        public void DrawPoint(float x, float y, uint color, float size = 1f)
+        { if (Allow()) _inner.DrawPoint(x, y, color, size); }
+
+        public void DrawText(string text, float x, float y, uint color, float size = 12f)
+        { if (Allow()) _inner.DrawText(text, x, y, color, size); }
+
+        public void Fade(uint argb, float alpha)
+        { if (Allow()) _inner.Fade(argb, alpha); }
+
+        public void DrawPolygon(Span<(float x, float y)> pts, uint color, bool filled = false)
+        { if (Allow()) _inner.DrawPolygon(pts, color, filled); }
+
+        public void DrawArc(float x, float y, float radius, float startDeg, float sweepDeg, uint color, float thickness = 1f)
+        { if (Allow()) _inner.DrawArc(x, y, radius, startDeg, sweepDeg, color, thickness); }
     }
 }

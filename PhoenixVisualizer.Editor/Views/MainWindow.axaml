@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PhoenixVisualizer.Editor.ViewModels"
-        xmlns:r="using:PhoenixVisualizer.Rendering"
+        xmlns:r="using:PhoenixVisualizer.Editor.Rendering"
         xmlns:views="using:PhoenixVisualizer.Editor.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -28,11 +28,11 @@
         <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="0,0,0,1" Background="#F0F0F0" Padding="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Phoenix Visualizer Editor" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
-                <Separator Margin="10,0"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
                 <Button Content="New Project" Padding="10,5"/>
                 <Button Content="Open Project" Padding="10,5"/>
                 <Button Content="Save Project" Padding="10,5"/>
-                <Separator Margin="10,0"/>
+                <Separator Orientation="Vertical" Margin="10,0"/>
                 <Button Content="Settings" Padding="10,5"/>
                 <Button Content="Help" Padding="10,5"/>
             </StackPanel>
@@ -132,8 +132,37 @@
                             
                             <!-- Center: Visualization Canvas -->
                             <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
-                                <r:RenderSurface x:Name="RenderHost"/>
-                            </Border>
+                <DockPanel>
+                    <!-- Control Bar -->
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="#111820" Padding="8" Spacing="8">
+                        <Button Name="BtnPrev" Content="⟨" ToolTip.Tip="Previous preset" />
+                        <Button Name="BtnPlayPause" Content="▶" ToolTip.Tip="Play/Pause" />
+                        <Button Name="BtnNext" Content="⟩" ToolTip.Tip="Next preset" />
+                        <Button Name="BtnRandom" Content="🎲" ToolTip.Tip="Randomize (no repeat)" />
+                        <Separator Width="16"/>
+                        <TextBlock Text="Sensitivity" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="8,0,2,0"/>
+                        <Slider Name="SensitivitySlider" Minimum="0.2" Maximum="2.0" Width="140" Value="1.0"/>
+                        <TextBlock Text="Smoothing" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="12,0,2,0"/>
+                        <Slider Name="SmoothingSlider" Minimum="0.0" Maximum="0.95" Width="140" Value="0.35"/>
+                        <TextBlock Text="MaxDraw" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="12,0,2,0"/>
+                        <Slider Name="MaxDrawSlider" Minimum="10000" Maximum="120000" Width="160" Value="40000"/>
+                        <ToggleSwitch Name="DiagToggle" Content="Diagnostics" Margin="16,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- Render Surface -->
+                    <r:RenderSurface x:Name="RenderHost"/>
+                    
+                    <!-- Status Bar -->
+                    <Border DockPanel.Dock="Bottom" Background="#1d2630" Padding="6">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Name="StatusFps" Text="FPS: —" Foreground="#CFE8FF"/>
+                            <TextBlock Name="StatusMs" Text="ms: —" Foreground="#CFE8FF"/>
+                            <TextBlock Name="StatusDraw" Text="draw: —" Foreground="#CFE8FF"/>
+                            <TextBlock Name="StatusPreset" Text="Preset: —" Foreground="#CFE8FF"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </Border>
                             
                             <!-- Right Panel: Properties -->
                             <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0" Padding="10">

@@ -1,0 +1,180 @@
+--- a/PhoenixVisualizer.Visuals\NodeWaveStarfield.cs
++++ b/PhoenixVisualizer.Visuals\NodeWaveStarfield.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Waveform-driven starfield emitter with trail persistence
++    public sealed class NodeWaveStarfield : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeWaveStarfield()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Waveform").With("Mode", "Centered"),   // drives emission rate
++                EffectRegistry.Create("Starfield").With("Count", 1200).With("Speed", 0.9f),
++                EffectRegistry.Create("Trails").With("Decay", 0.92f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeScopeRibbon.cs
++++ b/PhoenixVisualizer.Visuals\NodeScopeRibbon.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Superscope ribbon with HSV color fade and glow
++    public sealed class NodeScopeRibbon : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeScopeRibbon()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Superscope").With("Thickness", 2.0f).With("Smoothing", 0.4f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.30f),
++                EffectRegistry.Create("Glow").With("Radius", 5f).With("Intensity", 0.55f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeBeatRings.cs
++++ b/PhoenixVisualizer.Visuals\NodeBeatRings.cs
+@@ -0,0 +1,24 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Concentric rings pulsing on beats, deformed by spectrum
++    public sealed class NodeBeatRings : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeBeatRings()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Rings").With("Count", 8).With("Thickness", 2.5f),
++                EffectRegistry.Create("BeatScale").With("Amount", 0.25f),
++                EffectRegistry.Create("Deform").With("Amount", 0.15f).With("Band", "All"),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.20f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeHexGridPulse.cs
++++ b/PhoenixVisualizer.Visuals\NodeHexGridPulse.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Hex grid that pulses with bass and shimmers with treble
++    public sealed class NodeHexGridPulse : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeHexGridPulse()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("HexGrid").With("Size", 28).With("Thickness", 1.0f),
++                EffectRegistry.Create("BeatScale").With("Amount", 0.22f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.28f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeAudioFlowField.cs
++++ b/PhoenixVisualizer.Visuals\NodeAudioFlowField.cs
+@@ -0,0 +1,23 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Audio-reactive flow field particles
++    public sealed class NodeAudioFlowField : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeAudioFlowField()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("FlowField").With("Scale", 0.015f).With("Strength", 0.8f),
++                EffectRegistry.Create("ParticleSystem").With("Max", 2000).With("Rate", 400),
++                EffectRegistry.Create("Trails").With("Decay", 0.93f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeSpectrumNebula.cs
++++ b/PhoenixVisualizer.Visuals\NodeSpectrumNebula.cs
+@@ -0,0 +1,24 @@
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.Visuals
++{
++    // Spectrum-driven nebula using blur+color layers
++    public sealed class NodeSpectrumNebula : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeSpectrumNebula()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("SpectrumAnalyzer").With("Bars", false).With("Smoothing", 0.35f),
++                EffectRegistry.Create("Colorize").With("Palette", "Nebula"),
++                EffectRegistry.Create("GaussianBlur").With("Radius", 3.0f),
++                EffectRegistry.Create("Glow").With("Radius", 6.0f).With("Intensity", 0.5f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
++        {
++            foreach (var n in _stack) n.Process(f, canvas);
++        }
++    }
++}
+
+--- a/PhoenixVisualizer.App\App.axaml.cs
++++ b/PhoenixVisualizer.App\App.axaml.cs
+@@ -194,3 +194,11 @@
+ }
+ 
+ 
++
++            // --- Node-based Combos (Block 11) ---
++            PluginRegistry.Register("node_wave_starfield", "✳️ Wave Starfield (Node)", () => new NodeWaveStarfield());
++            PluginRegistry.Register("node_scope_ribbon", "〰️ Scope Ribbon (Node)", () => new NodeScopeRibbon());
++            PluginRegistry.Register("node_beat_rings", "⭕ Beat Rings (Node)", () => new NodeBeatRings());
++            PluginRegistry.Register("node_hexgrid_pulse", "⬡ HexGrid Pulse (Node)", () => new NodeHexGridPulse());
++            PluginRegistry.Register("node_audio_flowfield", "🌬 Flow Field (Node)", () => new NodeAudioFlowField());
++            PluginRegistry.Register("node_spectrum_nebula", "🌌 Spectrum Nebula (Node)", () => new NodeSpectrumNebula());
+
+

@@ -15,6 +15,7 @@ public sealed class FlameFractal : IVisualizerPlugin
 
     // Algorithm constants
     private const int POINT_BUFFER_SIZE = 10;
+    private const int MAX_POINTS_PER_FRAME = 20000;
     private const int MAXLEV = 4;
     private const int MAXKINDS = 10;
     private const int MAX_COLORS = 128;
@@ -51,6 +52,11 @@ public sealed class FlameFractal : IVisualizerPlugin
     // Audio reactivity
     private float _audioModulation;
 
+    // Performance monitoring
+    private long _lastFrameTicks = 0;
+    private const int _targetMs = 16;
+    private int _samplesPerFrame = 10000;
+
     public void Initialize(int width, int height)
     {
         _width = width;
@@ -83,15 +89,27 @@ public sealed class FlameFractal : IVisualizerPlugin
 
     public void Dispose() { }
 
-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+    private readonly System.Diagnostics.Stopwatch _sw = new();
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas) {
+        if (!_sw.IsRunning) _sw.Start();
+        long startTicks = _sw.ElapsedTicks;
+
+        _totalPoints = 0; _numPoints = 0;
+
+        // adapt sampling based on prior frame time
+        const long TicksPerMs = 10000;
+        long lastMs = _lastFrameTicks > 0 ? (startTicks - _lastFrameTicks) / TicksPerMs : 16;
+        if (lastMs > _targetMs + 3 && _samplesPerFrame > 1000) _samplesPerFrame = (int)(_samplesPerFrame * 0.85f);
+        else if (lastMs < _targetMs - 3) _samplesPerFrame = (int)(_samplesPerFrame * 1.10f);
+        _samplesPerFrame = Math.Clamp(_samplesPerFrame, 1000, 40000);
     {
         // FIXED: Audio-reactive time and animation updates
-        var energy = f.Energy;
-        var bass = f.Bass;
-        var mid = f.Mid;
-        var treble = f.Treble;
-        var beat = f.Beat;
-        var volume = f.Volume;
+        var energy = features.Energy;
+        var bass = features.Bass;
+        var mid = features.Mid;
+        var treble = features.Treble;
+        var beat = features.Beat;
+        var volume = features.Volume;
         
         // Audio-reactive animation speed
         var baseSpeed = 0.016f;
@@ -129,8 +147,14 @@ public sealed class FlameFractal : IVisualizerPlugin
         _numPoints = 0;
         _totalPoints = 0;
 
-        // Start recursive fractal generation
-        Recurse(0.0, 0.0, 0, canvas);
+        // Start progressive sampling instead of deep recursion
+        for (int i = 0; i < _samplesPerFrame && _totalPoints < MAX_POINTS_PER_FRAME; i++)
+        {
+            // seed from a jitter around center
+            double seedx = (Random.Shared.NextDouble() - 0.5) * 0.1;
+            double seedy = (Random.Shared.NextDouble() - 0.5) * 0.1;
+            Recurse(seedx, seedy, 0, canvas);
+        }
 
         // Render any remaining points
         RenderPoints(canvas);
@@ -140,6 +164,7 @@ public sealed class FlameFractal : IVisualizerPlugin
         {
             _pixcol = (_pixcol + 1) % _ncolors;
         }
+        _lastFrameTicks = _sw.ElapsedTicks;
     }
 
     private void ResetFlame()
@@ -217,8 +242,8 @@ public sealed class FlameFractal : IVisualizerPlugin
         }
     }
 
-    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas)
-    {
+    private bool Recurse(double x, double y, int level, ISkiaCanvas canvas) {
+            if (_totalPoints >= MAX_POINTS_PER_FRAME) return false;
         if (level == _maxLevels)
         {
             _totalPoints++;

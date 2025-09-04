@@ -12,6 +12,8 @@ namespace PhoenixVisualizer.Visuals;
 /// </summary>
 public sealed class Win2KPipes : IVisualizerPlugin
 {
+    private const int MAX_SEGMENTS = 2048;
+    private const int MAX_NEW_SEGMENTS_PER_FRAME = 12;
     public string Id => "win2k_pipes";
     public string DisplayName => "🏗️ Win2K 3D Pipes";
 
@@ -124,15 +126,15 @@ public sealed class Win2KPipes : IVisualizerPlugin
         _colorShiftSpeed = speed;
     }
 
-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
-    {
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas) {
+        int newSegments = 0;
         // FIXED: Audio-reactive time and performance optimizations
-        var energy = f.Energy;
-        var bass = f.Bass;
-        var mid = f.Mid;
-        var treble = f.Treble;
-        var beat = f.Beat;
-        var volume = f.Volume;
+        var energy = features.Energy;
+        var bass = features.Bass;
+        var mid = features.Mid;
+        var treble = features.Treble;
+        var beat = features.Beat;
+        var volume = features.Volume;
         
         // Audio-reactive animation speed
         var baseSpeed = 0.016f;

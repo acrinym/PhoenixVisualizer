@@ -12,10 +12,31 @@ using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.Views;
 using PhoenixVisualizer.Visuals;
 
+using PhoenixVisualizer.App.Services;
+
 namespace PhoenixVisualizer.App;
 
-public partial class App : Application
-{
+public partial class App : Application { private static SettingsService _settings = new SettingsService();
+        protected override void OnFrameworkInitializationCompleted()
+        {
+            base.OnFrameworkInitializationCompleted();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow.KeyDown += (s, e) =>
+                {
+                    if (e.Key == Avalonia.Input.Key.F3)
+                    {
+                        _renderSurface?.GetType().GetMethod("ToggleDiagnostics")?.Invoke(_renderSurface, null);
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Avalonia.Input.Key.R)
+                    {
+                        try { PresetManager?.RandomizeAvoidRepeat(); } catch {}
+                        e.Handled = true;
+                    }
+                };
+            }
+        }
     public override void Initialize()
     {
         // Runtime XAML load (works even if the XAML generator isn't running)
@@ -171,6 +192,41 @@ public partial class App : Application
             // --- Fun & Experimental ---
             PluginRegistry.Register("fun.chicken.peck", "🐔 Chicken Field (Wireframe)", () => new ChickenVisualizer());
 
+            // ============================================================================
+            // 🔧 NODE-BASED VISUALIZERS
+            // ============================================================================
+
+            // --- Node-based Built-ins ---
+            PluginRegistry.Register("node_bars_reactive", "📊 Bars Reactive (Node)", () => new NodeBarsReactive());
+            PluginRegistry.Register("node_pulse_tunnel", "🌀 Pulse Tunnel (Node)", () => new NodePulseTunnel());
+            PluginRegistry.Register("node_butterfly_field", "🦋 Butterfly Field (Node)", () => new NodeButterflyField());
+            PluginRegistry.Register("node_rainbow_spectrum", "🌈 Rainbow Spectrum (Node)", () => new NodeRainbowSpectrum());
+            PluginRegistry.Register("node_bass_bloom", "💥 Bass Bloom (Node)", () => new NodeBassBloom());
+            PluginRegistry.Register("node_vector_grid", "🕸 Vector Grid (Node)", () => new NodeVectorGrid());
+            PluginRegistry.Register("node_particles_beat", "✨ Particles Beat (Node)", () => new NodeParticlesBeat());
+            PluginRegistry.Register("node_plasma_warp", "🌀 Plasma Warp (Node)", () => new NodePlasmaWarp());
+            PluginRegistry.Register("node_text_echo", "🅿️ Text Echo (Node)", () => new NodeTextEcho());
+
+            // --- Node-based Combos (Block 11) ---
+            PluginRegistry.Register("node_wave_starfield", "✳️ Wave Starfield (Node)", () => new NodeWaveStarfield());
+            PluginRegistry.Register("node_scope_ribbon", "〰️ Scope Ribbon (Node)", () => new NodeScopeRibbon());
+            PluginRegistry.Register("node_beat_rings", "⭕ Beat Rings (Node)", () => new NodeBeatRings());
+            PluginRegistry.Register("node_hexgrid_pulse", "⬡ HexGrid Pulse (Node)", () => new NodeHexGridPulse());
+            PluginRegistry.Register("node_audio_flowfield", "🌬 Flow Field (Node)", () => new NodeAudioFlowField());
+            PluginRegistry.Register("node_spectrum_nebula", "🌌 Spectrum Nebula (Node)", () => new NodeSpectrumNebula());
+
+            // --- Node-based Combos (Block 12) ---
+            PluginRegistry.Register("node_kaleido_beats", "✴️ Kaleido Beats (Node)", () => new NodeKaleidoBeats());
+            PluginRegistry.Register("node_vectorfield_scope", "〽️ VectorField Scope (Node)", () => new NodeVectorFieldScope());
+            PluginRegistry.Register("node_bass_kicker", "💣 Bass Kicker (Node)", () => new NodeBassKicker());
+            PluginRegistry.Register("node_triangulate_scope", "△ Triangulate Scope (Node)", () => new NodeTriangulateScope());
+            PluginRegistry.Register("node_beat_kaleido_tunnel", "🛸 Beat Kaleido Tunnel (Node)", () => new NodeBeatKaleidoTunnel());
+            PluginRegistry.Register("node_geo_lattice", "🔷 Geo Lattice (Node)", () => new NodeGeoLattice());
+            PluginRegistry.Register("node_bass_particles", "✨ Bass Particles (Node)", () => new NodeBassParticles());
+            PluginRegistry.Register("node_scope_kaleido_glow", "🌟 Scope Kaleido Glow (Node)", () => new NodeScopeKaleidoGlow());
+            PluginRegistry.Register("node_pixelsort_plasma", "🧪 PixelSort Plasma (Node)", () => new NodePixelSortPlasma());
+            PluginRegistry.Register("node_text_beat_echo", "🅿️ Text Beat Echo (Node)", () => new NodeTextBeatEcho());
+
             // Avoid duplicate validations from Avalonia + CommunityToolkit
             DisableAvaloniaDataAnnotationValidation();
 
@@ -179,6 +235,7 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+            _settings.Load();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

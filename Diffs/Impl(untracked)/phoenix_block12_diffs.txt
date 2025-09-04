@@ -1,0 +1,352 @@
+--- a/PhoenixVisualizer.Visuals\NodeKaleidoBeats.cs
++++ b/PhoenixVisualizer.Visuals\NodeKaleidoBeats.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeKaleidoBeats : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeKaleidoBeats()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("SpectrumAnalyzer").With("Bars", false).With("Smoothing", 0.35f),
++                EffectRegistry.Create("Kaleidoscope").With("Segments", 8),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.22f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeVectorFieldScope.cs
++++ b/PhoenixVisualizer.Visuals\NodeVectorFieldScope.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeVectorFieldScope : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeVectorFieldScope()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Superscope").With("Thickness", 1.8f).With("Smoothing", 0.45f),
++                EffectRegistry.Create("FlowField").With("Scale", 0.02f).With("Strength", 0.7f),
++                EffectRegistry.Create("Glow").With("Radius", 4.5f).With("Intensity", 0.5f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeBassKicker.cs
++++ b/PhoenixVisualizer.Visuals\NodeBassKicker.cs
+@@ -0,0 +1,19 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeBassKicker : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeBassKicker()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("BeatDetect").With("Sensitivity", 1.0f),
++                EffectRegistry.Create("Rings").With("Count", 5).With("Thickness", 3.0f),
++                EffectRegistry.Create("BeatScale").With("Amount", 0.35f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.18f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeTriangulateScope.cs
++++ b/PhoenixVisualizer.Visuals\NodeTriangulateScope.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeTriangulateScope : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeTriangulateScope()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Superscope").With("Thickness", 1.2f).With("Smoothing", 0.4f),
++                EffectRegistry.Create("Triangulate").With("Density", 0.7f),
++                EffectRegistry.Create("Colorize").With("Palette", "Aurora")
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeBeatKaleidoTunnel.cs
++++ b/PhoenixVisualizer.Visuals\NodeBeatKaleidoTunnel.cs
+@@ -0,0 +1,19 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeBeatKaleidoTunnel : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeBeatKaleidoTunnel()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Waveform").With("Mode", "Rings").With("Gain", 1.1f),
++                EffectRegistry.Create("PolarWarp").With("Spin", 0.2f).With("Zoom", 0.12f),
++                EffectRegistry.Create("Kaleidoscope").With("Segments", 6),
++                EffectRegistry.Create("Trails").With("Decay", 0.90f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeGeoLattice.cs
++++ b/PhoenixVisualizer.Visuals\NodeGeoLattice.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeGeoLattice : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeGeoLattice()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Grid").With("Size", 20).With("Thickness", 1.0f),
++                EffectRegistry.Create("Deform").With("Band", "Treble").With("Amount", 0.22f),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.26f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeBassParticles.cs
++++ b/PhoenixVisualizer.Visuals\NodeBassParticles.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeBassParticles : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeBassParticles()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("BeatDetect").With("Sensitivity", 0.95f),
++                EffectRegistry.Create("ParticleSystem").With("Max", 1500).With("EmitOnBeat", true).With("Rate", 260),
++                EffectRegistry.Create("Trails").With("Decay", 0.92f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeScopeKaleidoGlow.cs
++++ b/PhoenixVisualizer.Visuals\NodeScopeKaleidoGlow.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeScopeKaleidoGlow : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeScopeKaleidoGlow()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Superscope").With("Thickness", 1.5f).With("Smoothing", 0.42f),
++                EffectRegistry.Create("Kaleidoscope").With("Segments", 7),
++                EffectRegistry.Create("Glow").With("Radius", 5.5f).With("Intensity", 0.6f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodePixelSortPlasma.cs
++++ b/PhoenixVisualizer.Visuals\NodePixelSortPlasma.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodePixelSortPlasma : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodePixelSortPlasma()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Plasma").With("Detail", 0.9f),
++                EffectRegistry.Create("PixelSort").With("Threshold", 0.65f).With("Direction", "Vertical"),
++                EffectRegistry.Create("ColorFade").With("Mode", "HSV").With("Speed", 0.20f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.Visuals\NodeTextBeatEcho.cs
++++ b/PhoenixVisualizer.Visuals\NodeTextBeatEcho.cs
+@@ -0,0 +1,18 @@
++using PhoenixVisualizer.Core.Nodes;
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeTextBeatEcho : IVisualizerPlugin
++    {
++        private IEffectNode[] _stack;
++        public NodeTextBeatEcho()
++        {
++            _stack = new IEffectNode[] {
++                EffectRegistry.Create("ClearFrame"),
++                EffectRegistry.Create("Text").With("Content", "PHOENIX").With("Size", 72),
++                EffectRegistry.Create("BeatScale").With("Amount", 0.28f),
++                EffectRegistry.Create("Echo").With("Count", 10).With("Decay", 0.90f)
++            };
++        }
++        public void RenderFrame(AudioFeatures f, ISkiaCanvas c){ foreach (var n in _stack) n.Process(f,c); }
++    }
++}
+
+--- a/PhoenixVisualizer.App\App.axaml.cs
++++ b/PhoenixVisualizer.App\App.axaml.cs
+@@ -194,3 +194,15 @@
+ }
+ 
+ 
++
++            // --- Node-based Combos (Block 12) ---
++            PluginRegistry.Register("node_kaleido_beats", "✴️ Kaleido Beats (Node)", () => new NodeKaleidoBeats());
++            PluginRegistry.Register("node_vectorfield_scope", "〽️ VectorField Scope (Node)", () => new NodeVectorFieldScope());
++            PluginRegistry.Register("node_bass_kicker", "💣 Bass Kicker (Node)", () => new NodeBassKicker());
++            PluginRegistry.Register("node_triangulate_scope", "△ Triangulate Scope (Node)", () => new NodeTriangulateScope());
++            PluginRegistry.Register("node_beat_kaleido_tunnel", "🛸 Beat Kaleido Tunnel (Node)", () => new NodeBeatKaleidoTunnel());
++            PluginRegistry.Register("node_geo_lattice", "🔷 Geo Lattice (Node)", () => new NodeGeoLattice());
++            PluginRegistry.Register("node_bass_particles", "✨ Bass Particles (Node)", () => new NodeBassParticles());
++            PluginRegistry.Register("node_scope_kaleido_glow", "🌟 Scope Kaleido Glow (Node)", () => new NodeScopeKaleidoGlow());
++            PluginRegistry.Register("node_pixelsort_plasma", "🧪 PixelSort Plasma (Node)", () => new NodePixelSortPlasma());
++            PluginRegistry.Register("node_text_beat_echo", "🅿️ Text Beat Echo (Node)", () => new NodeTextBeatEcho());
+
+
+--- a/PhoenixVisualizer.Core\Nodes\NodeParamBridge.cs
++++ b/PhoenixVisualizer.Core\Nodes\NodeParamBridge.cs
+@@ -0,0 +1,9 @@
++namespace PhoenixVisualizer.Core.Nodes
++{
++    // Provides global multipliers for nodes to read (from RenderSurface UI)
++    public static class NodeParamBridge
++    {
++        public static float Sensitivity { get; set; } = 1f;  // maps to analyzer gain, waveform gain, etc.
++        public static float Smoothing { get; set; } = 0.35f; // maps to EMA / decay
++    }
++}
+
+
+
+--- a/PhoenixVisualizer.Core\Nodes\NodeUtil.cs
++++ b/PhoenixVisualizer.Core\Nodes\NodeUtil.cs
+@@ -0,0 +1,8 @@
++namespace PhoenixVisualizer.Core.Nodes
++{
++    public static class NodeUtil
++    {
++        public static float ApplySensitivity(float v) => v * NodeParamBridge.Sensitivity;
++        public static float ApplySmoothing(float baseSmoothing) => 1f - (1f - baseSmoothing) * (1f + (NodeParamBridge.Smoothing - 0.35f));
++    }
++}
+
+--- a/PhoenixVisualizer.App\Services\NodePresetStorage.cs
++++ b/PhoenixVisualizer.App\Services\NodePresetStorage.cs
+@@ -0,0 +1,29 @@
++using System.Text.Json;
++using PhoenixVisualizer.Core.Nodes;
++
++namespace PhoenixVisualizer.App.Services
++{
++    public static class NodePresetStorage
++    {
++        public static void Save(string path, IEffectNode[] stack)
++        {
++            var model = stack.Select(n => n.ToModel()).ToArray(); // assumes each node can produce a serializable model
++            var json = JsonSerializer.Serialize(model, new JsonSerializerOptions{ WriteIndented = true });
++            File.WriteAllText(path, json);
++        }
++
++        public static IEffectNode[] Load(string path)
++        {
++            var json = File.ReadAllText(path);
++            var model = JsonSerializer.Deserialize<NodeModel[]>(json) ?? Array.Empty<NodeModel>();
++            return model.Select(m => EffectRegistry.Create(m.Type).WithModel(m)).ToArray();
++        }
++    }
++
++    // Fallback serializable model; adapt to your nodes’ schema.
++    public sealed class NodeModel
++    {
++        public string Type { get; set; } = "";
++        public Dictionary<string, object>? Params { get; set; }
++    }
++}
+
+--- a/PhoenixVisualizer.Editor\Views\MainWindow.axaml.cs
++++ b/PhoenixVisualizer.Editor\Views\MainWindow.axaml.cs
+@@ -4,6 +4,8 @@
+ using PhoenixVisualizer.Plugins.Avs;
+ 
+ namespace PhoenixVisualizer.Editor.Views;
++
++using PhoenixVisualizer.App.Services;
+ 
+ public partial class MainWindow : Window
+ {
+@@ -12,8 +14,11 @@
+     public MainWindow()
+     {
+         InitializeComponent();
+-        
+-        // Set up the ViewModel
++        // Hotkeys: Ctrl+S saves current node stack, Ctrl+O loads
++        this.KeyDown += (s,e) => {
++            if (e.KeyModifiers == Avalonia.Input.KeyModifiers.Control && e.Key == Avalonia.Input.Key.S) { try { SaveNodePreset(); } catch {} e.Handled = true; }
++            if (e.KeyModifiers == Avalonia.Input.KeyModifiers.Control && e.Key == Avalonia.Input.Key.O) { try { LoadNodePreset(); } catch {} e.Handled = true; }
++        };// Set up the ViewModel
+         DataContext = new MainWindowViewModel();
+         
+         // spin up a default AVS plugin so the canvas isn't blank
+@@ -54,3 +59,22 @@
+ </UserControl>
+ 
+ 
++
++    private void SaveNodePreset()
++    {
++        try {
++            // Assuming ViewModel exposes CurrentNodeStack
++            var stack = (DataContext as MainWindowViewModel)?.CurrentNodeStack;
++            if (stack == null) return;
++            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "phoenix_nodepreset.json");
++            NodePresetStorage.Save(path, stack);
++        } catch {}
++    }
++    private void LoadNodePreset()
++    {
++        try {
++            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "phoenix_nodepreset.json");
++            var stack = NodePresetStorage.Load(path);
++            (DataContext as MainWindowViewModel)?.LoadNodeStack(stack);
++        } catch {}
++    }
+
+

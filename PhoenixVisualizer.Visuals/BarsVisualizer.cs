@@ -28,6 +28,7 @@ public sealed class BarsVisualizer : IVisualizerPlugin
     private int _barCount = 64;
     private uint _barColor = 0xFF00FF00; // Green
     private uint _peakColor = 0xFFFFFF00; // Yellow
+    private uint _backgroundColor = 0xFF000000; // Black background
     private bool _showPeaks = true;
     private bool _showBars = true;
 
@@ -56,12 +57,10 @@ public sealed class BarsVisualizer : IVisualizerPlugin
         _height = height;
     }
 
-    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
-    {
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas) {
+            // Always clear the frame first to avoid stacking artifacts
+            canvas.Clear(_backgroundColor);
         _time += 0.016f;
-
-        // Clear canvas completely - FIXED: No more draw-on-top behavior
-        canvas.Clear(0xFF000000);
 
         if (features.Fft == null || features.Fft.Length == 0)
         {

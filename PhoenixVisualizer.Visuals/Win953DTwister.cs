@@ -83,41 +83,28 @@ public sealed class Win953DTwister : IVisualizerPlugin
 
     public void Dispose() { }
 
-    public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
+    public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
-        // FIXED: Audio-reactive time and animation updates
-        var energy = f.Energy;
-        var bass = f.Bass;
-        var mid = f.Mid;
-        var treble = f.Treble;
-        var beat = f.Beat;
-        var volume = f.Volume;
-        
-        // Audio-reactive animation speed
-        var baseSpeed = 0.016f;
-        var energySpeed = energy * 0.03f;
-        var trebleSpeed = treble * 0.02f;
-        var beatSpeed = beat ? 0.04f : 0f;
-        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+        canvas.Clear(0xFF101010);
 
-        // Update twister based on audio
-        UpdateTwister(f);
+        int bars = 48;
+        float w = _width / (float)bars;
+        for (int i = 0; i < bars; i++)
+        {
+            float t = i / (float)(bars - 1);
+            if (features.Fft == null || features.Fft.Length == 0) break;
+            int bin = Math.Min((int)(t * (features.Fft.Length - 1)), features.Fft.Length - 1);
+            float v = MathF.Abs(features.Fft[bin]);
+            // soft compress to [0..1]
+            v = v / (1f + v);
+            float h = MathF.Min(_height * 0.9f, v * _height * 0.9f);
+            float x = i * w;
+            float y = _height * 0.5f - h * 0.5f;
 
-        // FIXED: Audio-reactive background color (more dynamic)
-        var baseColor = 0xFF0A0A15;
-        if (beat)
-            baseColor = 0xFF1A0A2A; // Purple tint on beat
-        else if (bass > 0.5f)
-            baseColor = 0xFF0A0A2A; // Blue tint for bass
-        else if (treble > 0.4f)
-            baseColor = 0xFF2A0A0A; // Red tint for treble
-        else if (energy > 0.6f)
-            baseColor = 0xFF2A0A2A; // Purple tint for energy
-            
-        canvas.Clear(baseColor);
-
-        // Render the 3D twister
-        Render3DTwister(canvas, f);
+            float hue = (t * 360f + _time * 25f) % 360f;
+            uint color = HsvToRgb(hue, 0.85f, 0.95f);
+            canvas.FillRect(x, y, w * 0.85f, h, color);
+        }
     }
 
     private void UpdateTwister(AudioFeatures f)
@@ -408,5 +395,22 @@ public sealed class Win953DTwister : IVisualizerPlugin
         b = (byte)Math.Min(255, b * factor);
 
         return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
+    }
+
+    private static uint HsvToRgb(float h, float s, float v)
+    {
+        h = (h % 360f + 360f) % 360f;
+        float c = v * s;
+        float x = c * (1 - MathF.Abs((h / 60f) % 2 - 1));
+        float m = v - c;
+        float r=0,g=0,b=0;
+        if (h < 60)      { r=c; g=x; b=0; }
+        else if (h <120) { r=x; g=c; b=0; }
+        else if (h <180) { r=0; g=c; b=x; }
+        else if (h <240) { r=0; g=x; b=c; }
+        else if (h <300) { r=x; g=0; b=c; }
+        else             { r=c; g=0; b=x; }
+        byte R=(byte)((r+m)*255), G=(byte)((g+m)*255), B=(byte)((b+m)*255);
+        return 0xFF000000u | ((uint)R<<16) | ((uint)G<<8) | (uint)B;
     }
 }

@@ -2,6 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PhoenixVisualizer.Editor.Views.ParameterEditor">
   <ScrollViewer>
-    <StackPanel x:Name="Root" Margin="6" Spacing="8"/>
+    <StackPanel>
+      <DockPanel Margin="0,0,0,8">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="8">
+          <ToggleSwitch Name="LivePreviewToggle" Content="Live Preview" IsChecked="True"/>
+          <Button Name="ApplyBtn" Content="Apply" />
+          <Button Name="RevertBtn" Content="Revert" />
+          <TextBox Name="SearchBox" Watermark="Filter parameters…" Width="220"/>
+        </StackPanel>
+      </DockPanel>
+      <StackPanel x:Name="Root" Margin="6" Spacing="8"/>
+    </StackPanel>
   </ScrollViewer>
 </UserControl>

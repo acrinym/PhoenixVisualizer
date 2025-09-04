@@ -1,0 +1,550 @@
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsCommon.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsCommon.cs
+@@ -0,0 +1,36 @@
++using System;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    internal static class XsCommon
++    {
++        public static uint Rgba(byte r, byte g, byte b, byte a=255)
++            => (uint)(a << 24 | r << 16 | g << 8 | b);
++
++        public static uint HsvToRgba(float h, float s, float v, float a = 1f)
++        {
++            h = (h % 1f + 1f) % 1f;
++            s = Math.Clamp(s, 0f, 1f);
++            v = Math.Clamp(v, 0f, 1f);
++            float r=v, g=v, b=v;
++            if (s > 0f)
++            {
++                float i = (float)Math.Floor(h * 6f);
++                float f = h * 6f - i;
++                float p = v * (1f - s);
++                float q = v * (1f - s * f);
++                float t = v * (1f - s * (1f - f));
++                switch (((int)i) % 6)
++                {
++                    case 0: r=v; g=t; b=p; break;
++                    case 1: r=q; g=v; b=p; break;
++                    case 2: r=p; g=v; b=t; break;
++                    case 3: r=p; g=q; b=v; break;
++                    case 4: r=t; g=p; b=v; break;
++                    default: r=v; g=p; b=q; break;
++                }
++            }
++            return Rgba((byte)(r*255),(byte)(g*255),(byte)(b*255),(byte)(a*255));
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsLcdScrubNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsLcdScrubNode.cs
+@@ -0,0 +1,60 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'lcdscrub' derivative — patterns cycling; useful as layer
++    public class XsLcdScrubNode : IEffectNode
++    {
++        public string Name => "XS: LCD Scrub";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["mode"] = new EffectParam{ Label="Mode", Type="dropdown", StringValue="RGB", Options=new(){ "HORIZ_W","HORIZ_B","VERT_W","VERT_B","DIAG_W","DIAG_B","WHITE","BLACK","RGB","RANDOM" }},
++            ["delay"] = new EffectParam{ Label="Delay", Type="slider", Min=0f, Max=2f, FloatValue=0.15f },
++            ["spread"] = new EffectParam{ Label="Spread", Type="slider", Min=2, Max=64, FloatValue=8 },
++            ["alpha"] = new EffectParam{ Label="Alpha", Type="slider", Min=0f, Max=1f, FloatValue=0.15f }
++        };
++        private float _t=0;
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c=ctx.Canvas; if (c==null) return;
++            _t += MathF.Max(0.001f, Params["delay"].FloatValue) * 0.5f;
++            int w=ctx.Width, h=ctx.Height, step=Math.Max(2,(int)Params["spread"].FloatValue);
++            string mode = Params["mode"].StringValue;
++            float alpha = Params["alpha"].FloatValue;
++            if (mode=="RANDOM" && ((int)(_t*10))%14==0)
++                mode = new[]{ "HORIZ_W","VERT_W","DIAG_W","RGB" }[Random.Shared.Next(0,4)];
++            if (mode=="WHITE"||mode=="BLACK")
++            {
++                uint col = mode=="WHITE" ? 0xFFFFFFFF : 0xFF000000;
++                c.FillRect(0,0,w,h, col);
++                return;
++            }
++            for (int y=0;y<h;y+=step)
++            {
++                for (int x=0;x<w;x+=step)
++                {
++                    uint col = 0xFFFFFFFF;
++                    switch (mode)
++                    {
++                        case "HORIZ_W": col = XsCommon.Rgba(255,255,255,(byte)(alpha*255)); break;
++                        case "HORIZ_B": col = XsCommon.Rgba(0,0,0,(byte)(alpha*255)); break;
++                        case "VERT_W":  col = XsCommon.Rgba(255,255,255,(byte)(alpha*255)); break;
++                        case "VERT_B":  col = XsCommon.Rgba(0,0,0,(byte)(alpha*255)); break;
++                        case "DIAG_W":  col = XsCommon.Rgba(255,255,255,(byte)(alpha*255)); break;
++                        case "DIAG_B":  col = XsCommon.Rgba(0,0,0,(byte)(alpha*255)); break;
++                        case "RGB":
++                            int sel = ((x/step)+(y/step)+(int)(_t*10))%3;
++                            col = sel==0 ? XsCommon.Rgba(255,0,0,(byte)(alpha*255)) : sel==1 ? XsCommon.Rgba(0,255,0,(byte)(alpha*255)) : XsCommon.Rgba(0,0,255,(byte)(alpha*255));
++                            break;
++                    }
++                    c.FillRect(x,y, step,step, col);
++                }
++            }
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsLightningNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsLightningNode.cs
+@@ -0,0 +1,51 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'lightning' derivative — branching bolts, treble-driven
++    public class XsLightningNode : IEffectNode
++    {
++        public string Name => "XS: Lightning";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["branches"] = new EffectParam{ Label="Branches", Type="slider", Min=1, Max=12, FloatValue=4 },
++            ["jitter"]   = new EffectParam{ Label="Jitter", Type="slider", Min=0f, Max=1f, FloatValue=0.35f },
++            ["thickness"]= new EffectParam{ Label="Thickness", Type="slider", Min=1f, Max=6f, FloatValue=2f }
++        };
++
++        private static void Bolt(ISkiaCanvas c, float x1, float y1, float x2, float y2, int depth, float jitter, uint col)
++        {
++            if (depth==0) { c.DrawLine(x1,y1,x2,y2,col); return; }
++            float mx = (x1+x2)/2f + (float)(Random.Shared.NextDouble()*2-1)*jitter* (x2-x1);
++            float my = (y1+y2)/2f + (float)(Random.Shared.NextDouble()*2-1)*jitter* (y2-y1);
++            Bolt(c, x1,y1,mx,my, depth-1, jitter*0.6f, col);
++            Bolt(c, mx,my,x2,y2, depth-1, jitter*0.6f, col);
++            if (Random.Shared.NextSingle()<0.25f)
++                Bolt(c, mx,my, mx+(y2-y1)*0.2f, my-(x2-x1)*0.2f, depth-1, jitter*0.5f, col);
++        }
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c=ctx.Canvas; if (c==null) return;
++            int w=ctx.Width, h=ctx.Height;
++            c.SetLineWidth(Params["thickness"].FloatValue);
++            int b=(int)Params["branches"].FloatValue;
++            float treble=0f; for(int i=32;i<Math.Min(128,spectrum.Length);i++) treble+=spectrum[i];
++            treble /= MathF.Max(1, Math.Min(96, Math.Max(0,spectrum.Length-32)));
++            float hue = (ctx.Time*0.12f + treble*0.4f)%1f;
++            uint col = XsCommon.HsvToRgba(hue, 0.6f, 1f);
++            for (int i=0;i<b;i++)
++            {
++                float x1 = Random.Shared.Next(0, w);
++                float x2 = Random.Shared.Next(0, w);
++                float y1 = 0;
++                float y2 = h;
++                Bolt(c, x1,y1,x2,y2, 4, Params["jitter"].FloatValue, col);
++            }
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsLisaNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsLisaNode.cs
+@@ -0,0 +1,47 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'lisa' derivative — full-loop lissajous, audio-colored
++    public class XsLisaNode : IEffectNode
++    {
++        public string Name => "XS: Lisa (Lissajous)";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["a"] = new EffectParam{ Label="A", Type="slider", Min=1, Max=12, FloatValue=3 },
++            ["b"] = new EffectParam{ Label="B", Type="slider", Min=1, Max=12, FloatValue=4 },
++            ["delta"] = new EffectParam{ Label="Phase", Type="slider", Min=0f, Max=MathF.PI*2, FloatValue=0.0f },
++            ["thickness"] = new EffectParam{ Label="Thickness", Type="slider", Min=1f, Max=8f, FloatValue=2f },
++            ["colorDrift"] = new EffectParam{ Label="Color Drift", Type="slider", Min=0f, Max=1f, FloatValue=0.25f }
++        };
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c = ctx.Canvas; if (c == null) return;
++            int w=ctx.Width, h=ctx.Height;
++            float cx=w*0.5f, cy=h*0.5f;
++            float A = (MathF.Min(w,h)*0.42f);
++            float a = MathF.Max(1f, Params["a"].FloatValue);
++            float b = MathF.Max(1f, Params["b"].FloatValue);
++            float d = Params["delta"].FloatValue + ctx.Time*0.12f;
++            c.SetLineWidth(Params["thickness"].FloatValue);
++
++            int segs=800;
++            Span<(float x,float y)> pts = stackalloc (ValueTuple<float,float>)[segs];
++            for (int i=0;i<segs;i++)
++            {
++                float t = (i/(float)(segs-1))*MathF.PI*2;
++                float x = cx + A * MathF.Sin(a*t + d);
++                float y = cy + A * MathF.Sin(b*t);
++                pts[i]=(x,y);
++            }
++            float e=0f; for(int i=0;i<Math.Min(64,spectrum.Length);i++) e+=spectrum[i]; e/=MathF.Max(1,Math.Min(64,spectrum.Length));
++            float hue = (ctx.Time*0.05f + e*Params["colorDrift"].FloatValue)%1f;
++            c.DrawPolyline(pts, XsCommon.HsvToRgba(hue, 0.8f, 1f));
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsPenroseNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsPenroseNode.cs
+@@ -0,0 +1,55 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'penrose' inspired — quasiperiodic kite/dart tiling approximation
++    public class XsPenroseNode : IEffectNode
++    {
++        public string Name => "XS: Penrose Tiling (approx)";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["density"] = new EffectParam{ Label="Density", Type="slider", Min=50, Max=2000, FloatValue=400 },
++            ["outline"] = new EffectParam{ Label="Outline", Type="checkbox", BoolValue=true },
++            ["sat"] = new EffectParam{ Label="Saturation", Type="slider", Min=0f, Max=1f, FloatValue=0.8f },
++        };
++
++        private static (float x,float y) Rot((float x,float y) p, float a)
++            => (p.x*MathF.Cos(a)-p.y*MathF.Sin(a), p.x*MathF.Sin(a)+p.y*MathF.Cos(a));
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c = ctx.Canvas; if (c==null) return;
++            int w=ctx.Width, h=ctx.Height;
++            float cx=w*0.5f, cy=h*0.5f;
++            int n = (int)Params["density"].FloatValue;
++            float phi = (1f+MathF.Sqrt(5f))*0.5f;
++            float baseR = MathF.Min(w,h)*0.45f;
++            float time = ctx.Time*0.07f;
++            bool outline = Params["outline"].BoolValue;
++            float s = Params["sat"].FloatValue;
++
++            for (int i=0;i<n;i++)
++            {
++                float t = (i/(float)n);
++                float a = t * MathF.PI*2 * phi + time;
++                float r = baseR * (0.1f + 0.9f*t);
++                var p = (cx + r*MathF.Cos(a), cy + r*MathF.Sin(a));
++                // build a thin kite-ish quad
++                var v0 = (p.Item1, p.Item2);
++                var v1 = (p.Item1 + 20*MathF.Cos(a+0.4f), p.Item2 + 20*MathF.Sin(a+0.4f));
++                var v2 = (p.Item1 + 60*MathF.Cos(a), p.Item2 + 60*MathF.Sin(a));
++                var v3 = (p.Item1 + 20*MathF.Cos(a-0.4f), p.Item2 + 20*MathF.Sin(a-0.4f));
++
++                Span<(float x,float y)> poly = stackalloc (ValueTuple<float,float>)[4]{v0,v1,v2,v3};
++                uint col = XsCommon.HsvToRgba((t+time*0.1f)%1f, s, 0.95f);
++                c.DrawPolygon(poly, col, filled:true);
++                if (outline)
++                    c.DrawPolyline(poly, 0xFFFFFFFF);
++            }
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsRorschachNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsRorschachNode.cs
+@@ -0,0 +1,47 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'rorschach' derivative — mirrored ink-blot; reacts to bass
++    public class XsRorschachNode : IEffectNode
++    {
++        public string Name => "XS: Rorschach";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["symX"] = new EffectParam{ Label="X Symmetry", Type="checkbox", BoolValue=true },
++            ["symY"] = new EffectParam{ Label="Y Symmetry", Type="checkbox", BoolValue=false },
++            ["blobCount"] = new EffectParam{ Label="Blob Count", Type="slider", Min=5, Max=200, FloatValue=60 },
++            ["s"] = new EffectParam{ Label="Saturation", Type="slider", Min=0f, Max=1f, FloatValue=0.9f },
++            ["v"] = new EffectParam{ Label="Brightness", Type="slider", Min=0.2f, Max=1f, FloatValue=0.95f },
++        };
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c = ctx.Canvas; if (c==null) return;
++            int w=ctx.Width, h=ctx.Height;
++            float cx=w*0.5f, cy=h*0.5f;
++            int blobs = (int)Params["blobCount"].FloatValue;
++            bool sx = Params["symX"].BoolValue, sy = Params["symY"].BoolValue;
++            float bass=0f; for(int i=0;i<Math.Min(8,spectrum.Length);i++) bass+=spectrum[i]; bass/=MathF.Max(1,Math.Min(8,spectrum.Length));
++            float jitter = 1f + bass*0.8f;
++
++            for (int i=0;i<blobs;i++)
++            {
++                float t = i/(float)blobs + ctx.Time*0.11f;
++                float rx = (MathF.Sin(t*3.1f)*0.35f + 0.5f) * w*0.45f;
++                float ry = (MathF.Cos(t*2.7f)*0.35f + 0.5f) * h*0.45f;
++                float r  = (20 + (i%7)*6) * jitter;
++                uint col = XsCommon.HsvToRgba((t*0.23f)%1f, Params["s"].FloatValue, Params["v"].FloatValue);
++                // draw circle and its mirrors
++                c.FillCircle(cx + rx, cy + ry, r, col);
++                if (sx) c.FillCircle(cx - rx, cy + ry, r, col);
++                if (sy) c.FillCircle(cx + rx, cy - ry, r, col);
++                if (sx && sy) c.FillCircle(cx - rx, cy - ry, r, col);
++            }
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Core/Nodes/XSS/XsRotorNode.cs
++++ b/PhoenixVisualizer.Core/Nodes/XSS/XsRotorNode.cs
+@@ -0,0 +1,57 @@
++using System;
++using System.Collections.Generic;
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Interfaces;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Core.Nodes.XSS
++{
++    // XScreensaver 'rotor' derivative (swirly rotor lines) — audio-reactive
++    public class XsRotorNode : IEffectNode
++    {
++        public string Name => "XS: Rotor";
++        public Dictionary<string, EffectParam> Params { get; } = new()
++        {
++            ["count"] = new EffectParam{ Label="Arms", Type="slider", Min=1, Max=12, FloatValue=4 },
++            ["size"]  = new EffectParam{ Label="Radius", Type="slider", Min=0.05f, Max=0.9f, FloatValue=0.45f },
++            ["speed"] = new EffectParam{ Label="Spin Speed", Type="slider", Min=-4f, Max=4f, FloatValue=0.7f },
++            ["trail"] = new EffectParam{ Label="Trail", Type="slider", Min=0f, Max=1f, FloatValue=0.65f },
++            ["fftReactivity"] = new EffectParam{ Label="FFT Reactivity", Type="slider", Min=0f, Max=2f, FloatValue=1.0f },
++        };
++
++        public void Render(float[] waveform, float[] spectrum, RenderContext ctx)
++        {
++            var c = ctx.Canvas; if (c == null) return;
++            int w = ctx.Width, h = ctx.Height;
++            float cx = w * 0.5f, cy = h * 0.5f;
++            int n = (int)Params["count"].FloatValue;
++            float R = MathF.Min(w, h) * Params["size"].FloatValue;
++            float spin = Params["speed"].FloatValue * 0.6f;
++            float fft = 0f;
++            for (int i=0;i<Math.Min(64, spectrum.Length);i++) fft += spectrum[i];
++            fft = MathF.Min(1f, fft / MathF.Max(1, Math.Min(64, spectrum.Length)));
++            float amp = 0.6f + Params["fftReactivity"].FloatValue * fft;
++
++            // subtle fade for trails
++            c.Fade(0x00000000, Math.Clamp(Params["trail"].FloatValue * 0.1f, 0, 0.25f));
++
++            c.SetLineWidth(2f);
++            for (int k=0;k<n;k++)
++            {
++                float t = ctx.Time * spin + k * (MathF.PI * 2 / n);
++                int segs = 200;
++                Span<(float x, float y)> pts = stackalloc (ValueTuple<float,float>)[segs];
++                for (int i=0;i<segs;i++)
++                {
++                    float a = t + i * 0.05f;
++                    float r = R * (0.6f + 0.4f*MathF.Sin(a*1.7f + k)) * amp;
++                    float x = cx + r * MathF.Cos(a);
++                    float y = cy + r * MathF.Sin(a*1.1f);
++                    pts[i] = (x,y);
++                }
++                uint col = XsCommon.HsvToRgba((k/(float)n + ctx.Time*0.03f)%1f, 0.9f, 0.95f);
++                c.DrawPolyline(pts, col);
++            }
++        }
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsLcdScrub.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsLcdScrub.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsLcdScrub : IVisualizerPlugin
++    {
++        private IEffectNode _node = new XsLcdScrubNode();
++        public string Id => "node_xs_lcdscrub";
++        public string DisplayName => "XS LCD Scrub (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _node.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsLightning.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsLightning.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsLightning : IVisualizerPlugin
++    {
++        private IEffectNode _node = new XsLightningNode();
++        public string Id => "node_xs_lightning";
++        public string DisplayName => "XS Lightning (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _node.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsLisa.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsLisa.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsLisa : IVisualizerPlugin
++    {
++        private IEffectNode _node = new XsLisaNode();
++        public string Id => "node_xs_lisa";
++        public string DisplayName => "XS Lisa (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _node.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsPenrose.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsPenrose.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsPenrose : IVisualizerPlugin
++    {
++        private IEffectNode _node = new XsPenroseNode();
++        public string Id => "node_xs_penrose";
++        public string DisplayName => "XS Penrose (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _node.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsRorschach.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsRorschach.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsRorschach : IVisualizerPlugin
++    {
++        private IEffectNode _node = new XsRorschachNode();
++        public string Id => "node_xs_rorschach";
++        public string DisplayName => "XS Rorschach (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _node.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+
+--- a/PhoenixVisualizer.Visuals/NodeXsRotor.cs
++++ b/PhoenixVisualizer.Visuals/NodeXsRotor.cs
+@@ -0,0 +1,22 @@
++
++using PhoenixVisualizer.Core.Nodes;
++using PhoenixVisualizer.Core.Nodes.XSS;
++
++namespace PhoenixVisualizer.Visuals
++{
++    public sealed class NodeXsRotor : IVisualizerPlugin
++    {
++        private IEffectNode _rotor = new XsRotorNode();
++        public string Id => "node_xs_rotor";
++        public string DisplayName => "XS Rotor (Node)";
++        private int _w,_h;
++        public void Initialize(int width, int height){ _w=width; _h=height; }
++        public void Resize(int width, int height){ _w=width; _h=height; }
++        public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
++        {
++            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
++            _rotor.Render(features.Waveform, features.Spectrum, ctx);
++        }
++        public void Dispose(){}
++    }
++}
+
+

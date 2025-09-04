@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PhoenixVisualizer.App.Views.QuickCommandWindow"
+        Width="560" Height="420" CanResize="False"
+        Background="#0F141A" TransparencyLevelHint="AcrylicBlur">
+  <Grid RowDefinitions="Auto,*" Margin="10">
+    <TextBox x:Name="Search" Watermark="Type to search presets…" />
+    <ListBox x:Name="List" Grid.Row="1" />
+  </Grid>
+</Window>

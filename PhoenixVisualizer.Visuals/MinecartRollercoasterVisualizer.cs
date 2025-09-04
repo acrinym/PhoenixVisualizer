@@ -148,46 +148,95 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
     {
-        // FIXED: Audio-reactive time and animation updates
-        var energy = f.Energy;
-        var bass = f.Bass;
-        var mid = f.Mid;
-        var treble = f.Treble;
-        var beat = f.Beat;
-        var volume = f.Volume;
-        
-        // Audio-reactive animation speed
-        var baseSpeed = 0.016f;
-        var energySpeed = energy * 0.02f;
-        var trebleSpeed = treble * 0.015f;
-        var beatSpeed = beat ? 0.03f : 0f;
-        _time += baseSpeed + energySpeed + trebleSpeed + beatSpeed;
+        // Stable, deterministic track + cart rendering (no rainbow anemone)
+        // Clear frame
+        canvas.Clear(0xFF000000);
 
-        // FIXED: Enhanced audio reactivity
-        UpdateAudioReactivity(f);
+        int W = canvas.Width;
+        int H = canvas.Height;
+        float cx = W * 0.5f;
+        float cy = H * 0.6f;
+        _time += 0.016f * (1f + f.Energy * 2f + (f.Beat ? 0.5f : 0f));
 
-        // FIXED: Enhanced game logic with audio reactivity
-        UpdateTrack(f);
-        UpdateCarts(f);
-        UpdateParticles(f);
-        UpdateScenery(f);
+        // Perspective parameters
+        float zNear = 60f, zFar = 1200f, fov = 1.2f;
+        float railHalf = 18f;   // half distance between rails
+        int steps = 180;        // number of sample points forward
+        float dz = 8f;          // distance between samples in Z
 
-        // FIXED: Enhanced scene rendering
-        RenderBackground(canvas, f);
-        RenderScenery(canvas, f);
-        RenderTrack(canvas, f);
-        RenderCarts(canvas, f);
-        RenderParticles(canvas, f);
-        RenderUI(canvas, f);
+        // Track centerline as smooth S-curve; audio modulates curvature, not color
+        float k1 = 0.0025f + f.Bass * 0.0015f;
+        float k2 = 0.0030f + f.Mid * 0.0015f;
 
-        // FIXED: Enhanced camera effects
-        if (_cameraShake > 0)
+        // Previous projected points for rails
+        float pxL = 0, pyL = 0, pxR = 0, pyR = 0;
+        bool first = true;
+
+        for (int i = 0; i < steps; i++)
         {
-            var baseShakeDecay = 0.9f;
-            var energyShakeDecay = energy * 0.05f;
-            var beatShakeDecay = beat ? 0.1f : 0f;
-            _cameraShake *= baseShakeDecay + energyShakeDecay + beatShakeDecay;
+            float z = i * dz + 1f;
+            // Parametric centerline in 3D
+            float x = MathF.Sin((_time * 0.3f) + z * k1) * 140f;
+            float y = MathF.Cos((_time * 0.2f) + z * k2) * 70f - z * 0.02f;
+
+            // Tangent (approx) for normal computation
+            float x2 = MathF.Sin((_time * 0.3f) + (z + 1) * k1) * 140f;
+            float y2 = MathF.Cos((_time * 0.2f) + (z + 1) * k2) * 70f - (z + 1) * 0.02f;
+            float tx = x2 - x, ty = y2 - y;
+            float len = MathF.Max(0.001f, MathF.Sqrt(tx*tx + ty*ty));
+            float nx = -ty / len, ny = tx / len;
+
+            // Rail world points
+            float xL = x + nx * railHalf, yL = y + ny * railHalf;
+            float xR = x - nx * railHalf, yR = y - ny * railHalf;
+
+            // Perspective projection
+            float p = fov / (z / 200f + 1f);
+            float sxL = cx + xL * p, syL = cy + yL * p;
+            float sxR = cx + xR * p, syR = cy + yR * p;
+
+            uint railColor = 0xFFBBBBBBu;
+
+            if (!first)
+            {
+                canvas.DrawLine(pxL, pyL, sxL, syL, railColor, 2.0f);
+                canvas.DrawLine(pxR, pyR, sxR, syR, railColor, 2.0f);
+                // sleepers
+                if ((i % 3) == 0)
+                {
+                    canvas.DrawLine(sxL, syL, sxR, syR, 0xFF888888u, 1.5f);
+                }
+            }
+            first = false;
+            pxL = sxL; pyL = syL; pxR = sxR; pyR = syR;
         }
+
+        // Draw player cart as a small chassis on the nearest rail segment
+        float cartZ = 30f;
+        float px = MathF.Sin((_time * 0.3f) + cartZ * k1) * 140f;
+        float py = MathF.Cos((_time * 0.2f) + cartZ * k2) * 70f - cartZ * 0.02f;
+        float px2 = MathF.Sin((_time * 0.3f) + (cartZ + 1) * k1) * 140f;
+        float py2 = MathF.Cos((_time * 0.2f) + (cartZ + 1) * k2) * 70f - (cartZ + 1) * 0.02f;
+        float ttx = px2 - px, tty = py2 - py;
+        float tlen = MathF.Max(0.001f, MathF.Sqrt(ttx*ttx + tty*tty));
+        float nnx = -tty / tlen, nny = ttx / tlen;
+
+        float cartX = px;
+        float cartY = py - 8f + (f.Beat ? -6f : 0f); // subtle beat bounce
+
+        float cartP = fov / (cartZ / 200f + 1f);
+        float scx = cx + cartX * cartP;
+        float scy = cy + cartY * cartP;
+
+        // cart body
+        float cw = 36f * cartP;
+        float ch = 22f * cartP;
+        canvas.FillRect(scx - cw*0.5f, scy - ch*0.5f, cw, ch, 0xFF2222FFu);
+        // wheels
+        float wxOff = 10f * cartP;
+        float wyOff = ch*0.5f + 4f*cartP;
+        canvas.DrawCircle(scx - wxOff, scy + wyOff, 3f*cartP, 0xFFFFFFFFu, true);
+        canvas.DrawCircle(scx + wxOff, scy + wyOff, 3f*cartP, 0xFFFFFFFFu, true);
     }
 
     private void UpdateAudioReactivity(AudioFeatures f)
@@ -516,7 +565,7 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
                 VelocityX = (float)Math.Cos(angle) * 150f,
                 VelocityY = (float)Math.Sin(angle) * 150f,
                 VelocityZ = (_random.NextSingle() - 0.5f) * 50f,
-                Color = HsvToRgb(_random.NextSingle(), 1.0f, 1.0f), // Rainbow colors
+                Color = PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(_random.NextSingle(), 1.0f, 1.0f), // Rainbow colors
                 Life = 1.0f,
                 MaxLife = 1.0f,
                 Size = 3f,
@@ -886,7 +935,7 @@ public sealed class MinecartRollercoasterVisualizer : IVisualizerPlugin
         return (uint)(0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b);
     }
 
-    private uint HsvToRgb(float h, float s, float v)
+    private uint PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(float h, float s, float v)
     {
         float c = v * s;
         float x = c * (1 - MathF.Abs((h * 6) % 2 - 1));

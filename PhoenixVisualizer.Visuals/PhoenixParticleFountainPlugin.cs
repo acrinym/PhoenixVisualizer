@@ -14,6 +14,7 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
     private readonly int _maxParticles = 500;
     private readonly Particle[] _particles;
     private int _activeParticles = 0;
+    private uint _bgColor = 0xFF000000;
 
     // Phoenix color palette (NO GREEN!)
     private readonly uint[] _fireColors = new uint[]
@@ -57,90 +58,75 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
 
     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
     {
-        // Clear with dark background
-        canvas.Clear(0xFF000000);
+        canvas.Clear(_bgColor);
 
-        // Update time
-        _time += 0.02f;
-
-        // Get audio data
-        var energy = features.Energy;
-        var bass = features.Bass;
-        var mid = features.Mid;
-        var treble = features.Treble;
-        var beat = features.Beat;
-        var volume = features.Volume;
-        var peak = features.Peak;
-
-        // FIXED: Make emission truly audio-reactive - no particles when no audio
-        if (volume < 0.01f && energy < 0.01f)
+        int spawn = Math.Clamp((int)(features.Volume * 60) + (features.Beat ? 30 : 0), 2, 120);
+        for (int i = 0; i < spawn; i++)
         {
-            // No audio - just draw a dim base
-            var silentBaseX = _w / 2f;
-            var silentBaseY = _h * 0.8f;
-            var silentBaseRadius = 20f;
-            canvas.FillCircle(silentBaseX, silentBaseY, silentBaseRadius, 0x33000000);
-            return;
+            float angle = Random.Shared.NextSingle() * 6.28318f;
+            float speed = 0.6f + features.Energy * 2.4f;
+            EmitParticle(
+                _width * 0.5f, _height * 0.55f,
+                MathF.Cos(angle) * speed,
+                -MathF.Sin(angle) * speed - features.Bass * 1.0f
+            );
         }
 
-        // Audio-reactive emission rates
-        var baseEmissionRate = Math.Max(5f, volume * 15f); // Base emission from volume
-        var energyEmissionRate = energy * 25f; // Energy-driven emission
-        var bassEmissionRate = bass * 10f; // Bass-driven emission
-        var beatEmissionRate = beat ? 15f : 0f; // Beat-driven burst
-        var totalEmissionRate = baseEmissionRate + energyEmissionRate + bassEmissionRate + beatEmissionRate;
+        UpdateParticles(0.016f);
+        DrawParticles(canvas);
+    }
 
-        // Peak detection for extra bursts
-        if (peak > 0.8f) totalEmissionRate *= 1.5f;
-
-        // Emit particles based on accumulated emission
-        var particlesToEmit = (int)totalEmissionRate;
-        var fractionalEmission = totalEmissionRate - particlesToEmit;
-
-        // Handle fractional emission probabilistically
-        if (Random.Shared.NextSingle() < fractionalEmission)
-            particlesToEmit++;
-
-        // Ensure minimum emission when audio is present
-        particlesToEmit = Math.Max(2, particlesToEmit);
-
-        for (int i = 0; i < particlesToEmit; i++)
+    private void EmitParticle(float x, float y, float vx, float vy)
+    {
+        int particleIndex = -1;
+        
+        // First try to find an inactive particle
+        for (int i = 0; i < _maxParticles; i++)
         {
-            EmitParticle(features);
+            if (!_particles[i].active)
+            {
+                particleIndex = i;
+                break;
+            }
         }
-
-        // Update and render particles
-        UpdateParticles(features);
-        RenderParticles(canvas, features);
-
-        // FIXED: Audio-reactive fountain base
-        var baseX = _w / 2f;
-        var baseY = _h * 0.8f;
-        var baseRadius = 25f + bass * 25f + energy * 15f; // Bass and energy affect base size
-        var baseColor = GetFireColor(bass);
-        canvas.FillCircle(baseX, baseY, baseRadius, baseColor);
-
-        // FIXED: Audio-reactive energy rings around base
-        for (int ring = 1; ring <= 3; ring++)
+        
+        // If no inactive particles, recycle the oldest one (lowest life)
+        if (particleIndex == -1)
         {
-            var ringRadius = baseRadius + ring * 12f + mid * 10f; // Mid frequencies affect ring spacing
-            var ringAlpha = (byte)(80 - ring * 20 + energy * 40); // Energy affects ring visibility
-            var ringColor = (uint)(ringAlpha << 24 | 0xFFFF4400);
-            canvas.DrawCircle(baseX, baseY, ringRadius, ringColor, false);
+            float lowestLife = float.MaxValue;
+            for (int i = 0; i < _maxParticles; i++)
+            {
+                if (_particles[i].life < lowestLife)
+                {
+                    lowestLife = _particles[i].life;
+                    particleIndex = i;
+                }
+            }
         }
-
-        // FIXED: Add pulsing glow effect on beat
-        if (beat)
+        
+        if (particleIndex != -1)
         {
-            var glowRadius = baseRadius * 1.5f;
-            var glowColor = (uint)(60 << 24 | 0xFFFF6600);
-            canvas.FillCircle(baseX, baseY, glowRadius, glowColor);
-        }
+            _particles[particleIndex] = new Particle
+            {
+                x = x,
+                y = y,
+                z = 0f,
+                vx = vx,
+                vy = vy,
+                vz = 0f,
+                life = 1f,
+                maxLife = 2.5f + Random.Shared.NextSingle() * 2f,
+                color = GetRainbowColor(Random.Shared.NextSingle(), 0.5f),
+                size = 1.5f + Random.Shared.NextSingle() * 4f,
+                active = true
+            };
 
-        // Draw particle count info (debug)
-        var infoColor = 0x88FFFFFF;
-        canvas.DrawText($"Particles: {_activeParticles}", 10, 10, infoColor, 14f);
-        canvas.DrawText($"Energy: {energy:F2}", 10, 30, infoColor, 14f);
+            // Only increment active count if this was a truly inactive particle
+            if (!_particles[particleIndex].active)
+            {
+                _activeParticles++;
+            }
+        }
     }
 
     private void EmitParticle(AudioFeatures features)
@@ -212,6 +198,55 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
             {
                 _activeParticles++;
             }
+        }
+    }
+
+    private void UpdateParticles(float deltaTime)
+    {
+        var gravity = 300f;
+        var drag = 0.995f;
+
+        for (int i = 0; i < _maxParticles; i++)
+        {
+            if (!_particles[i].active) continue;
+
+            var p = _particles[i];
+
+            // Apply physics
+            p.vx *= drag;
+            p.vy += gravity * deltaTime;
+            p.vz *= 0.995f;
+
+            // Update position
+            p.x += p.vx * deltaTime;
+            p.y += p.vy * deltaTime;
+            p.z += p.vz * deltaTime;
+
+            // Update life
+            p.life -= deltaTime / p.maxLife;
+
+            // Deactivate if dead or off-screen
+            if (p.life <= 0 || p.y > _h + 100)
+            {
+                p.active = false;
+                _activeParticles--;
+            }
+
+            _particles[i] = p;
+        }
+    }
+
+    private void DrawParticles(ISkiaCanvas canvas)
+    {
+        for (int i = 0; i < _maxParticles; i++)
+        {
+            if (!_particles[i].active) continue;
+
+            var p = _particles[i];
+            var alpha = (byte)(p.life * 255);
+            var color = (p.color & 0x00FFFFFF) | ((uint)alpha << 24);
+            
+            canvas.FillCircle(p.x, p.y, p.size, color);
         }
     }
 

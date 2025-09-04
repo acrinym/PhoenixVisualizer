@@ -207,7 +207,7 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
         if (hue < 0) hue += 360f;
 
         // Convert HSV to RGB
-        return HsvToRgb(hue, saturation, brightness);
+        return PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(hue, saturation, brightness);
     }
 
     private float CalculatePulseEffect(int barIndex, float magnitude, bool beat)
@@ -291,7 +291,7 @@ public sealed class PhoenixSpectrumPulse : IVisualizerPlugin
         canvas.FillRect(20, indicatorY - 15, volumeBarWidth, 3, 0xFFFFFF00);
     }
 
-    private uint HsvToRgb(float hue, float saturation, float brightness)
+    private uint PhoenixVisualizer.Core.Color.ColorUtil.HsvToRgb(float hue, float saturation, float brightness)
     {
         // HSV to RGB conversion
         float c = brightness * saturation;
