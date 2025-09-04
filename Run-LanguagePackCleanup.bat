@@ -1,4 +1,4 @@
-@echo off
+IDE is @echo off
 echo ========================================
 echo    Language Pack Cleanup Launcher
 echo ========================================
