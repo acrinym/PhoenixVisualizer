@@ -62,6 +62,7 @@ public partial class App : Application
             PluginRegistry.Register("pulse", "📊 Pulse Circle", () => new PulseVisualizer());
             PluginRegistry.Register("energy", "📊 Energy Ring", () => new EnergyVisualizer());
             PluginRegistry.Register("sanity", "🔧 Sanity Check", () => new SanityVisualizer());
+            PluginRegistry.Register("audio_debug", "🔍 Audio Debug", () => new AudioDebugVisualizer());
 
             // --- AVS Engine ---
             PluginRegistry.Register("vis_avs", "🎵 AVS Runtime", () => new AvsVisualizerPlugin());
