@@ -147,7 +147,7 @@ public sealed class RenderSurface : Control
         // Early exit if no audio provider
         if (_audio == null) return;
 
-        var adapter = new BudgetCanvas(new CanvasAdapter(context, Bounds.Width, Bounds.Height), 40000);
+        var adapter = new CanvasAdapter(context, Bounds.Width, Bounds.Height);
 
         // Handle dynamic resize for plugins that support it
         int w = (int)Bounds.Width;
