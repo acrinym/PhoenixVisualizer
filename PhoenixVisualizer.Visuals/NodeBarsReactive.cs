@@ -41,8 +41,8 @@ namespace PhoenixVisualizer.Visuals
         public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
         {
             // Convert AudioFeatures to the format expected by IEffectNode
-            var waveform = new float[512]; // Placeholder - would need actual waveform data
-            var spectrum = new float[256]; // Placeholder - would need actual spectrum data
+            var waveform = f.Waveform ?? new float[512]; // Use actual waveform data
+            var spectrum = f.Fft ?? new float[256]; // Use actual spectrum data
             
             // Create render context with adapter
             var ctx = new RenderContext
