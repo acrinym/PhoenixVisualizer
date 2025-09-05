@@ -4,6 +4,7 @@ using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Audio.Interfaces;
+using PhoenixVisualizer.NativeAudio;
 using System.Linq;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.App.Rendering;
@@ -34,6 +35,15 @@ public class VlcVisualizerItem
     public override string ToString() => Name;
 }
 
+public class NativeVisualizerItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    
+    public override string ToString() => DisplayName;
+}
+
 public partial class MainWindow : Window
 {
     private bool _handlersWired;
@@ -50,6 +60,9 @@ public partial class MainWindow : Window
     // to traverse the visual tree later (which would throw 🙅‍♂️)
     private readonly RenderSurface? _renderSurface;
     private RenderSurface? RenderSurfaceControl => _renderSurface;
+    
+    // Native audio visualizer service for transpiled VLC visualizers
+    private NativeAudioVisualizerService? _nativeAudioVisualizer;
 
     private static readonly string[] AudioPatterns = { 
         "*.mp3", "*.wav", "*.flac", "*.ogg", "*.m4a", "*.aac", "*.wma", "*.ape", "*.mpc", "*.tta", "*.alac" 
@@ -75,6 +88,28 @@ public partial class MainWindow : Window
         _avsWin32Host = this.FindControl<AvsHostControl>("AvsWin32Host");
         _avsWin32HostControl = this.FindControl<Control>("AvsWin32Host");
         
+        // ✅ CRITICAL: Replace RenderSurface's audio service with native service (bypasses VLC completely)
+        if (_renderSurface != null)
+        {
+            try
+            {
+                var windowHandle = this.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+                if (windowHandle != IntPtr.Zero)
+                {
+                    var nativeAudioService = new NativeAudioVisualizerService(windowHandle);
+                    _renderSurface.SetAudioService(nativeAudioService);
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] ✅ Replaced RenderSurface audio service with native service (VLC completely bypassed)");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] ⚠️ Warning: Could not get window handle, keeping default audio service");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] ❌ Failed to replace audio service: {ex.Message}");
+            }
+        }
 
         
         Presets.Initialize(_renderSurface);
@@ -94,22 +129,29 @@ public partial class MainWindow : Window
             }
         }
 
-        // ✅ Populate VLC visualizer dropdown
+        // ✅ Populate VLC visualizer dropdown (both old VLC and new native)
         var cmbVlc = this.FindControl<ComboBox>("CmbVlcVisualizer");
         if (cmbVlc != null)
         {
-            var vlcVisualizers = new List<VlcVisualizerItem>
+            var visualizers = new List<object>
             {
-                new VlcVisualizerItem { Visualizer = VlcVisualizer.Goom, Name = "🎨 Goom", Description = "Psychedelic visualizer" },
-                new VlcVisualizerItem { Visualizer = VlcVisualizer.Spectrum, Name = "📊 Spectrum", Description = "Frequency spectrum analyzer" },
-                new VlcVisualizerItem { Visualizer = VlcVisualizer.Visual, Name = "🌊 Visual", Description = "Simple waveform visualizer" },
-                new VlcVisualizerItem { Visualizer = VlcVisualizer.ProjectM, Name = "🥛 ProjectM", Description = "Milkdrop-compatible visualizer" },
-                new VlcVisualizerItem { Visualizer = VlcVisualizer.VSXu, Name = "✨ VSXu", Description = "VSXu visualizer" }
+                // Original VLC visualizers (working)
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Goom, Name = "🎨 VLC Goom", Description = "Psychedelic visualizer (VLC)" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Spectrum, Name = "📊 VLC Spectrum", Description = "Frequency spectrum analyzer (VLC)" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Visual, Name = "🌊 VLC Visual", Description = "Simple waveform visualizer (VLC)" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.ProjectM, Name = "🥛 VLC ProjectM", Description = "Milkdrop-compatible visualizer (VLC)" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.VSXu, Name = "✨ VLC VSXu", Description = "VSXu visualizer (VLC)" },
+                
+                // New native visualizers (transpiled)
+                new NativeVisualizerItem { Name = "native_goom", DisplayName = "🎨 Native GOOM", Description = "Psychedelic visualizer (transpiled)" },
+                new NativeVisualizerItem { Name = "native_projectm", DisplayName = "🥛 Native ProjectM", Description = "Milkdrop-compatible visualizer (transpiled)" },
+                new NativeVisualizerItem { Name = "native_vsxu", DisplayName = "✨ Native VSXu", Description = "VSXu visualizer (transpiled)" },
+                new NativeVisualizerItem { Name = "native_vlc_visual", DisplayName = "🌊 Native VLC Visual", Description = "VLC built-in visualizer (transpiled)" }
             };
             
-            cmbVlc.ItemsSource = vlcVisualizers;
-            cmbVlc.SelectionChanged += OnVlcVisualizerSelectionChanged;
-            cmbVlc.SelectedIndex = 0; // Default to Goom
+            cmbVlc.ItemsSource = visualizers;
+            cmbVlc.SelectionChanged += OnVisualizerSelectionChanged;
+            cmbVlc.SelectedIndex = 0; // Default to VLC Goom (working)
         }
 
         // ✅ Wire plugin switcher button if present
@@ -258,6 +300,25 @@ public partial class MainWindow : Window
         // Wire up button event handlers
         WireUpEventHandlers();
         
+        // Initialize native audio visualizer service (but don't set as default)
+        try
+        {
+            var windowHandle = this.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+            if (windowHandle != IntPtr.Zero)
+            {
+                _nativeAudioVisualizer = new NativeAudioVisualizerService(windowHandle);
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Native audio visualizer service initialized (available for selection)");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Warning: Could not get window handle for native audio visualizer");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to initialize native audio visualizer: {ex.Message}");
+        }
+        
         // Ensure we start in built-in mode so Skia host paints
         SetVisualMode(VisualMode.BuiltIn);
     }
@@ -294,12 +355,20 @@ public partial class MainWindow : Window
                         {
                             RenderSurfaceControl?.SetPlugin(plugin);
                             
-                            // Switch to P/Invoke audio service for Phoenix engine (more stable)
+                            // Switch to native audio service for Phoenix engine (completely bypasses VLC)
                             if (RenderSurfaceControl != null)
                             {
-                                var pinvokeAudioService = new PhoenixVisualizer.Audio.PInvokeAudioService();
-                                RenderSurfaceControl.SetAudioService(pinvokeAudioService);
-                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to P/Invoke audio service for Phoenix engine");
+                                var windowHandle = this.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+                                if (windowHandle != IntPtr.Zero)
+                                {
+                                    var nativeAudioService = new NativeAudioVisualizerService(windowHandle);
+                                    RenderSurfaceControl.SetAudioService(nativeAudioService);
+                                    System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to native audio service for Phoenix engine (VLC completely bypassed)");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine("[MainWindow] Warning: Could not get window handle for Phoenix engine native audio service");
+                                }
                             }
                             
                             System.Diagnostics.Debug.WriteLine($"[MainWindow] Phoenix engine initialized with: {phoenixPlugin.DisplayName}");
@@ -507,6 +576,8 @@ public partial class MainWindow : Window
             EnableDebugLogging = false,
             Theme = "Dark",
             AudioDevice = "Default",
+            AudioBufferSizeMs = 100, // Default 100ms buffer
+            UseAsioDevice = false, // Default to standard audio
             LastOpenedFile = null
         };
     }
@@ -537,6 +608,8 @@ public partial class MainWindow : Window
                 EnableDebugLogging = false, // This could be a UI setting
                 Theme = "Dark", // This could be a UI setting
                 AudioDevice = "Default",
+                AudioBufferSizeMs = 100, // Default 100ms buffer
+                UseAsioDevice = false, // Default to standard audio
                 LastOpenedFile = null
             };
 
@@ -1467,21 +1540,63 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnVlcVisualizerSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnVisualizerSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         try
         {
-            if (sender is ComboBox cmb && cmb.SelectedItem is VlcVisualizerItem item)
+            if (sender is ComboBox cmb)
             {
-                // Get the VlcAudioService through RenderSurface
-                if (RenderSurfaceControl?.AudioService is VlcAudioService audioService)
+                if (cmb.SelectedItem is VlcVisualizerItem vlcItem)
                 {
-                    audioService.SetVisualizer(item.Visualizer);
-                    
-                    var statusText = this.FindControl<TextBlock>("LblTime");
-                    if (statusText != null)
+                    // Handle VLC visualizer selection
+                    if (RenderSurfaceControl?.AudioService is VlcAudioService audioService)
                     {
-                        statusText.Text = $"🎨 VLC Visualizer: {item.Name} - {item.Description}";
+                        audioService.SetVisualizer(vlcItem.Visualizer);
+                        
+                        var statusText = this.FindControl<TextBlock>("LblTime");
+                        if (statusText != null)
+                        {
+                            statusText.Text = $"🎨 VLC Visualizer: {vlcItem.Name} - {vlcItem.Description}";
+                        }
+                    }
+                }
+                else if (cmb.SelectedItem is NativeVisualizerItem nativeItem)
+                {
+                    // Handle native visualizer selection
+                    if (_nativeAudioVisualizer != null && RenderSurfaceControl != null)
+                    {
+                        // Set the visualizer in our native service
+                        var success = _nativeAudioVisualizer.SetVisualizer(nativeItem.Name);
+                        
+                        if (success)
+                        {
+                            // Set the native audio service on the render surface
+                            RenderSurfaceControl.SetAudioService(_nativeAudioVisualizer);
+                            
+                            var statusText = this.FindControl<TextBlock>("LblTime");
+                            if (statusText != null)
+                            {
+                                statusText.Text = $"🎨 Native Visualizer: {nativeItem.DisplayName} - {nativeItem.Description}";
+                            }
+                            
+                            System.Diagnostics.Debug.WriteLine($"[MainWindow] Switched to native visualizer: {nativeItem.Name}");
+                        }
+                        else
+                        {
+                            var statusText = this.FindControl<TextBlock>("LblTime");
+                            if (statusText != null)
+                            {
+                                statusText.Text = $"❌ Failed to switch to visualizer: {nativeItem.DisplayName}";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var statusText = this.FindControl<TextBlock>("LblTime");
+                        if (statusText != null)
+                        {
+                            statusText.Text = "❌ Native audio visualizer service not available";
+                        }
                     }
                 }
             }
@@ -1491,8 +1606,9 @@ public partial class MainWindow : Window
             var statusText = this.FindControl<TextBlock>("LblTime");
             if (statusText != null)
             {
-                statusText.Text = $"❌ VLC visualizer switch failed: {ex.Message}";
+                statusText.Text = $"❌ Visualizer switch failed: {ex.Message}";
             }
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] Visualizer switch error: {ex.Message}");
         }
     }
 
@@ -1678,5 +1794,7 @@ public class ApplicationSettings
     public bool EnableDebugLogging { get; set; } = false;
     public string Theme { get; set; } = "Dark";
     public string AudioDevice { get; set; } = "Default";
+    public int AudioBufferSizeMs { get; set; } = 100; // Buffer size in milliseconds
+    public bool UseAsioDevice { get; set; } = false; // Enable ASIO for ultra-low latency
     public string? LastOpenedFile { get; set; }
 }

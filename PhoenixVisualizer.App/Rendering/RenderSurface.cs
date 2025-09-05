@@ -6,6 +6,7 @@ using PhoenixVisualizer.Core.Config;
 using PhoenixVisualizer.Core.Models;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Plugins.Avs;
+using PhoenixVisualizer.NativeAudio;
 
 namespace PhoenixVisualizer.App.Rendering;
 
@@ -58,8 +59,19 @@ public sealed class RenderSurface : Control
 
     public RenderSurface()
     {
-        // Default to P/Invoke audio service (more stable than LibVLCSharp)
-        _audio = new PInvokeAudioService();
+        // Default to native audio service (completely bypasses VLC)
+        try
+        {
+            var windowHandle = IntPtr.Zero; // Will be set when window is created
+            _audio = new NativeAudioVisualizerService(windowHandle);
+            System.Diagnostics.Debug.WriteLine("[RenderSurface] ✅ Defaulting to native audio service (VLC bypassed)");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] ❌ Failed to initialize native audio service: {ex.Message}");
+            // Fallback to P/Invoke if native service fails
+            _audio = new PInvokeAudioService();
+        }
         Focusable = false;                // do not ever steal focus from text inputs
         IsHitTestVisible = false;         // preview is passive; clicks stay in editor
     }
@@ -146,6 +158,12 @@ public sealed class RenderSurface : Control
         {
             vlcAudio.Initialize();
             Debug.WriteLine("[RenderSurface] ✅ VlcAudioService initialized");
+        }
+        // If it's a NativeAudioVisualizerService, initialize it
+        else if (audioService is PhoenixVisualizer.NativeAudio.NativeAudioVisualizerService nativeAudio)
+        {
+            nativeAudio.Initialize();
+            Debug.WriteLine("[RenderSurface] ✅ NativeAudioVisualizerService initialized");
         }
         
         Debug.WriteLine($"[RenderSurface] Audio service switched to: {audioService.GetType().Name}");
@@ -385,17 +403,31 @@ public sealed class RenderSurface : Control
             float waveSum = wave.Sum(f => MathF.Abs(f));
             System.Diagnostics.Debug.WriteLine($"[RenderSurface] Sending to plugin '{_plugin.Id}': FFT sum: {fftSum:F6}, Wave sum: {waveSum:F6}, RMS: {rms:F6}, Beat: {beat}, BPM: {_bpm:F1}");
             
-            // Create PluginHost AudioFeatures for plugin rendering
-            var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
-                _smoothFft,  // fft
-                wave,        // waveform
-                rms,         // rms
-                _bpm,        // bpm
-                beat,        // beat
-                t            // timeSeconds
-            );
+            // Special handling for NativeAudioVisualizerService
+            if (_audio is NativeAudioVisualizerService nativeAudio)
+            {
+                // For now, we'll create a simple visualizer plugin that uses the native audio service
+                // This allows us to integrate with the existing plugin system
+                if (_plugin == null)
+                {
+                    _plugin = new NativeVisualizerPlugin(nativeAudio);
+                }
+            }
             
-            _plugin.RenderFrame(pluginFeatures, adapter);
+            if (_plugin != null)
+            {
+                // Create PluginHost AudioFeatures for plugin rendering
+                var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
+                    _smoothFft,  // fft
+                    wave,        // waveform
+                    rms,         // rms
+                    _bpm,        // bpm
+                    beat,        // beat
+                    t            // timeSeconds
+                );
+                
+                _plugin.RenderFrame(pluginFeatures, adapter);
+            }
             
             // Record performance metrics
             _renderStopwatch.Stop();
