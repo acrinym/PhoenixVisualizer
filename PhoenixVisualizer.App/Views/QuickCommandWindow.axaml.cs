@@ -16,10 +16,10 @@ namespace PhoenixVisualizer.App.Views
             InitializeComponent();
             _items = items;
             var list = this.FindControl<ListBox>("List");
-            list.Items = _items;
+            list.ItemsSource = _items;
             var search = this.FindControl<TextBox>("Search");
             search.GetObservable(TextBox.TextProperty).Subscribe(t => {
-                list.Items = string.IsNullOrWhiteSpace(t) ? _items : _items.Where(i => i.Contains(t, StringComparison.OrdinalIgnoreCase)).ToArray();
+                list.ItemsSource = string.IsNullOrWhiteSpace(t) ? _items : _items.Where(i => i.Contains(t, StringComparison.OrdinalIgnoreCase)).ToArray();
             });
             list.DoubleTapped += (_,__) => Choose();
             list.KeyDown += (s,e) => { if (e.Key == Avalonia.Input.Key.Enter) Choose(); };
@@ -32,3 +32,4 @@ namespace PhoenixVisualizer.App.Views
         }
     }
 }
+

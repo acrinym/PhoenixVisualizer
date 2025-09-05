@@ -49,3 +49,4 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
         }
     }
 }
+

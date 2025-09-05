@@ -15,7 +15,7 @@ namespace PhoenixVisualizer.Visuals
         public void Resize(int width, int height){ _w=width; _h=height; }
         public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas)
         {
-            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=canvas };
+            var ctx = new RenderContext { Width=_w, Height=_h, Waveform=features.Waveform, Spectrum=features.Spectrum, Time=features.Time, Beat=features.Beat, Volume=features.Volume, Canvas=new SkiaCanvasAdapter(canvas) };
             _rotor.Render(features.Waveform, features.Spectrum, ctx);
         }
         public void Dispose(){}

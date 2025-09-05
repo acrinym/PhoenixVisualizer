@@ -1,6 +1,7 @@
-using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.Editor.Rendering;
 using PhoenixVisualizer.Editor.ViewModels;
 using PhoenixVisualizer.Plugins.Avs;
+using Avalonia.Controls.Primitives;
 
 namespace PhoenixVisualizer.Editor.Views;
 
@@ -93,5 +94,11 @@ public partial class MainWindow : Window
             // var stack = NodePresetStorage.Load(path); // Temporarily disabled to avoid circular dependency
             // (DataContext as MainWindowViewModel)?.LoadNodeStack(stack);
         } catch {}
+    }
+
+    private void UpdateStatusBar()
+    {
+        // TODO: Implement status bar updates
+        // This would typically show FPS, current preset, etc.
     }
 }

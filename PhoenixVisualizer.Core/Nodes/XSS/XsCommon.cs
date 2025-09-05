@@ -12,7 +12,7 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
             h = (h % 1f + 1f) % 1f;
             s = Math.Clamp(s, 0f, 1f);
             v = Math.Clamp(v, 0f, 1f);
-            float red=v, green=v, blue=v;
+            float r=v, g=v, b=v;
             if (s > 0f)
             {
                 float i = (float)Math.Floor(h * 6f);
@@ -22,15 +22,15 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
                 float t = v * (1f - s * (1f - f));
                 switch (((int)i) % 6)
                 {
-                    case 0: red=v; green=t; blue=p; break;
-                    case 1: red=q; green=v; blue=p; break;
-                    case 2: red=p; green=v; blue=t; break;
-                    case 3: red=p; green=q; blue=v; break;
-                    case 4: red=t; green=p; blue=v; break;
-                    default: red=v; green=p; blue=q; break;
+                    case 0: r=v; g=t; b=p; break;
+                    case 1: r=q; g=v; b=p; break;
+                    case 2: r=p; g=v; b=t; break;
+                    case 3: r=p; g=q; b=v; break;
+                    case 4: r=t; g=p; b=v; break;
+                    default: r=v; g=p; b=q; break;
                 }
             }
-            return Rgba((byte)(red*255),(byte)(green*255),(byte)(blue*255),(byte)(a*255));
+            return Rgba((byte)(r*255),(byte)(g*255),(byte)(b*255),(byte)(a*255));
         }
     }
 }

@@ -54,7 +54,7 @@ namespace PhoenixVisualizer.Visuals
                 Time = 0.0f, // Placeholder - would need actual time
                 Beat = f.Beat,
                 Volume = f.Volume,
-                Canvas = canvas
+                Canvas = new SkiaCanvasAdapter(canvas)
             };
             
             // Render each node in the stack

@@ -23,6 +23,10 @@ public interface AudioFeatures
     // Enhanced frequency analysis
     float[] FrequencyBands { get; }
     float[] SmoothedFft { get; }
+    
+    // Aliases for Node compatibility
+    float[] Spectrum { get; }  // Alias for Fft
+    float Time { get; }         // Alias for TimeSeconds
 }
 
 /// <summary>

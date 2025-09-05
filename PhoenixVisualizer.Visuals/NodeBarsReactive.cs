@@ -44,17 +44,17 @@ namespace PhoenixVisualizer.Visuals
             var waveform = new float[512]; // Placeholder - would need actual waveform data
             var spectrum = new float[256]; // Placeholder - would need actual spectrum data
             
-            // Create render context
+            // Create render context with adapter
             var ctx = new RenderContext
             {
                 Width = _width,
                 Height = _height,
                 Waveform = waveform,
                 Spectrum = spectrum,
-                Time = 0.0f, // Placeholder - would need actual time
+                Time = f.Time,
                 Beat = f.Beat,
                 Volume = f.Volume,
-                Canvas = canvas
+                Canvas = new SkiaCanvasAdapter(canvas)
             };
             
             // Render each node in the stack

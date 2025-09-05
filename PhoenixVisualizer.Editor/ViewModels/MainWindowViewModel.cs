@@ -272,4 +272,34 @@ public partial class MainWindowViewModel : ViewModelBase
         // TODO: Switch to effects graph editor tab
         System.Diagnostics.Debug.WriteLine("Switching to Effects Graph Editor");
     }
+
+    // Missing methods that the Editor MainWindow expects
+    public void PrevPreset()
+    {
+        // TODO: Implement previous preset navigation
+        System.Diagnostics.Debug.WriteLine("Previous Preset");
+    }
+
+    public void NextPreset()
+    {
+        // TODO: Implement next preset navigation
+        System.Diagnostics.Debug.WriteLine("Next Preset");
+    }
+
+    public void RandomizePreset()
+    {
+        // TODO: Implement preset randomization
+        System.Diagnostics.Debug.WriteLine("Randomize Preset");
+    }
+
+    public void TogglePlayPause()
+    {
+        if (IsPlaying)
+            Pause();
+        else
+            Play();
+    }
+
+    // Node stack for effects graph editor
+    public ObservableCollection<object> CurrentNodeStack { get; } = new();
 }

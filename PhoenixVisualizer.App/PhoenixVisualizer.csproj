@@ -49,7 +49,7 @@
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Ape.Phoenix\PhoenixVisualizer.Plugins.Ape.Phoenix.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj" />
-    <!-- <ProjectReference Include="..\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj" /> -->
+    <ProjectReference Include="..\PhoenixVisualizer.Editor\PhoenixVisualizer.Editor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

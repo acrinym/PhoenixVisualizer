@@ -31,7 +31,7 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
             c.SetLineWidth(Params["thickness"].FloatValue);
 
             int segs=800;
-            Span<(float x, float y)> pts = stackalloc (float, float)[segs];
+            Span<(float x,float y)> pts = stackalloc (float, float)[segs];
             for (int i=0;i<segs;i++)
             {
                 float t = (i/(float)(segs-1))*MathF.PI*2;

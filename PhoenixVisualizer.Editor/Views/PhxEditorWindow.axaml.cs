@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Collections.Generic;
 using System.IO;
+using PhoenixVisualizer.Visuals;
 using System.Linq;
 using System.Threading.Tasks;
 using PhoenixVisualizer.Core.Transpile;
@@ -15,7 +16,7 @@ using PhoenixVisualizer.Core.Serialization;
 using PhoenixVisualizer.Core.Catalog;
 using PhoenixVisualizer.Editor.ViewModels;
 using PhoenixVisualizer.Core;
-using PhoenixVisualizer.Rendering;
+using PhoenixVisualizer.Editor.Rendering;
 using PhoenixVisualizer.Editor.Views;
 using PhoenixVisualizer.Parameters;
 using Avalonia.Input;
@@ -191,8 +192,8 @@ namespace PhoenixVisualizer.Editor.Views
                 _vm.StatusText = "No nodes; showing generic visualizer.";
                 return;
             }
-            var plugin = new UnifiedPhoenixVisualizer();
-            plugin.LoadGraph(new UnifiedGraph { Nodes = _vm.EffectStack.ToList() });
+            var plugin = new SanityVisualizer(); // TODO: Replace with proper unified visualizer
+            // plugin.LoadGraph(new UnifiedGraph { Nodes = _vm.EffectStack.ToList() }); // TODO: Implement graph loading
             target.SetPlugin(plugin);
             _vm.StatusText = "Compiled current stack.";
         }

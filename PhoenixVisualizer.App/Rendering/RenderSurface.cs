@@ -305,7 +305,7 @@ public sealed class RenderSurface : Control
         _prevEnergy = _prevEnergy * (1 - alpha) + energy * alpha;
 
         // 7) Optional frame blending
-        adapter.FrameBlend = Math.Clamp(vz.FrameBlend, 0f, 1f);
+        // adapter.FrameBlend = Math.Clamp(vz.FrameBlend, 0f, 1f); // FrameBlend not available on adapter
 
         // Use playback position as t (preferred for visual sync)
         double t = pos;
@@ -330,8 +330,6 @@ public sealed class RenderSurface : Control
             
             // Create PluginHost AudioFeatures for plugin rendering
             var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
-                _uiSensitivity,
-                _uiSmoothing,
                 _smoothFft,  // fft
                 wave,        // waveform
                 rms,         // rms

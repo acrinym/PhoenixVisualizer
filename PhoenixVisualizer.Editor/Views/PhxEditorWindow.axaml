@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-        xmlns:r="using:PhoenixVisualizer.Rendering"
+        xmlns:r="using:PhoenixVisualizer.Editor.Rendering"
         xmlns:views="using:PhoenixVisualizer.Editor.Views"
         xmlns:cvt="using:PhoenixVisualizer.Editor.Converters"
         xmlns:Behaviors="clr-namespace:PhoenixVisualizer.Editor.Behaviors"

@@ -46,5 +46,12 @@ namespace PhoenixVisualizer.Editor.Views
                 child.IsVisible = text.Contains(term, StringComparison.OrdinalIgnoreCase);
             }
         }
+
+        // Missing method that PhxEditorWindow expects
+        public void LoadFor(object? target, string? displayName = null)
+        {
+            // TODO: Implement parameter loading for target object
+            System.Diagnostics.Debug.WriteLine($"Loading parameters for: {target?.GetType().Name ?? "null"} (Display: {displayName ?? "N/A"})");
+        }
     }
 }

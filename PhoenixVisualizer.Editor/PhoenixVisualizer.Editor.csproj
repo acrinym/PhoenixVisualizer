@@ -36,8 +36,8 @@
     <ProjectReference Include="..\PhoenixVisualizer.Plots\PhoenixVisualizer.Plots.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Audio\PhoenixVisualizer.Audio.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Plugins.Avs\PhoenixVisualizer.Plugins.Avs.csproj" />
-    <ProjectReference Include="..\PhoenixVisualizer.Rendering\PhoenixVisualizer.Rendering.csproj" />
     <ProjectReference Include="..\PhoenixVisualizer.Parameters\PhoenixVisualizer.Parameters.csproj" />
+    <ProjectReference Include="..\PhoenixVisualizer.Visuals\PhoenixVisualizer.Visuals.csproj" />
   </ItemGroup>
 
 </Project>

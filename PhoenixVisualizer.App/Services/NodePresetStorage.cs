@@ -7,7 +7,12 @@ namespace PhoenixVisualizer.App.Services
     {
         public static void Save(string path, IEffectNode[] stack)
         {
-            var model = stack.Select(n => n.ToModel()).ToArray(); // assumes each node can produce a serializable model
+            // Create a simple model from the node's name and parameters
+            var model = stack.Select(n => new NodeModel 
+            { 
+                Type = n.Name, 
+                Params = n.Params.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value.FloatValue) 
+            }).ToArray();
             var json = JsonSerializer.Serialize(model, new JsonSerializerOptions{ WriteIndented = true });
             File.WriteAllText(path, json);
         }
@@ -16,7 +21,7 @@ namespace PhoenixVisualizer.App.Services
         {
             var json = File.ReadAllText(path);
             var model = JsonSerializer.Deserialize<NodeModel[]>(json) ?? Array.Empty<NodeModel>();
-            return model.Select(m => EffectRegistry.Create(m.Type).WithModel(m)).ToArray();
+            return model.Select(m => EffectRegistry.CreateByName(m.Type) ?? new ClearFrameNode()).ToArray();
         }
     }
 

@@ -24,6 +24,10 @@ public class AudioFeaturesImpl : AudioFeatures
     public float[] FrequencyBands { get; set; } = new float[0];
     public float[] SmoothedFft { get; set; } = new float[0];
     
+    // Aliases for Node compatibility
+    public float[] Spectrum => Fft;  // Alias for Fft
+    public float Time => (float)TimeSeconds;  // Alias for TimeSeconds
+    
     /// <summary>
     /// Create AudioFeatures from basic data
     /// </summary>
