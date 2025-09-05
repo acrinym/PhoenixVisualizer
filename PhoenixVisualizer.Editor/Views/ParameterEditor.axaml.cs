@@ -18,8 +18,7 @@ namespace PhoenixVisualizer.Editor.Views
             var revert = this.FindControl<Button>("RevertBtn");
             var search = this.FindControl<TextBox>("SearchBox");
 
-            live.Checked += (_,__) => RaiseEvent(new RoutedEventArgs(LivePreviewChangedEvent));
-            live.Unchecked += (_,__) => RaiseEvent(new RoutedEventArgs(LivePreviewChangedEvent));
+            live.IsCheckedChanged += (_,__) => RaiseEvent(new RoutedEventArgs(LivePreviewChangedEvent));
             apply.Click += (_,__) => RaiseEvent(new RoutedEventArgs(ApplyRequestedEvent));
             revert.Click += (_,__) => RaiseEvent(new RoutedEventArgs(RevertRequestedEvent));
             search.GetObservable(TextBox.TextProperty).Subscribe(_ => FilterParameters(search.Text));

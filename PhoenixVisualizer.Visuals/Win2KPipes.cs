@@ -1,6 +1,6 @@
+using PhoenixVisualizer.PluginHost;
 using System;
 using System.Collections.Generic;
-using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Core.Effects.Interfaces;
 
 namespace PhoenixVisualizer.Visuals;
@@ -160,11 +160,11 @@ public sealed class Win2KPipes : IVisualizerPlugin
         var updateFrequency = 1f + energy * 0.5f + (beat ? 0.5f : 0f);
         if (_time % (0.016f / updateFrequency) < 0.016f)
         {
-            UpdatePipes(f);
+            UpdatePipes(features);
         }
 
         // FIXED: Optimized rendering with LOD (Level of Detail)
-        RenderPipes3DOptimized(canvas, f);
+        RenderPipes3DOptimized(canvas, features);
 
         // FIXED: Audio-reactive pipe creation
         var creationChance = 0.02f;
@@ -174,7 +174,7 @@ public sealed class Win2KPipes : IVisualizerPlugin
         
         if (_pipes.Count < MAX_PIPES && _random.NextDouble() < creationChance * (1f + volume))
         {
-            StartNewPipe(f);
+            StartNewPipe(features);
         }
     }
 

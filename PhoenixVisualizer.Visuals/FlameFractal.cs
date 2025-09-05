@@ -1,5 +1,5 @@
-using System;
 using PhoenixVisualizer.PluginHost;
+using System;
 
 namespace PhoenixVisualizer.Visuals;
 
@@ -102,7 +102,6 @@ public sealed class FlameFractal : IVisualizerPlugin
         if (lastMs > _targetMs + 3 && _samplesPerFrame > 1000) _samplesPerFrame = (int)(_samplesPerFrame * 0.85f);
         else if (lastMs < _targetMs - 3) _samplesPerFrame = (int)(_samplesPerFrame * 1.10f);
         _samplesPerFrame = Math.Clamp(_samplesPerFrame, 1000, 40000);
-    {
         // FIXED: Audio-reactive time and animation updates
         var energy = features.Energy;
         var bass = features.Bass;

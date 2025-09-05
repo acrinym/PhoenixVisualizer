@@ -1,6 +1,6 @@
+using PhoenixVisualizer.PluginHost;
 using System.Numerics;
 using PhoenixVisualizer.Core.Avs;
-using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Visuals;
 

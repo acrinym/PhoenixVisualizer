@@ -3,6 +3,7 @@ using PhoenixVisualizer.Audio;
 using PhoenixVisualizer.Core;
 using PhoenixVisualizer.Core.Models;
 using SkiaSharp;
+using AudioFeatures = PhoenixVisualizer.Core.Models.AudioFeatures;
 
 namespace PhoenixVisualizer.Visuals;
 

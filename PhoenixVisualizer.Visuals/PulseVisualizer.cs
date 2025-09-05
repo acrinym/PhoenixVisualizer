@@ -49,14 +49,7 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         _time += 0.016f;
 
         canvas.Clear(0xFF000000);
-        // Band-weighted level
-        float level = (bass * 0.5f + mid * 0.35f + treble * 0.15f);
-        // EMA toward current to avoid "random" feel
-        _emaLevel = (_emaLevel == 0f) ? level : (_emaLevel * (1f - EMA_A) + level * EMA_A);
-        float beatBoost = beat ? 0.12f : 0f;
-        float pulse = MathF.Min(1f, _emaLevel + beatBoost);
-        // expose for subsequent drawing
-        float __pulseLevel = pulse;
+        
         //  Get audio data with proper scaling
         float energy = features.Energy;
         float rms = features.Rms;
@@ -65,6 +58,15 @@ public sealed class PulseVisualizer : IVisualizerPlugin
         float bass = features.Bass;
         float mid = features.Mid;
         float treble = features.Treble;
+        
+        // Band-weighted level
+        float level = (bass * 0.5f + mid * 0.35f + treble * 0.15f);
+        // EMA toward current to avoid "random" feel
+        _emaLevel = (_emaLevel == 0f) ? level : (_emaLevel * (1f - EMA_A) + level * EMA_A);
+        float beatBoost = beat ? 0.12f : 0f;
+        float pulse = MathF.Min(1f, _emaLevel + beatBoost);
+        // expose for subsequent drawing
+        float __pulseLevel = pulse;
 
         // Use the best available audio data - FIXED: Now uses actual audio input
         float audioLevel = Math.Max(energy, rms);

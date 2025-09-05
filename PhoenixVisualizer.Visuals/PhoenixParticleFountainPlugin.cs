@@ -66,7 +66,7 @@ public sealed class PhoenixParticleFountainPlugin : IVisualizerPlugin
             float angle = Random.Shared.NextSingle() * 6.28318f;
             float speed = 0.6f + features.Energy * 2.4f;
             EmitParticle(
-                _width * 0.5f, _height * 0.55f,
+                canvas.Width * 0.5f, canvas.Height * 0.55f,
                 MathF.Cos(angle) * speed,
                 -MathF.Sin(angle) * speed - features.Bass * 1.0f
             );

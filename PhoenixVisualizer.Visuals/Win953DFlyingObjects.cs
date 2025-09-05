@@ -1,6 +1,6 @@
+using PhoenixVisualizer.PluginHost;
 using System;
 using System.Collections.Generic;
-using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Visuals;
 

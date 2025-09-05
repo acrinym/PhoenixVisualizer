@@ -330,8 +330,8 @@ public sealed class RenderSurface : Control
             
             // Create PluginHost AudioFeatures for plugin rendering
             var pluginFeatures = AudioFeaturesImpl.CreateEnhanced(
-                gain: _uiSensitivity,
-                smoothing: _uiSmoothing,
+                _uiSensitivity,
+                _uiSmoothing,
                 _smoothFft,  // fft
                 wave,        // waveform
                 rms,         // rms
@@ -384,12 +384,6 @@ public sealed class RenderSurface : Control
         float tau = smoothingMs / 1000f;
         return Math.Clamp(dt / (tau + dt), 0.01f, 1f);
     }
-    if (_fadeTicks > 0 && adapter is BudgetCanvas bcFade) {
-                float a = _fadeTicks / (float)FADE_TICKS_MAX; // 1->0
-                bcFade.Fade(0xFF000000, a * 0.22f); // subtle dim
-                _fadeTicks--;
-            }
-        }
 
     private sealed class BudgetCanvas : ISkiaCanvas
     {
@@ -408,7 +402,7 @@ public sealed class RenderSurface : Control
 
         public int Width => _inner.Width;
         public int Height => _inner.Height;
-        public float FrameBlend { get => _inner.FrameBlend; set => _inner.FrameBlend = value; }
+        // public float FrameBlend { get => _inner.FrameBlend; set => _inner.FrameBlend = value; }
 
         public void Clear(uint color) { if (Allow()) _inner.Clear(color); }
         public void SetLineWidth(float width) { _lineWidth = width; _inner.SetLineWidth(width); }

@@ -1,4 +1,5 @@
 using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Core.Nodes.XSS;
 
 namespace PhoenixVisualizer.Visuals

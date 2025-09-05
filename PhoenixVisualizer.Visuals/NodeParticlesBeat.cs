@@ -1,23 +1,67 @@
 using PhoenixVisualizer.Core.Nodes;
+using PhoenixVisualizer.PluginHost;
 
 namespace PhoenixVisualizer.Visuals
 {
-    // Particles emit on beats; gravity + fade
     public sealed class NodeParticlesBeat : IVisualizerPlugin
     {
         private IEffectNode[] _stack;
+        private int _width, _height;
+
         public NodeParticlesBeat()
         {
             _stack = new IEffectNode[] {
-                EffectRegistry.Create("ClearFrame"),
-                EffectRegistry.Create("ParticleSystem").With("Max", 1200).With("EmitOnBeat", true).With("Rate", 220),
-                EffectRegistry.Create("Gravity").With("Y", 0.15f),
-                EffectRegistry.Create("Trails").With("Decay", 0.90f)
+                EffectRegistry.CreateByName("ClearFrame"),
+                EffectRegistry.CreateByName("SpectrumAnalyzer"),
+                EffectRegistry.CreateByName("ColorFade"),
+                EffectRegistry.CreateByName("Glow")
             };
         }
+
+        public string Id => "node_particlesbeat";
+        public string DisplayName => "Particles Beat";
+
+        public void Initialize(int width, int height)
+        {
+            _width = width;
+            _height = height;
+        }
+
+        public void Resize(int width, int height)
+        {
+            _width = width;
+            _height = height;
+        }
+
+        public void Dispose()
+        {
+            // Clean up resources
+        }
+
         public void RenderFrame(AudioFeatures f, ISkiaCanvas canvas)
         {
-            foreach (var n in _stack) n.Process(f, canvas);
+            // Convert AudioFeatures to the format expected by IEffectNode
+            var waveform = new float[512]; // Placeholder - would need actual waveform data
+            var spectrum = new float[256]; // Placeholder - would need actual spectrum data
+            
+            // Create render context
+            var ctx = new RenderContext
+            {
+                Width = _width,
+                Height = _height,
+                Waveform = waveform,
+                Spectrum = spectrum,
+                Time = 0.0f, // Placeholder - would need actual time
+                Beat = f.Beat,
+                Volume = f.Volume,
+                Canvas = canvas
+            };
+            
+            // Render each node in the stack
+            foreach (var node in _stack)
+            {
+                node.Render(waveform, spectrum, ctx);
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
-using System;
 using PhoenixVisualizer.PluginHost;
+using System;
 
 namespace PhoenixVisualizer.Visuals
 {

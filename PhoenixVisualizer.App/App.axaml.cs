@@ -16,27 +16,9 @@ using PhoenixVisualizer.App.Services;
 
 namespace PhoenixVisualizer.App;
 
-public partial class App : Application { private static SettingsService _settings = new SettingsService();
-        protected override void OnFrameworkInitializationCompleted()
-        {
-            base.OnFrameworkInitializationCompleted();
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.MainWindow.KeyDown += (s, e) =>
-                {
-                    if (e.Key == Avalonia.Input.Key.F3)
-                    {
-                        _renderSurface?.GetType().GetMethod("ToggleDiagnostics")?.Invoke(_renderSurface, null);
-                        e.Handled = true;
-                    }
-                    else if (e.Key == Avalonia.Input.Key.R)
-                    {
-                        try { PresetManager?.RandomizeAvoidRepeat(); } catch {}
-                        e.Handled = true;
-                    }
-                };
-            }
-        }
+public partial class App : Application 
+{ 
+    private static SettingsService _settings = new SettingsService();
     public override void Initialize()
     {
         // Runtime XAML load (works even if the XAML generator isn't running)
