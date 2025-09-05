@@ -104,8 +104,21 @@ namespace PhoenixVisualizer.Audio
                 LogToFile("[VlcAudioService] 🚀 INITIALIZING VLC AUDIO SERVICE...");
                 LogToFile($"[VlcAudioService] 📅 Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
 
-                // Create LibVLC with verbose logging and disable video for audio focus
-                var options = new string[] { "--verbose=2", "--no-video" };
+                // Create LibVLC with safer options - disable problematic plugins
+                var options = new string[] { 
+                    "--no-video", 
+                    "--no-audio-display",
+                    "--intf=dummy",
+                    "--no-plugins-cache",
+                    "--no-media-library",
+                    "--no-osd",
+                    "--no-sout-rtp-sap",
+                    "--no-sout-standard-sap",
+                    "--no-sout-all",
+                    "--no-interact",
+                    "--no-keyboard-events",
+                    "--no-mouse-events"
+                };
                 LogToFile($"[VlcAudioService] 🔧 LibVLC Options: {string.Join(" ", options)}");
                 
                 _libVLC = new LibVLC(options);
@@ -114,14 +127,17 @@ namespace PhoenixVisualizer.Audio
                 _mediaPlayer = new MediaPlayer(_libVLC);
                 LogToFile("[VlcAudioService] ✅ MediaPlayer instance created successfully");
 
-                // Set up event handlers
+                // Set up event handlers with null checks
                 LogToFile("[VlcAudioService] 🔗 Setting up event handlers...");
-                _mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
-                _mediaPlayer.LengthChanged += MediaPlayer_LengthChanged;
-                _mediaPlayer.Playing += MediaPlayer_Playing;
-                _mediaPlayer.Paused += MediaPlayer_Paused;
-                _mediaPlayer.Stopped += MediaPlayer_Stopped;
-                _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
+                if (_mediaPlayer != null)
+                {
+                    _mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
+                    _mediaPlayer.LengthChanged += MediaPlayer_LengthChanged;
+                    _mediaPlayer.Playing += MediaPlayer_Playing;
+                    _mediaPlayer.Paused += MediaPlayer_Paused;
+                    _mediaPlayer.Stopped += MediaPlayer_Stopped;
+                    _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
+                }
                 LogToFile("[VlcAudioService] ✅ Event handlers registered successfully");
                 
                 _isInitialized = true;
@@ -129,6 +145,8 @@ namespace PhoenixVisualizer.Audio
             }
             catch (Exception ex)
             {
+                LogToFile($"[VlcAudioService] ❌ Initialization failed: {ex.Message}");
+                LogToFile($"[VlcAudioService] ❌ Stack trace: {ex.StackTrace}");
                 Debug.WriteLine($"[VlcAudioService] ❌ Initialization failed: {ex.Message}");
                 throw;
             }
@@ -152,30 +170,85 @@ namespace PhoenixVisualizer.Audio
                 LogToFile($"[VlcAudioService] 🎯 LibVLC Instance: {_libVLC != null}");
                 LogToFile($"[VlcAudioService] 🎯 MediaPlayer Instance: {_mediaPlayer != null}");
                 
-                // Stop current playback
-                LogToFile("[VlcAudioService] ⏹️ Stopping current playback...");
-                Stop();
+                // Validate inputs
+                if (string.IsNullOrEmpty(path))
+                {
+                    LogToFile("[VlcAudioService] ❌ Path is null or empty");
+                    throw new ArgumentException("Path cannot be null or empty");
+                }
                 
-                // Create new media
+                if (_libVLC == null || _mediaPlayer == null)
+                {
+                    LogToFile("[VlcAudioService] ❌ VLC not initialized");
+                    throw new InvalidOperationException("VLC not initialized");
+                }
+                
+                // Stop current playback safely
+                LogToFile("[VlcAudioService] ⏹️ Stopping current playback...");
+                try
+                {
+                    Stop();
+                }
+                catch (Exception ex)
+                {
+                    LogToFile($"[VlcAudioService] ⚠️ Stop failed (continuing): {ex.Message}");
+                }
+                
+                // Create new media with error handling
                 LogToFile("[VlcAudioService] 📄 Creating new Media object...");
-                _currentMedia = new Media(_libVLC, path, FromType.FromPath);
-                LogToFile($"[VlcAudioService] ✅ Media created: {_currentMedia != null}");
+                try
+                {
+                    _currentMedia?.Dispose(); // Clean up previous media
+                    _currentMedia = new Media(_libVLC, path, FromType.FromPath);
+                    LogToFile($"[VlcAudioService] ✅ Media created: {_currentMedia != null}");
+                }
+                catch (Exception ex)
+                {
+                    LogToFile($"[VlcAudioService] ❌ Media creation failed: {ex.Message}");
+                    throw new InvalidOperationException($"Failed to create media from path: {path}", ex);
+                }
                 
                 // Set up callbacks based on current mode
                 LogToFile("[VlcAudioService] 🔗 Setting up callbacks...");
-                SetupCallbacks();
-                LogToFile("[VlcAudioService] ✅ Callbacks setup complete");
+                try
+                {
+                    SetupCallbacks();
+                    LogToFile("[VlcAudioService] ✅ Callbacks setup complete");
+                }
+                catch (Exception ex)
+                {
+                    LogToFile($"[VlcAudioService] ⚠️ Callback setup failed (continuing): {ex.Message}");
+                }
                 
-                // Play the media
+                // Play the media with error handling
                 LogToFile("[VlcAudioService] ▶️ Starting playback...");
-                _mediaPlayer.Play(_currentMedia);
-                _isPlaying = true;
-                LogToFile("[VlcAudioService] ✅ Playback started successfully");
+                try
+                {
+                    var result = _mediaPlayer.Play(_currentMedia);
+                    if (result)
+                    {
+                        _isPlaying = true;
+                        LogToFile("[VlcAudioService] ✅ Playback started successfully");
+                    }
+                    else
+                    {
+                        LogToFile("[VlcAudioService] ❌ Play() returned false");
+                        throw new InvalidOperationException("VLC Play() returned false");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogToFile($"[VlcAudioService] ❌ Play() failed: {ex.Message}");
+                    LogToFile($"[VlcAudioService] ❌ Stack trace: {ex.StackTrace}");
+                    throw new InvalidOperationException("VLC Play() failed", ex);
+                }
                 
                 Debug.WriteLine($"[VlcAudioService] ✅ Playback started in {_currentMode} mode");
             }
             catch (Exception ex)
             {
+                LogToFile($"[VlcAudioService] ❌ Play failed: {ex.Message}");
+                LogToFile($"[VlcAudioService] ❌ Stack trace: {ex.StackTrace}");
                 Debug.WriteLine($"[VlcAudioService] ❌ Play failed: {ex.Message}");
                 throw;
             }

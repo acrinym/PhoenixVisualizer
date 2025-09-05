@@ -294,12 +294,12 @@ public partial class MainWindow : Window
                         {
                             RenderSurfaceControl?.SetPlugin(plugin);
                             
-                            // Switch to hybrid VLC audio service for Phoenix engine
+                            // Switch to P/Invoke audio service for Phoenix engine (more stable)
                             if (RenderSurfaceControl != null)
                             {
-                                var vlcAudioService = new PhoenixVisualizer.Audio.VlcAudioService();
-                                RenderSurfaceControl.SetAudioService(vlcAudioService);
-                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to hybrid VLC audio service for Phoenix engine");
+                                var pinvokeAudioService = new PhoenixVisualizer.Audio.PInvokeAudioService();
+                                RenderSurfaceControl.SetAudioService(pinvokeAudioService);
+                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to P/Invoke audio service for Phoenix engine");
                             }
                             
                             System.Diagnostics.Debug.WriteLine($"[MainWindow] Phoenix engine initialized with: {phoenixPlugin.DisplayName}");

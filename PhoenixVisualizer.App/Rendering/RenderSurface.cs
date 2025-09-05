@@ -58,8 +58,8 @@ public sealed class RenderSurface : Control
 
     public RenderSurface()
     {
-        // Default to VLC audio service
-        _audio = new VlcAudioService();
+        // Default to P/Invoke audio service (more stable than LibVLCSharp)
+        _audio = new PInvokeAudioService();
         Focusable = false;                // do not ever steal focus from text inputs
         IsHitTestVisible = false;         // preview is passive; clicks stay in editor
     }
