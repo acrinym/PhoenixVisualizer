@@ -11,11 +11,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Pixel Sort Plasma";
         public NodePixelSortPlasma()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var plasma = EffectRegistry.CreateByName("Plasma") ?? throw new InvalidOperationException("Failed to create Plasma effect");
+            var pixelSort = EffectRegistry.CreateByName("PixelSort") ?? throw new InvalidOperationException("Failed to create PixelSort effect");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("Failed to create ColorFade effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("Plasma").With("Detail", 0.9f),
-                EffectRegistry.CreateByName("PixelSort").With("Threshold", 0.65f).With("Direction", "Vertical"),
-                EffectRegistry.CreateByName("ColorFade").With("Mode", "HSV").With("Speed", 0.20f)
+                clearFrame,
+                plasma.With("Detail", 0.9f),
+                pixelSort.With("Threshold", 0.65f).With("Direction", "Vertical"),
+                colorFade.With("Mode", "HSV").With("Speed", 0.20f)
             };
         }
         public void Initialize(int width, int height)

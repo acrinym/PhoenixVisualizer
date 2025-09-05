@@ -124,7 +124,7 @@ public class AudioFeaturesImpl : AudioFeatures
         var nyquist = sampleRate / 2.0;
         var freqPerBin = nyquist / fftSize;
         
-        // Define frequency bands (in Hz)
+        // Define frequency bands (in Hz) - calculate averages for each band
         var bandFrequencies = new[] { 60, 250, 500, 1000, 2000, 4000, 8000, 16000 };
         FrequencyBands = new float[bandFrequencies.Length];
         
@@ -132,10 +132,21 @@ public class AudioFeaturesImpl : AudioFeatures
         {
             var targetFreq = bandFrequencies[i];
             var binIndex = (int)(targetFreq / freqPerBin);
-            if (binIndex < fftSize)
+            
+            // Calculate average energy in a small window around the target frequency
+            var windowSize = Math.Max(1, fftSize / 100); // 1% of FFT size
+            var startBin = Math.Max(0, binIndex - windowSize / 2);
+            var endBin = Math.Min(fftSize - 1, binIndex + windowSize / 2);
+            
+            var sum = 0f;
+            var count = 0;
+            for (int j = startBin; j <= endBin; j++)
             {
-                FrequencyBands[i] = SmoothedFft[binIndex];
+                sum += SmoothedFft[j] * SmoothedFft[j]; // Use squared values for energy
+                count++;
             }
+            
+            FrequencyBands[i] = count > 0 ? (float)Math.Sqrt(sum / count) : 0f;
         }
         
         // Calculate traditional frequency bands with better accuracy

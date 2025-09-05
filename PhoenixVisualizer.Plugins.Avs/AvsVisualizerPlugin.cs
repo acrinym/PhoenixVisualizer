@@ -120,15 +120,23 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
 
     private void RenderSpectrum(AudioFeatures f, ISkiaCanvas canvas)
     {
+        // Debug: Log what data we're receiving
+        System.Diagnostics.Debug.WriteLine($"[AvsVisualizerPlugin] RenderSpectrum: FrequencyBands={f.FrequencyBands?.Length ?? 0}, Fft={f.Fft?.Length ?? 0}, RMS={f.Rms:F6}");
+        
         // Use enhanced frequency bands if available
         var bands = f.FrequencyBands;
         if (bands.Length == 0)
         {
             // Fallback to basic FFT if frequency bands aren't available
             bands = f.Fft ?? Array.Empty<float>();
+            System.Diagnostics.Debug.WriteLine($"[AvsVisualizerPlugin] Using FFT fallback: {bands.Length} bins");
         }
         
-        if (bands.Length == 0) return;
+        if (bands.Length == 0) 
+        {
+            System.Diagnostics.Debug.WriteLine("[AvsVisualizerPlugin] No audio data available for rendering");
+            return;
+        }
         
         var barWidth = Math.Max(1f, (float)_w / bands.Length);
         var maxHeight = _h - 20;
@@ -207,7 +215,15 @@ public sealed class AvsVisualizerPlugin : IAvsHostPlugin, IVisualizerPlugin
                     int idx = (int)(t * (f.Fft.Length - 1));
                     float mag = MathF.Abs(f.Fft[idx]);
                     // soft log scale
-                    return MathF.Min(1f, (float)Math.Log(1 + 6 * mag));
+                    float result = MathF.Min(1f, (float)Math.Log(1 + 6 * mag));
+                    
+                    // Debug: Log sample values occasionally
+                    if (i % 100 == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AvsVisualizerPlugin] SampleSource FFT: idx={idx}, mag={mag:F6}, result={result:F6}");
+                    }
+                    
+                    return result;
                 }
                 break;
             case Source.Wave:

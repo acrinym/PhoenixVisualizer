@@ -12,7 +12,7 @@ public static class IEffectNodeExtensions
     /// </summary>
     public static IEffectNode With(this IEffectNode node, string paramName, object value)
     {
-        if (node.Params.ContainsKey(paramName))
+        if (node?.Params?.ContainsKey(paramName) == true)
         {
             var param = node.Params[paramName];
             
@@ -36,7 +36,7 @@ public static class IEffectNodeExtensions
                     break;
                 default:
                     // Try to convert to float if possible
-                    if (float.TryParse(value.ToString(), out float floatVal))
+                    if (value != null && float.TryParse(value.ToString(), out float floatVal))
                     {
                         param.FloatValue = floatVal;
                     }
@@ -44,7 +44,7 @@ public static class IEffectNodeExtensions
             }
         }
         
-        return node;
+        return node ?? throw new System.ArgumentNullException(nameof(node), "Node cannot be null");
     }
     
     /// <summary>

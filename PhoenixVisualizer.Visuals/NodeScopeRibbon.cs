@@ -13,11 +13,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Scope Ribbon";
         public NodeScopeRibbon()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var superscope = EffectRegistry.CreateByName("Superscope") ?? throw new InvalidOperationException("Failed to create Superscope effect");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("Failed to create ColorFade effect");
+            var glow = EffectRegistry.CreateByName("Glow") ?? throw new InvalidOperationException("Failed to create Glow effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("Superscope").With("Thickness", 2.0f).With("Smoothing", 0.4f),
-                EffectRegistry.CreateByName("ColorFade").With("Mode", "HSV").With("Speed", 0.30f),
-                EffectRegistry.CreateByName("Glow").With("Radius", 5f).With("Intensity", 0.55f)
+                clearFrame,
+                superscope.With("Thickness", 2.0f).With("Smoothing", 0.4f),
+                colorFade.With("Mode", "HSV").With("Speed", 0.30f),
+                glow.With("Radius", 5f).With("Intensity", 0.55f)
             };
         }
         public void Initialize(int width, int height)

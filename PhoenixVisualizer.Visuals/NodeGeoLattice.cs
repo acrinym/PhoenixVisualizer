@@ -11,11 +11,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Geo Lattice";
         public NodeGeoLattice()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var grid = EffectRegistry.CreateByName("Grid") ?? throw new InvalidOperationException("Failed to create Grid effect");
+            var deform = EffectRegistry.CreateByName("Deform") ?? throw new InvalidOperationException("Failed to create Deform effect");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("Failed to create ColorFade effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("Grid").With("Size", 20).With("Thickness", 1.0f),
-                EffectRegistry.CreateByName("Deform").With("Band", "Treble").With("Amount", 0.22f),
-                EffectRegistry.CreateByName("ColorFade").With("Mode", "HSV").With("Speed", 0.26f)
+                clearFrame,
+                grid.With("Size", 20).With("Thickness", 1.0f),
+                deform.With("Band", "Treble").With("Amount", 0.22f),
+                colorFade.With("Mode", "HSV").With("Speed", 0.26f)
             };
         }
         public void Initialize(int width, int height)

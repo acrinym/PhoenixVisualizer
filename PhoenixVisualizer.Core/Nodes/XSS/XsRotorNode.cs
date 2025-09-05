@@ -36,11 +36,11 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
             c.Fade(0x00000000, Math.Clamp(Params["trail"].FloatValue * 0.1f, 0, 0.25f));
 
             c.SetLineWidth(2f);
+            int segs = 200;
+            Span<(float x, float y)> pts = stackalloc (float, float)[segs];
             for (int k=0;k<n;k++)
             {
                 float t = ctx.Time * spin + k * (MathF.PI * 2 / n);
-                int segs = 200;
-                Span<(float x, float y)> pts = stackalloc (float, float)[segs];
                 for (int i=0;i<segs;i++)
                 {
                     float a = t + i * 0.05f;

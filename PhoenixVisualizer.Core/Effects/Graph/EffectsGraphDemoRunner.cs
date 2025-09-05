@@ -82,8 +82,8 @@ namespace PhoenixVisualizer.Core.Effects.Graph
             {
                 try
                 {
-                    // Create simulated audio features
-                    var audioFeatures = CreateSimulatedAudioFeatures(frameCount);
+                    // NO SIMULATED DATA - Only real audio features
+                    var audioFeatures = CreateEmptyAudioFeatures();
                     
                     // Process the graph
                     var results = graph.ProcessGraph(audioFeatures);
@@ -112,6 +112,27 @@ namespace PhoenixVisualizer.Core.Effects.Graph
             Console.WriteLine($"\n✅ Completed {frameCount} frames in {(DateTime.Now - startTime).TotalMilliseconds:F0}ms");
         }
 
+        private static AudioFeatures CreateEmptyAudioFeatures()
+        {
+            // NO SIMULATED DATA - Return empty audio features
+            return new AudioFeatures
+            {
+                LeftChannel = new float[576],
+                RightChannel = new float[576],
+                CenterChannel = new float[576],
+                Bass = 0.0f,
+                Mid = 0.0f,
+                Treble = 0.0f,
+                RMS = 0.0f,
+                BPM = 0.0f,
+                Beat = false,
+                BeatIntensity = 0.0f,
+                Peak = 0.0f,
+                Volume = 0.0f,
+                IsPlaying = false
+            };
+        }
+        
         private static AudioFeatures CreateSimulatedAudioFeatures(int frameCount)
         {
             var time = frameCount * 0.016; // 16ms per frame
@@ -258,7 +279,7 @@ namespace PhoenixVisualizer.Core.Effects.Graph
             
             for (int i = 0; i < iterations; i++)
             {
-                var audioFeatures = CreateSimulatedAudioFeatures(i);
+                var audioFeatures = CreateEmptyAudioFeatures();
                 var results = graph.ProcessGraph(audioFeatures);
             }
             

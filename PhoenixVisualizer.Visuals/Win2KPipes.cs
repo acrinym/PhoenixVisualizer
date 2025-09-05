@@ -127,7 +127,6 @@ public sealed class Win2KPipes : IVisualizerPlugin
     }
 
     public void RenderFrame(AudioFeatures features, ISkiaCanvas canvas) {
-        int newSegments = 0;
         // FIXED: Audio-reactive time and performance optimizations
         var energy = features.Energy;
         var bass = features.Bass;
@@ -178,7 +177,7 @@ public sealed class Win2KPipes : IVisualizerPlugin
         }
     }
 
-    private void StartNewPipe(AudioFeatures f = null)
+    private void StartNewPipe(AudioFeatures? f = null)
     {
         var newPipe = new List<PipeSegment>();
         // FIXED: Audio-reactive pipe positioning and properties

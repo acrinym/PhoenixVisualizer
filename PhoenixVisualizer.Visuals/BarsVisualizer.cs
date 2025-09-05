@@ -159,7 +159,6 @@ public sealed class BarsVisualizer : IVisualizerPlugin
     private void DrawPlaceholder(ISkiaCanvas canvas)
     {
         // Draw placeholder when no audio data
-        string message = "No Audio Data";
         float centerX = _width / 2f;
         float centerY = _height / 2f;
         
@@ -184,10 +183,6 @@ public sealed class BarsVisualizer : IVisualizerPlugin
             float frequency = (float)i / numBars * 22050f; // Assuming 44.1kHz sample rate
             string label = frequency > 1000f ? $"{frequency / 1000f:F1}k" : $"{frequency:F0}";
             
-            float labelX = i * barWidth + barWidth * 0.5f;
-            float labelY = _height * 0.95f;
-            
-            uint labelColor = 0x80FFFFFF; // Semi-transparent white
             // Note: Text rendering would need to be implemented in ISkiaCanvas
         }
     }

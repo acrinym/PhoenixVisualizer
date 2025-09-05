@@ -32,6 +32,7 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
             bool outline = Params["outline"].BoolValue;
             float s = Params["sat"].FloatValue;
 
+            Span<(float x,float y)> poly = stackalloc (float, float)[4];
             for (int i=0;i<n;i++)
             {
                 float t = (i/(float)n);
@@ -44,7 +45,7 @@ namespace PhoenixVisualizer.Core.Nodes.XSS
                 var v2 = (p.Item1 + 60*MathF.Cos(a), p.Item2 + 60*MathF.Sin(a));
                 var v3 = (p.Item1 + 20*MathF.Cos(a-0.4f), p.Item2 + 20*MathF.Sin(a-0.4f));
 
-                Span<(float x,float y)> poly = stackalloc (float, float)[4]{v0,v1,v2,v3};
+                poly[0] = v0; poly[1] = v1; poly[2] = v2; poly[3] = v3;
                 uint col = XsCommon.HsvToRgba((t+time*0.1f)%1f, s, 0.95f);
                 c.DrawPolygon(poly, col, filled:true);
                 if (outline)

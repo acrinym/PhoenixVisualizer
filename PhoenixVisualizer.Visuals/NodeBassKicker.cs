@@ -11,12 +11,18 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Bass Kicker";
         public NodeBassKicker()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("ClearFrame effect not found");
+            var beatDetect = EffectRegistry.CreateByName("BeatDetect") ?? throw new InvalidOperationException("BeatDetect effect not found");
+            var rings = EffectRegistry.CreateByName("Rings") ?? throw new InvalidOperationException("Rings effect not found");
+            var beatScale = EffectRegistry.CreateByName("BeatScale") ?? throw new InvalidOperationException("BeatScale effect not found");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("ColorFade effect not found");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("BeatDetect").With("Sensitivity", 1.0f),
-                EffectRegistry.CreateByName("Rings").With("Count", 5).With("Thickness", 3.0f),
-                EffectRegistry.CreateByName("BeatScale").With("Amount", 0.35f),
-                EffectRegistry.CreateByName("ColorFade").With("Mode", "HSV").With("Speed", 0.18f)
+                clearFrame,
+                beatDetect.With("Sensitivity", 1.0f),
+                rings.With("Count", 5).With("Thickness", 3.0f),
+                beatScale.With("Amount", 0.35f),
+                colorFade.With("Mode", "HSV").With("Speed", 0.18f)
             };
         }
         public void Initialize(int width, int height)

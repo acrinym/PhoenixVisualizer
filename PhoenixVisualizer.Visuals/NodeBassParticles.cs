@@ -11,11 +11,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Bass Particles";
         public NodeBassParticles()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("ClearFrame effect not found");
+            var beatDetect = EffectRegistry.CreateByName("BeatDetect") ?? throw new InvalidOperationException("BeatDetect effect not found");
+            var particleSystem = EffectRegistry.CreateByName("ParticleSystem") ?? throw new InvalidOperationException("ParticleSystem effect not found");
+            var trails = EffectRegistry.CreateByName("Trails") ?? throw new InvalidOperationException("Trails effect not found");
+
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("BeatDetect").With("Sensitivity", 0.95f),
-                EffectRegistry.CreateByName("ParticleSystem").With("Max", 1500).With("EmitOnBeat", true).With("Rate", 260),
-                EffectRegistry.CreateByName("Trails").With("Decay", 0.92f)
+                clearFrame,
+                beatDetect.With("Sensitivity", 0.95f),
+                particleSystem.With("Max", 1500).With("EmitOnBeat", true).With("Rate", 260),
+                trails.With("Decay", 0.92f)
             };
         }
         public void Initialize(int width, int height)

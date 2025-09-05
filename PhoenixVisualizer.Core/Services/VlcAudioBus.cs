@@ -111,28 +111,7 @@ namespace PhoenixVisualizer.Core.Services
             }
         }
         
-        /// <summary>
-        /// Generates simulated audio data for testing (will be replaced with real VLC audio)
-        /// </summary>
-        private float[] GenerateSimulatedAudioData()
-        {
-            var audioData = new float[AVS_BUFFER_SIZE * 2]; // Stereo
-            
-            for (int i = 0; i < audioData.Length; i++)
-            {
-                // Generate some simulated audio with some variation
-                float time = i / (float)SAMPLE_RATE;
-                float frequency = 440.0f + (i % 100) * 10.0f; // Varying frequency
-                float amplitude = 0.3f + 0.2f * (float)Math.Sin(time * 2.0f); // Varying amplitude
-                
-                audioData[i] = amplitude * (float)Math.Sin(2.0f * Math.PI * frequency * time);
-                
-                // Add some noise
-                audioData[i] += 0.1f * ((float)_random.NextDouble() - 0.5f);
-            }
-            
-            return audioData;
-        }
+        // NO SIMULATED DATA - Only real audio from VLC
         
         /// <summary>
         /// Processes audio data through the processing pipeline
@@ -206,9 +185,8 @@ namespace PhoenixVisualizer.Core.Services
                 {
                     if (_isActive)
                     {
-                        // Generate simulated audio data for testing
-                        var simulatedAudio = GenerateSimulatedAudioData();
-                        await ProcessAudioDataAsync(simulatedAudio);
+                        // NO SIMULATED DATA - Only process real audio from VLC
+                        // Audio processing will happen when real audio data is available
                     }
                     
                     await Task.Delay(frameIntervalMs, _cancellationTokenSource.Token);

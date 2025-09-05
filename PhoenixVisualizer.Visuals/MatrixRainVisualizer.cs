@@ -24,9 +24,7 @@ public sealed class MatrixRainVisualizer : IVisualizerPlugin
     private float[]? _speed;
     private int _cols;
     private int _desiredCols = 64;
-    private float _amplitude;
     private int _width, _height;
-    private float _lastFrameTime;
     private Column[] _columns = new Column[64];
 
     public void Initialize(int width, int height)

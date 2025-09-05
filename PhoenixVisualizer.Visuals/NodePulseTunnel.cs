@@ -10,11 +10,16 @@ namespace PhoenixVisualizer.Visuals
 
         public NodePulseTunnel()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var waveform = EffectRegistry.CreateByName("Waveform") ?? throw new InvalidOperationException("Failed to create Waveform effect");
+            var polarWarp = EffectRegistry.CreateByName("PolarWarp") ?? throw new InvalidOperationException("Failed to create PolarWarp effect");
+            var trails = EffectRegistry.CreateByName("Trails") ?? throw new InvalidOperationException("Failed to create Trails effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("Waveform"),
-                EffectRegistry.CreateByName("PolarWarp"),
-                EffectRegistry.CreateByName("Trails")
+                clearFrame,
+                waveform,
+                polarWarp,
+                trails
             };
         }
 

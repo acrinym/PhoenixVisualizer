@@ -365,7 +365,7 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
         }
     }
 
-    private void SpawnBird(AudioFeatures f = null)
+    private void SpawnBird(AudioFeatures? f = null)
     {
         var bird = new Bird
         {
@@ -382,7 +382,7 @@ public sealed class FlappyBirdVisualizer : IVisualizerPlugin
         _birds.Add(bird);
     }
 
-    private void SpawnPipe(AudioFeatures f = null)
+    private void SpawnPipe(AudioFeatures? f = null)
     {
         // Procedurally generate pipe gap position
         float gapY = _height * 0.3f + _random.NextSingle() * _height * 0.4f;

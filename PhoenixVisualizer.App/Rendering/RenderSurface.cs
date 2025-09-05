@@ -47,7 +47,6 @@ public sealed class RenderSurface : Control
     private float _uiSensitivity = 1.0f;
     private float _uiSmoothing = 0.35f;
     private const int FADE_TICKS_MAX = 8;
-    private int _fadeTicks = 0;
 
     // Events
     public event Action<double>? FpsChanged;
@@ -74,23 +73,28 @@ public sealed class RenderSurface : Control
     public void SetSensitivity(float sensitivity) => _uiSensitivity = sensitivity;
     public void SetSmoothing(float smoothing) => _uiSmoothing = smoothing;
     public void SetMaxDrawCalls(int maxCalls) { /* Implementation needed */ }
+    
+    // Public access to audio service for external control
+    public IAudioProvider? AudioService => _audio;
 
         public void SetPlugin(IVisualizerPlugin plugin)
-    {
-        
-            _fadeTicks = FADE_TICKS_MAX;_plugin?.Dispose();
-        _plugin = plugin;
-        if (Bounds.Width > 0 && Bounds.Height > 0)
         {
-            _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
+            _plugin?.Dispose();
+            _plugin = plugin;
+            if (Bounds.Width > 0 && Bounds.Height > 0)
+            {
+                _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
+            }
         }
-    }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        _plugin?.Initialize((int)Bounds.Width, (int)Bounds.Height);
-        var audioInitResult = _audio.Initialize();
+        if (_plugin != null && Bounds.Width > 0 && Bounds.Height > 0)
+        {
+            _plugin.Initialize((int)Bounds.Width, (int)Bounds.Height);
+        }
+        var audioInitResult = _audio?.Initialize();
         _timer = new Timer(_ => Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Render), null, 0, 16);
     }
 
@@ -99,30 +103,30 @@ public sealed class RenderSurface : Control
         _timer?.Dispose();
         _timer = null;
         _plugin?.Dispose();
-        _audio.Dispose();
+        _audio?.Dispose();
         base.OnDetachedFromVisualTree(e);
     }
 
     public bool Open(string path) 
     {
-        var result = _audio.Open(path);
+        var result = _audio?.Open(path) ?? false;
         return result;
     }
     
     public bool Play() 
     {
-        var result = _audio.Play();
+        var result = _audio?.Play() ?? false;
         return result;
     }
     
     public void Pause() 
     {
-        _audio.Pause();
+        _audio?.Pause();
     }
     
     public void Stop() 
     {
-        _audio.Stop();
+        _audio?.Stop();
     }
 
     public IAudioProvider? GetAudioService() => _audio;
@@ -133,9 +137,16 @@ public sealed class RenderSurface : Control
         
         // Dispose the old audio service
         _audio?.Dispose();
-        
+
         // Set the new one
-        _audio = audioService;
+        _audio = audioService ?? throw new ArgumentNullException(nameof(audioService));
+        
+        // If it's a VlcAudioService, initialize it
+        if (audioService is VlcAudioService vlcAudio)
+        {
+            vlcAudio.Initialize();
+            Debug.WriteLine("[RenderSurface] ✅ VlcAudioService initialized");
+        }
         
         Debug.WriteLine($"[RenderSurface] Audio service switched to: {audioService.GetType().Name}");
     }
@@ -167,10 +178,35 @@ public sealed class RenderSurface : Control
         
         if (_audio != null && _audio.IsReadyToPlay)
         {
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] 🎵 GETTING AUDIO DATA...");
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] 📅 Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] 🎯 Audio service: {_audio != null}");
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] 🎯 Audio status: {_audio.GetStatus()}");
+            
+            System.Diagnostics.Debug.WriteLine("[RenderSurface] 📊 Getting spectrum data...");
             fft = _audio.GetSpectrumData();
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] ✅ Spectrum data: {fft?.Length ?? 0} elements");
+            
+            System.Diagnostics.Debug.WriteLine("[RenderSurface] 🌊 Getting waveform data...");
             wave = _audio.GetWaveformData();
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] ✅ Waveform data: {wave?.Length ?? 0} elements");
+            
+            System.Diagnostics.Debug.WriteLine("[RenderSurface] ⏱️ Getting position...");
             pos = _audio.GetPositionSeconds();
             total = _audio.GetLengthSeconds();
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] ✅ Position: {pos:F2}s, Total: {total:F2}s");
+            
+            // Safety checks - ensure arrays are valid
+            if (fft == null || fft.Length == 0)
+            {
+                fft = new float[512];
+                System.Diagnostics.Debug.WriteLine("[RenderSurface] ⚠️ FFT data is null/empty, using default");
+            }
+            if (wave == null || wave.Length == 0)
+            {
+                wave = new float[1024];
+                System.Diagnostics.Debug.WriteLine("[RenderSurface] ⚠️ Wave data is null/empty, using default");
+            }
             
             // Debug: Check if we're getting actual audio data
             float fftSum = fft.Sum(f => MathF.Abs(f));
@@ -203,20 +239,41 @@ public sealed class RenderSurface : Control
         }
         var vz = _vz;
 
-        // 2) FFT smoothing
+        // 2) FFT smoothing with enhanced logging (Grok's suggestion)
+        int fftLen = Math.Min(fft.Length, _smoothFft.Length); // Safe min
+        System.Diagnostics.Debug.WriteLine($"[RenderSurface] FFT len: {fft.Length}, Smooth len: {_smoothFft.Length} -> Using {fftLen}");
+        
         if (!_fftInit)
         {
-            // First time: copy raw data
-            Array.Copy(fft, _smoothFft, fft.Length);
+            // First time: copy raw data, handling different array sizes
+            Array.Copy(fft, _smoothFft, fftLen);
+            
+            // Zero out remaining elements if fft is shorter
+            if (fft.Length < _smoothFft.Length)
+            {
+                Array.Clear(_smoothFft, fft.Length, _smoothFft.Length - fft.Length);
+            }
+            
             _fftInit = true;
+            System.Diagnostics.Debug.WriteLine($"[RenderSurface] ✅ FFT initialized with {fftLen} elements");
         }
         else
         {
-            // Apply smoothing
+            // Apply smoothing, handling different array sizes
             float smoothingAlpha = TimeDeltaToAlpha(vz.SmoothingMs);
-            for (int i = 0; i < _smoothFft.Length; i++)
+            
+            for (int i = 0; i < fftLen; i++)
             {
                 _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha) + fft[i] * smoothingAlpha;
+            }
+            
+            // Zero out remaining elements if fft is shorter
+            if (fft.Length < _smoothFft.Length)
+            {
+                for (int i = fft.Length; i < _smoothFft.Length; i++)
+                {
+                    _smoothFft[i] = _smoothFft[i] * (1 - smoothingAlpha);
+                }
             }
         }
 

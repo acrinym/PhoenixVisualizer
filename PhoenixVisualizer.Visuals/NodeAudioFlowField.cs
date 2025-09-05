@@ -13,11 +13,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Audio Flow Field";
         public NodeAudioFlowField()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("ClearFrame effect not found");
+            var flowField = EffectRegistry.CreateByName("FlowField") ?? throw new InvalidOperationException("FlowField effect not found");
+            var particleSystem = EffectRegistry.CreateByName("ParticleSystem") ?? throw new InvalidOperationException("ParticleSystem effect not found");
+            var trails = EffectRegistry.CreateByName("Trails") ?? throw new InvalidOperationException("Trails effect not found");
+
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("FlowField").With("Scale", 0.015f).With("Strength", 0.8f),
-                EffectRegistry.CreateByName("ParticleSystem").With("Max", 2000).With("Rate", 400),
-                EffectRegistry.CreateByName("Trails").With("Decay", 0.93f)
+                clearFrame,
+                flowField.With("Scale", 0.015f).With("Strength", 0.8f),
+                particleSystem.With("Max", 2000).With("Rate", 400),
+                trails.With("Decay", 0.93f)
             };
         }
         public void Initialize(int width, int height)

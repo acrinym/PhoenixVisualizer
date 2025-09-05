@@ -11,10 +11,10 @@ namespace PhoenixVisualizer.Visuals
         public NodeBassBloom()
         {
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("SpectrumAnalyzer"),
-                EffectRegistry.CreateByName("ColorFade"),
-                EffectRegistry.CreateByName("Glow")
+                EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("ClearFrame effect not found"),
+                EffectRegistry.CreateByName("SpectrumAnalyzer") ?? throw new InvalidOperationException("SpectrumAnalyzer effect not found"),
+                EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("ColorFade effect not found"),
+                EffectRegistry.CreateByName("Glow") ?? throw new InvalidOperationException("Glow effect not found")
             };
         }
 

@@ -13,11 +13,16 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Hex Grid Pulse";
         public NodeHexGridPulse()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var hexGrid = EffectRegistry.CreateByName("HexGrid") ?? throw new InvalidOperationException("Failed to create HexGrid effect");
+            var beatScale = EffectRegistry.CreateByName("BeatScale") ?? throw new InvalidOperationException("Failed to create BeatScale effect");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("Failed to create ColorFade effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("HexGrid").With("Size", 28).With("Thickness", 1.0f),
-                EffectRegistry.CreateByName("BeatScale").With("Amount", 0.22f),
-                EffectRegistry.CreateByName("ColorFade").With("Mode", "HSV").With("Speed", 0.28f)
+                clearFrame,
+                hexGrid.With("Size", 28).With("Thickness", 1.0f),
+                beatScale.With("Amount", 0.22f),
+                colorFade.With("Mode", "HSV").With("Speed", 0.28f)
             };
         }
         public void Initialize(int width, int height)

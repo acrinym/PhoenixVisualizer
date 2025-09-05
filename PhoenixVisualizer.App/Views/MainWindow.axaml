@@ -51,6 +51,11 @@
                       Background="{DynamicResource MaterialSurface}"
                       Foreground="{DynamicResource MaterialTextPrimary}"
                       CornerRadius="4"/>
+            <ComboBox x:Name="CmbVlcVisualizer" Width="140" Margin="4" 
+                      Background="{DynamicResource MaterialSurface}"
+                      Foreground="{DynamicResource MaterialTextPrimary}"
+                      CornerRadius="4"
+                      ToolTip.Tip="Select VLC built-in visualizer"/>
             <Button x:Name="BtnPluginSwitcher" Content="🔄 Built-in Mode" Margin="4" 
                     Background="{DynamicResource MaterialAccent}" 
                     Foreground="Black"

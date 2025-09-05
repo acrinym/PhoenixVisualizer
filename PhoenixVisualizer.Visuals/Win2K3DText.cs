@@ -206,14 +206,14 @@ public sealed class Win2K3DText : IVisualizerPlugin
         textChar.Triangles.Add((0, 5, 1));
     }
 
-    private void ChangeText(AudioFeatures f = null)
+    private void ChangeText(AudioFeatures? f = null)
     {
         _currentTextIndex = (_currentTextIndex + 1) % _textStrings.Length;
         GenerateTextGeometry(_textStrings[_currentTextIndex]);
         _cycleTime = 0;
     }
 
-    private void ResetAnimation(AudioFeatures f = null)
+    private void ResetAnimation(AudioFeatures? f = null)
     {
         var energy = f?.Energy ?? 0f;
         var bass = f?.Bass ?? 0f;

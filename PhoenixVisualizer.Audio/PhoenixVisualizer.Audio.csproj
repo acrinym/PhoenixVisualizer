@@ -12,9 +12,11 @@
     <ProjectReference Include="..\PhoenixVisualizer.Core\PhoenixVisualizer.Core.csproj" />
   </ItemGroup>
 
+
   <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.9.4" />
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

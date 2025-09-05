@@ -10,11 +10,16 @@ namespace PhoenixVisualizer.Visuals
 
         public NodeParticlesBeat()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var spectrumAnalyzer = EffectRegistry.CreateByName("SpectrumAnalyzer") ?? throw new InvalidOperationException("Failed to create SpectrumAnalyzer effect");
+            var colorFade = EffectRegistry.CreateByName("ColorFade") ?? throw new InvalidOperationException("Failed to create ColorFade effect");
+            var glow = EffectRegistry.CreateByName("Glow") ?? throw new InvalidOperationException("Failed to create Glow effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("SpectrumAnalyzer"),
-                EffectRegistry.CreateByName("ColorFade"),
-                EffectRegistry.CreateByName("Glow")
+                clearFrame,
+                spectrumAnalyzer,
+                colorFade,
+                glow
             };
         }
 

@@ -9,6 +9,41 @@
 - **ReactiveUI MVVM**: Professional command-driven architecture
 - **Audio Integration**: LibVLCSharp for robust multi-format audio playback
 
+## ⚠️ CURRENT ISSUE - VLC BINARY COMPATIBILITY CRISIS
+
+### 🚨 CRITICAL STATUS: Audio Playback Crashes
+**PhoenixVisualizer opens successfully but crashes immediately when attempting to play audio.**
+
+#### The Problem
+- **App Launch**: ✅ Opens without crashing
+- **Audio Playback**: ❌ Crashes with `Illegal Instruction (0xc000001d)` in `libamem_plugin.dll`
+- **Root Cause**: Binary incompatibility between LibVLCSharp 3.9.4 and VLC native libraries
+
+#### Technical Details
+- **Error**: `System.AccessViolationException` in `LibVLCSharp.Shared.MediaPlayer.get_Time()`
+- **Faulting Module**: `libamem_plugin.dll` (VLC's audio memory output plugin)
+- **Exception Code**: `0xc000001d` (Illegal Instruction)
+- **Issue**: Native VLC binaries contain machine code incompatible with LibVLCSharp 3.9.4
+
+#### What We've Tried
+1. ✅ Updated LibVLCSharp from 3.8.5 → 3.9.4
+2. ✅ Tried VideoLAN.LibVLC.Windows 3.0.20 (still crashes)
+3. ✅ Fixed most C# warnings (down from 52 to 3 warnings)
+4. ❌ Attempted to build LibVLCSharp from source (requires Android workloads)
+
+#### Current State
+- **Build Status**: ✅ Builds successfully with only 3 warnings
+- **App Launch**: ✅ Opens without crashing
+- **Audio Playback**: ❌ Crashes with native VLC binary incompatibility
+- **VLC Binaries**: Still using 3.0.21 (incompatible with LibVLCSharp 3.9.4)
+
+#### Next Steps Required
+1. **Option 1**: Find compatible VLC binaries that work with LibVLCSharp 3.9.4
+2. **Option 2**: Downgrade LibVLCSharp to a version compatible with VLC 3.0.21
+3. **Option 3**: Build VLC from source (as originally requested) to get matching binaries
+
+---
+
 ## ✅ PHASE 4 COMPLETE - PROFESSIONAL PHX EDITOR READY FOR PRODUCTION
 
 ### 🎯 PHX Editor Implementation
@@ -149,6 +184,6 @@
 
 ---
 
-**Status**: ✅ PHASE 4 COMPLETE - Professional PHX Editor Production Ready
-**Last Updated**: `2025-01-XX` - Phase 4 Complete - All Features Implemented
-**Next Milestone**: Phase 5 - Ecosystem Expansion (Third-party plugins, marketplace)
+**Status**: ⚠️ VLC BINARY COMPATIBILITY CRISIS - Audio Playback Crashes
+**Last Updated**: `2025-01-27` - VLC Binary Incompatibility Issue Identified
+**Next Milestone**: Fix VLC Binary Compatibility - Build from Source or Find Compatible Versions

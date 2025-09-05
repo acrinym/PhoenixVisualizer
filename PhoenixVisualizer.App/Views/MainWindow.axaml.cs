@@ -3,6 +3,7 @@ using PhoenixVisualizer.Core.Services;
 using PhoenixVisualizer.Core.Avs;
 using PhoenixVisualizer.PluginHost;
 using PhoenixVisualizer.Audio;
+using PhoenixVisualizer.Audio.Interfaces;
 using System.Linq;
 using PhoenixVisualizer.Plugins.Avs;
 using PhoenixVisualizer.App.Rendering;
@@ -23,6 +24,15 @@ using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace PhoenixVisualizer.Views;
+
+public class VlcVisualizerItem
+{
+    public VlcVisualizer Visualizer { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    
+    public override string ToString() => Name;
+}
 
 public partial class MainWindow : Window
 {
@@ -82,6 +92,24 @@ public partial class MainWindow : Window
                 // Initialize based on engine setting
                 InitializeVisualizerFromSettings();
             }
+        }
+
+        // ✅ Populate VLC visualizer dropdown
+        var cmbVlc = this.FindControl<ComboBox>("CmbVlcVisualizer");
+        if (cmbVlc != null)
+        {
+            var vlcVisualizers = new List<VlcVisualizerItem>
+            {
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Goom, Name = "🎨 Goom", Description = "Psychedelic visualizer" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Spectrum, Name = "📊 Spectrum", Description = "Frequency spectrum analyzer" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.Visual, Name = "🌊 Visual", Description = "Simple waveform visualizer" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.ProjectM, Name = "🥛 ProjectM", Description = "Milkdrop-compatible visualizer" },
+                new VlcVisualizerItem { Visualizer = VlcVisualizer.VSXu, Name = "✨ VSXu", Description = "VSXu visualizer" }
+            };
+            
+            cmbVlc.ItemsSource = vlcVisualizers;
+            cmbVlc.SelectionChanged += OnVlcVisualizerSelectionChanged;
+            cmbVlc.SelectedIndex = 0; // Default to Goom
         }
 
         // ✅ Wire plugin switcher button if present
@@ -266,12 +294,12 @@ public partial class MainWindow : Window
                         {
                             RenderSurfaceControl?.SetPlugin(plugin);
                             
-                            // Switch to VLC audio service for Phoenix engine
+                            // Switch to hybrid VLC audio service for Phoenix engine
                             if (RenderSurfaceControl != null)
                             {
                                 var vlcAudioService = new PhoenixVisualizer.Audio.VlcAudioService();
                                 RenderSurfaceControl.SetAudioService(vlcAudioService);
-                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to VLC audio service for Phoenix engine");
+                                System.Diagnostics.Debug.WriteLine("[MainWindow] Switched to hybrid VLC audio service for Phoenix engine");
                             }
                             
                             System.Diagnostics.Debug.WriteLine($"[MainWindow] Phoenix engine initialized with: {phoenixPlugin.DisplayName}");
@@ -1435,6 +1463,35 @@ public partial class MainWindow : Window
             if (statusText != null)
             {
                 statusText.Text = $"❌ Plugin switch failed: {ex.Message}";
+            }
+        }
+    }
+
+    private void OnVlcVisualizerSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        try
+        {
+            if (sender is ComboBox cmb && cmb.SelectedItem is VlcVisualizerItem item)
+            {
+                // Get the VlcAudioService through RenderSurface
+                if (RenderSurfaceControl?.AudioService is VlcAudioService audioService)
+                {
+                    audioService.SetVisualizer(item.Visualizer);
+                    
+                    var statusText = this.FindControl<TextBlock>("LblTime");
+                    if (statusText != null)
+                    {
+                        statusText.Text = $"🎨 VLC Visualizer: {item.Name} - {item.Description}";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var statusText = this.FindControl<TextBlock>("LblTime");
+            if (statusText != null)
+            {
+                statusText.Text = $"❌ VLC visualizer switch failed: {ex.Message}";
             }
         }
     }

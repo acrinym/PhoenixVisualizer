@@ -19,7 +19,6 @@ public sealed class PulseVisualizer : IVisualizerPlugin
     private float _lastLevel = 0f;
     private float _emaLevel = 0f;
     private const float EMA_A = 0.35f;
-    private float _lastBeatLevel = 0f;
     private float _beatPulsePhase = 0f;
 
     // User parameters

@@ -11,12 +11,18 @@ namespace PhoenixVisualizer.Visuals
                 public string DisplayName => "Beat Kaleido Tunnel";
         public NodeBeatKaleidoTunnel()
         {
+            var clearFrame = EffectRegistry.CreateByName("ClearFrame") ?? throw new InvalidOperationException("Failed to create ClearFrame effect");
+            var waveform = EffectRegistry.CreateByName("Waveform") ?? throw new InvalidOperationException("Failed to create Waveform effect");
+            var polarWarp = EffectRegistry.CreateByName("PolarWarp") ?? throw new InvalidOperationException("Failed to create PolarWarp effect");
+            var kaleidoscope = EffectRegistry.CreateByName("Kaleidoscope") ?? throw new InvalidOperationException("Failed to create Kaleidoscope effect");
+            var trails = EffectRegistry.CreateByName("Trails") ?? throw new InvalidOperationException("Failed to create Trails effect");
+            
             _stack = new IEffectNode[] {
-                EffectRegistry.CreateByName("ClearFrame"),
-                EffectRegistry.CreateByName("Waveform").With("Mode", "Rings").With("Gain", 1.1f),
-                EffectRegistry.CreateByName("PolarWarp").With("Spin", 0.2f).With("Zoom", 0.12f),
-                EffectRegistry.CreateByName("Kaleidoscope").With("Segments", 6),
-                EffectRegistry.CreateByName("Trails").With("Decay", 0.90f)
+                clearFrame,
+                waveform.With("Mode", "Rings").With("Gain", 1.1f),
+                polarWarp.With("Spin", 0.2f).With("Zoom", 0.12f),
+                kaleidoscope.With("Segments", 6),
+                trails.With("Decay", 0.90f)
             };
         }
         public void Initialize(int width, int height)

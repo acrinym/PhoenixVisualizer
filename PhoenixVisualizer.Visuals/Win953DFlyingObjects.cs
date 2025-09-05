@@ -163,7 +163,7 @@ public sealed class Win953DFlyingObjects : IVisualizerPlugin
         }
     }
 
-    private void CreateFlyingObject(AudioFeatures f = null)
+    private void CreateFlyingObject(AudioFeatures? f = null)
     {
         // FIXED: Audio-reactive object properties
         var energy = f?.Energy ?? 0f;

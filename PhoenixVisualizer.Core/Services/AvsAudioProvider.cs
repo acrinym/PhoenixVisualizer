@@ -119,8 +119,7 @@ namespace PhoenixVisualizer.Core.Services
                     var frequency = _currentBPM / 60.0f; // Convert BPM to Hz
                     var amplitude = _channelLevels[ch];
                     
-                    channelWaveform[i] = (float)(amplitude * Math.Sin(2 * Math.PI * frequency * time) + 
-                                                (_random.NextDouble() - 0.5) * 0.1f);
+                    channelWaveform[i] = 0.0f; // NO SIMULATED DATA - Only real audio
                 }
                 
                 waveformData[$"channel_{ch}"] = channelWaveform;

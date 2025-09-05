@@ -1,5 +1,14 @@
 namespace PhoenixVisualizer.Audio.Interfaces;
 
+public enum VlcVisualizer
+{
+    Goom,      // Psychedelic visualizer
+    Spectrum,  // Frequency spectrum analyzer
+    Visual,    // Simple waveform visualizer
+    ProjectM,  // Milkdrop-compatible visualizer
+    VSXu       // VSXu visualizer
+}
+
 public interface IAudioService
 {
     void Play(string path);
@@ -15,6 +24,10 @@ public interface IAudioService
     float GetFundamentalFrequency();
     void SetFrequencyPreset(FrequencyPreset preset);
     FrequencyPreset GetCurrentPreset();
+
+    // VLC visualizer support
+    void SetVisualizer(VlcVisualizer visualizer);
+    VlcVisualizer GetCurrentVisualizer();
 
     // Common frequency presets
     enum FrequencyPreset
